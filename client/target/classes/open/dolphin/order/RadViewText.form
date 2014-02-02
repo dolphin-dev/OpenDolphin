@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<Form version="1.5" maxVersion="1.7" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
+  <Properties>
+    <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+      <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
+        <EmptyBorder bottom="11" left="12" right="11" top="12"/>
+      </Border>
+    </Property>
+    <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+      <Dimension value="[1024, 768]"/>
+    </Property>
+    <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+      <Dimension value="[700, 600]"/>
+    </Property>
+    <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+      <Dimension value="[700, 600]"/>
+    </Property>
+  </Properties>
+  <AuxValues>
+    <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="1"/>
+    <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="1"/>
+    <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
+  </AuxValues>
+
+  <Layout>
+    <DimensionLayout dim="0">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" attributes="0">
+              <Component id="infoLabel" min="-2" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="32767" attributes="0"/>
+              <Component id="techCheck" min="-2" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="partCheck" min="-2" max="-2" attributes="0"/>
+          </Group>
+          <Component id="jScrollPane2" alignment="0" max="32767" attributes="0"/>
+          <Component id="jScrollPane1" alignment="0" max="32767" attributes="0"/>
+          <Group type="102" alignment="0" attributes="0">
+              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                  <Group type="102" attributes="0">
+                      <Component id="searchTextField" min="-2" pref="209" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="28" max="-2" attributes="0"/>
+                      <Component id="rtCheck" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="stampNameField" max="32767" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" attributes="0">
+                      <Component id="partialChk" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="partBtn" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="32767" attributes="0"/>
+                      <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Component id="countField" min="-2" pref="64" max="-2" attributes="0"/>
+                  </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="0" pref="39" max="32767" attributes="0"/>
+                      <Component id="deleteBtn" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="clearBtn" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="okBtn" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="okCntBtn" min="-2" max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+          </Group>
+      </Group>
+    </DimensionLayout>
+    <DimensionLayout dim="1">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="infoLabel" min="-2" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="partCheck" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="techCheck" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jScrollPane1" min="-2" pref="185" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="okCntBtn" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="okBtn" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="clearBtn" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="deleteBtn" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="stampNameField" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="searchTextField" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="countField" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jLabel4" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="rtCheck" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="partBtn" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="partialChk" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="jScrollPane2" pref="273" max="32767" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+  </Layout>
+  <SubComponents>
+    <Component class="javax.swing.JLabel" name="infoLabel">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="info" noResource="true"/>
+      </Properties>
+    </Component>
+    <Container class="javax.swing.JScrollPane" name="jScrollPane1">
+      <AuxValues>
+        <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
+      </AuxValues>
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
+      <SubComponents>
+        <Component class="javax.swing.JTable" name="setTable">
+          <Properties>
+            <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
+              <Table columnCount="4" rowCount="4">
+                <Column editable="true" title="Title 1" type="java.lang.Object"/>
+                <Column editable="true" title="Title 2" type="java.lang.Object"/>
+                <Column editable="true" title="Title 3" type="java.lang.Object"/>
+                <Column editable="true" title="Title 4" type="java.lang.Object"/>
+              </Table>
+            </Property>
+            <Property name="toolTipText" type="java.lang.String" value="&#x30bb;&#x30c3;&#x30c8;&#x5185;&#x5bb9;&#x306f; Drag &amp; Drop &#x3067;&#x9806;&#x756a;&#x3092;&#x5165;&#x308c;&#x66ff;&#x3048;&#x308b;&#x3053;&#x3068;&#x304c;&#x3067;&#x304d;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+          </Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Component class="javax.swing.JCheckBox" name="partCheck">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x90e8;&#x4f4d;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" value="&#x30bb;&#x30c3;&#x30c8;&#x306b;&#x90e8;&#x4f4d;&#x304c;&#x3042;&#x308c;&#x3070;&#x30c1;&#x30a7;&#x30c3;&#x30af;&#x3055;&#x308c;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="enabled" type="boolean" value="false"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="techCheck">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x8a3a;&#x7642;&#x884c;&#x70ba;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" value="&#x30bb;&#x30c3;&#x30c8;&#x306b;&#x8a3a;&#x7642;&#x884c;&#x70ba;&#x304c;&#x3042;&#x308c;&#x3070;&#x30c1;&#x30a7;&#x30c3;&#x30af;&#x3055;&#x308c;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="enabled" type="boolean" value="false"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="stampNameField">
+      <Properties>
+        <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+          <Color blue="0" green="ff" red="ff" type="rgb"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" value="&#x30bb;&#x30c3;&#x30c8;&#x540d;&#x3092;&#x7de8;&#x96c6;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="okCntBtn">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x5c55;&#x958b;&#x7d99;&#x7d9a;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" value="&#x30bb;&#x30c3;&#x30c8;&#x3092;&#x30ab;&#x30eb;&#x30c6;&#x306b;&#x5c55;&#x958b;&#x3057;&#x7d99;&#x7d9a;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="okBtn">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x5c55;&#x958b;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" value="&#x30bb;&#x30c3;&#x30c8;&#x3092;&#x30ab;&#x30eb;&#x30c6;&#x306b;&#x5c55;&#x958b;&#x3057;&#x7d42;&#x4e86;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="clearBtn">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x30af;&#x30ea;&#x30a2;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" value="&#x30bb;&#x30c3;&#x30c8;&#x306e;&#x5185;&#x5bb9;&#x3092;&#x30af;&#x30ea;&#x30a2;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="deleteBtn">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x524a;&#x9664;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" value="&#x9078;&#x629e;&#x3057;&#x305f;&#x5185;&#x5bb9;&#x3092;&#x524a;&#x9664;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="searchTextField">
+      <Properties>
+        <Property name="toolTipText" type="java.lang.String" value="&#x691c;&#x7d22;&#x3057;&#x305f;&#x3044;&#x70b9;&#x6570;&#x30de;&#x30b9;&#x30bf;&#x9805;&#x76ee;&#x3092;&#x5165;&#x529b;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="rtCheck">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="RT" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" value="&#x30c1;&#x30a7;&#x30c3;&#x30af;&#x3059;&#x308b;&#x3068;&#x5165;&#x529b;&#x4e2d;&#x306b;&#x30ea;&#x30a2;&#x30eb;&#x30bf;&#x30a4;&#x30e0;&#x3067;&#x691c;&#x7d22;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="countField">
+      <Properties>
+        <Property name="toolTipText" type="java.lang.String" value="&#x691c;&#x7d22;&#x7d50;&#x679c;&#x306e;&#x4ef6;&#x6570;&#x3092;&#x8868;&#x793a;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel4">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x4ef6;&#x6570;" noResource="true"/>
+      </Properties>
+    </Component>
+    <Container class="javax.swing.JScrollPane" name="jScrollPane2">
+      <AuxValues>
+        <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
+      </AuxValues>
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
+      <SubComponents>
+        <Component class="javax.swing.JTable" name="searchResultTable">
+          <Properties>
+            <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
+              <Table columnCount="4" rowCount="4">
+                <Column editable="true" title="Title 1" type="java.lang.Object"/>
+                <Column editable="true" title="Title 2" type="java.lang.Object"/>
+                <Column editable="true" title="Title 3" type="java.lang.Object"/>
+                <Column editable="true" title="Title 4" type="java.lang.Object"/>
+              </Table>
+            </Property>
+          </Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Component class="javax.swing.JButton" name="partBtn">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x90e8;&#x4f4d;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" value="&#x64ae;&#x5f71;&#x90e8;&#x4f4d;&#x3092;&#x691c;&#x7d22;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="partialChk">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x90e8;&#x5206;&#x4e00;&#x81f4;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" value="&#x90e8;&#x5206;&#x4e00;&#x81f4;&#x691c;&#x7d22;&#x3092;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+      </Properties>
+    </Component>
+  </SubComponents>
+</Form>

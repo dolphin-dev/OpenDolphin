@@ -1,0 +1,9 @@
+open.dolphin.project.BaseURISettingPanel #
+open.dolphin.project.ClaimSettingPanel #
+open.dolphin.project.KarteSettingPanel #
+open.dolphin.project.StampSettingPanel #
+open.dolphin.project.LetterSettingPanel #
+open.dolphin.project.CodeHelperSettingPanel #
+#open.dolphin.project.AreaNetWorkSettingPanel #
+#open.dolphin.project.SendMmlSettingPanel #
+open.dolphin.project.IFSettingPanel #

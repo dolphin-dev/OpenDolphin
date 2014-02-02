@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="3.0" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee                         http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+    <filter>
+        <filter-name>LogFilter</filter-name>
+        <filter-class>open.dolphin.rest14.LogFilter</filter-class>
+        <async-supported>true</async-supported>
+    </filter>
+    <filter-mapping>
+        <filter-name>LogFilter</filter-name>
+        <url-pattern>/openSource/*</url-pattern>
+    </filter-mapping>
+    <context-param>
+        <param-name>resteasy.resources</param-name>
+        <param-value>
+                open.dolphin.rest14.AppoResource,
+                open.dolphin.rest14.ChartEventResource,
+                open.dolphin.rest14.KarteResource,
+                open.dolphin.rest14.LetterResource,
+                open.dolphin.rest14.NLabResource,
+                open.dolphin.rest14.PVTResource,
+                open.dolphin.rest14.PVTResource2,
+                open.dolphin.rest14.PatientResource,
+                open.dolphin.rest14.ScheduleResource,
+                open.dolphin.rest14.StampResource,
+                open.dolphin.rest14.SystemResource,
+                open.dolphin.rest14.UserResource,
+                open.dolphin.rest.AppoResource,
+                open.dolphin.rest.ChartEventResource,
+                open.dolphin.rest.KarteResource,
+                open.dolphin.rest.LetterResource,
+                open.dolphin.rest.NLabResource,
+                open.dolphin.rest.PVTResource,
+                open.dolphin.rest.PVTResource2,
+                open.dolphin.rest.PatientResource,
+                open.dolphin.rest.StampResource,
+                open.dolphin.rest.SystemResource,
+                open.dolphin.rest.UserResource,
+                open.orca.rest14.OrcaResource14,
+                open.orca.rest.OrcaResource
+        </param-value>
+    </context-param>
+    <context-param>
+        <param-name>resteasy.servlet.mapping.prefix</param-name>
+        <param-value>/openSource</param-value>
+    </context-param>
+    <listener>
+        <listener-class>
+            org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap
+        </listener-class>
+    </listener>
+    <servlet>
+        <servlet-name>resteasy-servlet</servlet-name>
+        <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
+        <async-supported>true</async-supported>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>resteasy-servlet</servlet-name>
+        <url-pattern>/openSource/*</url-pattern>
+    </servlet-mapping>
+    <!-- session-config>
+    <session-timeout>30</session-timeout>
+  </session-config -->
+</web-app>

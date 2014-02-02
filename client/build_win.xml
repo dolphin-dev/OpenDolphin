@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="project" default="all" basedir="/Users/oh/Develop/Dolphin/Develop/OpenDolphinPro-V1.4/modules">
+    
+    <property name="jarDir" location="${basedir}/jar"/>
+    <property name="jnlpDir" location="${basedir}/win"/>
+    <property name="objDir" location="/Users/oh/Develop/Dolphin/Develop/OpenDolphinPro-V1.4/dolphin-dev/OpenDolphin/client/target"/>
+    
+    <target name="clean">
+        <delete dir="${jarDir}/open"/>
+        <delete dir="${jarDir}/META-INF/plugins"/>
+    </target>
+    
+    <target name="copy">
+        <copy file="${objDir}/OpenDolphin.jar" tofile="${jarDir}/OpenDolphin.jar"/>
+        <copy file="${objDir}/lib/opendolphin-common-2.3.1.jar" tofile="${jarDir}/opendolphin-common-2.3.1.jar"/>
+    </target>
+    
+    <target name="unjar">
+        <unjar src="${jarDir}/opendolphin-common-2.3.1.jar" dest="${jarDir}"/>
+        <unjar src="${jarDir}/OpenDolphin.jar" dest="${jarDir}"/>
+    </target>
+    
+    <target name="clean2">
+        <delete file="${jarDir}/opendolphin-common-2.3.1.jar"/>
+        <delete file="${jarDir}/OpenDolphin.jar"/>
+        <delete file="${jarDir}/META-INF/MANIFEST.MF"/>
+        <delete file="${jarDir}/META-INF/jboss.xml"/>
+        <delete file="${jarDir}/META-INF/persistence.xml"/>
+        <delete dir="${jarDir}/META-INF/maven"/>
+    </target>
+    
+    <target name="jar">
+        <jar destfile="${jarDir}/OpenDolphin.jar" basedir="${jarDir}"/>
+    </target>
+  
+    <target name="sign">
+        <signjar jar="${jarDir}/OpenDolphin.jar"
+               tsaurl="http://timestamp.digicert.com" 
+               keystore="/Users/oh/Develop/Dolphin/Develop/digiCert/openDolphin-2012/OpenDolphin.jks" 
+               storepass="hanagui+"
+               alias="server"/>
+    </target>
+  
+    <target name="move">
+        <move file="${jarDir}/OpenDolphin.jar" tofile="${jnlpDir}/OpenDolphin.jar"/>
+    </target>
+  
+    <target name="all" depends="clean,copy,unjar,clean2,jar,sign,move">
+        <echo message="Creating..." />
+    </target>
+  
+</project>

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<Form version="1.3" maxVersion="1.8" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
+  <AuxValues>
+    <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="2"/>
+    <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
+  </AuxValues>
+
+  <Layout>
+    <DimensionLayout dim="0">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="chkPatientInfo" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="-2" pref="10" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" attributes="0">
+                              <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="facilitCodeField" min="-2" pref="188" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" attributes="0">
+                              <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="tfPeriod" min="-2" pref="142" max="-2" attributes="0"/>
+                          </Group>
+                      </Group>
+                  </Group>
+                  <Component id="chkHomeMedical" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="chkUseDrugInfo" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="29" pref="29" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                          <Group type="102" attributes="0">
+                              <Component id="lblUseDrugId" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="useDrugId" max="32767" attributes="0"/>
+                          </Group>
+                          <Group type="102" attributes="0">
+                              <Component id="lblNarcoticsPractitioner" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="narcoticsPractitioner" min="-2" pref="221" max="-2" attributes="0"/>
+                          </Group>
+                      </Group>
+                  </Group>
+                  <Component id="generalChk" alignment="0" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="32767" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+    <DimensionLayout dim="1">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="chkHomeMedical" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="chkUseDrugInfo" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lblNarcoticsPractitioner" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="narcoticsPractitioner" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lblUseDrugId" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="useDrugId" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="chkPatientInfo" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="jLabel3" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="tfPeriod" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="jLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="facilitCodeField" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="generalChk" min="-2" max="-2" attributes="0"/>
+              <EmptySpace pref="12" max="32767" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+  </Layout>
+  <SubComponents>
+    <Component class="javax.swing.JCheckBox" name="chkHomeMedical">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x5099;&#x8003;&#x6b04;&#x306b;&#x300c;&#x5728;&#x5b85;&#x300d;&#x3092;&#x8a18;&#x5165;"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="chkUseDrugInfo">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x9ebb;&#x85ac;&#x65bd;&#x7528;&#x8005;&#x514d;&#x8a31;&#x756a;&#x53f7;&#x3092;&#x8ee2;&#x5e30;"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblNarcoticsPractitioner">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x9ebb;&#x85ac;&#x65bd;&#x7528;&#x8005;:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="narcoticsPractitioner">
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblUseDrugId">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x9ebb;&#x85ac;&#x65bd;&#x7528;&#x8005;&#x514d;&#x8a31;&#x756a;&#x53f7;:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="useDrugId">
+      <Properties>
+        <Property name="toolTipText" type="java.lang.String" value="&#x30c4;&#x30fc;&#x30eb;&#x30e1;&#x30cb;&#x30e5;&#x30fc;&#x306e;&#x30d7;&#x30ed;&#x30d5;&#x30a3;&#x30fc;&#x30eb;&#x5909;&#x66f4;&#x3067;&#x767b;&#x9332;&#x3057;&#x307e;&#x3059;&#x3002;"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="chkPatientInfo">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x60a3;&#x8005;&#x6c0f;&#x540d;&#x3001;&#x4f4f;&#x6240;&#x3092;&#x8ee2;&#x5e30;"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel3">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x4f7f;&#x7528;&#x671f;&#x9593;:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="tfPeriod">
+      <Properties>
+        <Property name="toolTipText" type="java.lang.String" value="&#x53f3;&#x30af;&#x30ea;&#x30c3;&#x30af;&#x3067;&#x30ab;&#x30ec;&#x30f3;&#x30c0;&#x30fc;&#x304c;&#x30dd;&#x30c3;&#x30d7;&#x30a2;&#x30c3;&#x30d7;&#x3057;&#x307e;&#x3059;&#x3002;"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel1">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x4fdd;&#x967a;&#x533b;&#x7642;&#x6a5f;&#x95a2;&#x30b3;&#x30fc;&#x30c9;:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="facilitCodeField">
+      <Properties>
+        <Property name="editable" type="boolean" value="false"/>
+        <Property name="toolTipText" type="java.lang.String" value="&#x30c4;&#x30fc;&#x30eb;&#x30e1;&#x30cb;&#x30e5;&#x30fc;&#x306e;&#x533b;&#x7642;&#x6a5f;&#x95a2;&#x30b3;&#x30fc;&#x30c9;&#x8aad;&#x307f;&#x8fbc;&#x307f;&#x304b;&#x3089;&#x53d6;&#x5f97;&#x3067;&#x304d;&#x307e;&#x3059;&#x3002;"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="generalChk">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x4e00;&#x822c;&#x540d;&#x3067;&#x51fa;&#x529b;&#x3059;&#x308b;"/>
+      </Properties>
+    </Component>
+  </SubComponents>
+</Form>

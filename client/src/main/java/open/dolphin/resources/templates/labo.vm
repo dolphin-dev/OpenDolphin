@@ -1,0 +1,26 @@
+##------------------------------------- start here
+##   Bundle Template
+##------------------------------------- template here
+<HTML><BODY><TT><FONT SIZE="${hints.getFontSize()}" COLOR="${hints.getBackgroundAs16String()}">
+<TABLE BORDER="${hints.getBorder()}" CELLSPACING="${hints.getCellSpacing()}" CELLPADDING="${hints.getCellPadding()}">
+	<TR BGCOLOR="${hints.getLabelColorAs16String()}">
+#if (${hints.getShowStampName()})
+#if ($stampName == "新規スタンプ" || $stampName == "エディタから発行..." || $stampName == "チェックシート")
+		<TD COLSPAN="3">${model.getOrderName()}</TD>
+#else
+		<TD COLSPAN="3">${model.getOrderName()}(${stampName})</TD>
+#end
+#else
+                <TD COLSPAN="3">${model.getOrderName()}</TD>
+#end
+	</TR>
+	<TR>
+		<TD>・${model.getItemNames()}</TD>
+	</TR>
+#if ($model.getMemo())
+	<TR>
+		<TD COLSPAN="3">$!{model.getMemo()}</TD>
+	</TR>
+#end
+</TABLE>	
+</BODY></HTML>

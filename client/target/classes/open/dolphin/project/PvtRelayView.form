@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<Form version="1.3" maxVersion="1.8" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
+  <Properties>
+    <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+      <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
+        <TitledBorder title="&#x53d7;&#x4ed8;&#x30ea;&#x30ec;&#x30fc;"/>
+      </Border>
+    </Property>
+  </Properties>
+  <AuxValues>
+    <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="2"/>
+    <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
+  </AuxValues>
+
+  <Layout>
+    <DimensionLayout dim="0">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" attributes="0">
+                      <Component id="pvtRelayCheck" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                  </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="1" attributes="0">
+                          <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+                          <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Group type="102" attributes="0">
+                              <Component id="pvtRelayDirField" max="32767" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="pvtRelaySelectionBtn" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <Group type="102" attributes="0">
+                              <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
+                              <Component id="pvtRelayUTF8Radio" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="pvtRelaySHIFTJISRadio" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="pvtRelayEUCRadio" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                          </Group>
+                      </Group>
+                  </Group>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+    <DimensionLayout dim="1">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="pvtRelayCheck" min="-2" max="-2" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="jLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="pvtRelayDirField" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="pvtRelaySelectionBtn" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="pvtRelayUTF8Radio" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="pvtRelaySHIFTJISRadio" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="pvtRelayEUCRadio" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="32767" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+  </Layout>
+  <SubComponents>
+    <Component class="javax.swing.JCheckBox" name="pvtRelayCheck">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x3053;&#x306e;&#x30de;&#x30b7;&#x30f3;&#x3067;&#x53d7;&#x4ed8;&#x60c5;&#x5831;&#x3092;&#x30ea;&#x30ec;&#x30fc;&#x3059;&#x308b;"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel1">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x51fa;&#x529b;&#x5148;&#x30c7;&#x30a3;&#x30ec;&#x30af;&#x30c8;&#x30ea;:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="pvtRelayDirField">
+    </Component>
+    <Component class="javax.swing.JButton" name="pvtRelaySelectionBtn">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x9078;&#x629e;..."/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel2">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x30a8;&#x30f3;&#x30b3;&#x30fc;&#x30c7;&#x30a3;&#x30f3;&#x30b0;:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JRadioButton" name="pvtRelayUTF8Radio">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="UTF-8"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JRadioButton" name="pvtRelaySHIFTJISRadio">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="SHIFT-JIS"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JRadioButton" name="pvtRelayEUCRadio">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="EUC-JP"/>
+      </Properties>
+    </Component>
+  </SubComponents>
+</Form>

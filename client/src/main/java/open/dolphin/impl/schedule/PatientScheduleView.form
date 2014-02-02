@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<Form version="1.3" maxVersion="1.3" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
+  <AuxValues>
+    <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="2"/>
+    <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
+  </AuxValues>
+
+  <Layout>
+    <DimensionLayout dim="0">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="1" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="1" attributes="0">
+                  <Component id="jScrollPane1" alignment="1" pref="769" max="32767" attributes="0"/>
+                  <Group type="102" alignment="1" attributes="0">
+                      <Component id="jLabel2" min="-2" pref="60" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="keywordFld" min="-2" pref="188" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="countLbl" min="-2" pref="37" max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Component id="updateButton" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="32767" attributes="0"/>
+                      <Component id="rpButton" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="claimChk" min="-2" max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+    <DimensionLayout dim="1">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="keywordFld" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="countLbl" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="updateButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="rpButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="claimChk" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="-2" pref="7" max="-2" attributes="0"/>
+              <Component id="jScrollPane1" pref="519" max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+  </Layout>
+  <SubComponents>
+    <Container class="javax.swing.JScrollPane" name="jScrollPane1">
+      <AuxValues>
+        <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
+      </AuxValues>
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
+      <SubComponents>
+        <Component class="javax.swing.JTable" name="table">
+          <Properties>
+            <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
+              <Table columnCount="4" rowCount="4">
+                <Column editable="true" title="Title 1" type="java.lang.Object"/>
+                <Column editable="true" title="Title 2" type="java.lang.Object"/>
+                <Column editable="true" title="Title 3" type="java.lang.Object"/>
+                <Column editable="true" title="Title 4" type="java.lang.Object"/>
+              </Table>
+            </Property>
+          </Properties>
+          <AuxValues>
+            <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new AddressTipsTable()"/>
+          </AuxValues>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Component class="javax.swing.JTextField" name="keywordFld">
+      <Properties>
+        <Property name="toolTipText" type="java.lang.String" value="&#x53f3;&#x30af;&#x30ea;&#x30c3;&#x30af;&#x3067;&#x4e88;&#x5b9a;&#x65e5;&#x3092;&#x9078;&#x629e;&#x3057;&#x307e;&#x3059;&#x3002;"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel2">
+      <Properties>
+        <Property name="horizontalAlignment" type="int" value="4"/>
+        <Property name="text" type="java.lang.String" value="&#x4e88;&#x5b9a;&#x65e5;:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="countLbl">
+      <Properties>
+        <Property name="horizontalAlignment" type="int" value="4"/>
+        <Property name="text" type="java.lang.String" value="0 &#x4ef6;"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="rpButton">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x51e6;&#x65b9;&#x9069;&#x7528;"/>
+        <Property name="toolTipText" type="java.lang.String" value="&#x524d;&#x56de;&#x51e6;&#x65b9;&#x3092;&#x9069;&#x7528;&#x3057;&#x4e88;&#x5b9a;&#x65e5;&#x306e;&#x30ab;&#x30eb;&#x30c6;&#x3092;&#x4f5c;&#x6210;&#x3057;&#x307e;&#x3059;&#x3002;"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="updateButton">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x66f4; &#x65b0;"/>
+        <Property name="toolTipText" type="java.lang.String" value="&#x4e88;&#x5b9a;&#x30ea;&#x30b9;&#x30c8;&#x3092;&#x66f4;&#x65b0;&#x3057;&#x307e;&#x3059;&#x3002;"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="claimChk">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="CLAIM&#x9001;&#x4fe1;"/>
+        <Property name="toolTipText" type="java.lang.String" value="&#x30ab;&#x30eb;&#x30c6;&#x306e;&#x4f5c;&#x6210;&#x3068;&#x540c;&#x6642;&#x306b;ORCA&#x3078;&#x9001;&#x4fe1;&#x3057;&#x307e;&#x3059;&#x3002;"/>
+      </Properties>
+    </Component>
+  </SubComponents>
+</Form>
