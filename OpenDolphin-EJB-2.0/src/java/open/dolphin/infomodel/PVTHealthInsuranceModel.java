@@ -192,7 +192,7 @@ public class PVTHealthInsuranceModel extends InfoModel  {
         if (insuranceClass != null) {
             sb.append(insuranceClass);
         } else {
-            sb.append("è¨˜è¼‰ç„¡");
+            sb.append("‹LÚ–³");
         }
         
         if (pvtPublicInsuranceItem != null) {
@@ -207,13 +207,13 @@ public class PVTHealthInsuranceModel extends InfoModel  {
     
     public String toClaim() {
         
-        // å¿…é ˆè¦ç´ ã®ã¿å‡ºåŠ›        
+        // •K{—v‘f‚Ì‚İo—Í        
 //        <mmlHi:HealthInsuranceModule mmlHi:countryType="JPN">
-//		<mmlHi:insuranceClass mmlHi:ClassCode="00" mmlHi:tableId="MML0031">å›½ä¿</mmlHi:insuranceClass>
+//		<mmlHi:insuranceClass mmlHi:ClassCode="00" mmlHi:tableId="MML0031">‘•Û</mmlHi:insuranceClass>
 //		<mmlHi:insuranceNumber>138156</mmlHi:insuranceNumber>
 //		<mmlHi:clientId>
-//			<mmlHi:group>ï¼‘ï¼‘ï¼‘</mmlHi:group>
-//			<mmlHi:number>ï¼‘ï¼‘ï¼‘</mmlHi:number>
+//			<mmlHi:group>‚P‚P‚P</mmlHi:group>
+//			<mmlHi:number>‚P‚P‚P</mmlHi:number>
 //		</mmlHi:clientId>
 //		<mmlHi:familyClass>true</mmlHi:familyClass>
 //		<mmlHi:startDate>2010-04-01</mmlHi:startDate>

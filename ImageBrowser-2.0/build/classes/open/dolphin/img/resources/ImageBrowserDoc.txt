@@ -1,7 +1,0 @@
-chooseDirectory.Action.text=画像の場所...
-refresh.Action.text=更新
-doSetting.Action.text=設定...
-jpegView.mac=/Applications/Preview.app
-pdfView.mac=/Applications/Preview.app
-jpegView.win=C:\\Program Files\\Internet Explorer\\iexplore.exe
-pdfView.win=C:\\Program Files\\Internet Explorer\\iexplore.exe

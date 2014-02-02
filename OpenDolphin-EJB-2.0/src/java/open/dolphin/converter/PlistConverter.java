@@ -1,7 +1,9 @@
 package open.dolphin.converter;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
@@ -263,7 +265,7 @@ public final class PlistConverter {
             throws IOException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, MessagingException, ClassNotFoundException, InstantiationException {
 
-        // classÂêç„Åã„Çâ key „ÇíÁîüÊàê„Åô„Çã
+        // classñºÇ©ÇÁ key Çê∂ê¨Ç∑ÇÈ
         String clsName = target.getClass().getName();
         int from = clsName.lastIndexOf(".") + 1;
         int to = clsName.indexOf(CONVERTER_EXT);

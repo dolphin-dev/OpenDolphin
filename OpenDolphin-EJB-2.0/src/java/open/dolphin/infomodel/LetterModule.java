@@ -19,88 +19,88 @@ public class LetterModule extends KarteEntryBean implements Serializable {
     // Title
     private String title;
 
-    // ç´¹ä»‹çŠ¶ç¨®åˆ¥
+    // Ğ‰îóí•Ê
     private String letterType;
 
     // Handle Class
     private String handleClass;
 
-    // ç´¹ä»‹å…ƒç—…é™¢
+    // Ğ‰îŒ³•a‰@
     private String clientHospital;
 
-    // ç´¹ä»‹å…ƒè¨ºç™‚ç§‘
+    // Ğ‰îŒ³f—Ã‰È
     private String clientDept;
 
-    // ç´¹ä»‹å…ƒåŒ»å¸«
+    // Ğ‰îŒ³ˆãt
     private String clientDoctor;
 
-    // ç´¹ä»‹å…ƒéƒµä¾¿ç•ªå·
+    // Ğ‰îŒ³—X•Ö”Ô†
     private String clientZipCode;
 
-    // ç´¹ä»‹å…ƒä½æ‰€
+    // Ğ‰îŒ³ZŠ
     private String clientAddress;
 
-    // ç´¹ä»‹å…ƒé›»è©±ç•ªå·
+    // Ğ‰îŒ³“d˜b”Ô†
     private String clientTelephone;
 
-    // ç´¹ä»‹å…ƒFAXç•ªå·
+    // Ğ‰îŒ³FAX”Ô†
     private String clientFax;
 
-    // ç´¹ä»‹å…ˆç—…é™¢
+    // Ğ‰îæ•a‰@
     private String consultantHospital;
 
-    // ç´¹ä»‹å…ˆè¨ºç™‚ç§‘
+    // Ğ‰îæf—Ã‰È
     private String consultantDept;
 
-    // ç´¹ä»‹å…ˆåŒ»å¸«
+    // Ğ‰îæˆãt
     private String consultantDoctor;
 
-    // ç´¹ä»‹å…ˆéƒµä¾¿ç•ªå·
+    // Ğ‰îæ—X•Ö”Ô†
     private String consultantZipCode;
 
-    // ç´¹ä»‹å…ˆä½æ‰€
+    // Ğ‰îæZŠ
     private String consultantAddress;
 
-    // ç´¹ä»‹å…ˆé›»è©±ç•ªå·
+    // Ğ‰îæ“d˜b”Ô†
     private String consultantTelephone;
 
-    // ç´¹ä»‹å…ˆFAXç•ªå·
+    // Ğ‰îæFAX”Ô†
     private String consultantFax;
 
-    // æ‚£è€…ID
+    // Š³ÒID
     private String patientId;
 
-    // æ‚£è€…æ°å
+    // Š³Ò–¼
     private String patientName;
 
-    // æ‚£è€…ã‚«ãƒŠ
+    // Š³ÒƒJƒi
     private String patientKana;
 
-    // æ‚£è€…æ€§åˆ¥
+    // Š³Ò«•Ê
     private String patientGender;
 
-    // æ‚£è€…ç”Ÿå¹´æœˆæ—¥
+    // Š³Ò¶”NŒ“ú
     private String patientBirthday;
 
-    // æ‚£è€…å¹´é½¢
+    // Š³Ò”N—î
     private String patientAge;
 
-    // è·æ¥­
+    // E‹Æ
     private String patientOccupation;
 
-    // æ‚£è€…éƒµä¾¿ç•ªå·
+    // Š³Ò—X•Ö”Ô†
     private String patientZipCode;
 
-    // æ‚£è€…ä½æ‰€
+    // Š³ÒZŠ
     private String patientAddress;
     
-    // æ‚£è€…é›»è©±ç•ªå·
+    // Š³Ò“d˜b”Ô†
     private String patientTelephone;
     
-    // æ‚£è€…æºå¸¯ç•ªå·
+    // Š³ÒŒg‘Ñ”Ô†
     private String patientMobilePhone;
     
-    // æ‚£è€…Faxç•ªå·
+    // Š³ÒFax”Ô†
     private String patientFaxNumber;
 
     //@OneToMany(mappedBy="module", cascade={CascadeType.ALL})

@@ -17,7 +17,8 @@ import javax.persistence.Transient;
  */
 @Entity
 @Table(name = "d_module")
-public class ModuleModel extends KarteEntryBean implements Stamp, java.io.Serializable {
+public class ModuleModel extends KarteEntryBean 
+        implements Stamp, java.io.Serializable, java.lang.Cloneable {
     
     @Embedded
     private ModuleInfoBean moduleInfo;
@@ -34,7 +35,7 @@ public class ModuleModel extends KarteEntryBean implements Stamp, java.io.Serial
     private DocumentModel document;
     
     /**
-     * ModuleModelã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆã™ã‚‹ã€‚
+     * ModuleModelƒIƒuƒWƒFƒNƒg‚ğ¶¬‚·‚éB
      */
     public ModuleModel() {
         moduleInfo = new ModuleInfoBean();
@@ -49,56 +50,56 @@ public class ModuleModel extends KarteEntryBean implements Stamp, java.io.Serial
     }
     
     /**
-     * ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«æƒ…å ±ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param moduleInfo ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«æƒ…å ±
+     * ƒ‚ƒWƒ…[ƒ‹î•ñ‚ğİ’è‚·‚éB
+     * @param moduleInfo ƒ‚ƒWƒ…[ƒ‹î•ñ
      */
     public void setModuleInfoBean(ModuleInfoBean moduleInfo) {
         this.moduleInfo = moduleInfo;
     }
     
     /**
-     * ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«æƒ…å ±ã‚’è¿”ã™ã€‚
-     * @return ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«æƒ…å ±
+     * ƒ‚ƒWƒ…[ƒ‹î•ñ‚ğ•Ô‚·B
+     * @return ƒ‚ƒWƒ…[ƒ‹î•ñ
      */
     public ModuleInfoBean getModuleInfoBean() {
         return moduleInfo;
     }
     
     /**
-     * ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®æƒ…å ±ãƒ¢ãƒ‡ãƒ«ï¼ˆå®Ÿä½“ã®POJO)ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param model ãƒ¢ãƒ‡ãƒ«
+     * ƒ‚ƒWƒ…[ƒ‹‚Ìî•ñƒ‚ƒfƒ‹iÀ‘Ì‚ÌPOJO)‚ğİ’è‚·‚éB
+     * @param model ƒ‚ƒfƒ‹
      */
     public void setModel(IInfoModel model) {
         this.model = model;
     }
     
     /**
-     * ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®æƒ…å ±ãƒ¢ãƒ‡ãƒ«ï¼ˆå®Ÿä½“ã®POJO)ã‚’è¿”ã™ã€‚
-     * @return ãƒ¢ãƒ‡ãƒ«
+     * ƒ‚ƒWƒ…[ƒ‹‚Ìî•ñƒ‚ƒfƒ‹iÀ‘Ì‚ÌPOJO)‚ğ•Ô‚·B
+     * @return ƒ‚ƒfƒ‹
      */
     public IInfoModel getModel() {
         return model;
     }
     
     /**
-     * ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®æ°¸ç¶šåŒ–ãƒã‚¤ãƒˆé…åˆ—ã‚’è¿”ã™ã€‚
-     * @return ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®æ°¸ç¶šåŒ–ãƒã‚¤ãƒˆé…åˆ—
+     * ƒ‚ƒWƒ…[ƒ‹‚Ì‰i‘±‰»ƒoƒCƒg”z—ñ‚ğ•Ô‚·B
+     * @return ƒ‚ƒWƒ…[ƒ‹‚Ì‰i‘±‰»ƒoƒCƒg”z—ñ
      */
     public byte[] getBeanBytes() {
         return beanBytes;
     }
     
     /**
-     * ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®æ°¸ç¶šåŒ–ãƒã‚¤ãƒˆé…åˆ—ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param beanBytes ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã®æ°¸ç¶šåŒ–ãƒã‚¤ãƒˆé…åˆ—
+     * ƒ‚ƒWƒ…[ƒ‹‚Ì‰i‘±‰»ƒoƒCƒg”z—ñ‚ğİ’è‚·‚éB
+     * @param beanBytes ƒ‚ƒWƒ…[ƒ‹‚Ì‰i‘±‰»ƒoƒCƒg”z—ñ
      */
     public void setBeanBytes(byte[] beanBytes) {
         this.beanBytes = beanBytes;
     }
     
     /**
-     * ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆã«ç¾ã‚Œã‚‹é †ç•ªã§æ¯”è¼ƒã™ã‚‹ã€‚
-     * @return æ¯”è¼ƒå€¤
+     * ƒhƒLƒ…ƒƒ“ƒg‚ÉŒ»‚ê‚é‡”Ô‚Å”äŠr‚·‚éB
+     * @return ”äŠr’l
      */
     @Override
     public int compareTo(Object other) {
@@ -108,5 +109,48 @@ public class ModuleModel extends KarteEntryBean implements Stamp, java.io.Serial
             return moduleInfo1.compareTo(moduleInfo2);
         }
         return -1;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        ModuleModel ret = new ModuleModel();
+        ret.setConfirmed(this.getConfirmed());
+        ret.setEnded(this.getEnded());
+        ret.setFirstConfirmed(this.getConfirmed());
+        ret.setLinkId(this.getLinkId());
+        ret.setLinkRelation(this.getLinkRelation());
+        ret.setModuleInfoBean((ModuleInfoBean)this.getModuleInfoBean().clone());
+        ret.setRecorded(this.getRecorded());
+        ret.setStarted(this.getStarted());
+        ret.setStatus(this.getStatus());
+
+        byte[] bytes = this.getBeanBytes();
+        if (bytes!=null) {
+            byte[] dest = new byte[bytes.length];
+            System.arraycopy(bytes, 0, dest, 0, bytes.length);
+            ret.setBeanBytes(dest);
+        }
+
+        if (model!=null) {
+            if (model instanceof BundleDolphin) {
+                BundleDolphin m = (BundleDolphin)model;
+                ret.setModel((BundleDolphin)m.clone());
+            } else if (model instanceof BundleMed) {
+                BundleMed m = (BundleMed)model;
+                ret.setModel((BundleMed)m.clone());
+            } else if (model instanceof ProgressCourse) {
+                ProgressCourse m = (ProgressCourse)model;
+                ret.setModel((ProgressCourse)m.clone());
+            } else {
+                throw new CloneNotSupportedException();
+            }
+        }
+
+        // ‰º‹L‚Í—˜—p‘¤‚ÅÄİ’è‚·‚é
+        //ret.setKarteBean(this.getKarteBean());
+        //ret.setUserModel(this.getUserModel());
+        //ret.setDocumentModel(this.getDocumentModel());
+
+        return ret;
     }
 }

@@ -260,7 +260,7 @@ public class TensuMaster implements Serializable {
             ret = ClaimConst.SLOT_SYUGI;
 
         } else if (srycd.startsWith(ClaimConst.YAKUZAI_CODE_START)) {
-            //蜀�逕ｨ1縲∝､也畑6縲∵ｳｨ蟆�阮ｬ4
+            //内用1、外用6、注射薬4
             if (ykzkbn.equals(ClaimConst.YKZ_KBN_NAIYO)) {
                 ret = ClaimConst.SLOT_NAIYO_YAKU;
 

@@ -50,7 +50,8 @@ public final class RegisteredDiagnosisModelConverter implements IInfoModelConver
     }
 
     public String getStatus() {
-        return model.getStatus();
+        return IInfoModel.STATUS_FINAL;
+        //return model.getStatus();
     }
 
     public UserModel getUserModel() {

@@ -41,8 +41,8 @@ public class StampServiceBean implements StampServiceBeanLocal {
     private EntityManager em;
 
     /**
-     * userå€‹äººã®StampTreeã‚’ä¿å­˜/æ›´æ–°ã™ã‚‹ã€‚
-     * @param model ä¿å­˜ã™ã‚‹ StampTree
+     * userŒÂl‚ÌStampTree‚ğ•Û‘¶/XV‚·‚éB
+     * @param model •Û‘¶‚·‚é StampTree
      * @return id
      */
     @Override
@@ -53,9 +53,9 @@ public class StampServiceBean implements StampServiceBeanLocal {
     }
 
     /**
-     * Userå€‹äººåŠã³ã‚µãƒ–ã‚¹ã‚¯ãƒ©ã‚¤ãƒ–ã—ã¦ã„ã‚‹Treeã‚’å–å¾—ã™ã‚‹ã€‚
+     * UserŒÂl‹y‚ÑƒTƒuƒXƒNƒ‰ƒCƒu‚µ‚Ä‚¢‚éTree‚ğæ“¾‚·‚éB
      * @param userPk userId(DB key)
-     * @return Userå€‹äººåŠã³ã‚µãƒ–ã‚¹ã‚¯ãƒ©ã‚¤ãƒ–ã—ã¦ã„ã‚‹Treeã®ãƒªã‚¹ãƒˆ
+     * @return UserŒÂl‹y‚ÑƒTƒuƒXƒNƒ‰ƒCƒu‚µ‚Ä‚¢‚éTree‚ÌƒŠƒXƒg
      */
     @Override
     public List<IStampTreeModel> getTrees(long userPK) {
@@ -63,25 +63,25 @@ public class StampServiceBean implements StampServiceBeanLocal {
         List<IStampTreeModel> ret = new ArrayList<IStampTreeModel>();
 
         //
-        // ãƒ‘ãƒ¼ã‚½ãƒŠãƒ«ãƒ„ãƒªãƒ¼ã‚’å–å¾—ã™ã‚‹
+        // ƒp[ƒ\ƒiƒ‹ƒcƒŠ[‚ğæ“¾‚·‚é
         //
         List<StampTreeModel> list = (List<StampTreeModel>)
                 em.createQuery(QUERY_TREE_BY_USER_PK)
                   .setParameter(USER_PK, userPK)
                   .getResultList();
 
-        // æ–°è¦ãƒ¦ãƒ¼ã‚¶ã®å ´åˆ
+        // V‹Kƒ†[ƒU‚Ìê‡
         if (list.isEmpty()) {
             return ret;
         }
 
-        // æœ€åˆã® Tree ã‚’è¿½åŠ 
+        // Å‰‚Ì Tree ‚ğ’Ç‰Á
         StampTreeModel st = (StampTreeModel) list.remove(0);
         ret.add(st);
 
-        // ã¾ã ã‚ã‚‹å ´åˆ BUG
+        // ‚Ü‚¾‚ ‚éê‡ BUG
         if (list.size() > 0) {
-            // å¾Œã¯ delete ã™ã‚‹
+            // Œã‚Í delete ‚·‚é
             for (int i=0; i < list.size(); i++) {
                 st = (StampTreeModel) list.remove(0);
                 em.remove(st);
@@ -89,7 +89,7 @@ public class StampServiceBean implements StampServiceBeanLocal {
         }
 
         //
-        // ãƒ¦ãƒ¼ã‚¶ãŒã‚µãƒ–ã‚¹ã‚¯ãƒ©ã‚¤ãƒ–ã—ã¦ã„ã‚‹StampTreeã®ãƒªã‚¹ãƒˆã‚’å–å¾—ã™ã‚‹
+        // ƒ†[ƒU‚ªƒTƒuƒXƒNƒ‰ƒCƒu‚µ‚Ä‚¢‚éStampTree‚ÌƒŠƒXƒg‚ğæ“¾‚·‚é
         //
         List<SubscribedTreeModel> subscribed =
             (List<SubscribedTreeModel>)em.createQuery(QUERY_SUBSCRIBED_BY_USER_PK)
@@ -100,10 +100,10 @@ public class StampServiceBean implements StampServiceBeanLocal {
 
         for (SubscribedTreeModel sm : subscribed) {
 
-            // BUG é‡è¤‡ã‚’ãƒã‚§ãƒƒã‚¯ã™ã‚‹
+            // BUG d•¡‚ğƒ`ƒFƒbƒN‚·‚é
             if (tmp.get(sm.getTreeId()) == null) {
 
-                // ã¾ã å­˜åœ¨ã—ãªã„å ´åˆ
+                // ‚Ü‚¾‘¶İ‚µ‚È‚¢ê‡
                 tmp.put(sm.getTreeId(), "A");
 
                 try {
@@ -121,7 +121,7 @@ public class StampServiceBean implements StampServiceBeanLocal {
                 }
 
             } else {
-                // é‡è¤‡ã—ã¦ã‚¤ãƒ³ãƒãƒ¼ãƒˆã—ã¦ã„ã‚‹å ´åˆã«å‰Šé™¤ã™ã‚‹
+                // d•¡‚µ‚ÄƒCƒ“ƒ|[ƒg‚µ‚Ä‚¢‚éê‡‚Éíœ‚·‚é
                 em.remove(sm);
             }
         }
@@ -130,19 +130,19 @@ public class StampServiceBean implements StampServiceBeanLocal {
     }
 
     /**
-     * ã¾ã ä¿å­˜ã•ã‚Œã¦ã„ãªã„å€‹äººç”¨ã®Treeã‚’ä¿å­˜ã—å…¬é–‹ã™ã‚‹ã€‚
+     * ‚Ü‚¾•Û‘¶‚³‚ê‚Ä‚¢‚È‚¢ŒÂl—p‚ÌTree‚ğ•Û‘¶‚µŒöŠJ‚·‚éB
      */
     @Override
     public long saveAndPublishTree(StampTreeModel model, byte[] publishBytes) {
 
         //
-        // æœ€åˆã«ä¿å­˜ã™ã‚‹
+        // Å‰‚É•Û‘¶‚·‚é
         //
         em.persist(model);
 
         //
-        // å…¬é–‹ç”¨Treeãƒ¢ãƒ‡ãƒ«ã‚’ç”Ÿæˆã—å€¤ã‚’ã‚³ãƒ”ãƒ¼ã™ã‚‹
-        // å…¬é–‹Treeã®id=å€‹äººç”¨Treeã®Id
+        // ŒöŠJ—pTreeƒ‚ƒfƒ‹‚ğ¶¬‚µ’l‚ğƒRƒs[‚·‚é
+        // ŒöŠJTree‚Ìid=ŒÂl—pTree‚ÌId
         //
         PublishedTreeModel publishedModel = new PublishedTreeModel();
         publishedModel.setId(model.getId());
@@ -158,11 +158,11 @@ public class StampServiceBean implements StampServiceBeanLocal {
         publishedModel.setTreeBytes(publishBytes);
 
         //
-        // å…¬é–‹Treeã‚’ä¿å­˜ã™ã‚‹
+        // ŒöŠJTree‚ğ•Û‘¶‚·‚é
         //
         em.persist(publishedModel);
 
-        // id ã‚’è¿”ã™
+        // id ‚ğ•Ô‚·
         return model.getId();
     }
 
@@ -182,36 +182,36 @@ public class StampServiceBean implements StampServiceBeanLocal {
 
 
     /**
-     * ä¿å­˜ã•ã‚Œã¦ã„ã‚‹å€‹äººç”¨ã®Treeã‚’æ–°è¦ã«å…¬é–‹ã™ã‚‹ã€‚
-     * @param model å…¬é–‹ã™ã‚‹StampTree
+     * •Û‘¶‚³‚ê‚Ä‚¢‚éŒÂl—p‚ÌTree‚ğV‹K‚ÉŒöŠJ‚·‚éB
+     * @param model ŒöŠJ‚·‚éStampTree
      */
     @Override
     public int publishTree(StampTreeModel model, byte[] publishBytes) {
 
         //
-        // æœ€åˆã«æ›´æ–°ã™ã‚‹
+        // Å‰‚ÉXV‚·‚é
         //
         em.merge(model);
 
         //
-        // å…¬é–‹ç”¨StampTreeModelã‚’ç”Ÿæˆã—å€¤ã‚’ã‚³ãƒ”ãƒ¼ã™ã‚‹
-        // å…¬é–‹Treeã®id=å€‹äººç”¨Treeã®Id
+        // ŒöŠJ—pStampTreeModel‚ğ¶¬‚µ’l‚ğƒRƒs[‚·‚é
+        // ŒöŠJTree‚Ìid=ŒÂl—pTree‚ÌId
         //
         PublishedTreeModel publishedModel = new PublishedTreeModel();
         publishedModel.setId(model.getId());                            // pk
         publishedModel.setUserModel(model.getUserModel());                        // UserModel
-        publishedModel.setName(model.getName());                        // åç§°
-        publishedModel.setPublishType(model.getPublishType());          // å…¬é–‹ã‚¿ã‚¤ãƒ—
-        publishedModel.setCategory(model.getCategory());                // ã‚«ãƒ†ã‚´ãƒª
-        publishedModel.setPartyName(model.getPartyName());              // ãƒ‘ãƒ¼ãƒ†ã‚£ãƒ¼å
+        publishedModel.setName(model.getName());                        // –¼Ì
+        publishedModel.setPublishType(model.getPublishType());          // ŒöŠJƒ^ƒCƒv
+        publishedModel.setCategory(model.getCategory());                // ƒJƒeƒSƒŠ
+        publishedModel.setPartyName(model.getPartyName());              // ƒp[ƒeƒB[–¼
         publishedModel.setUrl(model.getUrl());                          // URL
-        publishedModel.setDescription(model.getDescription());          // èª¬æ˜
-        publishedModel.setPublishedDate(model.getPublishedDate());      // å…¬é–‹æ—¥
-        publishedModel.setLastUpdated(model.getLastUpdated());          // æ›´æ–°æ—¥
+        publishedModel.setDescription(model.getDescription());          // à–¾
+        publishedModel.setPublishedDate(model.getPublishedDate());      // ŒöŠJ“ú
+        publishedModel.setLastUpdated(model.getLastUpdated());          // XV“ú
         publishedModel.setTreeBytes(publishBytes);                      // XML bytes
 
         //
-        // å…¬é–‹Treeã‚’ä¿å­˜ã™ã‚‹
+        // ŒöŠJTree‚ğ•Û‘¶‚·‚é
         //
         em.persist(publishedModel);
 
@@ -237,20 +237,20 @@ public class StampServiceBean implements StampServiceBeanLocal {
     }
 
     /**
-     * å…¬é–‹ã—ã¦ã„ã‚‹Treeã‚’æ›´æ–°ã™ã‚‹ã€‚
-     * @param model å…¬é–‹ã—ã¦ã„ã‚‹Tree
-     * @return æ›´æ–°ã—ãŸæ•°
+     * ŒöŠJ‚µ‚Ä‚¢‚éTree‚ğXV‚·‚éB
+     * @param model ŒöŠJ‚µ‚Ä‚¢‚éTree
+     * @return XV‚µ‚½”
      */
     @Override
     public int updatePublishedTree(StampTreeModel model, byte[] publishBytes) {
 
         //
-        // æœ€åˆã«æ›´æ–°ã™ã‚‹
+        // Å‰‚ÉXV‚·‚é
         //
         em.merge(model);
 
         //
-        // å…¬é–‹ç”¨Treeã¸ã‚³ãƒ”ãƒ¼ã™ã‚‹
+        // ŒöŠJ—pTree‚ÖƒRƒs[‚·‚é
         //
         PublishedTreeModel publishedModel = new PublishedTreeModel();
         publishedModel.setId(model.getId());
@@ -266,8 +266,8 @@ public class StampServiceBean implements StampServiceBeanLocal {
         publishedModel.setTreeBytes(publishBytes);
 
         //
-        // å…¬é–‹Treeã‚’æ›´æ–°ã™ã‚‹
-        // æ¤œç´¢ã—å€¤ã‚’è¨­å®šã™ã‚‹ã»ã†ãŒã„ã„ã®ã§ã¯ãªã„ã‹?
+        // ŒöŠJTree‚ğXV‚·‚é
+        // ŒŸõ‚µ’l‚ğİ’è‚·‚é‚Ù‚¤‚ª‚¢‚¢‚Ì‚Å‚Í‚È‚¢‚©?
         //
         em.merge(publishedModel);
 
@@ -276,9 +276,9 @@ public class StampServiceBean implements StampServiceBeanLocal {
     }
 
     /**
-     * å…¬é–‹ã—ãŸTreeã‚’å‰Šé™¤ã™ã‚‹ã€‚
-     * @param id å‰Šé™¤ã™ã‚‹Treeã®Id
-     * @return å‰Šé™¤ã—ãŸæ•°
+     * ŒöŠJ‚µ‚½Tree‚ğíœ‚·‚éB
+     * @param id íœ‚·‚éTree‚ÌId
+     * @return íœ‚µ‚½”
      */
     @Override
     public int cancelPublishedTree(StampTreeModel model) {
@@ -286,12 +286,12 @@ public class StampServiceBean implements StampServiceBeanLocal {
         //System.err.println("cancelPublishedTree id is " + model.getId());
 
         //
-        // å…¬é–‹å±æ€§ã‚’æ›´æ–°ã™ã‚‹
+        // ŒöŠJ‘®«‚ğXV‚·‚é
         //
         em.merge(model);
 
         //
-        // å…¬é–‹Treeã‚’å‰Šé™¤ã™ã‚‹
+        // ŒöŠJTree‚ğíœ‚·‚é
         //
         List<PublishedTreeModel> list = em.createQuery(QUERY_PUBLISHED_TREE_BY_ID)
                                           .setParameter(ID, model.getId())
@@ -308,25 +308,25 @@ public class StampServiceBean implements StampServiceBeanLocal {
     }
 
     /**
-     * å…¬é–‹ã•ã‚Œã¦ã„ã‚‹StampTreeã®ãƒªã‚¹ãƒˆã‚’å–å¾—ã™ã‚‹ã€‚
-     * @return ãƒ­ãƒ¼ã‚«ãƒ«åŠã³ãƒ‘ãƒ–ãƒªãƒƒã‚¯Treeã®ãƒªã‚¹ãƒˆ
+     * ŒöŠJ‚³‚ê‚Ä‚¢‚éStampTree‚ÌƒŠƒXƒg‚ğæ“¾‚·‚éB
+     * @return ƒ[ƒJƒ‹‹y‚ÑƒpƒuƒŠƒbƒNTree‚ÌƒŠƒXƒg
      */
     @Override
     public List<PublishedTreeModel> getPublishedTrees(String fid) {
 
-        // ãƒ­ã‚°ã‚¤ãƒ³ãƒ¦ãƒ¼ã‚¶ã®æ–½è¨­IDã‚’å–å¾—ã™ã‚‹
+        // ƒƒOƒCƒ“ƒ†[ƒU‚Ì{İID‚ğæ“¾‚·‚é
         //String fid = SessionHelper.getCallersFacilityId(ctx);
 
         List<PublishedTreeModel> ret = new ArrayList<PublishedTreeModel>();
 
-        // local ã«å…¬é–‹ã•ã‚Œã¦ã„ã‚‹Treeã‚’å–å¾—ã™ã‚‹
-        // publishType=æ–½è¨­ID
+        // local ‚ÉŒöŠJ‚³‚ê‚Ä‚¢‚éTree‚ğæ“¾‚·‚é
+        // publishType={İID
         List locals = em.createQuery(QUERY_LOCAL_PUBLISHED_TREE)
         .setParameter(FID, fid)
         .getResultList();
         ret.addAll((List<PublishedTreeModel>) locals);
 
-        // ãƒ‘ãƒ–ãƒªãƒƒã‚¯Teeã‚’å–å¾—ã™ã‚‹
+        // ƒpƒuƒŠƒbƒNTee‚ğæ“¾‚·‚é
         List publics = em.createQuery(QUERY_PUBLIC_TREE)
         .getResultList();
         ret.addAll((List<PublishedTreeModel>) publics);
@@ -335,8 +335,8 @@ public class StampServiceBean implements StampServiceBeanLocal {
     }
 
     /**
-     * å…¬é–‹Treeã«ã‚µãƒ–ã‚¹ã‚¯ãƒ©ã‚¤ãƒ–ã™ã‚‹ã€‚
-     * @param addList ã‚µãƒ–ã‚¹ã‚¯ãƒ©ã‚¤ãƒ–ã™ã‚‹
+     * ŒöŠJTree‚ÉƒTƒuƒXƒNƒ‰ƒCƒu‚·‚éB
+     * @param addList ƒTƒuƒXƒNƒ‰ƒCƒu‚·‚é
      * @return
      */
     @Override
@@ -351,8 +351,8 @@ public class StampServiceBean implements StampServiceBeanLocal {
     }
 
     /**
-     * å…¬é–‹Treeã«ã‚¢ãƒ³ã‚µãƒ–ã‚¹ã‚¯ãƒ©ã‚¤ãƒ–ã™ã‚‹ã€‚
-     * @param ids ã‚¢ãƒ³ã‚µãƒ–ã‚¹ã‚¯ãƒ©ã‚¤ãƒ–ã™ã‚‹Treeã®Idãƒªã‚¹ãƒˆ
+     * ŒöŠJTree‚ÉƒAƒ“ƒTƒuƒXƒNƒ‰ƒCƒu‚·‚éB
+     * @param ids ƒAƒ“ƒTƒuƒXƒNƒ‰ƒCƒu‚·‚éTree‚ÌIdƒŠƒXƒg
      * @return
      */
     @Override
@@ -380,9 +380,9 @@ public class StampServiceBean implements StampServiceBeanLocal {
     }
 
     /**
-     * Stampã‚’ä¿å­˜ã™ã‚‹ã€‚
+     * Stamp‚ğ•Û‘¶‚·‚éB
      * @param model StampModel
-     * @return ä¿å­˜ä»¶æ•°
+     * @return •Û‘¶Œ”
      */
     @Override
     public List<String> putStamp(List<StampModel> list) {
@@ -395,9 +395,9 @@ public class StampServiceBean implements StampServiceBeanLocal {
     }
 
     /**
-     * Stampã‚’ä¿å­˜ã™ã‚‹ã€‚
+     * Stamp‚ğ•Û‘¶‚·‚éB
      * @param model StampModel
-     * @return ä¿å­˜ä»¶æ•°
+     * @return •Û‘¶Œ”
      */
     @Override
     public String putStamp(StampModel model) {
@@ -407,8 +407,8 @@ public class StampServiceBean implements StampServiceBeanLocal {
     }
 
     /**
-     * Stampã‚’å–å¾—ã™ã‚‹ã€‚
-     * @param stampId å–å¾—ã™ã‚‹ StampModel ã® id
+     * Stamp‚ğæ“¾‚·‚éB
+     * @param stampId æ“¾‚·‚é StampModel ‚Ì id
      * @return StampModel
      */
     @Override
@@ -423,8 +423,8 @@ public class StampServiceBean implements StampServiceBeanLocal {
     }
 
     /**
-     * Stampã‚’å–å¾—ã™ã‚‹ã€‚
-     * @param stampId å–å¾—ã™ã‚‹ StampModel ã® id
+     * Stamp‚ğæ“¾‚·‚éB
+     * @param stampId æ“¾‚·‚é StampModel ‚Ì id
      * @return StampModel
      */
     @Override
@@ -444,9 +444,9 @@ public class StampServiceBean implements StampServiceBeanLocal {
     }
 
     /**
-     * Stampã‚’å‰Šé™¤ã™ã‚‹ã€‚
-     * @param stampId å‰Šé™¤ã™ã‚‹ StampModel ã® id
-     * @return å‰Šé™¤ä»¶æ•°
+     * Stamp‚ğíœ‚·‚éB
+     * @param stampId íœ‚·‚é StampModel ‚Ì id
+     * @return íœŒ”
      */
     @Override
     public int removeStamp(String stampId) {
@@ -456,9 +456,9 @@ public class StampServiceBean implements StampServiceBeanLocal {
     }
 
     /**
-     * Stampã‚’å‰Šé™¤ã™ã‚‹ã€‚
-     * @param stampId å‰Šé™¤ã™ã‚‹ StampModel ã® id List
-     * @return å‰Šé™¤ä»¶æ•°
+     * Stamp‚ğíœ‚·‚éB
+     * @param stampId íœ‚·‚é StampModel ‚Ì id List
+     * @return íœŒ”
      */
     @Override
     public int removeStamp(List<String> ids) {

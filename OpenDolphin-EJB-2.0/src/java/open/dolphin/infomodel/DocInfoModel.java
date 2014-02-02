@@ -17,7 +17,8 @@ import javax.persistence.Transient;
  *
  */
 @Embeddable
-public class DocInfoModel extends InfoModel implements Comparable,java.io.Serializable {
+public class DocInfoModel extends InfoModel
+        implements Comparable,java.io.Serializable {
     
     @Transient
     private long docPk;
@@ -100,9 +101,24 @@ public class DocInfoModel extends InfoModel implements Comparable,java.io.Serial
 
     @Transient
     private String handleClass;
+
+    //----------------------------------
+    // Params foe senders
+    //----------------------------------
+    private String labtestOrderNumber;
+
+    @Transient
+    private boolean sendClaim;
+
+    @Transient
+    private boolean sendLabtest;
+
+    @Transient
+    private boolean sendMml;
+    //----------------------------------
     
     /**
-     * Document ã® Database Primary Key ã‚’è¿”ã™ã€‚
+     * Document ‚Ì Database Primary Key ‚ğ•Ô‚·B
      * @return Primary Key
      */
     public long getDocPk() {
@@ -111,7 +127,7 @@ public class DocInfoModel extends InfoModel implements Comparable,java.io.Serial
     
     
     /**
-     * Document ã® Database Primary Key ã‚’è¨­å®šã™ã‚‹ã€‚
+     * Document ‚Ì Database Primary Key ‚ğİ’è‚·‚éB
      * @param docPk Database Primary Key
      */
     public void setDocPk(long docPk) {
@@ -119,222 +135,222 @@ public class DocInfoModel extends InfoModel implements Comparable,java.io.Serial
     }
     
     /**
-     * è¦ªåˆ†æ–‡æ›¸ã®PrimaryKeyã‚’è¿”ã™ã€‚
-     * @return è¦ªåˆ†æ–‡æ›¸ã®PrimaryKey
+     * e•ª•¶‘‚ÌPrimaryKey‚ğ•Ô‚·B
+     * @return e•ª•¶‘‚ÌPrimaryKey
      */
     public long getParentPk() {
         return parentPk;
     }
     
     /**
-     * è¦ªåˆ†æ–‡æ›¸ã®PrimaryKeyã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param parentPk è¦ªåˆ†æ–‡æ›¸ã®PrimaryKey
+     * e•ª•¶‘‚ÌPrimaryKey‚ğİ’è‚·‚éB
+     * @param parentPk e•ª•¶‘‚ÌPrimaryKey
      */
     public void setParentPk(long parentPk) {
         this.parentPk = parentPk;
     }
     
     /**
-     * æ–‡æ›¸IDã‚’è¨­å®šã™ã‚‹ã€‚
+     * •¶‘ID‚ğİ’è‚·‚éB
      *
      * @param docId
-     *            æ–‡æ›¸ID
+     *            •¶‘ID
      */
     public void setDocId(String docId) {
         this.docId = docId;
     }
     
     /**
-     * æ–‡æ›¸IDã‚’è¿”ã™ã€‚
+     * •¶‘ID‚ğ•Ô‚·B
      *
-     * @return æ–‡æ›¸ID
+     * @return •¶‘ID
      */
     public String getDocId() {
         return docId;
     }
     
     /**
-     * æ–‡æ›¸ã‚¿ã‚¤ãƒ—ã‚’è¨­å®šã™ã‚‹ã€‚
+     * •¶‘ƒ^ƒCƒv‚ğİ’è‚·‚éB
      *
      * @param docType
-     *            æ–‡æ›¸ã‚¿ã‚¤ãƒ—
+     *            •¶‘ƒ^ƒCƒv
      */
     public void setDocType(String docType) {
         this.docType = docType;
     }
     
     /**
-     * æ–‡æ›¸ã‚¿ã‚¤ãƒ—ã‚’è¿”ã™ã€‚
+     * •¶‘ƒ^ƒCƒv‚ğ•Ô‚·B
      *
-     * @return æ–‡æ›¸ã‚¿ã‚¤ãƒ—.
+     * @return •¶‘ƒ^ƒCƒv.
      */
     public String getDocType() {
         return docType;
     }
     
     /**
-     * ã‚¿ã‚¤ãƒˆãƒ«ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ƒ^ƒCƒgƒ‹‚ğİ’è‚·‚éB
      *
      * @param title
-     *            ã‚¿ã‚¤ãƒˆãƒ«
+     *            ƒ^ƒCƒgƒ‹
      */
     public void setTitle(String title) {
         this.title = title;
     }
     
     /**
-     * ã‚¿ã‚¤ãƒˆãƒ«ã‚’è¿”ã™ã€‚
+     * ƒ^ƒCƒgƒ‹‚ğ•Ô‚·B
      *
-     * @return ã‚¿ã‚¤ãƒˆãƒ«
+     * @return ƒ^ƒCƒgƒ‹
      */
     public String getTitle() {
         return title;
     }
     
     /**
-     * ç”Ÿæˆç›®çš„ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ¶¬–Ú“I‚ğİ’è‚·‚éB
      *
      * @param purpose
-     *            ç”Ÿæˆç›®çš„
+     *            ¶¬–Ú“I
      */
     public void setPurpose(String purpose) {
         this.purpose = purpose;
     }
     
     /**
-     * ç”Ÿæˆç›®çš„ã‚’è¿”ã™ã€‚
+     * ¶¬–Ú“I‚ğ•Ô‚·B
      *
-     * @return ç”Ÿæˆç›®çš„
+     * @return ¶¬–Ú“I
      */
     public String getPurpose() {
         return purpose;
     }
     
     /**
-     * ç”Ÿæˆç›®çš„èª¬æ˜ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ¶¬–Ú“Ià–¾‚ğİ’è‚·‚éB
      *
      * @param purposeDesc
-     *            ç”Ÿæˆç›®çš„èª¬æ˜
+     *            ¶¬–Ú“Ià–¾
      */
     public void setPurposeDesc(String purposeDesc) {
         this.purposeDesc = purposeDesc;
     }
     
     /**
-     * ç”Ÿæˆç›®çš„èª¬æ˜ã‚’è¿”ã™ã€‚
+     * ¶¬–Ú“Ià–¾‚ğ•Ô‚·B
      *
-     * @return ç”Ÿæˆç›®çš„èª¬æ˜
+     * @return ¶¬–Ú“Ià–¾
      */
     public String getPurposeDesc() {
         return purposeDesc;
     }
     
     /**
-     * ç”Ÿæˆç›®çš„ã‚³ãƒ¼ãƒ‰ä½“ç³»ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ¶¬–Ú“IƒR[ƒh‘ÌŒn‚ğİ’è‚·‚éB
      *
      * @param purposeCodeSys
-     *            ç”Ÿæˆç›®çš„ã‚³ãƒ¼ãƒ‰ä½“ç³»
+     *            ¶¬–Ú“IƒR[ƒh‘ÌŒn
      */
     public void setPurposeCodeSys(String purposeCodeSys) {
         this.purposeCodeSys = purposeCodeSys;
     }
     
     /**
-     * ç”Ÿæˆç›®çš„ã‚³ãƒ¼ãƒ‰ä½“ç³»ã‚’è¿”ã™ã€‚
+     * ¶¬–Ú“IƒR[ƒh‘ÌŒn‚ğ•Ô‚·B
      *
-     * @return ç”Ÿæˆç›®çš„ã‚³ãƒ¼ãƒ‰ä½“ç³»
+     * @return ¶¬–Ú“IƒR[ƒh‘ÌŒn
      */
     public String getPurposeCodeSys() {
         return purposeCodeSys;
     }
     
     /**
-     * æœ€åˆã®ç¢ºå®šæ—¥ã‚’è¨­å®šã™ã‚‹ã€‚
+     * Å‰‚ÌŠm’è“ú‚ğİ’è‚·‚éB
      *
      * @param firstConfirmDate
-     *            æœ€åˆã®ç¢ºå®šæ—¥
+     *            Å‰‚ÌŠm’è“ú
      */
     public void setFirstConfirmDate(Date firstConfirmDate) {
         this.firstConfirmDate = firstConfirmDate;
     }
     
     /**
-     * æœ€åˆã®ç¢ºå®šæ—¥ã‚’è¿”ã™ã€‚
+     * Å‰‚ÌŠm’è“ú‚ğ•Ô‚·B
      *
-     * @return æœ€åˆã®ç¢ºå®šæ—¥
+     * @return Å‰‚ÌŠm’è“ú
      */
     public Date getFirstConfirmDate() {
         return firstConfirmDate;
     }
     
     /**
-     * æœ€åˆã®ç¢ºå®šæ—¥ã®æ—¥ä»˜éƒ¨åˆ†ã‚’è¿”ã™ã€‚
+     * Å‰‚ÌŠm’è“ú‚Ì“ú•t•”•ª‚ğ•Ô‚·B
      *
-     * @return æœ€åˆã®ç¢ºå®šæ—¥ã®æ—¥ä»˜éƒ¨åˆ†
+     * @return Å‰‚ÌŠm’è“ú‚Ì“ú•t•”•ª
      */
     public String getFirstConfirmDateTrimTime() {
         return ModelUtils.getDateAsString(getFirstConfirmDate());
     }
     
     /**
-     * ç¢ºå®šæ—¥ã‚’è¨­å®šã™ã‚‹ã€‚
+     * Šm’è“ú‚ğİ’è‚·‚éB
      *
      * @param confirmDate
-     *            ç¢ºå®šæ—¥
+     *            Šm’è“ú
      */
     public void setConfirmDate(Date confirmDate) {
         this.confirmDate = confirmDate;
     }
     
     /**
-     * ç¢ºå®šæ—¥ã‚’è¿”ã™ã€‚
+     * Šm’è“ú‚ğ•Ô‚·B
      *
-     * @return ç¢ºå®šæ—¥
+     * @return Šm’è“ú
      */
     public Date getConfirmDate() {
         return confirmDate;
     }
     
     /**
-     * ç¢ºå®šæ—¥ã®æ—¥ä»˜éƒ¨åˆ†ã‚’è¿”ã™ã€‚
+     * Šm’è“ú‚Ì“ú•t•”•ª‚ğ•Ô‚·B
      *
-     * @return ç¢ºå®šæ—¥ã®æ—¥ä»˜éƒ¨åˆ†
+     * @return Šm’è“ú‚Ì“ú•t•”•ª
      */
     public String getConfirmDateTrimTime() {
         return ModelUtils.getDateAsString(getConfirmDate());
     }
     
     /**
-     * è¨ºç™‚ç§‘ã‚’è¨­å®šã™ã‚‹ã€‚
+     * f—Ã‰È‚ğİ’è‚·‚éB
      *
-     * @param department è¨ºç™‚ç§‘
+     * @param department f—Ã‰È
      */
     public void setDepartment(String department) {
         this.department = department;
     }
     
     /**
-     * è¨ºç™‚ç§‘ã‚’è¿”ã™ã€‚
+     * f—Ã‰È‚ğ•Ô‚·B
      *
-     * @return è¨ºç™‚ç§‘
+     * @return f—Ã‰È
      */
     public String getDepartment() {
         return department;
     }
     
     /**
-     * è¨ºç™‚ç§‘èª¬æ˜ã‚’è¨­å®šã™ã‚‹ã€‚
+     * f—Ã‰Èà–¾‚ğİ’è‚·‚éB
      *
-     * @param departmentDesc è¨ºç™‚ç§‘èª¬æ˜
+     * @param departmentDesc f—Ã‰Èà–¾
      */
     public void setDepartmentDesc(String departmentDesc) {
         this.departmentDesc = departmentDesc;
     }
     
     /**
-     * è¨ºç™‚ç§‘èª¬æ˜ã‚’è¿”ã™ã€‚
+     * f—Ã‰Èà–¾‚ğ•Ô‚·B
      *
-     * @return è¨ºç™‚ç§‘èª¬æ˜
+     * @return f—Ã‰Èà–¾
      */
     public String getDepartmentDesc() {
         return departmentDesc;
@@ -371,8 +387,8 @@ public class DocInfoModel extends InfoModel implements Comparable,java.io.Serial
     
     private String[] tokenizeDept(String dept) {
         
-        // è¨ºç™‚ç§‘åã€ã‚³ãƒ¼ãƒ‰ã€æ‹…å½“åŒ»åã€æ‹…å½“åŒ»ã‚³ãƒ¼ãƒ‰ã€JMARI ã‚³ãƒ¼ãƒ‰
-        // ã‚’æ ¼ç´ã™ã‚‹é…åˆ—ã‚’ç”Ÿæˆã™ã‚‹
+        // f—Ã‰È–¼AƒR[ƒhA’S“–ˆã–¼A’S“–ˆãƒR[ƒhAJMARI ƒR[ƒh
+        // ‚ğŠi”[‚·‚é”z—ñ‚ğ¶¬‚·‚é
         String[] ret = new String[5];
         Arrays.fill(ret, null);
         
@@ -391,133 +407,133 @@ public class DocInfoModel extends InfoModel implements Comparable,java.io.Serial
     /********************************************/
     
     /**
-     * è¨ºç™‚ç§‘ä½“ç³»ã‚’è¨­å®šã™ã‚‹ã€‚
+     * f—Ã‰È‘ÌŒn‚ğİ’è‚·‚éB
      *
      * @param departmentCodeSys
-     *            è¨ºç™‚ç§‘ä½“ç³»
+     *            f—Ã‰È‘ÌŒn
      */
     public void setDepartmentCodeSys(String departmentCodeSys) {
         this.departmentCodeSys = departmentCodeSys;
     }
     
     /**
-     * è¨ºç™‚ç§‘ä½“ç³»ã‚’è¿”ã™ã€‚
+     * f—Ã‰È‘ÌŒn‚ğ•Ô‚·B
      *
-     * @return è¨ºç™‚ç§‘ä½“ç³»
+     * @return f—Ã‰È‘ÌŒn
      */
     public String getDepartmentCodeSys() {
         return departmentCodeSys;
     }
     
     /**
-     * å¥åº·ä¿é™ºã‚’è¨­å®šã™ã‚‹ã€‚
+     * Œ’N•ÛŒ¯‚ğİ’è‚·‚éB
      *
      * @param healthInsuranceCode
-     *            å¥åº·ä¿é™º
+     *            Œ’N•ÛŒ¯
      */
     public void setHealthInsurance(String healthInsurance) {
         this.healthInsurance = healthInsurance;
     }
     
     /**
-     * å¥åº·ä¿é™ºã‚’è¿”ã™ã€‚
+     * Œ’N•ÛŒ¯‚ğ•Ô‚·B
      *
-     * @return å¥åº·ä¿é™º
+     * @return Œ’N•ÛŒ¯
      */
     public String getHealthInsurance() {
         return healthInsurance;
     }
     
     /**
-     * å¥åº·ä¿é™ºèª¬æ˜ã‚’è¨­å®šã™ã‚‹ã€‚
+     * Œ’N•ÛŒ¯à–¾‚ğİ’è‚·‚éB
      *
      * @param healthInsuranceDesc
-     *            å¥åº·ä¿é™ºèª¬æ˜
+     *            Œ’N•ÛŒ¯à–¾
      */
     public void setHealthInsuranceDesc(String healthInsuranceDesc) {
         this.healthInsuranceDesc = healthInsuranceDesc;
     }
     
     /**
-     * å¥åº·ä¿é™ºèª¬æ˜ã‚’è¿”ã™ã€‚
+     * Œ’N•ÛŒ¯à–¾‚ğ•Ô‚·B
      *
-     * @return å¥åº·ä¿é™ºèª¬æ˜
+     * @return Œ’N•ÛŒ¯à–¾
      */
     public String getHealthInsuranceDesc() {
         return healthInsuranceDesc;
     }
     
     /**
-     * å¥åº·ä¿é™ºä½“ç³»ã‚’è¨­å®šã™ã‚‹ã€‚
+     * Œ’N•ÛŒ¯‘ÌŒn‚ğİ’è‚·‚éB
      *
      * @param healthInsuranceCodeSys
-     *            å¥åº·ä¿é™ºä½“ç³»
+     *            Œ’N•ÛŒ¯‘ÌŒn
      */
     public void setHealthInsuranceCodeSys(String healthInsuranceCodeSys) {
         this.healthInsuranceCodeSys = healthInsuranceCodeSys;
     }
     
     /**
-     * å¥åº·ä¿é™ºä½“ç³»ã‚’è¿”ã™ã€‚
+     * Œ’N•ÛŒ¯‘ÌŒn‚ğ•Ô‚·B
      *
-     * @return å¥åº·ä¿é™ºä½“ç³»
+     * @return Œ’N•ÛŒ¯‘ÌŒn
      */
     public String getHealthInsuranceCodeSys() {
         return healthInsuranceCodeSys;
     }
     
     /**
-     * å¥åº·ä¿é™ºGUIDã‚’è¨­å®šã™ã‚‹ã€‚
+     * Œ’N•ÛŒ¯GUID‚ğİ’è‚·‚éB
      *
      * @param healthInsuranceGUID
-     *            å¥åº·ä¿é™ºUUID
+     *            Œ’N•ÛŒ¯UUID
      */
     public void setHealthInsuranceGUID(String healthInsuranceGUID) {
         this.healthInsuranceGUID = healthInsuranceGUID;
     }
     
     /**
-     * å¥åº·ä¿é™ºGUIDã‚’è¿”ã™ã€‚
+     * Œ’N•ÛŒ¯GUID‚ğ•Ô‚·B
      *
-     * @return å¥åº·ä¿é™ºUUID
+     * @return Œ’N•ÛŒ¯UUID
      */
     public String getHealthInsuranceGUID() {
         return healthInsuranceGUID;
     }
     
     /**
-     * æ³¨è¨˜ãŒã‚ã‚‹ã‹ã©ã†ã‹ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ’‹L‚ª‚ ‚é‚©‚Ç‚¤‚©‚ğİ’è‚·‚éB
      *
      * @param hasMark
-     *            æ³¨è¨˜ãŒã‚ã‚‹æ™‚ true
+     *            ’‹L‚ª‚ ‚é true
      */
     public void setHasMark(boolean hasMark) {
         this.hasMark = hasMark;
     }
     
     /**
-     * æ³¨è¨˜ãŒã‚ã‚‹ã‹ã©ã†ã‹ã‚’è¿”ã™ã€‚
+     * ’‹L‚ª‚ ‚é‚©‚Ç‚¤‚©‚ğ•Ô‚·B
      *
-     * @return æ³¨è¨˜ãŒã‚ã‚‹æ™‚ true
+     * @return ’‹L‚ª‚ ‚é true
      */
     public boolean isHasMark() {
         return hasMark;
     }
     
     /**
-     * ç”»åƒãŒã‚ã‚‹ã‹ã©ã†ã‹ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ‰æ‘œ‚ª‚ ‚é‚©‚Ç‚¤‚©‚ğİ’è‚·‚éB
      *
      * @param hasImage
-     *            ç”»åƒãŒã‚ã‚‹æ™‚ true
+     *            ‰æ‘œ‚ª‚ ‚é true
      */
     public void setHasImage(boolean hasImage) {
         this.hasImage = hasImage;
     }
     
     /**
-     * ç”»åƒãŒã‚ã‚‹ã‹ã©ã†ã‹ã‚’è¿”ã™ã€‚
+     * ‰æ‘œ‚ª‚ ‚é‚©‚Ç‚¤‚©‚ğ•Ô‚·B
      *
-     * @return ç”»åƒãŒã‚ã‚‹æ™‚ true
+     * @return ‰æ‘œ‚ª‚ ‚é true
      */
     public boolean isHasImage() {
         return hasImage;
@@ -528,19 +544,19 @@ public class DocInfoModel extends InfoModel implements Comparable,java.io.Serial
     }
     
     /**
-     * å‡¦æ–¹ãŒã‚ã‚‹ã‹ã©ã†ã‹ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ˆ•û‚ª‚ ‚é‚©‚Ç‚¤‚©‚ğİ’è‚·‚éB
      *
      * @param hasRp
-     *            å‡¦æ–¹ãŒã‚ã‚‹æ™‚ true
+     *            ˆ•û‚ª‚ ‚é true
      */
     public void setHasRp(boolean hasRp) {
         this.hasRp = hasRp;
     }
     
     /**
-     * å‡¦æ–¹ãŒã‚ã‚‹ã‹ã©ã†ã‹ã‚’è¿”ã™ã€‚
+     * ˆ•û‚ª‚ ‚é‚©‚Ç‚¤‚©‚ğ•Ô‚·B
      *
-     * @return å‡¦æ–¹ãŒã‚ã‚‹æ™‚ true
+     * @return ˆ•û‚ª‚ ‚é true
      */
     public boolean isHasRp() {
         return hasRp;
@@ -551,19 +567,19 @@ public class DocInfoModel extends InfoModel implements Comparable,java.io.Serial
     }
     
     /**
-     * å‡¦ç½®ãŒã‚ã‚‹ã‹ã©ã†ã‹ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ˆ’u‚ª‚ ‚é‚©‚Ç‚¤‚©‚ğİ’è‚·‚éB
      *
      * @param hasTreatment
-     *            å‡¦ç½®ãŒã‚ã‚‹æ™‚ true
+     *            ˆ’u‚ª‚ ‚é true
      */
     public void setHasTreatment(boolean hasTreatment) {
         this.hasTreatment = hasTreatment;
     }
     
     /**
-     * å‡¦ç½®ãŒã‚ã‚‹ã‹ã©ã†ã‹ã‚’è¿”ã™ã€‚
+     * ˆ’u‚ª‚ ‚é‚©‚Ç‚¤‚©‚ğ•Ô‚·B
      *
-     * @return å‡¦ç½®ãŒã‚ã‚‹æ™‚ true
+     * @return ˆ’u‚ª‚ ‚é true
      */
     public boolean isHasTreatment() {
         return hasTreatment;
@@ -574,10 +590,10 @@ public class DocInfoModel extends InfoModel implements Comparable,java.io.Serial
     }
     
     /**
-     * ãƒ©ãƒœãƒ†ã‚¹ãƒˆãŒã‚ã‚‹ã‹ã©ã†ã‹ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ƒ‰ƒ{ƒeƒXƒg‚ª‚ ‚é‚©‚Ç‚¤‚©‚ğİ’è‚·‚éB
      *
      * @param hasLaboTest
-     *            ãƒ©ãƒœãƒ†ã‚¹ãƒˆãŒã‚ã‚‹æ™‚ true
+     *            ƒ‰ƒ{ƒeƒXƒg‚ª‚ ‚é true
      */
     public void setHasLaboTest(boolean hasLaboTest) {
         this.hasLaboTest = hasLaboTest;
@@ -588,47 +604,47 @@ public class DocInfoModel extends InfoModel implements Comparable,java.io.Serial
     }
     
     /**
-     * ãƒ©ãƒœãƒ†ã‚¹ãƒˆãŒã‚ã‚‹ã‹ã©ã†ã‹ã‚’è¿”ã™ã€‚
+     * ƒ‰ƒ{ƒeƒXƒg‚ª‚ ‚é‚©‚Ç‚¤‚©‚ğ•Ô‚·B
      *
-     * @return ãƒ©ãƒœãƒ†ã‚¹ãƒˆãŒã‚ã‚‹æ™‚ true
+     * @return ƒ‰ƒ{ƒeƒXƒg‚ª‚ ‚é true
      */
     public Boolean isHasLaboTestBoolean() {
         return hasLaboTest;
     }
     
     /**
-     * ãƒãƒ¼ã‚¸ãƒ§ãƒ³ç•ªå·ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ƒo[ƒWƒ‡ƒ“”Ô†‚ğİ’è‚·‚éB
      *
      * @param version
-     *            ãƒãƒ¼ã‚¸ãƒ§ãƒ³ç•ªå·
+     *            ƒo[ƒWƒ‡ƒ“”Ô†
      */
     public void setVersionNumber(String version) {
         this.versionNumber = version;
     }
     
     /**
-     * ãƒãƒ¼ã‚¸ãƒ§ãƒ³ç•ªå·ã‚’è¿”ã™ã€‚
+     * ƒo[ƒWƒ‡ƒ“”Ô†‚ğ•Ô‚·B
      *
-     * @return ãƒãƒ¼ã‚¸ãƒ§ãƒ³ç•ªå·
+     * @return ƒo[ƒWƒ‡ƒ“”Ô†
      */
     public String getVersionNumber() {
         return versionNumber;
     }
     
     /**
-     * ãƒãƒ¼ã‚¸ãƒ§ãƒ³ãƒãƒ¼ãƒˆã‚’è¨­å®šã™ã‚‹ã€‚
+     * ƒo[ƒWƒ‡ƒ“ƒm[ƒg‚ğİ’è‚·‚éB
      *
      * @param versionNotes
-     *            ãƒãƒ¼ã‚¸ãƒ§ãƒ³ãƒãƒ¼ãƒˆ
+     *            ƒo[ƒWƒ‡ƒ“ƒm[ƒg
      */
     public void setVersionNotes(String versionNotes) {
         this.versionNotes = versionNotes;
     }
     
     /**
-     * ãƒãƒ¼ã‚¸ãƒ§ãƒ³ãƒãƒ¼ãƒˆã‚’è¿”ã™ã€‚
+     * ƒo[ƒWƒ‡ƒ“ƒm[ƒg‚ğ•Ô‚·B
      *
-     * @return ãƒãƒ¼ã‚¸ãƒ§ãƒ³ãƒãƒ¼ãƒˆ
+     * @return ƒo[ƒWƒ‡ƒ“ƒm[ƒg
      */
     public String getVersionNotes() {
         return versionNotes;
@@ -645,103 +661,103 @@ public class DocInfoModel extends InfoModel implements Comparable,java.io.Serial
 //    }
     
     /**
-     * è¦ªæ–‡æ›¸IDã‚’è¨­å®šã™ã‚‹ã€‚
+     * e•¶‘ID‚ğİ’è‚·‚éB
      *
      * @param parentId
-     *            è¦ªæ–‡æ›¸ID
+     *            e•¶‘ID
      */
     public void setParentId(String parentId) {
         this.parentId = parentId;
     }
     
     /**
-     * è¦ªæ–‡æ›¸IDã‚’è¿”ã™ã€‚
+     * e•¶‘ID‚ğ•Ô‚·B
      *
-     * @return è¦ªæ–‡æ›¸ID
+     * @return e•¶‘ID
      */
     public String getParentId() {
         return parentId;
     }
     
     /**
-     * è¦ªæ–‡æ›¸ã¨ã®é–¢ä¿‚ã‚’è¨­å®šã™ã‚‹ã€‚
+     * e•¶‘‚Æ‚ÌŠÖŒW‚ğİ’è‚·‚éB
      *
      * @param parentIdRelation
-     *            è¦ªæ–‡æ›¸ã¨ã®é–¢ä¿‚
+     *            e•¶‘‚Æ‚ÌŠÖŒW
      */
     public void setParentIdRelation(String parentIdRelation) {
         this.parentIdRelation = parentIdRelation;
     }
     
     /**
-     * è¦ªæ–‡æ›¸ã¨ã®é–¢ä¿‚ã‚’è¿”ã™ã€‚
+     * e•¶‘‚Æ‚ÌŠÖŒW‚ğ•Ô‚·B
      *
-     * @return è¦ªæ–‡æ›¸ã¨ã®é–¢ä¿‚
+     * @return e•¶‘‚Æ‚ÌŠÖŒW
      */
     public String getParentIdRelation() {
         return parentIdRelation;
     }
     
     /**
-     * è¦ªæ–‡æ›¸ã¨ã®é–¢ä¿‚èª¬æ˜ã‚’è¨­å®šã™ã‚‹ã€‚
+     * e•¶‘‚Æ‚ÌŠÖŒWà–¾‚ğİ’è‚·‚éB
      *
      * @param relationDesc
-     *            è¦ªæ–‡æ›¸ã¨ã®é–¢ä¿‚èª¬æ˜
+     *            e•¶‘‚Æ‚ÌŠÖŒWà–¾
      */
     public void setParentIdDesc(String relationDesc) {
         this.parentIdDesc = relationDesc;
     }
     
     /**
-     * è¦ªæ–‡æ›¸ã¨ã®é–¢ä¿‚èª¬æ˜ã‚’è¿”ã™ã€‚
+     * e•¶‘‚Æ‚ÌŠÖŒWà–¾‚ğ•Ô‚·B
      *
-     * @return è¦ªæ–‡æ›¸ã¨ã®é–¢ä¿‚èª¬æ˜
+     * @return e•¶‘‚Æ‚ÌŠÖŒWà–¾
      */
     public String getParentIdDesc() {
         return parentIdDesc;
     }
     
     /**
-     * è¦ªæ–‡æ›¸ã¨ã®é–¢ä¿‚ä½“ç³»ã‚’è¨­å®šã™ã‚‹ã€‚
+     * e•¶‘‚Æ‚ÌŠÖŒW‘ÌŒn‚ğİ’è‚·‚éB
      *
      * @param relationCodeSys
-     *            è¦ªæ–‡æ›¸ã¨ã®é–¢ä¿‚ä½“ç³»ã‚’è¨­å®šã™ã‚‹ã€‚
+     *            e•¶‘‚Æ‚ÌŠÖŒW‘ÌŒn‚ğİ’è‚·‚éB
      */
     public void setParentIdCodeSys(String relationCodeSys) {
         this.parentIdCodeSys = relationCodeSys;
     }
     
     /**
-     * è¦ªæ–‡æ›¸ã¨ã®é–¢ä¿‚ä½“ç³»ã‚’è¿”ã™ã€‚
+     * e•¶‘‚Æ‚ÌŠÖŒW‘ÌŒn‚ğ•Ô‚·B
      *
-     * @return è¦ªæ–‡æ›¸ã¨ã®é–¢ä¿‚ä½“ç³»
+     * @return e•¶‘‚Æ‚ÌŠÖŒW‘ÌŒn
      */
     public String getParentIdCodeSys() {
         return parentIdCodeSys;
     }
     
     /**
-     * ã‚¢ã‚¯ã‚»ã‚¹æ¨©ã‚’è¿”ã™ã€‚
+     * ƒAƒNƒZƒXŒ ‚ğ•Ô‚·B
      *
-     * @return AccessRightModelã®ã‚³ãƒ¬ã‚¯ã‚·ãƒ§ãƒ³
+     * @return AccessRightModel‚ÌƒRƒŒƒNƒVƒ‡ƒ“
      */
     public Collection<AccessRightModel> getAccessRights() {
         return accessRights;
     }
     
     /**
-     * ã‚¢ã‚¯ã‚»ã‚¹æ¨©ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ƒAƒNƒZƒXŒ ‚ğİ’è‚·‚éB
      *
-     * @param sccessRights ã‚¢ã‚¯ã‚»ã‚¹æ¨©ã®ã‚³ãƒ¬ã‚¯ã‚·ãƒ§ãƒ³
+     * @param sccessRights ƒAƒNƒZƒXŒ ‚ÌƒRƒŒƒNƒVƒ‡ƒ“
      */
     public void setAccessRights(Collection<AccessRightModel> accessRights) {
         this.accessRights = accessRights;
     }
     
     /**
-     * ã‚¢ã‚¯ã‚»ã‚¹æ¨©ã‚’è¿½åŠ ã™ã‚‹ã€‚
+     * ƒAƒNƒZƒXŒ ‚ğ’Ç‰Á‚·‚éB
      *
-     * @param accessRight è¿½åŠ ã™ã‚‹ã‚¢ã‚¯ã‚»ã‚¹æ¨©
+     * @param accessRight ’Ç‰Á‚·‚éƒAƒNƒZƒXŒ 
      */
     public void addAccessRight(AccessRightModel accessRight) {
         if (accessRights == null) {
@@ -751,19 +767,19 @@ public class DocInfoModel extends InfoModel implements Comparable,java.io.Serial
     }
     
     /**
-     * ã“ã®æ–‡æ›¸ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ‚±‚Ì•¶‘‚ÌƒXƒe[ƒ^ƒX‚ğİ’è‚·‚éB
      *
      * @param status
-     *            ã“ã®æ–‡æ›¸ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+     *            ‚±‚Ì•¶‘‚ÌƒXƒe[ƒ^ƒX
      */
     public void setStatus(String status) {
         this.status = status;
     }
     
     /**
-     * ã“ã®æ–‡æ›¸ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã‚’è¿”ã™ã€‚
+     * ‚±‚Ì•¶‘‚ÌƒXƒe[ƒ^ƒX‚ğ•Ô‚·B
      *
-     * @return ã“ã®æ–‡æ›¸ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+     * @return ‚±‚Ì•¶‘‚ÌƒXƒe[ƒ^ƒX
      */
     public String getStatus() {
         return status;
@@ -778,7 +794,7 @@ public class DocInfoModel extends InfoModel implements Comparable,java.io.Serial
     }
     
     /**
-     * ãƒãƒƒã‚·ãƒ¥å€¤ã‚’è¿”ã™ã€‚
+     * ƒnƒbƒVƒ…’l‚ğ•Ô‚·B
      */
     @Override
     public int hashCode() {
@@ -786,9 +802,9 @@ public class DocInfoModel extends InfoModel implements Comparable,java.io.Serial
     }
     
     /**
-     * æ–‡æ›¸IDã§ eqaul ã‹ã©ã†ã‹ã‚’è¿”ã™ã€‚
+     * •¶‘ID‚Å eqaul ‚©‚Ç‚¤‚©‚ğ•Ô‚·B
      *
-     * @return equal ã®æ™‚ true
+     * @return equal ‚Ì true
      */
     @Override
     public boolean equals(Object other) {
@@ -799,9 +815,9 @@ public class DocInfoModel extends InfoModel implements Comparable,java.io.Serial
     }
     
     /**
-     * æœ€åˆã®ç¢ºå®šæ—¥åŠã³ç¢ºå®šæ—¥ã§æ¯”è¼ƒã™ã‚‹ã€‚
+     * Å‰‚ÌŠm’è“ú‹y‚ÑŠm’è“ú‚Å”äŠr‚·‚éB
      *
-     * @return æ¯”è¼ƒå€¤
+     * @return ”äŠr’l
      */
     @Override
     public int compareTo(Object other) {
@@ -817,5 +833,78 @@ public class DocInfoModel extends InfoModel implements Comparable,java.io.Serial
             return result;
         }
         return -1;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        DocInfoModel ret = new DocInfoModel();
+//        ret.setAccessRights(this.getAccessRights());
+        ret.setConfirmDate(this.getConfirmDate());
+        ret.setDepartment(this.getDepartment());
+        ret.setDepartmentCodeSys(this.getDepartmentCodeSys());
+        ret.setDepartmentDesc(this.getDepartmentDesc());
+//        ret.setDocPk(this.getDocPk());
+//        ret.setDocId(this.getDocId());  //
+        ret.setDocType(this.getDocType());
+        ret.setFirstConfirmDate(this.getFirstConfirmDate());
+        ret.setHandleClass(this.getHandleClass());
+        ret.setHasImage(this.isHasImage());
+        ret.setHasLaboTest(this.isHasLaboTest());
+        ret.setHasMark(this.isHasMark());
+        ret.setHasRp(this.isHasRp());
+        ret.setHasTreatment(this.isHasTreatment());
+        ret.setHealthInsurance(this.getHealthInsurance());
+        ret.setHealthInsuranceCodeSys(this.getHealthInsuranceCodeSys());
+        ret.setHealthInsuranceDesc(this.getHealthInsuranceDesc());
+        ret.setHealthInsuranceGUID(this.getHealthInsuranceGUID());
+//        ret.setParentId(this.getParentId());
+//        ret.setParentIdCodeSys(this.getParentIdCodeSys());
+//        ret.setParentIdDesc(this.getParentIdDesc());
+//        ret.setParentIdRelation(this.getParentIdRelation());
+//        ret.setParentPk(this.getParentPk()); //
+        ret.setPurpose(this.getPurpose());
+        ret.setPurposeCodeSys(this.getPurposeCodeSys());
+        ret.setPurposeDesc(this.getPurposeDesc());
+        ret.setStatus(this.getStatus());
+        ret.setTitle(this.getTitle());
+        ret.setVersionNotes(this.getVersionNotes());
+        ret.setVersionNumber(this.getVersionNumber());
+        return ret;
+
+        // ret.setDocPk(this.getDocPk());
+        // ret.setDocId(this.getDocId());
+        // ret.setParentPk(this.getParentPk());
+    }
+
+    public String getLabtestOrderNumber() {
+        return labtestOrderNumber;
+    }
+
+    public void setLabtestOrderNumber(String labtestOrderNumber) {
+        this.labtestOrderNumber = labtestOrderNumber;
+    }
+
+    public boolean isSendClaim() {
+        return sendClaim;
+    }
+
+    public void setSendClaim(boolean sendClaim) {
+        this.sendClaim = sendClaim;
+    }
+
+    public boolean isSendLabtest() {
+        return sendLabtest;
+    }
+
+    public void setSendLabtest(boolean sendLabtest) {
+        this.sendLabtest = sendLabtest;
+    }
+
+    public boolean isSendMml() {
+        return sendMml;
+    }
+
+    public void setSendMml(boolean sendMml) {
+        this.sendMml = sendMml;
     }
 }

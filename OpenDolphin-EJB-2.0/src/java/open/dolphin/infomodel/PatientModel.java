@@ -29,11 +29,11 @@ public class PatientModel extends InfoModel implements java.io.Serializable {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
     
-    /** æ–½è¨­ID */
+    /** {İID */
     @Column(nullable=false)
     private String facilityId;
     
-    /** æ–½è¨­å†…ã®æ‚£è€…ID */
+    /** {İ“à‚ÌŠ³ÒID */
     @Column(nullable=false)
     private String patientId;
     
@@ -109,13 +109,13 @@ public class PatientModel extends InfoModel implements java.io.Serializable {
     private Collection<TelephoneModel> telephones;
     
     /**
-     * æ‚£è€…ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆã™ã‚‹ã€‚
+     * Š³ÒƒIƒuƒWƒFƒNƒg‚ğ¶¬‚·‚éB
      */
     public PatientModel() {
     }
     
     /**
-     * Database Pk ã‚’è¿”ã™ã€‚
+     * Database Pk ‚ğ•Ô‚·B
      *
      * @return Database Pk
      */
@@ -124,7 +124,7 @@ public class PatientModel extends InfoModel implements java.io.Serializable {
     }
     
     /**
-     * Database Pk ã‚’è¨­å®šã™ã‚‹ã€‚
+     * Database Pk ‚ğİ’è‚·‚éB
      *
      * @param id
      *            Database Pk
@@ -134,244 +134,244 @@ public class PatientModel extends InfoModel implements java.io.Serializable {
     }
     
     /**
-     * æ–½è¨­IDã‚’è¿”ã™ã€‚
-     * @return æ–½è¨­ID
+     * {İID‚ğ•Ô‚·B
+     * @return {İID
      */
     public String getFacilityId() {
         return facilityId;
     }
     
     /**
-     * æ–½è¨­IDã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param facilityId æ–½è¨­ID
+     * {İID‚ğİ’è‚·‚éB
+     * @param facilityId {İID
      */
     public void setFacilityId(String facilityId) {
         this.facilityId = facilityId;
     }
     
     /**
-     * æ‚£è€…IDã‚’è¨­å®šã™ã‚‹ã€‚
+     * Š³ÒID‚ğİ’è‚·‚éB
      *
      * @param patientId
-     *            æ‚£è€…ID
+     *            Š³ÒID
      */
     public void setPatientId(String patientId) {
         this.patientId = patientId;
     }
     
     /**
-     * æ‚£è€…IDã‚’è¿”ã™ã€‚
+     * Š³ÒID‚ğ•Ô‚·B
      *
-     * @return æ‚£è€…ID
+     * @return Š³ÒID
      */
     public String getPatientId() {
         return patientId;
     }
     
     /**
-     * å§“åã‚’è¨­å®šã™ã‚‹ã€‚
+     * ©–¼‚ğİ’è‚·‚éB
      *
      * @param sirName
-     *            å§“å
+     *            ©–¼
      */
     public void setFamilyName(String sirName) {
         this.familyName = sirName;
     }
     
     /**
-     * å§“åã‚’è¿”ã™ã€‚
+     * ©–¼‚ğ•Ô‚·B
      *
-     * @return å§“å
+     * @return ©–¼
      */
     public String getFamilyName() {
         return familyName;
     }
     
     /**
-     * åå‰ã‚’è¨­å®šã™ã‚‹ã€‚
+     * –¼‘O‚ğİ’è‚·‚éB
      *
      * @param givenName
-     *            åå‰
+     *            –¼‘O
      */
     public void setGivenName(String givenName) {
         this.givenName = givenName;
     }
     
     /**
-     * åå‰ã‚’è¿”ã™ã€‚
+     * –¼‘O‚ğ•Ô‚·B
      *
-     * @return åå‰
+     * @return –¼‘O
      */
     public String getGivenName() {
         return givenName;
     }
     
     /**
-     * ãƒ•ãƒ«ãƒãƒ¼ãƒ ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ƒtƒ‹ƒl[ƒ€‚ğİ’è‚·‚éB
      *
      * @param name
-     *            ãƒ•ãƒ«ãƒãƒ¼ãƒ 
+     *            ƒtƒ‹ƒl[ƒ€
      */
     public void setFullName(String name) {
         this.fullName = name;
     }
     
     /**
-     * ãƒ•ãƒ«ãƒãƒ¼ãƒ ã‚’è¿”ã™ã€‚
+     * ƒtƒ‹ƒl[ƒ€‚ğ•Ô‚·B
      *
-     * @return ãƒ•ãƒ«ãƒãƒ¼ãƒ 
+     * @return ƒtƒ‹ƒl[ƒ€
      */
     public String getFullName() {
         return fullName;
     }
     
     /**
-     * ã‚«ãƒŠå®¶æ—åã‚’è¨­å®šã™ã‚‹ã€‚
+     * ƒJƒi‰Æ‘°–¼‚ğİ’è‚·‚éB
      *
      * @param kanaSirName
-     *            Tã‚«ãƒŠå®¶æ—å
+     *            TƒJƒi‰Æ‘°–¼
      */
     public void setKanaFamilyName(String kanaSirName) {
         this.kanaFamilyName = kanaSirName;
     }
     
     /**
-     * ã‚«ãƒŠå®¶æ—åã‚’è¿”ã™ã€‚
+     * ƒJƒi‰Æ‘°–¼‚ğ•Ô‚·B
      *
-     * @return ã‚«ãƒŠå®¶æ—å
+     * @return ƒJƒi‰Æ‘°–¼
      */
     public String getKanaFamilyName() {
         return kanaFamilyName;
     }
     
     /**
-     * ã‚«ãƒŠGivenName ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ƒJƒiGivenName ‚ğİ’è‚·‚éB
      *
      * @param kanaGivenName
-     *            ã‚«ãƒŠGivenName
+     *            ƒJƒiGivenName
      */
     public void setKanaGivenName(String kanaGivenName) {
         this.kanaGivenName = kanaGivenName;
     }
     
     /**
-     * ã‚«ãƒŠGivenName ã‚’è¿”ã™ã€‚
+     * ƒJƒiGivenName ‚ğ•Ô‚·B
      *
-     * @return ã‚«ãƒŠGivenName
+     * @return ƒJƒiGivenName
      */
     public String getKanaGivenName() {
         return kanaGivenName;
     }
     
     /**
-     * ã‚«ãƒŠãƒ•ãƒ«ãƒãƒ¼ãƒ ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ƒJƒiƒtƒ‹ƒl[ƒ€‚ğİ’è‚·‚éB
      *
      * @param kanaName
-     *            ã‚«ãƒŠãƒ•ãƒ«ãƒãƒ¼ãƒ 
+     *            ƒJƒiƒtƒ‹ƒl[ƒ€
      */
     public void setKanaName(String kanaName) {
         this.kanaName = kanaName;
     }
     
     /**
-     * ã‚«ãƒŠãƒ•ãƒ«ãƒãƒ¼ãƒ ã‚’è¿”ã™ã€‚
+     * ƒJƒiƒtƒ‹ƒl[ƒ€‚ğ•Ô‚·B
      *
-     * @return ã‚«ãƒŠãƒ•ãƒ«ãƒãƒ¼ãƒ 
+     * @return ƒJƒiƒtƒ‹ƒl[ƒ€
      */
     public String getKanaName() {
         return kanaName;
     }
     
     /**
-     * ãƒ­ãƒ¼ãƒå­—åå­—ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ƒ[ƒ}š–¼š‚ğİ’è‚·‚éB
      *
      * @param romanSirName
-     *            ãƒ­ãƒ¼ãƒå­—åå­—
+     *            ƒ[ƒ}š–¼š
      */
     public void setRomanFamilyName(String romanSirName) {
         this.romanFamilyName = romanSirName;
     }
     
     /**
-     * ãƒ­ãƒ¼ãƒå­—åå­—ã‚’è¿”ã™ã€‚
+     * ƒ[ƒ}š–¼š‚ğ•Ô‚·B
      *
-     * @return ãƒ­ãƒ¼ãƒå­—å
+     * @return ƒ[ƒ}š–¼
      */
     public String getRomanFamilyName() {
         return romanFamilyName;
     }
     
     /**
-     * ãƒ­ãƒ¼ãƒå­—åã‚’è¨­å®šã™ã‚‹ã€‚
+     * ƒ[ƒ}š–¼‚ğİ’è‚·‚éB
      *
      * @param romanGivenName
-     *            ãƒ­ãƒ¼ãƒå­—å
+     *            ƒ[ƒ}š–¼
      */
     public void setRomanGivenName(String romanGivenName) {
         this.romanGivenName = romanGivenName;
     }
     
     /**
-     * ãƒ­ãƒ¼ãƒå­—åã‚’è¿”ã™ã€‚
+     * ƒ[ƒ}š–¼‚ğ•Ô‚·B
      *
-     * @return ãƒ­ãƒ¼ãƒå­—å
+     * @return ƒ[ƒ}š–¼
      */
     public String getRomanGivenName() {
         return romanGivenName;
     }
     
     /**
-     * ãƒ­ãƒ¼ãƒå­—ãƒ•ãƒ«ãƒãƒ¼ãƒ ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ƒ[ƒ}šƒtƒ‹ƒl[ƒ€‚ğİ’è‚·‚éB
      *
      * @param romanName
-     *            ãƒ­ãƒ¼ãƒå­—ãƒ•ãƒ«ãƒãƒ¼ãƒ 
+     *            ƒ[ƒ}šƒtƒ‹ƒl[ƒ€
      */
     public void setRomanName(String romanName) {
         this.romanName = romanName;
     }
     
     /**
-     * ãƒ­ãƒ¼ãƒå­—ãƒ•ãƒ«ãƒãƒ¼ãƒ ã‚’è¿”ã™ã€‚
+     * ƒ[ƒ}šƒtƒ‹ƒl[ƒ€‚ğ•Ô‚·B
      *
-     * @return ãƒ­ãƒ¼ãƒå­—ãƒ•ãƒ«ãƒãƒ¼ãƒ 
+     * @return ƒ[ƒ}šƒtƒ‹ƒl[ƒ€
      */
     public String getRomanName() {
         return romanName;
     }
     
     /**
-     * æ€§åˆ¥ã‚’è¨­å®šã™ã‚‹ã€‚
+     * «•Ê‚ğİ’è‚·‚éB
      *
      * @param gender
-     *            æ€§åˆ¥
+     *            «•Ê
      */
     public void setGender(String gender) {
         this.gender = gender;
     }
     
     /**
-     * æ€§åˆ¥ã‚’è¿”ã™ã€‚
+     * «•Ê‚ğ•Ô‚·B
      *
-     * @return æ€§åˆ¥
+     * @return «•Ê
      */
     public String getGender() {
         return gender;
     }
     
     /**
-     * æ€§åˆ¥èª¬æ˜ã‚’è¨­å®šã™ã‚‹ã€‚
+     * «•Êà–¾‚ğİ’è‚·‚éB
      *
      * @param genderDesc
-     *            æ€§åˆ¥èª¬æ˜
+     *            «•Êà–¾
      */
     public void setGenderDesc(String genderDesc) {
         this.genderDesc = genderDesc;
     }
     
     /**
-     * æ€§åˆ¥èª¬æ˜ã‚’è¿”ã™ã€‚
+     * «•Êà–¾‚ğ•Ô‚·B
      *
-     * @return æ€§åˆ¥èª¬æ˜
+     * @return «•Êà–¾
      */
     public String getGenderDesc() {
         return genderDesc != null
@@ -380,45 +380,45 @@ public class PatientModel extends InfoModel implements java.io.Serializable {
     }
     
     /**
-     * æ€§åˆ¥èª¬æ˜ä½“ç³»ã‚’è¨­å®šã™ã‚‹ã€‚
+     * «•Êà–¾‘ÌŒn‚ğİ’è‚·‚éB
      *
      * @param genderCodeSys
-     *            æ€§åˆ¥èª¬æ˜ä½“ç³»
+     *            «•Êà–¾‘ÌŒn
      */
     public void setGenderCodeSys(String genderCodeSys) {
         this.genderCodeSys = genderCodeSys;
     }
     
     /**
-     * æ€§åˆ¥èª¬æ˜ä½“ç³»ã‚’è¿”ã™ã€‚
+     * «•Êà–¾‘ÌŒn‚ğ•Ô‚·B
      *
-     * @return æ€§åˆ¥èª¬æ˜ä½“ç³»
+     * @return «•Êà–¾‘ÌŒn
      */
     public String getGenderCodeSys() {
         return genderCodeSys;
     }
     
     /**
-     * ç”Ÿå¹´æœˆæ—¥ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ¶”NŒ“ú‚ğİ’è‚·‚éB
      *
      * @param birthday
-     *            ç”Ÿå¹´æœˆæ—¥ yyyy-MM-dd
+     *            ¶”NŒ“ú yyyy-MM-dd
      */
     public void setBirthday(String birthday) {
         this.birthday = birthday;
     }
     
     /**
-     * ç”Ÿå¹´æœˆæ—¥ã‚’è¿”ã™ã€‚
+     * ¶”NŒ“ú‚ğ•Ô‚·B
      *
-     * @return ç”Ÿå¹´æœˆæ—¥ yyyy-MM-dd
+     * @return ¶”NŒ“ú yyyy-MM-dd
      */
     public String getBirthday() {
         return birthday;
     }
     
     /**
-     * å¹´é½¢ã¨ç”Ÿå¹´æœˆæ—¥ã‚’è¿”ã™ã€‚
+     * ”N—î‚Æ¶”NŒ“ú‚ğ•Ô‚·B
      *
      * @return age(yyyy-MM-dd)
      */
@@ -427,184 +427,184 @@ public class PatientModel extends InfoModel implements java.io.Serializable {
     }
     
     /**
-     * å›½ç±ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ‘Ğ‚ğİ’è‚·‚éB
      *
      * @param nationality
-     *            å›½ç±
+     *            ‘Ğ
      */
     public void setNationality(String nationality) {
         this.nationality = nationality;
     }
     
     /**
-     * å›½ç±ã‚’è¿”ã™ã€‚
+     * ‘Ğ‚ğ•Ô‚·B
      *
-     * @return å›½ç±
+     * @return ‘Ğ
      */
     public String getNationality() {
         return nationality;
     }
     
     /**
-     * å›½ç±èª¬æ˜ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ‘Ğà–¾‚ğİ’è‚·‚éB
      *
      * @param nationalityDesc
-     *            å›½ç±èª¬æ˜
+     *            ‘Ğà–¾
      */
     public void setNationalityDesc(String nationalityDesc) {
         this.nationalityDesc = nationalityDesc;
     }
     
     /**
-     * å›½ç±èª¬æ˜ã‚’è¿”ã™ã€‚
+     * ‘Ğà–¾‚ğ•Ô‚·B
      *
-     * @return å›½ç±èª¬æ˜
+     * @return ‘Ğà–¾
      */
     public String getNationalityDesc() {
         return nationalityDesc;
     }
     
     /**
-     * å›½ç±ä½“ç³»ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ‘Ğ‘ÌŒn‚ğİ’è‚·‚éB
      *
      * @param nationalityCodeSys
-     *            å›½ç±ä½“ç³»
+     *            ‘Ğ‘ÌŒn
      */
     public void setNationalityCodeSys(String nationalityCodeSys) {
         this.nationalityCodeSys = nationalityCodeSys;
     }
     
     /**
-     * å›½ç±ä½“ç³»ã‚’è¿”ã™ã€‚
+     * ‘Ğ‘ÌŒn‚ğ•Ô‚·B
      *
-     * @return å›½ç±ä½“ç³»
+     * @return ‘Ğ‘ÌŒn
      */
     public String getNationalityCodeSys() {
         return nationalityCodeSys;
     }
     
     /**
-     * å©šå§»çŠ¶æ³ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ¥ˆ÷ó‹µ‚ğİ’è‚·‚éB
      *
      * @param maritalStatus
-     *            å©šå§»çŠ¶æ³
+     *            ¥ˆ÷ó‹µ
      */
     public void setMaritalStatus(String maritalStatus) {
         this.maritalStatus = maritalStatus;
     }
     
     /**
-     * å©šå§»çŠ¶æ³ã‚’è¿”ã™ã€‚
+     * ¥ˆ÷ó‹µ‚ğ•Ô‚·B
      *
-     * @return å©šå§»çŠ¶æ³
+     * @return ¥ˆ÷ó‹µ
      */
     public String getMaritalStatus() {
         return maritalStatus;
     }
     
     /**
-     * å©šå§»çŠ¶æ³èª¬æ˜ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ¥ˆ÷ó‹µà–¾‚ğİ’è‚·‚éB
      *
      * @param maritalStatusDesc
-     *            å©šå§»çŠ¶æ³èª¬æ˜ã‚’è¨­å®šã™ã‚‹ã€‚
+     *            ¥ˆ÷ó‹µà–¾‚ğİ’è‚·‚éB
      */
     public void setMaritalStatusDesc(String maritalStatusDesc) {
         this.maritalStatusDesc = maritalStatusDesc;
     }
     
     /**
-     * å©šå§»çŠ¶æ³èª¬æ˜ã‚’è¿”ã™ã€‚
+     * ¥ˆ÷ó‹µà–¾‚ğ•Ô‚·B
      *
-     * @return å©šå§»çŠ¶æ³èª¬æ˜
+     * @return ¥ˆ÷ó‹µà–¾
      */
     public String getMaritalStatusDesc() {
         return maritalStatusDesc;
     }
     
     /**
-     * å©šå§»çŠ¶æ³ä½“ç³»ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ¥ˆ÷ó‹µ‘ÌŒn‚ğİ’è‚·‚éB
      *
      * @param maritalStatusCodeSys
-     *            å©šå§»çŠ¶æ³ä½“ç³»
+     *            ¥ˆ÷ó‹µ‘ÌŒn
      */
     public void setMaritalStatusCodeSys(String maritalStatusCodeSys) {
         this.maritalStatusCodeSys = maritalStatusCodeSys;
     }
     
     /**
-     * å©šå§»çŠ¶æ³ä½“ç³»ã‚’è¿”ã™ã€‚
+     * ¥ˆ÷ó‹µ‘ÌŒn‚ğ•Ô‚·B
      *
-     * @return å©šå§»çŠ¶æ³ä½“ç³»
+     * @return ¥ˆ÷ó‹µ‘ÌŒn
      */
     public String getMaritalStatusCodeSys() {
         return maritalStatusCodeSys;
     }
     
     /**
-     * å†™çœŸã‚’è¨­å®šã™ã‚‹ã€‚
+     * Ê^‚ğİ’è‚·‚éB
      *
      * @param jpegPhoto
-     *            JPEG ç”»åƒã®ãƒã‚¤ãƒˆé…åˆ—
+     *            JPEG ‰æ‘œ‚ÌƒoƒCƒg”z—ñ
      */
     public void setJpegPhoto(byte[] jpegPhoto) {
         this.jpegPhoto = jpegPhoto;
     }
     
     /**
-     * å†™çœŸã‚’è¿”ã™ã€‚
+     * Ê^‚ğ•Ô‚·B
      *
-     * @return JPEG ç”»åƒã®ãƒã‚¤ãƒˆé…åˆ—
+     * @return JPEG ‰æ‘œ‚ÌƒoƒCƒg”z—ñ
      */
     public byte[] getJpegPhoto() {
         return jpegPhoto;
     }
     
     /**
-     * æ‚£è€…ãƒ¡ãƒ¢ã‚’è¨­å®šã™ã‚‹ã€‚
+     * Š³Òƒƒ‚‚ğİ’è‚·‚éB
      *
      * @param memo
-     *            æ‚£è€…ãƒ¡ãƒ¢
+     *            Š³Òƒƒ‚
      */
     public void setMemo(String memo) {
         this.memo = memo;
     }
     
     /**
-     * æ‚£è€…ãƒ¡ãƒ¢ã‚’è¿”ã™ã€‚
+     * Š³Òƒƒ‚‚ğ•Ô‚·B
      *
-     * @return æ‚£è€…ãƒ¡ãƒ¢
+     * @return Š³Òƒƒ‚
      */
     public String getMemo() {
         return memo;
     }
     
     /**
-     * ä½æ‰€ãƒ¢ãƒ‡ãƒ«ã‚’è¿”ã™ã€‚
-     * @return ä½æ‰€ãƒ¢ã‚¨ãƒ«
+     * ZŠƒ‚ƒfƒ‹‚ğ•Ô‚·B
+     * @return ZŠƒ‚ƒGƒ‹
      */
     public SimpleAddressModel getSimpleAddressModel() {
         return address;
     }
     
     /**
-     * ä½æ‰€ãƒ¢ãƒ‡ãƒ«ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param address ä½æ‰€ãƒ¢ãƒ‡ãƒ«
+     * ZŠƒ‚ƒfƒ‹‚ğİ’è‚·‚éB
+     * @param address ZŠƒ‚ƒfƒ‹
      */
     public void setSimpleAddressModel(SimpleAddressModel address) {
         this.address = address;
     }
     
     /**
-     * éƒµä¾¿ç•ªå·ã‚’è¿”ã™ã€‚
-     * @return éƒµä¾¿ç•ªå·
+     * —X•Ö”Ô†‚ğ•Ô‚·B
+     * @return —X•Ö”Ô†
      */
     public String contactZipCode() {
         return (address!=null) ? address.getZipCode() : null;
     }
     
     /**
-     * ä½æ‰€ã‚’è¿”ã™ã€‚
-     * @return ä½æ‰€
+     * ZŠ‚ğ•Ô‚·B
+     * @return ZŠ
      */
     public String contactAddress() {
         return (address!=null) ? address.getAddress() : null;
@@ -615,58 +615,58 @@ public class PatientModel extends InfoModel implements java.io.Serializable {
     }
     
     /**
-     * é›»è©±ç•ªå·ã‚’è¿”ã™ã€‚
-     * @return é›»è©±ç•ªå·
+     * “d˜b”Ô†‚ğ•Ô‚·B
+     * @return “d˜b”Ô†
      */
     public String getTelephone() {
         return telephone;
     }
     
     /**
-     * é›»è©±ç•ªå·ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param telephone é›»è©±ç•ªå·
+     * “d˜b”Ô†‚ğİ’è‚·‚éB
+     * @param telephone “d˜b”Ô†
      */
     public void setTelephone(String telephone) {
         this.telephone = telephone;
     }
     
     /**
-     *æºå¸¯é›»è©±ã®ç•ªå·ã‚’è¿”ã™ã€‚
-     * @return æºå¸¯é›»è©±ã®ç•ªå·
+     *Œg‘Ñ“d˜b‚Ì”Ô†‚ğ•Ô‚·B
+     * @return Œg‘Ñ“d˜b‚Ì”Ô†
      */
     public String getMobilePhone() {
         return mobilePhone;
     }
     
     /**
-     *æºå¸¯é›»è©±ã®ç•ªå·ã‚’è¨­å®šã™ã‚‹ã€‚
-     *@param mobilePhone æºå¸¯é›»è©±ã®ç•ªå·
+     *Œg‘Ñ“d˜b‚Ì”Ô†‚ğİ’è‚·‚éB
+     *@param mobilePhone Œg‘Ñ“d˜b‚Ì”Ô†
      */
     public void setMobilePhone(String mobilePhone) {
         this.mobilePhone = mobilePhone;
     }
     
     /**
-     * é›»å­ãƒ¡ãƒ¼ãƒ«ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’è¿”ã™ã€‚
-     * @return é›»å­ãƒ¡ãƒ¼ãƒ«ã‚¢ãƒ‰ãƒ¬ã‚¹
+     * “dqƒ[ƒ‹ƒAƒhƒŒƒX‚ğ•Ô‚·B
+     * @return “dqƒ[ƒ‹ƒAƒhƒŒƒX
      */
     public String getEmail() {
         return email;
     }
     
     /**
-     * é›»å­ãƒ¡ãƒ¼ãƒ«ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param email é›»å­ãƒ¡ãƒ¼ãƒ«ã‚¢ãƒ‰ãƒ¬ã‚¹
+     * “dqƒ[ƒ‹ƒAƒhƒŒƒX‚ğİ’è‚·‚éB
+     * @param email “dqƒ[ƒ‹ƒAƒhƒŒƒX
      */
     public void setEmail(String email) {
         this.email = email;
     }
     
     /**
-     * å¥åº·ä¿é™ºã‚’è¨­å®šã™ã‚‹ã€‚
+     * Œ’N•ÛŒ¯‚ğİ’è‚·‚éB
      *
      * @param healthInsurances
-     *            å¥åº·ä¿é™º
+     *            Œ’N•ÛŒ¯
      */
     public void setHealthInsurances(
             List<HealthInsuranceModel> healthInsurances) {
@@ -674,19 +674,19 @@ public class PatientModel extends InfoModel implements java.io.Serializable {
     }
     
     /**
-     * å¥åº·ä¿é™ºã‚’è¿”ã™ã€‚
+     * Œ’N•ÛŒ¯‚ğ•Ô‚·B
      *
-     * @return å¥åº·ä¿é™º
+     * @return Œ’N•ÛŒ¯
      */
     public List<HealthInsuranceModel> getHealthInsurances() {
         return healthInsurances;
     }
     
     /**
-     * å¥åº·ä¿é™ºã‚’è¿½åŠ ã™ã‚‹ã€‚
+     * Œ’N•ÛŒ¯‚ğ’Ç‰Á‚·‚éB
      *
      * @param value
-     *            å¥åº·ä¿é™º
+     *            Œ’N•ÛŒ¯
      */
     public void addHealthInsurance(HealthInsuranceModel value) {
         if (healthInsurances == null) {
@@ -742,9 +742,9 @@ public class PatientModel extends InfoModel implements java.io.Serializable {
     }
     
     /**
-     * æ‚£è€…ç°¡æ˜“æƒ…å ±ã‚’è¿”ã™ã€‚
+     * Š³ÒŠÈˆÕî•ñ‚ğ•Ô‚·B
      *
-     * @return æ‚£è€…ç°¡æ˜“æƒ…å ±
+     * @return Š³ÒŠÈˆÕî•ñ
      */
     public PatientLiteModel patientAsLiteModel() {
         PatientLiteModel model = new PatientLiteModel();

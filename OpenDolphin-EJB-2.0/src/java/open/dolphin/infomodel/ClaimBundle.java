@@ -21,23 +21,23 @@ package open.dolphin.infomodel;
 
 
 /**
- * ClaimBundle è¦ç´ ã‚¯ãƒ©ã‚¹ã€‚
+ * ClaimBundle —v‘fƒNƒ‰ƒXB
  *
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
 public class ClaimBundle extends InfoModel {
 	
-    String className;           // è¨ºç™‚è¡Œç‚ºå
-    String classCode;           // è¨ºç™‚è¡Œç‚ºã‚³ãƒ¼ãƒ‰
-    String classCodeSystem;     // ã‚³ãƒ¼ãƒ‰ä½“ç³»
-    String admin;               // ç”¨æ³•
-    String adminCode;           // ç”¨æ³•ã‚³ãƒ¼ãƒ‰
-    String adminCodeSystem;     // ç”¨æ³•ã‚³ãƒ¼ãƒ‰ä½“ç³»
-    String adminMemo;           // ç”¨æ³•ãƒ¡ãƒ¢
-    String bundleNumber;        // ãƒãƒ³ãƒ‰ãƒ«æ•°
-    ClaimItem[] claimItem;      // ãƒãƒ³ãƒ‰ãƒ«æ§‹æˆå“ç›®
-    String memo;                // ãƒ¡ãƒ¢
-    private String insurance;           // ä¿é™ºç¨®åˆ¥
+    String className;           // f—Ãsˆ×–¼
+    String classCode;           // f—Ãsˆ×ƒR[ƒh
+    String classCodeSystem;     // ƒR[ƒh‘ÌŒn
+    String admin;               // —p–@
+    String adminCode;           // —p–@ƒR[ƒh
+    String adminCodeSystem;     // —p–@ƒR[ƒh‘ÌŒn
+    String adminMemo;           // —p–@ƒƒ‚
+    String bundleNumber;        // ƒoƒ“ƒhƒ‹”
+    ClaimItem[] claimItem;      // ƒoƒ“ƒhƒ‹\¬•i–Ú
+    String memo;                // ƒƒ‚
+    private String insurance;           // •ÛŒ¯í•Ê
     
     /** Creates new ClaimBundle*/
     public ClaimBundle() {        
@@ -142,5 +142,27 @@ public class ClaimBundle extends InfoModel {
 
     public void setInsurance(String insurance) {
         this.insurance = insurance;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        ClaimBundle ret = new ClaimBundle();
+        ret.setAdmin(this.getAdmin());
+        ret.setAdminCode(this.getAdminCode());
+        ret.setAdminCodeSystem(this.getAdminCodeSystem());
+        ret.setAdminMemo(this.getAdminMemo());
+        ret.setBundleNumber(this.getBundleNumber());
+        ret.setClassCode(this.getClassCode());
+        ret.setClassCodeSystem(this.getClassCodeSystem());
+        ret.setClassName(this.getClassName());
+        ret.setInsurance(this.getInsurance());
+        ret.setMemo(this.getMemo());
+        ClaimItem[] items = this.getClaimItem();
+        if (items!=null) {
+            for (ClaimItem item : items) {
+                ret.addClaimItem((ClaimItem)item.clone());
+            }
+        }
+        return ret;
     }
 }

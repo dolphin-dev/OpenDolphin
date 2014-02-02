@@ -9,7 +9,7 @@ import javax.persistence.InheritanceType;
 import javax.persistence.Transient;
 
 /**
- * ãŒã‚“ç›¸è«‡ã€Œè•©è•©ã€ã®ç´¹ä»‹çŠ¶ãƒ•ã‚©ãƒ¼ãƒ ã€‚
+ * ‚ª‚ñ‘Š’ku“ “ v‚ÌĞ‰îóƒtƒH[ƒ€B
  */
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)

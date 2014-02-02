@@ -17,7 +17,7 @@ import javax.persistence.Transient;
 
 /**
  * StampTreeModel
- * Userã®ãƒ‘ãƒ¼ã‚½ãƒŠãƒ«ãƒ„ãƒªãƒ¼ã‚¯ãƒ©ã‚¹ã€‚
+ * User‚Ìƒp[ƒ\ƒiƒ‹ƒcƒŠ[ƒNƒ‰ƒXB
  *
  * @author Kazushi Minagawa, Digital Globe, Inc.
  */
@@ -33,35 +33,35 @@ public class StampTreeModel extends InfoModel implements IStampTreeModel,java.io
     @JoinColumn(name="user_id", nullable=false)
     private UserModel user;
     
-    // TreeSetã®åç§°
+    // TreeSet‚Ì–¼Ì
     @Column(name="tree_name", nullable=false)
     private String name;
     
     // OID or Public
-    // OID ã®æ™‚ã¯æ–½è¨­ç”¨
+    // OID ‚Ì‚Í{İ—p
     private String publishType;
     
-    // Treeã®ã‚«ãƒ†ã‚´ãƒª
+    // Tree‚ÌƒJƒeƒSƒŠ
     private String category;
     
-    // å›£ä½“åç­‰
+    // ’c‘Ì–¼“™
     private String partyName;
     
     // URL
     private String url;
     
-    // èª¬æ˜
+    // à–¾
     private String description;
     
-    // å…¬é–‹ã—ãŸæ—¥
+    // ŒöŠJ‚µ‚½“ú
     @Temporal(value = TemporalType.DATE)
     private Date publishedDate;
     
-    // æœ€çµ‚æ›´æ–°æ—¥
+    // ÅIXV“ú
     @Temporal(value = TemporalType.DATE)
     private Date lastUpdated;
     
-    // å…¬é–‹ã—ã¦ã„ã‚‹treeã®ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£
+    // ŒöŠJ‚µ‚Ä‚¢‚étree‚ÌƒGƒ“ƒeƒBƒeƒB
     private String published;
     
     @Transient

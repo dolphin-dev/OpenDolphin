@@ -32,7 +32,7 @@ public class HealthInsuranceModel extends InfoModel implements java.io.Serializa
     private PatientModel patient;
     
     /**
-     * Idã‚’è¿”ã™ã€‚
+     * Id‚ğ•Ô‚·B
      * @return Id
      */
     public long getId() {
@@ -40,7 +40,7 @@ public class HealthInsuranceModel extends InfoModel implements java.io.Serializa
     }
     
     /**
-     * Idã‚’è¨­å®šã™ã‚‹ã€‚
+     * Id‚ğİ’è‚·‚éB
      * @param id Id
      */
     public void setId(long id) {
@@ -48,32 +48,32 @@ public class HealthInsuranceModel extends InfoModel implements java.io.Serializa
     }
     
     /**
-     * BeanXml ã‚’èƒŒä½ã™ã‚‹ã€‚
-     * @param BeanXmlãƒã‚¤ãƒˆé…åˆ—
+     * BeanXml ‚ğ”w’á‚·‚éB
+     * @param BeanXmlƒoƒCƒg”z—ñ
      */
     public void setBeanBytes(byte[] beanBytes) {
         this.beanBytes = beanBytes;
     }
     
     /**
-     * BeanXml ã‚’è¿”ã™ã€‚
-     * @return BeanXmlãƒã‚¤ãƒˆé…åˆ—
+     * BeanXml ‚ğ•Ô‚·B
+     * @return BeanXmlƒoƒCƒg”z—ñ
      */
     public byte[] getBeanBytes() {
         return beanBytes;
     }
     
     /**
-     * æ‚£è€…ã‚’è¿”ã™ã€‚
-     * @return æ‚£è€…
+     * Š³Ò‚ğ•Ô‚·B
+     * @return Š³Ò
      */
     public PatientModel getPatient() {
         return patient;
     }
     
     /**
-     * æ‚£è€…ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param patient æ‚£è€…
+     * Š³Ò‚ğİ’è‚·‚éB
+     * @param patient Š³Ò
      */
     public void setPatient(PatientModel patient) {
         this.patient = patient;

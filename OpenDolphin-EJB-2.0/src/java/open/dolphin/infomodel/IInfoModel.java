@@ -1,73 +1,71 @@
 package open.dolphin.infomodel;
 
-import java.io.Serializable;
-
 /**
  * IInfoModel
  *
  * @athor Minagawa, Kazushi
  *
  */
-public interface IInfoModel extends Serializable {
+public interface IInfoModel extends java.io.Serializable, java.lang.Cloneable {
     
     /** ISO 8601 style date format */
     public static final String ISO_8601_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
     
-    /** ã‚«ãƒ«ãƒ†ã®ç¢ºå®šæ—¥è¡¨ç¤ºç”¨ã®ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆ */
-    public static final String KARTE_DATE_FORMAT = "yyyyå¹´Mæœˆdæ—¥'ï¼ˆ'EEE'ï¼‰'Hæ™‚måˆ†";
+    /** ƒJƒ‹ƒe‚ÌŠm’è“ú•\¦—p‚ÌƒtƒH[ƒ}ƒbƒg */
+    public static final String KARTE_DATE_FORMAT = "yyyy”NMŒd“ú'i'EEE'j'Hm•ª";
     
-    /** æ™‚é–“éƒ¨åˆ†ã®ãªã„ Date */
+    /** ŠÔ•”•ª‚Ì‚È‚¢ Date */
     public static final String DATE_WITHOUT_TIME = "yyyy-MM-dd";
     
-    /** Oersistence Query ã® LIKE æ¼”ç®—å­ */
+    /** Oersistence Query ‚Ì LIKE ‰‰Zq */
     public static final String LIKE_OPERATOR = "%";
     
-    /** è¤‡åˆã‚­ãƒ¼ã«ã™ã‚‹ãŸã‚ã®çµåˆå­ */
+    /** •¡‡ƒL[‚É‚·‚é‚½‚ß‚ÌŒ‹‡q */
     public static final String COMPOSITE_KEY_MAKER = ":";
     
-    /** ç®¡ç†è€…ãƒ­ãƒ¼ãƒ« */
+    /** ŠÇ—Òƒ[ƒ‹ */
     public static final String ADMIN_ROLE = "admin";
     
-    /** åˆ©ç”¨è€…ãƒ­ãƒ¼ãƒ« */
+    /** —˜—pÒƒ[ƒ‹ */
     public static final String USER_ROLE = "user";
     
-    /** å©šå§»çŠ¶æ³ */
+    /** ¥ˆ÷ó‹µ */
     public static final String MARITAL_STATUS = "maritalStatus";
     
-    /** å›½ç± */
+    /** ‘Ğ */
     public static final String NATIONALITY = "nationality";
     
-    /** ãƒ¡ãƒ¢ */
+    /** ƒƒ‚ */
     public static final String MEMO = "memo";    
     
     public static final String MALE 		= "male";
     
-    public static final String MALE_DISP 	= "ç”·";
+    public static final String MALE_DISP 	= "’j";
     
     public static final String FEMALE 		= "female";
     
-    public static final String FEMALE_DISP 	= "å¥³";
+    public static final String FEMALE_DISP 	= "—";
     
-    public static final String UNKNOWN 		= "ä¸æ˜";
+    public static final String UNKNOWN 		= "•s–¾";
     
-    public static final String AGE 		= "æ­³";
+    public static final String AGE 		= "Î";
 
-    /** ãƒ—ãƒ¬ã‚¤ãƒ³æ–‡æ›¸ */
+    /** ƒvƒŒƒCƒ“•¶‘ */
     public static final String DOCTYPE_S_KARTE = "s_karte";
 
-    /** 2å·ã‚«ãƒ«ãƒ† */
+    /** 2†ƒJƒ‹ƒe */
     public static final String DOCTYPE_KARTE = "karte";
 
-    /** ç´¹ä»‹çŠ¶ */
+    /** Ğ‰îó */
     public static final String DOCTYPE_LETTER = "letter";
 
-    /** ç´¹ä»‹çŠ¶è¿”æ›¸ */
+    /** Ğ‰îó•Ô‘ */
     public static final String DOCTYPE_LETTER_REPLY = "letterReply";
 
-    /** ç´¹ä»‹çŠ¶è¿”æ›¸2 */
+    /** Ğ‰îó•Ô‘2 */
     public static final String DOCTYPE_LETTER_REPLY2 = "letterReply2";
 
-    /** ç´¹ä»‹çŠ¶åŠã³è¿”æ›¸ã§ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ */
+    /** Ğ‰îó‹y‚Ñ•Ô‘‚Åƒvƒ‰ƒOƒCƒ“ */
     public static final String DOCTYPE_LETTER_PLUGIN = "letterPlugin";
     
     public static final String PURPOSE_RECORD = "recode";
@@ -77,14 +75,14 @@ public interface IInfoModel extends Serializable {
     public static final String RELATION_NEW = "newVersion";
     public static final String RELATION_OLD = "oldVersion";
     
-    public static final String DEFAULT_DIAGNOSIS_TITLE = "ç—…åç™»éŒ²";
+    public static final String DEFAULT_DIAGNOSIS_TITLE = "•a–¼“o˜^";
     public static final String DEFAULT_DIAGNOSIS_CATEGORY = "mainDiagnosis";
-    public static final String DEFAULT_DIAGNOSIS_CATEGORY_DESC = "ä¸»ç—…å";
+    public static final String DEFAULT_DIAGNOSIS_CATEGORY_DESC = "å•a–¼";
     public static final String DEFAULT_DIAGNOSIS_CATEGORY_CODESYS = "MML0012";
-    public static final String ORCA_OUTCOME_RECOVERED ="æ²»ç™’";
-    public static final String ORCA_OUTCOME_DIED = "æ­»äº¡";
-    public static final String ORCA_OUTCOME_END = "ä¸­æ­¢";
-    public static final String ORCA_OUTCOME_TRANSFERED = "ç§»è¡Œ";
+    public static final String ORCA_OUTCOME_RECOVERED ="¡–ü";
+    public static final String ORCA_OUTCOME_DIED = "€–S";
+    public static final String ORCA_OUTCOME_END = "’†~";
+    public static final String ORCA_OUTCOME_TRANSFERED = "ˆÚs";
     
     //
     // Stamp Roles
@@ -107,10 +105,10 @@ public interface IInfoModel extends Serializable {
     /** Text stamp */
     public static final String ROLE_TEXT 			= "text";
     
-    /** å‚·ç—…å */
+    /** •a–¼ */
     public static final String ROLE_DIAGNOSIS 			= "diagnosis";
     
-    /** ORCA å…¥åŠ›ã‚»ãƒƒãƒˆ */
+    /** ORCA “ü—ÍƒZƒbƒg */
     public static final String ROLE_ORCA_SET                    = "orcaSet";
     
     
@@ -125,73 +123,73 @@ public interface IInfoModel extends Serializable {
     public static final String ACCES_RIGHT_PATIENT = "patient";
     public static final String ACCES_RIGHT_CREATOR = "creator";
     public static final String ACCES_RIGHT_EXPERIENCE = "experience";
-    public static final String ACCES_RIGHT_PATIENT_DISP = "è¢«è¨˜è¼‰è€…(æ‚£è€…)";
-    public static final String ACCES_RIGHT_CREATOR_DISP = "è¨˜è¼‰è€…æ–½è¨­";
-    public static final String ACCES_RIGHT_EXPERIENCE_DISP = "è¨ºç™‚æ­´ã®ã‚ã‚‹æ–½è¨­";
+    public static final String ACCES_RIGHT_PATIENT_DISP = "”í‹LÚÒ(Š³Ò)";
+    public static final String ACCES_RIGHT_CREATOR_DISP = "‹LÚÒ{İ";
+    public static final String ACCES_RIGHT_EXPERIENCE_DISP = "f—Ã—ğ‚Ì‚ ‚é{İ";
     public static final String ACCES_RIGHT_PERSON_CODE = "personCode";
     public static final String ACCES_RIGHT_FACILITY_CODE = "facilityCode";
     public static final String ACCES_RIGHT_EXPERIENCE_CODE = "facilityCode";
     
-    /** å‡¦æ–¹ã‚³ãƒ¼ãƒ‰ */
+    /** ˆ•ûƒR[ƒh */
     public static final String CLAIM_210 = "210";
     
-    public static final String INSURANCE_SELF = "è‡ªè²»";
+    public static final String INSURANCE_SELF = "©”ï";
     public static final String INSURANCE_SELF_CODE = "Z1";
     public static final String INSURANCE_SELF_PREFIX = "Z";
     public static final String INSURANCE_SYS = "MML031";
     
     //
-    // StampTreeã®ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ï¼ˆæƒ…å ±ã®å®Ÿä½“ï¼‰å
+    // StampTree‚ÌƒGƒ“ƒeƒBƒeƒBiî•ñ‚ÌÀ‘Ìj–¼
     //
-    /** å‚·ç—…å */
+    /** •a–¼ */
     public static final String ENTITY_DIAGNOSIS = "diagnosis";
     
-    /** ãƒ†ã‚­ã‚¹ãƒˆ */
+    /** ƒeƒLƒXƒg */
     public static final String ENTITY_TEXT = "text";
     
-    /** ãƒ‘ ã‚¹ */
+    /** ƒp ƒX */
     public static final String ENTITY_PATH = "path";
     
-    /** æ±ç”¨ */
+    /** ”Ä—p */
     public static final String ENTITY_GENERAL_ORDER = "generalOrder";
     
-    /** ãã®ä»– */
+    /** ‚»‚Ì‘¼ */
     public static final String ENTITY_OTHER_ORDER = "otherOrder";
     
-    /** å‡¦ ç½® */
+    /** ˆ ’u */
     public static final String ENTITY_TREATMENT = "treatmentOrder";
     
-    /** æ‰‹ è¡“ */
+    /** è p */
     public static final String ENTITY_SURGERY_ORDER = "surgeryOrder";
     
-    /** æ”¾å°„ç·š */
+    /** •úËü */
     public static final String ENTITY_RADIOLOGY_ORDER = "radiologyOrder";
     
-    /** ãƒ©ãƒœãƒ†ã‚¹ãƒˆ */
+    /** ƒ‰ƒ{ƒeƒXƒg */
     public static final String ENTITY_LABO_TEST = "testOrder";
     
-    /** ç”Ÿä½“æ¤œæŸ» */
+    /** ¶‘ÌŒŸ¸ */
     public static final String ENTITY_PHYSIOLOGY_ORDER = "physiologyOrder";
     
-    /** ç´°èŒæ¤œæŸ» */
+    /** ×‹ÛŒŸ¸ */
     public static final String ENTITY_BACTERIA_ORDER = "bacteriaOrder";
     
-    /** æ³¨ å°„ */
+    /** ’ Ë */
     public static final String ENTITY_INJECTION_ORDER = "injectionOrder";
     
-    /** å‡¦ æ–¹ */
+    /** ˆ •û */
     public static final String ENTITY_MED_ORDER = "medOrder";
     
-    /** è¨º æ–­ */
+    /** f ’f */
     public static final String ENTITY_BASE_CHARGE_ORDER = "baseChargeOrder";
     
-    /** æŒ‡ å° */
+    /** w “± */
     public static final String ENTITY_INSTRACTION_CHARGE_ORDER = "instractionChargeOrder";
     
-    /** ORCA ã‚»ãƒƒãƒˆ */
+    /** ORCA ƒZƒbƒg */
     public static final String ENTITY_ORCA = "orcaSet";
     
-    /** Entity ã®é…åˆ— */
+    /** Entity ‚Ì”z—ñ */
     public static final String[] STAMP_ENTITIES = new String[] {
         ENTITY_DIAGNOSIS, ENTITY_TEXT, ENTITY_PATH, ENTITY_ORCA, ENTITY_GENERAL_ORDER, ENTITY_OTHER_ORDER, ENTITY_TREATMENT,
         ENTITY_SURGERY_ORDER, ENTITY_RADIOLOGY_ORDER, ENTITY_LABO_TEST, ENTITY_PHYSIOLOGY_ORDER,
@@ -199,61 +197,61 @@ public interface IInfoModel extends Serializable {
     };
     
     //
-    // StampTreeã®ã‚¿ãƒ–å
+    // StampTree‚Ìƒ^ƒu–¼
     //
-    /** å‚·ç—…å */
-    public static final String TABNAME_DIAGNOSIS = "å‚·ç—…å";
+    /** •a–¼ */
+    public static final String TABNAME_DIAGNOSIS = "•a–¼";
     
-    /** ãƒ†ã‚­ã‚¹ãƒˆ */
-    public static final String TABNAME_TEXT = "ãƒ†ã‚­ã‚¹ãƒˆ";
+    /** ƒeƒLƒXƒg */
+    public static final String TABNAME_TEXT = "ƒeƒLƒXƒg";
     
-    /** ãƒ‘ ã‚¹ */
-    public static final String TABNAME_PATH = "ãƒ‘ ã‚¹";
+    /** ƒp ƒX */
+    public static final String TABNAME_PATH = "ƒp ƒX";
     
-    /** ORCA ã‚»ãƒƒãƒˆ */
+    /** ORCA ƒZƒbƒg */
     public static final String TABNAME_ORCA = "ORCA";
     
-    /** æ± ç”¨ */
-    public static final String TABNAME_GENERAL = "æ± ç”¨";
+    /** ”Ä —p */
+    public static final String TABNAME_GENERAL = "”Ä —p";
     
-    /** ãã®ä»– */
-    public static final String TABNAME_OTHER = "ãã®ä»–";
+    /** ‚»‚Ì‘¼ */
+    public static final String TABNAME_OTHER = "‚»‚Ì‘¼";
     
-    /** å‡¦ ç½® */
-    public static final String TABNAME_TREATMENT = "å‡¦ ç½®";
+    /** ˆ ’u */
+    public static final String TABNAME_TREATMENT = "ˆ ’u";
     
-    /** æ‰‹ è¡“ */
-    public static final String TABNAME_SURGERY = "æ‰‹ è¡“";
+    /** è p */
+    public static final String TABNAME_SURGERY = "è p";
     
-    /** æ”¾å°„ç·š */
-    public static final String TABNAME_RADIOLOGY = "æ”¾å°„ç·š";
+    /** •úËü */
+    public static final String TABNAME_RADIOLOGY = "•úËü";
     
-    /** æ¤œä½“æ¤œæŸ» */
-    public static final String TABNAME_LABO = "æ¤œä½“æ¤œæŸ»";
+    /** ŒŸ‘ÌŒŸ¸ */
+    public static final String TABNAME_LABO = "ŒŸ‘ÌŒŸ¸";
     
-    /** ç”Ÿä½“æ¤œæŸ» */
-    public static final String TABNAME_PHYSIOLOGY = "ç”Ÿä½“æ¤œæŸ»";
+    /** ¶‘ÌŒŸ¸ */
+    public static final String TABNAME_PHYSIOLOGY = "¶‘ÌŒŸ¸";
     
-    /** ç´°èŒæ¤œæŸ» */
-    public static final String TABNAME_BACTERIA = "ç´°èŒæ¤œæŸ»";
+    /** ×‹ÛŒŸ¸ */
+    public static final String TABNAME_BACTERIA = "×‹ÛŒŸ¸";
     
-    /** æ³¨ å°„ */
-    public static final String TABNAME_INJECTION = "æ³¨ å°„";
+    /** ’ Ë */
+    public static final String TABNAME_INJECTION = "’ Ë";
     
-    /** å‡¦ æ–¹ */
-    public static final String TABNAME_MED = "å‡¦ æ–¹";
+    /** ˆ •û */
+    public static final String TABNAME_MED = "ˆ •û";
     
-    /** åˆè¨ºãƒ»å†è¨º */
-    public static final String TABNAME_BASE_CHARGE = "åˆè¨ºãƒ»å†è¨º";
+    /** ‰fEÄf */
+    public static final String TABNAME_BASE_CHARGE = "‰fEÄf";
     
-    /** æŒ‡å°ãƒ»åœ¨å®… */
-    public static final String TABNAME_INSTRACTION = "æŒ‡å°ãƒ»åœ¨å®…";
+    /** w“±Eİ‘î */
+    public static final String TABNAME_INSTRACTION = "w“±Eİ‘î";
     
-    /** ORCA ã®ã‚¿ãƒ–ç•ªå· */
+    /** ORCA ‚Ìƒ^ƒu”Ô† */
     public static final int TAB_INDEX_ORCA = 3;
     
     
-    /** ã‚¹ã‚¿ãƒ³ãƒ—ã®ã‚¿ãƒ–åé…åˆ— */
+    /** ƒXƒ^ƒ“ƒv‚Ìƒ^ƒu–¼”z—ñ */
     public static String[] STAMP_NAMES = {
         TABNAME_DIAGNOSIS, TABNAME_TEXT, TABNAME_PATH, TABNAME_ORCA, 
         TABNAME_GENERAL, TABNAME_OTHER, TABNAME_TREATMENT, TABNAME_SURGERY, 
@@ -261,7 +259,7 @@ public interface IInfoModel extends Serializable {
         TABNAME_INJECTION, TABNAME_MED, TABNAME_BASE_CHARGE, TABNAME_INSTRACTION
     };
     
-    /** ã‚¹ã‚¿ãƒ³ãƒ—ã®CLAIMç‰ˆç‚¹æ•°é›†è¨ˆå…ˆ */
+    /** ƒXƒ^ƒ“ƒv‚ÌCLAIM”Å“_”WŒvæ */
     public static String[] CLAIM_CLASS_CODE = {
         "", "", "", "", "", "800-899", "400-499", "500-599", "700-799", "600-699", "600-699",
         "600", "300-331", "210-230", "110-125", "130-140"
@@ -283,8 +281,8 @@ public interface IInfoModel extends Serializable {
     public static final String UNIT_BODY_WEIGHT = "Kg";
     public static final String UNIT_BODY_HEIGHT = "cm";
     
-    public static final String PUBLISH_TREE_LOCAL = "é™¢å†…";
-    public static final String PUBLISH_TREE_PUBLIC = "ã‚°ãƒ­ãƒ¼ãƒãƒ«";
+    public static final String PUBLISH_TREE_LOCAL = "‰@“à";
+    public static final String PUBLISH_TREE_PUBLIC = "ƒOƒ[ƒoƒ‹";
     public static final String PUBLISHED_TYPE_GLOBAL = "global";
 
     public static final String CONSULTANT = "consultant";

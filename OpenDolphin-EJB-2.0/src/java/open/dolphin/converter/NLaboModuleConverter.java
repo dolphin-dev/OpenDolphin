@@ -56,6 +56,14 @@ public final class NLaboModuleConverter implements IInfoModelConverter {
         return model.getLaboCenterCode();
     }
 
+    public String getModuleKey() {
+        return model.getModuleKey();
+    }
+
+    public String getReportFormat() {
+        return model.getReportFormat();
+    }
+
     @Override
     public void setModel(IInfoModel model) {
         this.model = (NLaboModule)model;

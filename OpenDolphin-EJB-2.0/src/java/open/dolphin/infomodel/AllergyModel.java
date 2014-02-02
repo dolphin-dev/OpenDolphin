@@ -9,19 +9,19 @@ public class AllergyModel extends InfoModel implements Comparable {
     
     private long observationId;
     
-    // è¦å› 
+    // —vˆö
     private String factor;
     
-    // åå¿œç¨‹åº¦
+    // ”½‰’ö“x
     private String severity;
     
-    // ã‚³ãƒ¼ãƒ‰ä½“ç³»
+    // ƒR[ƒh‘ÌŒn
     private String severityTableId;
     
-    // åŒå®šæ—¥
+    // “¯’è“ú
     private String identifiedDate;
     
-    // ãƒ¡ãƒ¢
+    // ƒƒ‚
     private String memo;
     
     public String getFactor() {
@@ -65,9 +65,9 @@ public class AllergyModel extends InfoModel implements Comparable {
     }
     
     /**
-     * åŒå®šæ—¥ã§æ¯”è¼ƒã™ã‚‹ã€‚
-     * @param other æ¯”è¼ƒå¯¾è±¡ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
-     * @return æ¯”è¼ƒå€¤
+     * “¯’è“ú‚Å”äŠr‚·‚éB
+     * @param other ”äŠr‘ÎÛƒIƒuƒWƒFƒNƒg
+     * @return ”äŠr’l
      */
     @Override
     public int compareTo(Object other) {

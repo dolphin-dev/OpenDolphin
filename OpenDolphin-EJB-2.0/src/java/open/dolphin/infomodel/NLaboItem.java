@@ -22,81 +22,84 @@ public class NLaboItem extends InfoModel implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    // æ‚£è€…ID fid:Pid
+    // Š³ÒID fid:Pid
     @Column (nullable = false)
     private String patientId;
 
-    // æ¤œä½“æ¡å–æ—¥
+    // ŒŸ‘ÌÌæ“ú
     @Column (nullable = false)
     private String sampleDate;
 
-    // Labo ã‚³ãƒ¼ãƒ‰
+    // Labo ƒR[ƒh
     private String laboCode;
 
-    // ä¹³ãƒ“
+    // “ûƒr
     private String lipemia;
 
-    // æº¶è¡€
+    // —nŒŒ
     private String hemolysis;
 
-    // é€æå‰å¾Œ
+    // “§Í‘OŒã
     private String dialysis;
 
-    // ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
+    // ƒXƒe[ƒ^ƒX
     private String reportStatus;
 
-    // ã‚°ãƒ«ãƒ¼ãƒ—ã‚³ãƒ¼ãƒ‰
+    // ƒOƒ‹[ƒvƒR[ƒh
     @Column (nullable = false)
     private String groupCode;
 
-    // ã‚°ãƒ«ãƒ¼ãƒ—åç§°
+    // ƒOƒ‹[ƒv–¼Ì
     private String groupName;
 
-    // æ¤œæŸ»é …ç›®ã‚³ãƒ¼ãƒ‰ãƒ»è¦ª
+    // ŒŸ¸€–ÚƒR[ƒhEe
     @Column (nullable = false)
     private String parentCode;
 
-    // æ¤œæŸ»é …ç›®ã‚³ãƒ¼ãƒ‰
+    // ŒŸ¸€–ÚƒR[ƒh
     @Column (nullable = false)
     private String itemCode;
 
-    // MEDIS ã‚³ãƒ¼ãƒ‰
+    // MEDIS ƒR[ƒh
     private String medisCode;
 
-    // æ¤œæŸ»é …ç›®å
+    // ŒŸ¸€–Ú–¼
     @Column (nullable = false)
     private String itemName;
 
-    // ç•°å¸¸åŒºåˆ†
+    // ˆÙí‹æ•ª
     private String abnormalFlg;
 
-    // åŸºæº–å€¤
+    // Šî€’l
     private String normalValue;
 
-    // æ¤œæŸ»çµæœ
+    // ŒŸ¸Œ‹‰Ê
     @Column(name = "c_value")
     private String value;
 
-    // å˜ä½
+    // ’PˆÊ
     private String unit;
 
-    // æ¤œæŸ»ææ–™ã‚³ãƒ¼ãƒ‰
+    // ŒŸ¸Ş—¿ƒR[ƒh
     private String specimenCode;
 
-    // æ¤œæŸ»ææ–™å
+    // ŒŸ¸Ş—¿–¼
     private String specimenName;
 
-    // ã‚³ãƒ¡ãƒ³ãƒˆã‚³ãƒ¼ãƒ‰1
+    // ƒRƒƒ“ƒgƒR[ƒh1
     private String commentCode1;
 
-    // ã‚³ãƒ¡ãƒ³ãƒˆ1
+    // ƒRƒƒ“ƒg1
     private String comment1;
 
-    // ã‚³ãƒ¡ãƒ³ãƒˆã‚³ãƒ¼ãƒ‰2
+    // ƒRƒƒ“ƒgƒR[ƒh2
     private String commentCode2;
 
-    // ã‚³ãƒ¡ãƒ³ãƒˆ2
+    // ƒRƒƒ“ƒg2
     private String comment2;
+
+    // Sort Key
+    private String sortKey;
 
     @ManyToOne
     @JoinColumn(name="laboModule_id", nullable=false)
@@ -472,4 +475,12 @@ public class NLaboItem extends InfoModel implements Serializable {
         this.laboModule = laboModule;
     }
 
+    //-------------------------------------------------
+    public String getSortKey() {
+        return sortKey;
+    }
+
+    public void setSortKey(String sortKey) {
+        this.sortKey = sortKey;
+    }
 }

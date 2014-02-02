@@ -193,28 +193,59 @@ public class LabTestRowObject implements Serializable, Comparable {
 
     public String toClipboard() {
 
-        StringBuilder sb = new StringBuilder();
+        if (values==null || values.isEmpty()) {
+            return null;
+        }
 
+        StringBuilder sb = new StringBuilder();
         sb.append(itemName);
-        if (this.getNormalValue()!=null) {
-            sb.append(",").append("基準値:").append(this.getNormalValue());
-        }
-        if (unit!=null) {
-            sb.append(",").append("単位:").append(unit);
-        }
-        if (values != null) {
-            for (LabTestValueObject val : values) {
-                if (val != null && val.getValue() != null) {
-                    sb.append(",").append(val.getSampleDate()).append(":").append(val.getValue());
-                    if (val.getOut()!=null) {
-                        sb.append("(").append(val.getOut()).append(")");
-                    }
+
+        for (LabTestValueObject val : values) {
+            if (val != null && val.getValue() != null) {
+                sb.append(",").append(val.getValue());
+                if (val.getOut()!=null) {
+                    sb.append(",").append(val.getOut());
                 }
-                if (val !=null && val.concatComment()!=null) {
-                    sb.append(",").append(val.concatComment());
+                if (unit!=null) {
+                    sb.append(",").append(unit);
                 }
+                sb.append(",").append(val.getSampleDate());
             }
         }
+
+        return sb.toString();
+    }
+
+    public String toClipboardLatest() {
+
+        if (values==null || values.isEmpty()) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(itemName);
+
+        int last = values.size() -1;
+        LabTestValueObject test = null;
+        for (int i=last; i > -1; i--) {
+            test = values.get(i);
+            if (test!=null && test.getValue()!=null) {
+                break;
+            }
+        }
+
+        if (test == null) {
+            return null;
+        }
+
+        sb.append(",").append(test.getValue());
+        if (test.getOut()!=null) {
+            sb.append(",").append(test.getOut());
+        }
+        if (unit!=null) {
+            sb.append(",").append(unit);
+        }
+        sb.append(",").append(test.getSampleDate());
 
         return sb.toString();
     }

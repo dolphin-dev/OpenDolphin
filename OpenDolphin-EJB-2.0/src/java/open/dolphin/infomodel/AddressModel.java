@@ -16,114 +16,114 @@ public class AddressModel extends InfoModel {
     private String address;
 
     /**
-     * å›½ã‚³ãƒ¼ãƒ‰ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ‘ƒR[ƒh‚ğİ’è‚·‚éB
      * 
      * @param countryCode
-     *            å›½ã‚³ãƒ¼ãƒ‰
+     *            ‘ƒR[ƒh
      */
     public void setCountryCode(String countryCode) {
         this.countryCode = countryCode;
     }
 
     /**
-     * å›½ã‚³ãƒ¼ãƒ‰ã‚’è¿”ã™ã€‚
+     * ‘ƒR[ƒh‚ğ•Ô‚·B
      * 
-     * @return å›½ã‚³ãƒ¼ãƒ‰
+     * @return ‘ƒR[ƒh
      */
     public String getCountryCode() {
         return countryCode;
     }
 
     /**
-     * éƒµä¾¿ç•ªå·ã‚’è¨­å®šã™ã‚‹ã€‚
+     * —X•Ö”Ô†‚ğİ’è‚·‚éB
      * 
      * @param zipCode
-     *            éƒµä¾¿ç•ªå·
+     *            —X•Ö”Ô†
      */
     public void setZipCode(String zipCode) {
         this.zipCode = zipCode;
     }
 
     /**
-     * éƒµä¾¿ç•ªå·ã‚’è¿”ã™ã€‚
+     * —X•Ö”Ô†‚ğ•Ô‚·B
      * 
-     * @return éƒµä¾¿ç•ªå·
+     * @return —X•Ö”Ô†
      */
     public String getZipCode() {
         return zipCode;
     }
 
     /**
-     * ä½æ‰€ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ZŠ‚ğİ’è‚·‚éB
      * 
      * @param address
-     *            ä½æ‰€
+     *            ZŠ
      */
     public void setAddress(String address) {
         this.address = address;
     }
 
     /**
-     * ä½æ‰€ã‚’è¿”ã™ã€‚
+     * ZŠ‚ğ•Ô‚·B
      * 
-     * @return ä½æ‰€
+     * @return ZŠ
      */
     public String getAddress() {
         return address;
     }
 
     /**
-     * ä½æ‰€åŒºåˆ†ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ZŠ‹æ•ª‚ğİ’è‚·‚éB
      * 
      * @param addressType
-     *            ä½æ‰€åŒºåˆ†
+     *            ZŠ‹æ•ª
      */
     public void setAddressType(String addressType) {
         this.addressType = addressType;
     }
 
     /**
-     * ä½æ‰€åŒºåˆ†ã‚’è¿”ã™ã€‚
+     * ZŠ‹æ•ª‚ğ•Ô‚·B
      * 
-     * @return ä½æ‰€åŒºåˆ†
+     * @return ZŠ‹æ•ª
      */
     public String getAddressType() {
         return addressType;
     }
 
     /**
-     * ä½æ‰€åŒºåˆ†èª¬æ˜ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ZŠ‹æ•ªà–¾‚ğİ’è‚·‚éB
      * 
      * @param addressTypeDesc
-     *            ä½æ‰€åŒºåˆ†èª¬æ˜
+     *            ZŠ‹æ•ªà–¾
      */
     public void setAddressTypeDesc(String addressTypeDesc) {
         this.addressTypeDesc = addressTypeDesc;
     }
 
     /**
-     * ä½æ‰€åŒºåˆ†èª¬æ˜ã‚’è¿”ã™ã€‚
+     * ZŠ‹æ•ªà–¾‚ğ•Ô‚·B
      * 
-     * @return ä½æ‰€åŒºåˆ†èª¬æ˜
+     * @return ZŠ‹æ•ªà–¾
      */
     public String getAddressTypeDesc() {
         return addressTypeDesc;
     }
 
     /**
-     * ä½æ‰€åŒºåˆ†ä½“ç³»ã‚’è¨­å®šã™ã‚‹ã€‚
+     * ZŠ‹æ•ª‘ÌŒn‚ğİ’è‚·‚éB
      * 
      * @param addressTypeCodeSys
-     *            ä½æ‰€åŒºåˆ†ä½“ç³»
+     *            ZŠ‹æ•ª‘ÌŒn
      */
     public void setAddressTypeCodeSys(String addressTypeCodeSys) {
         this.addressTypeCodeSys = addressTypeCodeSys;
     }
 
     /**
-     * ä½æ‰€åŒºåˆ†ä½“ç³»ã‚’è¿”ã™ã€‚
+     * ZŠ‹æ•ª‘ÌŒn‚ğ•Ô‚·B
      * 
-     * @return ä½æ‰€åŒºåˆ†ä½“ç³»
+     * @return ZŠ‹æ•ª‘ÌŒn
      */
     public String getAddressTypeCodeSys() {
         return addressTypeCodeSys;

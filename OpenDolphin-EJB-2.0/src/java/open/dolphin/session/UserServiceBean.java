@@ -58,14 +58,14 @@ public class UserServiceBean implements UserServiceBeanLocal {
     }
 
     /**
-     * æ–½è¨­ç®¡ç†è€…ãŒé™¢å†…Userã‚’ç™»éŒ²ã™ã‚‹ã€‚
-     * @param add ç™»éŒ²ã™ã‚‹User
+     * {İŠÇ—Ò‚ª‰@“àUser‚ğ“o˜^‚·‚éB
+     * @param add “o˜^‚·‚éUser
      */
     @Override
     public int addUser(UserModel add) {
 
         try {
-            // æ—¢å­˜ãƒ¦ãƒ¼ã‚¶ã®å ´åˆã¯ä¾‹å¤–ã‚’ã‚¹ãƒ­ãƒ¼ã™ã‚‹
+            // Šù‘¶ƒ†[ƒU‚Ìê‡‚Í—áŠO‚ğƒXƒ[‚·‚é
             getUser(add.getUserId());
             throw new EntityExistsException();
         } catch (NoResultException e) {
@@ -75,9 +75,9 @@ public class UserServiceBean implements UserServiceBeanLocal {
     }
 
     /**
-     * Userã‚’æ¤œç´¢ã™ã‚‹ã€‚
-     * @param userId æ¤œç´¢ã™ã‚‹ãƒ¦ãƒ¼ã‚¶ã®è¤‡åˆã‚­ãƒ¼
-     * @return è©²å½“ã™ã‚‹User
+     * User‚ğŒŸõ‚·‚éB
+     * @param userId ŒŸõ‚·‚éƒ†[ƒU‚Ì•¡‡ƒL[
+     * @return ŠY“–‚·‚éUser
      */
     @Override
     public UserModel getUser(String uid) {
@@ -93,9 +93,9 @@ public class UserServiceBean implements UserServiceBeanLocal {
     }
 
     /**
-     * æ–½è¨­å†…ã®å…¨Userã‚’å–å¾—ã™ã‚‹ã€‚
+     * {İ“à‚Ì‘SUser‚ğæ“¾‚·‚éB
      *
-     * @return æ–½è¨­å†…ãƒ¦ãƒ¼ã‚¶ãƒªã‚¹ãƒˆ
+     * @return {İ“àƒ†[ƒUƒŠƒXƒg
      */
     @Override
     public List<UserModel> getAllUser(String fid) {
@@ -118,8 +118,8 @@ public class UserServiceBean implements UserServiceBeanLocal {
     }
 
     /**
-     * Useræƒ…å ±(ãƒ‘ã‚¹ãƒ¯ãƒ¼ãƒ‰ç­‰)ã‚’æ›´æ–°ã™ã‚‹ã€‚
-     * @param update æ›´æ–°ã™ã‚‹User detuched
+     * Userî•ñ(ƒpƒXƒ[ƒh“™)‚ğXV‚·‚éB
+     * @param update XV‚·‚éUser detuched
      */
     @Override
     public int updateUser(UserModel update) {
@@ -131,18 +131,18 @@ public class UserServiceBean implements UserServiceBeanLocal {
     }
 
     /**
-     * Userã‚’å‰Šé™¤ã™ã‚‹ã€‚
-     * @param removeId å‰Šé™¤ã™ã‚‹ãƒ¦ãƒ¼ã‚¶ã®Id
+     * User‚ğíœ‚·‚éB
+     * @param removeId íœ‚·‚éƒ†[ƒU‚ÌId
      */
     @Override
     public int removeUser(String removeId) {
 
         //
-        // å‰Šé™¤ã™ã‚‹ãƒ¦ãƒ¼ã‚¶ã‚’å¾—ã‚‹
+        // íœ‚·‚éƒ†[ƒU‚ğ“¾‚é
         //
         UserModel remove = getUser(removeId);
 
-        // Stamp ã‚’å‰Šé™¤ã™ã‚‹
+        // Stamp ‚ğíœ‚·‚é
         Collection<StampModel> stamps = (Collection<StampModel>) em.createQuery("from StampModel s where s.userId = :pk")
                                                                    .setParameter("pk", remove.getId())
                                                                    .getResultList();
@@ -150,7 +150,7 @@ public class UserServiceBean implements UserServiceBeanLocal {
             em.remove(stamp);
         }
 
-        // Subscribed Tree ã‚’å‰Šé™¤ã™ã‚‹
+        // Subscribed Tree ‚ğíœ‚·‚é
         Collection<SubscribedTreeModel> subscribedTrees = (Collection<SubscribedTreeModel>)
                                                           em.createQuery("from SubscribedTreeModel s where s.user.id = :pk")
                                                             .setParameter("pk", remove.getId())
@@ -159,7 +159,7 @@ public class UserServiceBean implements UserServiceBeanLocal {
             em.remove(tree);
         }
 
-        // PublishedTree ã‚’å‰Šé™¤ã™ã‚‹
+        // PublishedTree ‚ğíœ‚·‚é
         Collection<PublishedTreeModel> publishedTrees = (Collection<PublishedTreeModel>)
                                                          em.createQuery("from PublishedTreeModel p where p.user.id = :pk")
                                                            .setParameter("pk", remove.getId())
@@ -168,7 +168,7 @@ public class UserServiceBean implements UserServiceBeanLocal {
             em.remove(tree);
         }
 
-        // PersonalTreeã‚’å‰Šé™¤ã™ã‚‹
+        // PersonalTree‚ğíœ‚·‚é
         Collection<StampTreeModel> stampTree = (Collection<StampTreeModel>) em.createQuery("from StampTreeModel s where s.user.id = :pk")
                                                       .setParameter("pk", remove.getId())
                                                       .getResultList();
@@ -177,7 +177,7 @@ public class UserServiceBean implements UserServiceBeanLocal {
         }
 
         //
-        // ãƒ¦ãƒ¼ã‚¶ã‚’å‰Šé™¤ã™ã‚‹
+        // ƒ†[ƒU‚ğíœ‚·‚é
         //
         if (remove.getLicenseModel().getLicense().equals("doctor")) {
             StringBuilder sb = new StringBuilder();
@@ -192,8 +192,8 @@ public class UserServiceBean implements UserServiceBeanLocal {
     }
 
     /**
-     * æ–½è¨­æƒ…å ±ã‚’æ›´æ–°ã™ã‚‹ã€‚
-     * @param update æ›´æ–°ã™ã‚‹User detuched
+     * {İî•ñ‚ğXV‚·‚éB
+     * @param update XV‚·‚éUser detuched
      */
     @Override
     public int updateFacility(UserModel update) {

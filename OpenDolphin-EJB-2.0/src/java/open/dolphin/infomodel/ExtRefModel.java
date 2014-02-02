@@ -23,7 +23,7 @@ import javax.persistence.Embeddable;
 import javax.persistence.Transient;
 
 /**
- * å¤–éƒ¨å‚ç…§è¦ç´ ã‚¯ãƒ©ã‚¹ã€‚
+ * ŠO•”QÆ—v‘fƒNƒ‰ƒXB
  *
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
@@ -53,7 +53,7 @@ public class ExtRefModel extends InfoModel implements java.io.Serializable {
 
     //private String facilityId;
     
-    /** ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ */
+    /** ƒfƒtƒHƒ‹ƒgƒRƒ“ƒXƒgƒ‰ƒNƒ^ */
     public ExtRefModel() {
     }
     
@@ -119,6 +119,20 @@ public class ExtRefModel extends InfoModel implements java.io.Serializable {
 
     public void setBucket(String bucket) {
         this.bucket = bucket;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        ExtRefModel ret = new ExtRefModel();
+        ret.setBucket(this.getBucket());
+        ret.setContentType(this.getContentType());
+        ret.setHref(this.getHref());
+        ret.setMedicalRole(this.getMedicalRole());
+        ret.setMedicalRoleTableId(this.getMedicalRoleTableId());
+        ret.setSop(this.getSop());
+        ret.setTitle(this.getTitle());
+        ret.setUrl(this.getUrl());
+        return ret;
     }
 
 //    public String getFacilityId() {

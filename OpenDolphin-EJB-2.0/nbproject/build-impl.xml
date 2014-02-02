@@ -440,12 +440,12 @@ exists or setup the property manually. For example like this:
         <!-- You can override this target in the ../build.xml file. -->
     </target>
     <target depends="compile" name="library-inclusion-in-archive">
-        <copyfiles files="${file.reference.velocity-1.4.jar}" todir="${build.classes.dir}"/>
-        <copyfiles files="${file.reference.velocity-dep-1.4.jar}" todir="${build.classes.dir}"/>
+        <copyfiles files="${file.reference.velocity-1.7-dep.jar}" todir="${build.classes.dir}"/>
+        <copyfiles files="${file.reference.velocity-1.7.jar}" todir="${build.classes.dir}"/>
     </target>
     <target depends="compile" name="library-inclusion-in-manifest">
-        <copyfiles files="${file.reference.velocity-1.4.jar}" todir="${dist.ear.dir}/lib"/>
-        <copyfiles files="${file.reference.velocity-dep-1.4.jar}" todir="${dist.ear.dir}/lib"/>
+        <copyfiles files="${file.reference.velocity-1.7-dep.jar}" todir="${dist.ear.dir}/lib"/>
+        <copyfiles files="${file.reference.velocity-1.7.jar}" todir="${dist.ear.dir}/lib"/>
         <manifest file="${build.ear.classes.dir}/META-INF/MANIFEST.MF" mode="update"/>
     </target>
     <target name="-copy-meta-inf">

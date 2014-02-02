@@ -18,7 +18,7 @@ import javax.persistence.Transient;
 @Table(name = "d_labo_module")
 public class LaboModuleValue extends KarteEntryBean implements java.io.Serializable {
     
-    // MMLã®UID
+    // MML‚ÌUID
     @Column(nullable=false, unique=true, length=32)
     private String docId;
     
@@ -256,10 +256,9 @@ public class LaboModuleValue extends KarteEntryBean implements java.io.Serializa
     }
     
     /**
-     * ã‚µãƒ³ãƒ—ãƒ«ã‚¿ã‚¤ãƒ ã§æ¯”è¼ƒã™ã‚‹ã€‚
-     * @return æ¯”è¼ƒå€¤
+     * ƒTƒ“ƒvƒ‹ƒ^ƒCƒ€‚Å”äŠr‚·‚éB
+     * @return ”äŠr’l
      */
-    @Override
     public int compareTo(Object other) {
         if (other != null && getClass() == other.getClass()) {
             String sampleTime1 = getSampleTime();

@@ -5,8 +5,8 @@
         <data xmlns="http://www.netbeans.org/ns/j2ee-ejbjarproject/3">
             <name>OpenDolphin-EJB-2.0</name>
             <minimum-ant-version>1.6.5</minimum-ant-version>
-            <included-library dirs="200">file.reference.velocity-1.4.jar</included-library>
-            <included-library dirs="200">file.reference.velocity-dep-1.4.jar</included-library>
+            <included-library dirs="200">file.reference.velocity-1.7-dep.jar</included-library>
+            <included-library dirs="200">file.reference.velocity-1.7.jar</included-library>
             <source-roots>
                 <root id="src.dir"/>
             </source-roots>

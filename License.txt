@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with thi
 if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 
 02111-1307 USA.
 
-OpenDolphin version 2, Copyright (C) 2001-2011 Kazushi Minagawa, Digital Globe, Inc. 
+OpenDolphin version 2.1.2M, Copyright (C) 2001-2011 Kazushi Minagawa, Digital Globe, Inc. 
 OpenDolphin comes with ABSOLUTELY NO WARRANTY; for details see the GNU General 
 Public License, version 2 (GPLv2) This is free software, and you are welcome to redistribute 
 it under certain conditions; see the GPLv2 for details.

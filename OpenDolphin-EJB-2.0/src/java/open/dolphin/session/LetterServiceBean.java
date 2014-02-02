@@ -31,7 +31,7 @@ public class LetterServiceBean implements LetterServiceBeanLocal {
     @Override
     public long saveOrUpdateLetter(LetterModule model) {
 
-        // ï¿½Û‘ï¿½
+        // •Û‘¶
         em.persist(model);
         List<LetterItem> items = model.getLetterItems();
         if (items != null) {
@@ -55,7 +55,7 @@ public class LetterServiceBean implements LetterServiceBeanLocal {
             }
         }
 
-        // ï¿½íœ
+        // íœ
         if (model.getLinkId()!=0L) {
 
             List<LetterItem> itemList = (List<LetterItem>)

@@ -1,6 +1,0 @@
-open.dolphin.client.BaseURISettingPanel #
-open.dolphin.client.ClaimSettingPanel #
-open.dolphin.client.AreaNetWorkSettingPanel #
-open.dolphin.client.SendMmlSettingPanel
-open.dolphin.client.KarteSettingPanel #
-open.dolphin.client.CodeHelperSettingPanel #

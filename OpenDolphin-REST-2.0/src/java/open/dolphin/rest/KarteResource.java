@@ -17,11 +17,14 @@ import open.dolphin.converter.PlistParser;
 import open.dolphin.infomodel.DocInfoModel;
 import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.infomodel.KarteBean;
+import open.dolphin.infomodel.LetterModel;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.ObservationModel;
 import open.dolphin.infomodel.PatientMemoModel;
 import open.dolphin.infomodel.RegisteredDiagnosisModel;
 import open.dolphin.infomodel.SchemaModel;
+import open.dolphin.infomodel.TouTouLetter;
+import open.dolphin.infomodel.TouTouReply;
 
 /**
  * REST Web Service
@@ -110,6 +113,7 @@ public final class KarteResource extends AbstractResource {
 
         PlistParser parser = new PlistParser();
         DocumentModel document = (DocumentModel) parser.parse(repXml);
+        //System.err.println(document.getDocInfoModel().getLabtestOrderNumber());
         // 関係を構築する
         List<ModuleModel> modules = document.getModules();
         if (modules!=null && modules.size()>0) {
@@ -277,8 +281,12 @@ public final class KarteResource extends AbstractResource {
         String[] params = param.split(CAMMA);
         long karteId = Long.parseLong(params[0]);
         Date fromDate = parseDate(params[1]);
+        boolean activeOnly = false;
+        if (params.length==3) {
+            activeOnly = Boolean.parseBoolean(params[2]);
+        }
 
-        List<RegisteredDiagnosisModel> list = EJBLocator.getKarteServiceBean().getDiagnosis(karteId, fromDate);
+        List<RegisteredDiagnosisModel> list = EJBLocator.getKarteServiceBean().getDiagnosis(karteId, fromDate, activeOnly);
 
         PlistConverter con = new PlistConverter();
         String xml = con.convert(list);
@@ -443,6 +451,56 @@ public final class KarteResource extends AbstractResource {
 
         return text;
     }
+
+    //-------------------------------------------------------
+
+    @PUT
+    @Path("letter/")
+    @Consumes(MediaType.APPLICATION_XML)
+    @Produces(MediaType.TEXT_PLAIN)
+    public String putLetter(String repXml) {
+
+        PlistParser parser = new PlistParser();
+        LetterModel model = (LetterModel) parser.parse(repXml);
+
+        Long pk = EJBLocator.getKarteServiceBean().saveOrUpdateLetter(model);
+
+        String pkStr = String.valueOf(pk);
+        debug(pkStr);
+
+        return pkStr;
+    }
+
+    @GET
+    @Path("letter/{param}/")
+    @Produces(MediaType.APPLICATION_XML)
+    public String getLetter(@PathParam("param") String param) {
+
+        long pk = Long.parseLong(param);
+
+        TouTouLetter result = (TouTouLetter) EJBLocator.getKarteServiceBean().getLetter(pk);
+        PlistConverter con = new PlistConverter();
+        String xml = con.convert(result);
+        debug(xml);
+
+        return xml;
+    }
+
+    @GET
+    @Path("reply/{param}/")
+    @Produces(MediaType.APPLICATION_XML)
+    public String getLetterReply(@PathParam("param") String param) {
+
+        long pk = Long.parseLong(param);
+
+        TouTouReply result = (TouTouReply) EJBLocator.getKarteServiceBean().getLetterReply(pk);
+        PlistConverter con = new PlistConverter();
+        String xml = con.convert(result);
+        debug(xml);
+
+        return xml;
+    }
+
 
     //-------------------------------------------------------
 

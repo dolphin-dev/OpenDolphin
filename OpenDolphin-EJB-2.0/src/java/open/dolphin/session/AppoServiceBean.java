@@ -34,17 +34,17 @@ public class AppoServiceBean implements AppoServiceBeanLocal {
             String appoName = model.getName();
 
             if (state == AppointmentModel.TT_NEW) {
-                // æ–°è¦äºˆç´„
+                // V‹K—\–ñ
                  em.persist(model);
                 cnt++;
 
             } else if (state == AppointmentModel.TT_REPLACE && appoName != null) {
-                // å¤‰æ›´ã•ã‚ŒãŸäºˆç´„
+                // •ÏX‚³‚ê‚½—\–ñ
                 em.merge(model);
                 cnt++;
 
             } else if (state == AppointmentModel.TT_REPLACE && appoName == null) {
-                // å–ã‚Šæ¶ˆã•ã‚ŒãŸäºˆç´„
+                // æ‚èÁ‚³‚ê‚½—\–ñ
                 AppointmentModel target = (AppointmentModel)em.find(AppointmentModel.class, model.getId());
                 em.remove(target);
                 cnt++;
@@ -54,18 +54,18 @@ public class AppoServiceBean implements AppoServiceBeanLocal {
     }
 
     /**
-     * äºˆç´„ã‚’æ¤œç´¢ã™ã‚‹ã€‚
-     * @param spec æ¤œç´¢ä»•æ§˜
-     * @return äºˆç´„ã® Collection
+     * —\–ñ‚ğŒŸõ‚·‚éB
+     * @param spec ŒŸõd—l
+     * @return —\–ñ‚Ì Collection
      */
     @Override
     public List<List> getAppointmentList(long karteId, List fromDate, List toDate) {
 
-        // æŠ½å‡ºæœŸé–“ã¯åˆ¥ã‘ã‚‰ã‚Œã¦ã„ã‚‹
+        // ’ŠoŠúŠÔ‚Í•Ê‚¯‚ç‚ê‚Ä‚¢‚é
         int len = fromDate.size();
         List<List> ret = new ArrayList<List>(len);
 
-        // æŠ½å‡ºæœŸé–“ã”ã¨ã«æ¤œç´¢ã—ã‚³ãƒ¬ã‚¯ã‚·ãƒ§ãƒ³ã«åŠ ãˆã‚‹
+        // ’ŠoŠúŠÔ‚²‚Æ‚ÉŒŸõ‚µƒRƒŒƒNƒVƒ‡ƒ“‚É‰Á‚¦‚é
         for (int i = 0; i < len; i++) {
 
             List c = em.createQuery(QUERY_APPOINTMENT_BY_KARTE_ID)

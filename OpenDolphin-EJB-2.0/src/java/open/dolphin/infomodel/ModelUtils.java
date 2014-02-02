@@ -251,6 +251,21 @@ public class ModelUtils implements IInfoModel {
         }
         return UNKNOWN;
     }
+
+    public static String getGenderMFDesc(String gender) {
+
+        if (gender != null) {
+            String test = gender.toLowerCase();
+            if (test.startsWith("m") || test.startsWith("íj") ) {
+                return "M";
+            } else if (test.startsWith("f") || test.startsWith("èó") ) {
+                return "F";
+            } else {
+                return "U";
+            }
+        }
+        return "U";
+    }
     
     public boolean isValidModel() {
         return true;
@@ -276,5 +291,41 @@ public class ModelUtils implements IInfoModel {
     public static String getDiagnosisAlias(String hasAlias) {
         String[] splits = splitDiagnosis(hasAlias);
         return (splits != null && splits.length == 2 && splits[1] != null) ? splits[1] : null;
+    }
+
+    public static ModuleModel cloneModule(ModuleModel module) {
+        try {
+            return (ModuleModel)module.clone();
+        } catch (CloneNotSupportedException ex) {
+            ex.printStackTrace(System.err);
+        }
+        return null;
+    }
+
+    public static SchemaModel cloneSchema(SchemaModel model) {
+        try {
+            return (SchemaModel)model.clone();
+        } catch (CloneNotSupportedException ex) {
+            ex.printStackTrace(System.err);
+        }
+        return null;
+    }
+
+    public static BundleDolphin cloneBundleDolphin(BundleDolphin model) {
+        try {
+            return (BundleDolphin)model.clone();
+        } catch (CloneNotSupportedException ex) {
+            ex.printStackTrace(System.err);
+        }
+        return null;
+    }
+
+    public static BundleMed cloneBundleMed(BundleMed model) {
+        try {
+            return (BundleMed)model.clone();
+        } catch (CloneNotSupportedException ex) {
+            ex.printStackTrace(System.err);
+        }
+        return null;
     }
 }

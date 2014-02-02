@@ -155,6 +155,10 @@ public final class DocInfoModelConverter implements IInfoModelConverter {
         return model.getStatus();
     }
 
+    public String getLabtestOrderNumber() {
+        return model.getLabtestOrderNumber();
+    }
+
     @Override
     public void setModel(IInfoModel model) {
         this.model = (DocInfoModel)model;

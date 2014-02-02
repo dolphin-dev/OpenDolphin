@@ -82,6 +82,7 @@ public final class DocumentModelConverter implements IInfoModelConverter {
         this.model = (DocumentModel)m;
         KarteBean dummyKarteBean = PlistConverter.createDuumyKarteBean(model.getKarteBean().getId());
         UserModel dummyUser = PlistConverter.createDummyUserModel(model.getUserModel().getId());
+        dummyUser.setCommonName(model.getUserModel().getCommonName());
         model.setKarteBean(dummyKarteBean);
         model.setUserModel(dummyUser);
     }

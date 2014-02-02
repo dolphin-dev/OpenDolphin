@@ -16,7 +16,7 @@ public class AbstractResource {
     protected static SimpleDateFormat ISO_DF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     protected static SimpleDateFormat MML_Df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
-    protected static final Logger logger = Logger.getLogger("open.dolphin");
+    protected static Logger logger = Logger.getLogger("org.jboss.logging.util.OnlyOnceErrorHandler");
 
     protected static Date parseDate(String source) {
         try {

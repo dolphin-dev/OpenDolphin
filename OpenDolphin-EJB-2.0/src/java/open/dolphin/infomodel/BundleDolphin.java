@@ -69,12 +69,12 @@ public class BundleDolphin extends ClaimBundle {
             item = items[i];
             
             // item name
-            buf.append("„Éª").append(item.getName());
+            buf.append("ÅE").append(item.getName());
             
             // item number
             number = item.getNumber();
             if (number != null) {
-                buf.append(" ").append(number);
+                buf.append("Å@").append(number);
                 if (item.getUnit() != null) {
                     buf.append(item.getUnit());
                 }
@@ -84,7 +84,7 @@ public class BundleDolphin extends ClaimBundle {
         
         // bundleNumber
         if (! bundleNumber.equals("1")) {
-            buf.append("X ").append(bundleNumber).append("\n");
+            buf.append("XÅ@").append(bundleNumber).append("\n");
         }
         
         // admMemo
@@ -98,5 +98,29 @@ public class BundleDolphin extends ClaimBundle {
         }
         
         return buf.toString();
+    }
+
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        BundleDolphin ret = new BundleDolphin();
+        ret.setAdmin(this.getAdmin());
+        ret.setAdminCode(this.getAdminCode());
+        ret.setAdminCodeSystem(this.getAdminCodeSystem());
+        ret.setAdminMemo(this.getAdminMemo());
+        ret.setBundleNumber(this.getBundleNumber());
+        ret.setClassCode(this.getClassCode());
+        ret.setClassCodeSystem(this.getClassCodeSystem());
+        ret.setClassName(this.getClassName());
+        ret.setInsurance(this.getInsurance());
+        ret.setMemo(this.getMemo());
+        ClaimItem[] items = this.getClaimItem();
+        if (items!=null) {
+            for (ClaimItem item : items) {
+                ret.addClaimItem((ClaimItem)item.clone());
+            }
+        }
+        ret.setOrderName(this.getOrderName());
+        return ret;
     }
 }

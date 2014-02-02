@@ -23,129 +23,129 @@ import javax.persistence.Embeddable;
 import javax.persistence.Transient;
 
 /**
- * Stamp åŠã³ Module ã®å±æ€§ã‚’ä¿æŒã™ã‚‹ã‚¯ãƒ©ã‚¹ã€‚
+ * Stamp ‹y‚Ñ Module ‚Ì‘®«‚ğ•Û‚·‚éƒNƒ‰ƒXB
  *
  * @author Kazushi Minagawa, Digital Globe, Inc.
  */
 @Embeddable
 public class ModuleInfoBean extends InfoModel implements StampInfo, Comparable, java.io.Serializable {
     
-    /** Module å: StampTreeã€ ã‚ªãƒ¼ãƒ€å±¥æ­´å½“ã«è¡¨ç¤ºã™ã‚‹åå‰ */
+    /** Module –¼: StampTreeA ƒI[ƒ_—š—ğ“–‚É•\¦‚·‚é–¼‘O */
     @Column(nullable=false)
     private String name;
     
-    /** SOA ã¾ãŸã¯ P ã®å½¹å‰² */
+    /** SOA ‚Ü‚½‚Í P ‚Ì–ğŠ„ */
     @Column(nullable=false)
     private String role;
     
-    /** ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆã«å‡ºç¾ã™ã‚‹é †ç•ª */
+    /** ƒhƒLƒ…ƒƒ“ƒg‚ÉoŒ»‚·‚é‡”Ô */
     @Column(nullable=false)
     private int stampNumber;
     
-    /** æƒ…å ±ã®å®Ÿä½“å */
+    /** î•ñ‚ÌÀ‘Ì–¼ */
     @Column(nullable=false)
     private String entity;
     
-    /** ç·¨é›†å¯èƒ½ã‹ã©ã†ã‹ */
+    /** •ÒW‰Â”\‚©‚Ç‚¤‚© */
     @Transient
     private boolean editable = true;
     
-    /** ASP æä¾›ã‹ */
+    /** ASP ’ñ‹Ÿ‚© */
     @Transient
     private boolean asp;
     
-    /** DB ä¿å­˜ã•ã‚Œã¦ã„ã‚‹å ´åˆã€ãã®ã‚­ãƒ¼ */
+    /** DB •Û‘¶‚³‚ê‚Ä‚¢‚éê‡A‚»‚ÌƒL[ */
     @Transient
     private String stampId;
     
-    /** Memo ã®å†…å®¹èª¬æ˜ */
+    /** Memo ‚Ì“à—eà–¾ */
     @Transient
     private String memo;
     
-    /** æŠ˜ã‚Šè¿”ã—è¡¨ç¤ºã™ã‚‹ã‹ã©ã†ã‹ */
+    /** Ü‚è•Ô‚µ•\¦‚·‚é‚©‚Ç‚¤‚© */
     @Transient
     private boolean turnIn;
     
     /**
-     * ModuleInfoã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆã™ã‚‹ã€‚
+     * ModuleInfoƒIƒuƒWƒFƒNƒg‚ğ¶¬‚·‚éB
      */
     public ModuleInfoBean() {
     }
     
     /**
-     * ã‚¹ã‚¿ãƒ³ãƒ—åã‚’è¿”ã™ã€‚
-     * @return ã‚¹ã‚¿ãƒ³ãƒ—å
+     * ƒXƒ^ƒ“ƒv–¼‚ğ•Ô‚·B
+     * @return ƒXƒ^ƒ“ƒv–¼
      */
     public String getStampName() {
         return name;
     }
     
     /**
-     * ã‚¹ã‚¿ãƒ³ãƒ—åã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param name ã‚¹ã‚¿ãƒ³ãƒ—å
+     * ƒXƒ^ƒ“ƒv–¼‚ğİ’è‚·‚éB
+     * @param name ƒXƒ^ƒ“ƒv–¼
      */
     public void setStampName(String name) {
         this.name = name;
     }
     
     /**
-     * ã‚¹ã‚¿ãƒ³ãƒ—ã®ãƒ­ãƒ¼ãƒ«ã‚’è¿”ã™ã€‚
-     * @return ã‚¹ã‚¿ãƒ³ãƒ—ã®ãƒ­ãƒ¼ãƒ«
+     * ƒXƒ^ƒ“ƒv‚Ìƒ[ƒ‹‚ğ•Ô‚·B
+     * @return ƒXƒ^ƒ“ƒv‚Ìƒ[ƒ‹
      */
     public String getStampRole() {
         return role;
     }
     
     /**
-     * ã‚¹ã‚¿ãƒ³ãƒ—ã®ãƒ­ãƒ¼ãƒ«ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param role ã‚¹ã‚¿ãƒ³ãƒ—ã®ãƒ­ãƒ¼ãƒ«
+     * ƒXƒ^ƒ“ƒv‚Ìƒ[ƒ‹‚ğİ’è‚·‚éB
+     * @param role ƒXƒ^ƒ“ƒv‚Ìƒ[ƒ‹
      */
     public void setStampRole(String role) {
         this.role = role;
     }
     
     /**
-     * ã‚¹ã‚¿ãƒ³ãƒ—ã®ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£åã‚’è¿”ã™ã€‚
-     * @return ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£å
+     * ƒXƒ^ƒ“ƒv‚ÌƒGƒ“ƒeƒBƒeƒB–¼‚ğ•Ô‚·B
+     * @return ƒGƒ“ƒeƒBƒeƒB–¼
      */
     public String getEntity() {
         return entity;
     }
     
     /**
-     * ã‚¹ã‚¿ãƒ³ãƒ—ã®ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£åã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param entity ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£å
+     * ƒXƒ^ƒ“ƒv‚ÌƒGƒ“ƒeƒBƒeƒB–¼‚ğİ’è‚·‚éB
+     * @param entity ƒGƒ“ƒeƒBƒeƒB–¼
      */
     public void setEntity(String entity) {
         this.entity = entity;
     }
     
     /**
-     * ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚ºã•ã‚Œã¦ã„ã‚‹ã‹ã©ã†ã‹ã‚’è¿”ã™ã€‚
-     * @return ã‚·ãƒªã‚¢ãƒ©ã‚¤ã‚ºã•ã‚Œã¦ã„ã‚‹æ™‚ true
+     * ƒVƒŠƒAƒ‰ƒCƒY‚³‚ê‚Ä‚¢‚é‚©‚Ç‚¤‚©‚ğ•Ô‚·B
+     * @return ƒVƒŠƒAƒ‰ƒCƒY‚³‚ê‚Ä‚¢‚é true
      */
     public boolean isSerialized() {
         return stampId != null ? true : false;
     }
     
     /**
-     * ASPæä¾›ã‹ã©ã†ã‹ã‚’è¿”ã™ã€‚
-     * @return ASPæä¾›ã®æ™‚ true
+     * ASP’ñ‹Ÿ‚©‚Ç‚¤‚©‚ğ•Ô‚·B
+     * @return ASP’ñ‹Ÿ‚Ì true
      */
     public boolean isASP() {
         return asp;
     }
     
     /**
-     * ASPæä¾›ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param asp ASPæä¾›ã®çœŸå½å€¤
+     * ASP’ñ‹Ÿ‚ğİ’è‚·‚éB
+     * @param asp ASP’ñ‹Ÿ‚Ì^‹U’l
      */
     public void setASP(boolean asp) {
         this.asp = asp;
     }
     
     /**
-     * Databseã«ä¿å­˜ã•ã‚Œã¦ã„ã‚‹æ™‚ã® PK ã‚’å¤‰ãˆã™ã€‚
+     * Databse‚É•Û‘¶‚³‚ê‚Ä‚¢‚é‚Ì PK ‚ğ•Ï‚¦‚·B
      * @return Primary Key
      */
     public String getStampId() {
@@ -153,7 +153,7 @@ public class ModuleInfoBean extends InfoModel implements StampInfo, Comparable, 
     }
     
     /**
-     * Databseã«ä¿å­˜ã•ã‚Œã‚‹æ™‚ã® PK ã‚’è¨­å®šã™ã‚‹ã€‚
+     * Databse‚É•Û‘¶‚³‚ê‚é‚Ì PK ‚ğİ’è‚·‚éB
      * @param id Primary Key
      */
     public void setStampId(String id) {
@@ -161,32 +161,32 @@ public class ModuleInfoBean extends InfoModel implements StampInfo, Comparable, 
     }
     
     /**
-     * ã‚¹ã‚¿ãƒ³ãƒ—ã®ãƒ¡ãƒ¢ã‚’è¿”ã™ã€‚
-     * @return ã‚¹ã‚¿ãƒ³ãƒ—ã®ãƒ¡ãƒ¢
+     * ƒXƒ^ƒ“ƒv‚Ìƒƒ‚‚ğ•Ô‚·B
+     * @return ƒXƒ^ƒ“ƒv‚Ìƒƒ‚
      */
     public String getStampMemo() {
         return memo;
     }
     
     /**
-     * ã‚¹ã‚¿ãƒ³ãƒ—ã®ãƒ¡ãƒ¢ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param memo ã‚¹ã‚¿ãƒ³ãƒ—ã®ãƒ¡ãƒ¢
+     * ƒXƒ^ƒ“ƒv‚Ìƒƒ‚‚ğİ’è‚·‚éB
+     * @param memo ƒXƒ^ƒ“ƒv‚Ìƒƒ‚
      */
     public void setStampMemo(String memo) {
         this.memo = memo;
     }
     
     /**
-     * ã“ã®ã‚¹ã‚¿ãƒ³ãƒ—ãŒç·¨é›†å¯èƒ½ã‹ã©ã†ã‹ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param editable ç·¨é›†å¯èƒ½ã‹ã©ã†ã‹ã®çœŸå½å€¤
+     * ‚±‚ÌƒXƒ^ƒ“ƒv‚ª•ÒW‰Â”\‚©‚Ç‚¤‚©‚ğİ’è‚·‚éB
+     * @param editable •ÒW‰Â”\‚©‚Ç‚¤‚©‚Ì^‹U’l
      */
     public void setEditable(boolean editable) {
         this.editable = editable;
     }
     
     /**
-     * ã“ã®ã‚¹ã‚¿ãƒ³ãƒ—ãŒç·¨é›†å¯èƒ½ã‹ã©ã†ã‹ã‚’è¿”ã™ã€‚
-     * @return ç·¨é›†å¯èƒ½ã®æ™‚ true
+     * ‚±‚ÌƒXƒ^ƒ“ƒv‚ª•ÒW‰Â”\‚©‚Ç‚¤‚©‚ğ•Ô‚·B
+     * @return •ÒW‰Â”\‚Ì true
      */
     public boolean isEditable() {
         return editable;
@@ -201,12 +201,12 @@ public class ModuleInfoBean extends InfoModel implements StampInfo, Comparable, 
     }
     
     /**
-     * æ–‡å­—åˆ—è¡¨ç¾ã‚’è¿”ã™ã€‚
-     * @return ã‚¹ã‚¿ãƒ³ãƒ—å
+     * •¶š—ñ•\Œ»‚ğ•Ô‚·B
+     * @return ƒXƒ^ƒ“ƒv–¼
      */
     @Override
     public String toString() {
-        // ç—…åã§ã‚¨ã‚¤ãƒªã‚¢ã‚¹ãŒã‚ã‚Œã°ãã‚Œã‚’è¿”ã™
+        // •a–¼‚ÅƒGƒCƒŠƒAƒX‚ª‚ ‚ê‚Î‚»‚ê‚ğ•Ô‚·
         if (this.entity.equals(ENTITY_DIAGNOSIS)) {
             String alias =  ModelUtils.getDiagnosisAlias(name);
             return alias != null ? alias : name;
@@ -215,24 +215,24 @@ public class ModuleInfoBean extends InfoModel implements StampInfo, Comparable, 
     }
     
     /**
-     * ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆå†…ã®å‡ºç¾ç•ªå·ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param stampNumberã€€å‡ºç¾ã™ã‚‹ç•ªå·
+     * ƒhƒLƒ…ƒƒ“ƒg“à‚ÌoŒ»”Ô†‚ğİ’è‚·‚éB
+     * @param stampNumber@oŒ»‚·‚é”Ô†
      */
     public void setStampNumber(int stampNumber) {
         this.stampNumber = stampNumber;
     }
     
     /**
-     * ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆå†…ã®å‡ºç¾ç•ªå·ã‚’è¿”ã™ã€‚
-     * @return ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆå†…ã®å‡ºç¾ç•ªå·
+     * ƒhƒLƒ…ƒƒ“ƒg“à‚ÌoŒ»”Ô†‚ğ•Ô‚·B
+     * @return ƒhƒLƒ…ƒƒ“ƒg“à‚ÌoŒ»”Ô†
      */
     public int getStampNumber() {
         return stampNumber;
     }
     
     /**
-     * ã‚¹ã‚¿ãƒ³ãƒ—ç•ªå·ã§æ¯”è¼ƒã™ã‚‹ã€‚
-     * @return æ¯”è¼ƒå€¤
+     * ƒXƒ^ƒ“ƒv”Ô†‚Å”äŠr‚·‚éB
+     * @return ”äŠr’l
      */
     @Override
     public int compareTo(Object other) {
@@ -241,5 +241,20 @@ public class ModuleInfoBean extends InfoModel implements StampInfo, Comparable, 
             return result;
         }
         return -1;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        ModuleInfoBean ret = new ModuleInfoBean();
+        ret.setASP(this.isASP());
+        ret.setEditable(this.isEditable());
+        ret.setEntity(this.getEntity());
+        ret.setStampId(this.getStampId());
+        ret.setStampMemo(this.getStampMemo());
+        ret.setStampName(this.getStampName());
+        ret.setStampNumber(this.getStampNumber());
+        ret.setStampRole(this.getStampRole());
+        ret.setTurnIn(this.isTurnIn());
+        return ret;
     }
 }

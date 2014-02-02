@@ -40,40 +40,40 @@ public class ClinicalDocumentModel extends InfoModel {
     }
 
     /**
-     * æ–‡æ›¸æƒ…å ±ã‚’è¿”ã™ã€‚
-     * @return æ–‡æ›¸æƒ…å ±
+     * •¶‘î•ñ‚ğ•Ô‚·B
+     * @return •¶‘î•ñ
      */
     public DocInfoModel getDocInfoModel() {
         return docInfo;
     }
 
     /**
-     * æ–‡æ›¸æƒ…å ±ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param docInfo æ–‡æ›¸æƒ…å ±
+     * •¶‘î•ñ‚ğİ’è‚·‚éB
+     * @param docInfo •¶‘î•ñ
      */
     public void setDocInfoModel(DocInfoModel docInfo) {
         this.docInfo = docInfo;
     }
 
     /**
-     * ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param module ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«ã®é…åˆ—
+     * ƒ‚ƒWƒ…[ƒ‹ƒ‚ƒfƒ‹‚ğİ’è‚·‚éB
+     * @param module ƒ‚ƒWƒ…[ƒ‹ƒ‚ƒfƒ‹‚Ì”z—ñ
      */
     public void setModuleModel(ModuleModel[] module) {
         this.moduleModel = module;
     }
 
     /**
-     * ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«ã‚’è¿”ã™ã€‚
-     * @return ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«ã®é…åˆ—
+     * ƒ‚ƒWƒ…[ƒ‹ƒ‚ƒfƒ‹‚ğ•Ô‚·B
+     * @return ƒ‚ƒWƒ…[ƒ‹ƒ‚ƒfƒ‹‚Ì”z—ñ
      */
     public ModuleModel[] getModuleModel() {
         return moduleModel;
     }
 
     /**
-     * ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«ã®é…åˆ—ã‚’è¿½åŠ ã™ã‚‹ã€‚
-     * @param moules ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«ã®é…åˆ—
+     * ƒ‚ƒWƒ…[ƒ‹ƒ‚ƒfƒ‹‚Ì”z—ñ‚ğ’Ç‰Á‚·‚éB
+     * @param moules ƒ‚ƒWƒ…[ƒ‹ƒ‚ƒfƒ‹‚Ì”z—ñ
      */
     public void addModule(ModuleModel[] moules) {
         if (moduleModel == null) {
@@ -89,8 +89,8 @@ public class ClinicalDocumentModel extends InfoModel {
     }
 
     /**
-     * ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«ã‚’è¿½åŠ ã™ã‚‹ã€‚
-     * @param value ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«
+     * ƒ‚ƒWƒ…[ƒ‹ƒ‚ƒfƒ‹‚ğ’Ç‰Á‚·‚éB
+     * @param value ƒ‚ƒWƒ…[ƒ‹ƒ‚ƒfƒ‹
      */
     public void addModule(ModuleModel value) {
         if (moduleModel == null) {
@@ -106,9 +106,9 @@ public class ClinicalDocumentModel extends InfoModel {
     }
 
     /**
-     * å¼•æ•°ã®ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã‚’æŒã¤ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«ã‚’è¿”ã™ã€‚
-     * @param entityName ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã®åå‰
-     * @return è©²å½“ã™ã‚‹ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«
+     * ˆø”‚ÌƒGƒ“ƒeƒBƒeƒB‚ğ‚Âƒ‚ƒWƒ…[ƒ‹ƒ‚ƒfƒ‹‚ğ•Ô‚·B
+     * @param entityName ƒGƒ“ƒeƒBƒeƒB‚Ì–¼‘O
+     * @return ŠY“–‚·‚éƒ‚ƒWƒ…[ƒ‹ƒ‚ƒfƒ‹
      */
     public ModuleModel getModule(String entityName) {
 
@@ -129,9 +129,9 @@ public class ClinicalDocumentModel extends InfoModel {
     }
 
     /**
-     * å¼•æ•°ã®ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£åã‚’æŒã¤ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«æƒ…å ±ã‚’è¿”ã™ã€‚
-     * @param entityName ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã®åå‰
-     * @return ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«æƒ…å ±
+     * ˆø”‚ÌƒGƒ“ƒeƒBƒeƒB–¼‚ğ‚Âƒ‚ƒWƒ…[ƒ‹î•ñ‚ğ•Ô‚·B
+     * @param entityName ƒGƒ“ƒeƒBƒeƒB‚Ì–¼‘O
+     * @return ƒ‚ƒWƒ…[ƒ‹î•ñ
      */
     public ModuleInfoBean[] getModuleInfo(String entityName) {
 
@@ -155,32 +155,32 @@ public class ClinicalDocumentModel extends InfoModel {
     }
 
     /**
-     * æ‚£è€…ãƒ¢ãƒ‡ãƒ«ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param patientLiteModel æ‚£è€…ãƒ¢ãƒ‡ãƒ«
+     * Š³Òƒ‚ƒfƒ‹‚ğİ’è‚·‚éB
+     * @param patientLiteModel Š³Òƒ‚ƒfƒ‹
      */
     public void setPatientLiteModel(PatientLiteModel patientLiteModel) {
         this.patientLiteModel = patientLiteModel;
     }
 
     /**
-     * æ‚£è€…ãƒ¢ãƒ‡ãƒ«ã‚’è¿”ã™ã€‚
-     * @return æ‚£è€…ãƒ¢ãƒ‡ãƒ«
+     * Š³Òƒ‚ƒfƒ‹‚ğ•Ô‚·B
+     * @return Š³Òƒ‚ƒfƒ‹
      */
     public PatientLiteModel getPatientLiteModel() {
         return patientLiteModel;
     }
 
     /**
-     * è¨˜è¼‰è€…ãƒ¢ãƒ‡ãƒ«ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param creatorLiteModel è¨˜è¼‰è€…ãƒ¢ãƒ‡ãƒ«
+     * ‹LÚÒƒ‚ƒfƒ‹‚ğİ’è‚·‚éB
+     * @param creatorLiteModel ‹LÚÒƒ‚ƒfƒ‹
      */
     public void setCreatorLiteModel(UserLiteModel creatorLiteModel) {
         this.creatorLiteModel = creatorLiteModel;
     }
 
     /**
-     * è¨˜è¼‰è€…ãƒ¢ãƒ‡ãƒ«ã‚’è¿”ã™ã€‚
-     * @return è¨˜è¼‰è€…ãƒ¢ãƒ‡ãƒ«
+     * ‹LÚÒƒ‚ƒfƒ‹‚ğ•Ô‚·B
+     * @return ‹LÚÒƒ‚ƒfƒ‹
      */
     public UserLiteModel getCreatorLiteModel() {
         return creatorLiteModel;

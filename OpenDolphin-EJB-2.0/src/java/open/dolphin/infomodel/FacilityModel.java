@@ -58,7 +58,7 @@ public class FacilityModel extends InfoModel implements java.io.Serializable {
     private String s3SecretKey;
 
     /**
-     * FacilityModelã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ã›ã„ã›ã„ã™ã‚‹ã€‚
+     * FacilityModelƒIƒuƒWƒFƒNƒg‚ğ‚¹‚¢‚¹‚¢‚·‚éB
      */
     public FacilityModel() {
     }

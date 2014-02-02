@@ -9,7 +9,7 @@ import javax.persistence.InheritanceType;
 import javax.persistence.Table;
 
 /**
- * ç´¹ä»‹çŠ¶ãƒ¢ãƒ‡ãƒ«ã€‚
+ * Ğ‰îóƒ‚ƒfƒ‹B
  */
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
@@ -21,7 +21,7 @@ import javax.persistence.Table;
 @Table(name = "d_letter")
 public class LetterModel extends KarteEntryBean implements java.io.Serializable {
     
-    //@Lob // OpenDolphin-1.4 ã§ã¯ã“ã®ã‚¢ãƒãƒ†ãƒ¼ã‚·ãƒ§ãƒ³ãªã—
+    //@Lob // OpenDolphin-1.4 ‚Å‚Í‚±‚ÌƒAƒmƒe[ƒVƒ‡ƒ“‚È‚µ
     @Column(nullable=false)
     private byte[] beanBytes;
     

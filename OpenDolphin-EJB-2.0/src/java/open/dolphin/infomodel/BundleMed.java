@@ -26,8 +26,6 @@ package open.dolphin.infomodel;
  */
 public class BundleMed extends BundleDolphin {
     
-    private static final long serialVersionUID = -3898329425428401649L;
-    
     /** Creates a new instance of BundleMed */
     public BundleMed() {
     }
@@ -35,13 +33,13 @@ public class BundleMed extends BundleDolphin {
     public String getAdminDisplayString() {
         
         //
-        // ç”¨æ³•ãŒ null ã®å ´åˆã‚ã‚Š
+        // —p–@‚ª null ‚Ìê‡‚ ‚è
         //
         StringBuilder buf = new StringBuilder();
         
         if (admin != null && (!admin.equals(""))) {
         
-            if (admin.startsWith("å†…æœ")) {
+            if (admin.startsWith("“à•")) {
                 buf.append(admin.substring(0,2));
                 buf.append(" ");
                 buf.append(admin.substring(4));
@@ -55,9 +53,9 @@ public class BundleMed extends BundleDolphin {
         buf.append(bundleNumber);
         
         if (admin != null && (!admin.equals(""))) {
-            if (admin.startsWith("å†…æœ")) {
-                if (admin.charAt(3) == 'å›') {
-                    buf.append(" æ—¥åˆ†");
+            if (admin.startsWith("“à•")) {
+                if (admin.charAt(3) == '‰ñ') {
+                    buf.append(" “ú•ª");
                 }
             }
         }
@@ -79,10 +77,10 @@ public class BundleMed extends BundleDolphin {
         
         for (int i = 0; i < len; i++) {
             item = items[i];
-            sb.append("ãƒ»").append(item.getName());
+            sb.append("E").append(item.getName());
             number = item.getNumber();
             if (number != null) {
-                sb.append("ã€€").append(number);
+                sb.append("@").append(number);
                 if (item.getUnit() != null) {
                     sb.append(item.getUnit());
                 }
@@ -107,5 +105,28 @@ public class BundleMed extends BundleDolphin {
         }
         
         return sb.toString();
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        BundleMed ret = new BundleMed();
+        ret.setAdmin(this.getAdmin());
+        ret.setAdminCode(this.getAdminCode());
+        ret.setAdminCodeSystem(this.getAdminCodeSystem());
+        ret.setAdminMemo(this.getAdminMemo());
+        ret.setBundleNumber(this.getBundleNumber());
+        ret.setClassCode(this.getClassCode());
+        ret.setClassCodeSystem(this.getClassCodeSystem());
+        ret.setClassName(this.getClassName());
+        ret.setInsurance(this.getInsurance());
+        ret.setMemo(this.getMemo());
+        ClaimItem[] items = this.getClaimItem();
+        if (items!=null) {
+            for (ClaimItem item : items) {
+                ret.addClaimItem((ClaimItem)item.clone());
+            }
+        }
+        ret.setOrderName(this.getOrderName());
+        return ret;
     }
 }

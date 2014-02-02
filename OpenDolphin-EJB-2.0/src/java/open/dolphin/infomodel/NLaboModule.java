@@ -27,24 +27,30 @@ public class NLaboModule extends InfoModel implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    // æ‚£è€…ID fid:Pid
+    // Š³ÒID fid:Pid
     @Column(nullable = false)
     private String patientId;
 
-    // ãƒ©ãƒœã‚³ãƒ¼ãƒ‰
+    // ƒ‰ƒ{ƒR[ƒh
     private String laboCenterCode;
 
-    // æ‚£è€…æ°å
+    // Š³Ò–¼
     private String patientName;
 
-    // æ‚£è€…æ€§åˆ¥
+    // Š³Ò«•Ê
     private String patientSex;
 
-    // æ¤œä½“æ¡å–æ—¥ã¾ãŸã¯æ¤œæŸ»å—ä»˜æ—¥æ™‚
+    // ŒŸ‘ÌÌæ“ú‚Ü‚½‚ÍŒŸ¸ó•t“ú
     private String sampleDate;
 
-    // ã“ã®æ¤œæŸ»ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã«å«ã¾ã‚Œã¦ã„ã‚‹æ¤œæŸ»é …ç›®ã®æ•°
+    // ‚±‚ÌŒŸ¸ƒ‚ƒWƒ…[ƒ‹‚ÉŠÜ‚Ü‚ê‚Ä‚¢‚éŒŸ¸€–Ú‚Ì”
     private String numOfItems;
+
+    // Module Key
+    private String moduleKey;
+
+    // Report format
+    private String reportFormat;
 
     @OneToMany(mappedBy = "laboModule", cascade={CascadeType.ALL})
     private List<NLaboItem> items;
@@ -209,9 +215,9 @@ public class NLaboModule extends InfoModel implements Serializable {
 
 
     /**
-     * å¼•æ•°ã§æŒ‡å®šã•ã‚ŒãŸæ¤œæŸ»ã‚³ãƒ¼ãƒ‰ã‚’æŒã¤ NLaboItemã‚’è¿”ã™ã€‚
-     * @param testCode æ¤œæŸ»ã‚³ãƒ¼ãƒ‰
-     * @return è©²å½“ã™ã‚‹NLaboItem
+     * ˆø”‚Åw’è‚³‚ê‚½ŒŸ¸ƒR[ƒh‚ğ‚Â NLaboItem‚ğ•Ô‚·B
+     * @param testCode ŒŸ¸ƒR[ƒh
+     * @return ŠY“–‚·‚éNLaboItem
      */
     public NLaboItem getTestItem(String testCode) {
 
@@ -230,4 +236,22 @@ public class NLaboModule extends InfoModel implements Serializable {
 
         return ret;
     }
+
+    //-------------------------------------------------
+    public String getModuleKey() {
+        return moduleKey;
+    }
+
+    public void setModuleKey(String moduleKey) {
+        this.moduleKey = moduleKey;
+    }
+
+    public String getReportFormat() {
+        return reportFormat;
+    }
+
+    public void setReportFormat(String reportFormat) {
+        this.reportFormat = reportFormat;
+    }
+    //-------------------------------------------------
 }

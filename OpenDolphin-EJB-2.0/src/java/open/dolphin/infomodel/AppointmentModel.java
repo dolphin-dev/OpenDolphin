@@ -90,7 +90,7 @@ public class AppointmentModel extends KarteEntryBean implements java.io.Serializ
     }
     
     /**
-     * äºˆç´„æ—¥ã§æ¯”è¼ƒã™ã‚‹ã€‚
+     * —\–ñ“ú‚Å”äŠr‚·‚éB
      */
     @Override
     public int compareTo(Object o) {

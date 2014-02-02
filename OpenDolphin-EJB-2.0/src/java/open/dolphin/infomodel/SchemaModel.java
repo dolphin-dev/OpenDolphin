@@ -18,7 +18,8 @@ import javax.swing.ImageIcon;
  */
 @Entity
 @Table(name = "d_image")
-public class SchemaModel extends KarteEntryBean implements java.io.Serializable {
+public class SchemaModel extends KarteEntryBean 
+        implements java.io.Serializable, java.lang.Cloneable {
     
     @Embedded
     private ExtRefModel extRef;
@@ -107,7 +108,7 @@ public class SchemaModel extends KarteEntryBean implements java.io.Serializable 
     }
     
     /**
-     * ç¢ºå®šæ—¥åŠã³ã‚¤ãƒ¡ãƒ¼ã‚¸ç•ªå·ã§æ¯”è¼ƒã™ã‚‹ã€‚
+     * Šm’è“ú‹y‚ÑƒCƒ[ƒW”Ô†‚Å”äŠr‚·‚éB
      * @param other
      * @return
      */
@@ -115,7 +116,7 @@ public class SchemaModel extends KarteEntryBean implements java.io.Serializable 
     public int compareTo(Object other) {
         int result = super.compareTo(other);
         if (result == 0) {
-            // primittive ãªã®ã§æ¯”è¼ƒã¯OK
+            // primittive ‚È‚Ì‚Å”äŠr‚ÍOK
             int no1 = getImageNumber();
             int no2 = ((SchemaModel) other).getImageNumber();
             result = no1 - no2;
@@ -123,19 +124,31 @@ public class SchemaModel extends KarteEntryBean implements java.io.Serializable 
         return result;
     }
 
-//    public String getUrl() {
-//        return url;
-//    }
-//
-//    public void setUrl(String url) {
-//        this.url = url;
-//    }
-//
-//    public String getSop() {
-//        return sop;
-//    }
-//
-//    public void setSop(String sop) {
-//        this.sop = sop;
-//    }
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        SchemaModel ret = new SchemaModel();
+        ret.setConfirmed(this.getConfirmed());
+        ret.setEnded(this.getEnded());
+        ret.setExtRefModel((ExtRefModel)this.getExtRefModel().clone());
+        ret.setFileName(this.getFileName());
+        ret.setFirstConfirmed(this.getConfirmed());
+        ret.setImageNumber(this.getImageNumber());
+        ret.setLinkId(this.getLinkId());
+        ret.setLinkRelation(this.getLinkRelation());
+        ret.setRecorded(this.getRecorded());
+        ret.setStarted(this.getStarted());
+        ret.setStatus(this.getStatus());
+
+        if (this.getIcon()!=null) {
+            ret.setIcon(new ImageIcon(this.getIcon().getImage()));
+        }
+
+        if (this.getJpegByte()!=null) {
+            byte[] dest = new byte[this.getJpegByte().length];
+            System.arraycopy(this.getJpegByte(), 0, dest, 0, this.getJpegByte().length);
+            ret.setJpegByte(dest);
+        }
+
+        return ret;
+    }
 }

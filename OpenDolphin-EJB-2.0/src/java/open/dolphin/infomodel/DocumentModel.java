@@ -18,7 +18,8 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "d_document")
-public class DocumentModel extends KarteEntryBean implements java.io.Serializable {
+public class DocumentModel extends KarteEntryBean 
+        implements java.io.Serializable, java.lang.Cloneable {
     
     @Embedded
     private DocInfoModel docInfo;
@@ -31,7 +32,7 @@ public class DocumentModel extends KarteEntryBean implements java.io.Serializabl
 
     
     /**
-     * DocumentModelã‚’ç”Ÿæˆã™ã‚‹ã€‚
+     * DocumentModel‚ğ¶¬‚·‚éB
      */
     public DocumentModel() {
         docInfo = new DocInfoModel();
@@ -55,40 +56,40 @@ public class DocumentModel extends KarteEntryBean implements java.io.Serializabl
     }
     
     /**
-     * æ–‡æ›¸æƒ…å ±ã‚’è¿”ã™ã€‚
-     * @return æ–‡æ›¸æƒ…å ±
+     * •¶‘î•ñ‚ğ•Ô‚·B
+     * @return •¶‘î•ñ
      */
     public DocInfoModel getDocInfoModel() {
         return docInfo;
     }
     
     /**
-     * æ–‡æ›¸æƒ…å ±ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param docInfo æ–‡æ›¸æƒ…å ±
+     * •¶‘î•ñ‚ğİ’è‚·‚éB
+     * @param docInfo •¶‘î•ñ
      */
     public void setDocInfoModel(DocInfoModel docInfo) {
         this.docInfo = docInfo;
     }
     
     /**
-     * ã‚·ã‚§ãƒ¼ãƒã‚’è¿”ã™ã€‚
-     * @return ã‚·ã‚§ãƒ¼ãƒ
+     * ƒVƒF[ƒ}‚ğ•Ô‚·B
+     * @return ƒVƒF[ƒ}
      */
     public List<SchemaModel> getSchema() {
         return schema;
     }
     
     /**
-     * ã‚·ã‚§ãƒ¼ãƒã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param images ã‚·ã‚§ãƒ¼ãƒ
+     * ƒVƒF[ƒ}‚ğİ’è‚·‚éB
+     * @param images ƒVƒF[ƒ}
      */
     public void setSchema(List<SchemaModel> images) {
         this.schema = images;
     }
     
     /**
-     * ã‚·ã‚§ãƒ¼ãƒã‚’è¿½åŠ ã™ã‚‹ã€‚
-     * @param model ã‚·ã‚§ãƒ¼ãƒ
+     * ƒVƒF[ƒ}‚ğ’Ç‰Á‚·‚éB
+     * @param model ƒVƒF[ƒ}
      */
     public void addSchema(SchemaModel model) {
         if (this.schema == null) {
@@ -98,7 +99,7 @@ public class DocumentModel extends KarteEntryBean implements java.io.Serializabl
     }
     
     /**
-     * ã‚·ã‚§ãƒ¼ãƒã‚³ãƒ¬ã‚¯ã‚·ãƒ§ãƒ³ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹ã€‚
+     * ƒVƒF[ƒ}ƒRƒŒƒNƒVƒ‡ƒ“‚ğƒNƒŠƒA‚·‚éB
      */
     public void clearSchema() {
         if (schema != null && schema.size() > 0) {
@@ -121,24 +122,24 @@ public class DocumentModel extends KarteEntryBean implements java.io.Serializabl
     }
     
     /**
-     * ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã‚’è¿”ã™ã€‚
-     * @return ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«
+     * ƒ‚ƒWƒ…[ƒ‹‚ğ•Ô‚·B
+     * @return ƒ‚ƒWƒ…[ƒ‹
      */
     public List<ModuleModel> getModules() {
         return modules;
     }
     
     /**
-     * ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param modules ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«
+     * ƒ‚ƒWƒ…[ƒ‹‚ğİ’è‚·‚éB
+     * @param modules ƒ‚ƒWƒ…[ƒ‹
      */
     public void setModules(List<ModuleModel> modules) {
         this.modules = modules;
     }
     
     /**
-     * ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«ã®é…åˆ—ã‚’è¿½åŠ ã™ã‚‹ã€‚
-     * @param moules ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«ã®é…åˆ—
+     * ƒ‚ƒWƒ…[ƒ‹ƒ‚ƒfƒ‹‚Ì”z—ñ‚ğ’Ç‰Á‚·‚éB
+     * @param moules ƒ‚ƒWƒ…[ƒ‹ƒ‚ƒfƒ‹‚Ì”z—ñ
      */
     public void addModule(ModuleModel[] addArray) {
         if (modules == null) {
@@ -148,8 +149,8 @@ public class DocumentModel extends KarteEntryBean implements java.io.Serializabl
     }
     
     /**
-     * ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«ã‚’è¿½åŠ ã™ã‚‹ã€‚
-     * @param value ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«
+     * ƒ‚ƒWƒ…[ƒ‹ƒ‚ƒfƒ‹‚ğ’Ç‰Á‚·‚éB
+     * @param value ƒ‚ƒWƒ…[ƒ‹ƒ‚ƒfƒ‹
      */
     public void addModule(ModuleModel addModule) {
         if (modules == null) {
@@ -159,7 +160,7 @@ public class DocumentModel extends KarteEntryBean implements java.io.Serializabl
     }
     
     /**
-     * ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã‚’ã‚¯ãƒªã‚¢ã™ã‚‹ã€‚
+     * ƒ‚ƒWƒ…[ƒ‹‚ğƒNƒŠƒA‚·‚éB
      */
     public void clearModules() {
         if (modules != null && modules.size() > 0) {
@@ -168,9 +169,9 @@ public class DocumentModel extends KarteEntryBean implements java.io.Serializabl
     }
     
     /**
-     * å¼•æ•°ã®ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã‚’æŒã¤ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«ã‚’è¿”ã™ã€‚
-     * @param entityName ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã®åå‰
-     * @return è©²å½“ã™ã‚‹ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ãƒ¢ãƒ‡ãƒ«
+     * ˆø”‚ÌƒGƒ“ƒeƒBƒeƒB‚ğ‚Âƒ‚ƒWƒ…[ƒ‹ƒ‚ƒfƒ‹‚ğ•Ô‚·B
+     * @param entityName ƒGƒ“ƒeƒBƒeƒB‚Ì–¼‘O
+     * @return ŠY“–‚·‚éƒ‚ƒWƒ…[ƒ‹ƒ‚ƒfƒ‹
      */
     public ModuleModel getModule(String entityName) {
         
@@ -191,9 +192,9 @@ public class DocumentModel extends KarteEntryBean implements java.io.Serializabl
     }
     
     /**
-     * å¼•æ•°ã®ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£åã‚’æŒã¤ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«æƒ…å ±ã‚’è¿”ã™ã€‚
-     * @param entityName ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã®åå‰
-     * @return ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«æƒ…å ±
+     * ˆø”‚ÌƒGƒ“ƒeƒBƒeƒB–¼‚ğ‚Âƒ‚ƒWƒ…[ƒ‹î•ñ‚ğ•Ô‚·B
+     * @param entityName ƒGƒ“ƒeƒBƒeƒB‚Ì–¼‘O
+     * @return ƒ‚ƒWƒ…[ƒ‹î•ñ
      */
     public ModuleInfoBean[] getModuleInfo(String entityName) {
         
@@ -214,5 +215,37 @@ public class DocumentModel extends KarteEntryBean implements java.io.Serializabl
         }
         
         return null;
-    }    
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        DocumentModel ret = new DocumentModel();
+        ret.setConfirmed(this.getConfirmed());
+        ret.setDocInfoModel((DocInfoModel)this.getDocInfoModel().clone());
+        ret.setEnded(this.getEnded());
+        ret.setFirstConfirmed(this.getFirstConfirmed());
+        ret.setLinkId(this.getLinkId());
+        ret.setLinkRelation(this.getLinkRelation());
+        ret.setRecorded(this.getRecorded());
+        ret.setStarted(this.getStarted());
+        ret.setStatus(this.getStatus());
+
+        if (modules!=null && modules.size()>0) {
+            for (ModuleModel module : modules) {
+                ModuleModel m = (ModuleModel)module.clone();
+                m.setDocumentModel(ret);
+                ret.addModule(m);
+            }
+        }
+
+        if (schema!=null && schema.size()>0) {
+            for (SchemaModel sm : schema) {
+                SchemaModel m = (SchemaModel)sm.clone();
+                m.setDocumentModel(ret);
+                ret.addSchema(m);
+            }
+        }
+
+        return ret;
+    }
 }

@@ -110,6 +110,10 @@ public final class NLaboItemConverter implements IInfoModelConverter {
         return model.getComment2();
     }
 
+    public String getSortKey() {
+        return model.getSortKey();
+    }
+
     @Override
     public void setModel(IInfoModel model) {
         this.model = (NLaboItem)model;

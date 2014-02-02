@@ -9,7 +9,7 @@ import javax.persistence.InheritanceType;
 import javax.persistence.Transient;
 
 /**
- * 轢ｬ逕ｰ繧ｯ繝ｪ繝九ャ繧ｯ迚亥�晁ｨｺ譎よュ蝣ｱ1
+ * 瀬田クリニック版初診時情報1
  */
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)

@@ -45,7 +45,7 @@ public interface KarteServiceBeanLocal {
     public SchemaModel getImage(long id);
 
 
-    public List<RegisteredDiagnosisModel> getDiagnosis(long karteId, Date fromDate);
+    public List<RegisteredDiagnosisModel> getDiagnosis(long karteId, Date fromDate, boolean activeOnly);
     
     public List<Long> addDiagnosis(List<RegisteredDiagnosisModel> addList);
 

@@ -9,7 +9,7 @@ import javax.persistence.InheritanceType;
 import javax.persistence.Table;
 
 /**
- * åˆè¨ºæ™‚æƒ…å ±ã‚¯ãƒ©ã‚¹ã€‚
+ * ‰fî•ñƒNƒ‰ƒXB
  */
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
@@ -20,7 +20,7 @@ import javax.persistence.Table;
 @Table(name = "d_first_encounter")
 public class FirstEncounterModel extends KarteEntryBean implements java.io.Serializable {
         
-    //@Lob ASP ã‚µãƒ¼ãƒã¸é…å‚™ã™ã‚‹æ™‚ã€ã‚³ãƒ¡ãƒ³ãƒˆã‚¢ã‚¦ãƒˆã—ã¦ã¯ã„ã‘ãªã„
+    //@Lob ASP ƒT[ƒo‚Ö”z”õ‚·‚éAƒRƒƒ“ƒgƒAƒEƒg‚µ‚Ä‚Í‚¢‚¯‚È‚¢
     @Column(nullable=false)
     private byte[] beanBytes;
     

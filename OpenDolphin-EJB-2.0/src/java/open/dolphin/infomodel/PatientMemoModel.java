@@ -14,8 +14,8 @@ import javax.persistence.Table;
 @Table(name = "d_patient_memo")
 public class PatientMemoModel extends KarteEntryBean implements java.io.Serializable {
 
-    // DolphinPro @Lobã‚¢ãƒãƒ†ãƒ¼ã‚·ãƒ§ãƒ³ã‚’ã¤ã‘ã‚‹
-    // OpenDolphin ã‚¢ãƒãƒ†ãƒ¼ã‚·ãƒ§ãƒ³ãªã—
+    // DolphinPro @LobƒAƒmƒe[ƒVƒ‡ƒ“‚ğ‚Â‚¯‚é
+    // OpenDolphin ƒAƒmƒe[ƒVƒ‡ƒ“‚È‚µ
     @Lob
     private String memo;
     

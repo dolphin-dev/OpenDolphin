@@ -21,13 +21,13 @@ package open.dolphin.infomodel;
 
 
 /**
- * ClaimItem è¦ç´ ã‚¯ãƒ©ã‚¹ã€‚
+ * ClaimItem —v‘fƒNƒ‰ƒXB
  *
  * @author Kazushi Minagawa, Digital Globe,Inc. 
  */
 public class ClaimItem extends InfoModel {
 
-    private static final String DISPOSE_UNIT = "ç®¡";
+    private static final String DISPOSE_UNIT = "ŠÇ";
 	
     private String name;
     private String code;
@@ -40,7 +40,7 @@ public class ClaimItem extends InfoModel {
     private String numberCodeSystem;
     private String memo;
     
-    // è–¬å‰¤åŒºåˆ† 2011-02-10 è¿½åŠ 
+    // –òÜ‹æ•ª 2011-02-10 ’Ç‰Á
     private String ykzKbn;
 
     
@@ -136,8 +136,25 @@ public class ClaimItem extends InfoModel {
         this.ykzKbn = ykzKbn;
     }
 
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        ClaimItem ret = new ClaimItem();
+        ret.setClassCode(this.getClassCode());
+        ret.setClassCodeSystem(this.getClassCodeSystem());
+        ret.setCode(this.getCode());
+        ret.setCodeSystem(this.getCodeSystem());
+        ret.setMemo(this.getMemo());
+        ret.setName(this.getName());
+        ret.setNumber(this.getNumber());
+        ret.setNumberCode(this.getNumberCode());
+        ret.setNumberCodeSystem(this.getNumberCodeSystem());
+        ret.setUnit(this.getUnit());
+        ret.setYkzKbn(this.getYkzKbn());
+        return ret;
+    }
+
     //---------------------------------
-    // æ®‹é‡å»ƒæ£„
+    // c—Ê”pŠü
     //---------------------------------
     public boolean getCanDispose() {
 

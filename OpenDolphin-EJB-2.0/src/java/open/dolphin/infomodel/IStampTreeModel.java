@@ -22,7 +22,7 @@ import java.util.Date;
 
 /**
  * StampTreeModel
- * Userã®ãƒ‘ãƒ¼ã‚½ãƒŠãƒ«ãƒ„ãƒªãƒ¼ã‚¯ãƒ©ã‚¹ã€‚
+ * User‚Ìƒp[ƒ\ƒiƒ‹ƒcƒŠ[ƒNƒ‰ƒXB
  *
  * @author Kazushi Minagawa, Digital Globe, Inc.
  */

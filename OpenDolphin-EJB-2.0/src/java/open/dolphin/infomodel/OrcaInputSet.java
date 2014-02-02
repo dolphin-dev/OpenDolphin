@@ -19,7 +19,7 @@
 package open.dolphin.infomodel;
 
 /**
- * ORCA ã® tbl_inputset ã‚¨ãƒ³ãƒ†ã‚£ãƒ†ã‚£ã‚¯ãƒ©ã‚¹ã€‚
+ * ORCA ‚Ì tbl_inputset ƒGƒ“ƒeƒBƒeƒBƒNƒ‰ƒXB
  *
  * @author Minagawa, Kazushi
  */

@@ -21,7 +21,7 @@ public class OtherIdModel extends InfoModel {
     private PatientModel patient;
     
     /**
-     * Idã‚’è¿”ã™ã€‚
+     * Id‚ğ•Ô‚·B
      * @return Id
      */
     public long getId() {
@@ -29,7 +29,7 @@ public class OtherIdModel extends InfoModel {
     }
     
     /**
-     * Idã‚’è¨­å®šã™ã‚‹ã€‚
+     * Id‚ğİ’è‚·‚éB
      * @param id Id
      */
     public void setId(long id) {
@@ -97,16 +97,16 @@ public class OtherIdModel extends InfoModel {
     }
     
     /**
-     * æ‚£è€…ã‚’è¿”ã™ã€‚
-     * @return æ‚£è€…
+     * Š³Ò‚ğ•Ô‚·B
+     * @return Š³Ò
      */
     public PatientModel getPatient() {
         return patient;
     }
     
     /**
-     * æ‚£è€…ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param patient æ‚£è€…
+     * Š³Ò‚ğİ’è‚·‚éB
+     * @param patient Š³Ò
      */
     public void setPatient(PatientModel patient) {
         this.patient = patient;

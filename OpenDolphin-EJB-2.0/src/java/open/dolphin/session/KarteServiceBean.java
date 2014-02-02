@@ -61,7 +61,9 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     private static final String QUERY_SCHEMA_BY_FACILITY_ID = "from SchemaModel i where i.karte.patient.facilityId like :fid and i.extRef.sop is not null and i.status='F'";
 
     private static final String QUERY_DIAGNOSIS_BY_KARTE_DATE = "from RegisteredDiagnosisModel r where r.karte.id=:karteId and r.started >= :fromDate";
+    private static final String QUERY_DIAGNOSIS_BY_KARTE_DATE_ACTIVEONLY = "from RegisteredDiagnosisModel r where r.karte.id=:karteId and r.started >= :fromDate and r.ended is NULL";
     private static final String QUERY_DIAGNOSIS_BY_KARTE = "from RegisteredDiagnosisModel r where r.karte.id=:karteId";
+    private static final String QUERY_DIAGNOSIS_BY_KARTE_ACTIVEONLY = "from RegisteredDiagnosisModel r where r.karte.id=:karteId and r.ended is NULL";
 
     private static final String TOUTOU = "TOUTOU";
     private static final String TOUTOU_REPLY = "TOUTOU_REPLY";
@@ -78,25 +80,25 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     private EntityManager em;
 
     /**
-     * ã‚«ãƒ«ãƒ†ã®åŸºç¤çš„ãªæƒ…å ±ã‚’ã¾ã¨ã‚ã¦è¿”ã™ã€‚
-     * @param patientPk æ‚£è€…ã® Database Primary Key
-     * @param fromDate å„ç¨®ã‚¨ãƒ³ãƒˆãƒªã®æ¤œç´¢é–‹å§‹æ—¥
-     * @return åŸºç¤çš„ãªæƒ…å ±ã‚’ãƒ•ã‚§ãƒƒãƒã—ãŸ KarteBean
+     * ƒJƒ‹ƒe‚ÌŠî‘b“I‚Èî•ñ‚ğ‚Ü‚Æ‚ß‚Ä•Ô‚·B
+     * @param patientPk Š³Ò‚Ì Database Primary Key
+     * @param fromDate ŠeíƒGƒ“ƒgƒŠ‚ÌŒŸõŠJn“ú
+     * @return Šî‘b“I‚Èî•ñ‚ğƒtƒFƒbƒ`‚µ‚½ KarteBean
      */
     @Override
     public KarteBean getKarte(long patientPK, Date fromDate) {
 
         try {
-            // æœ€åˆã«æ‚£è€…ã®ã‚«ãƒ«ãƒ†ã‚’å–å¾—ã™ã‚‹
+            // Å‰‚ÉŠ³Ò‚ÌƒJƒ‹ƒe‚ğæ“¾‚·‚é
             KarteBean karte =
                     (KarteBean) em.createQuery(QUERY_KARTE)
                                   .setParameter(PATIENT_PK, patientPK)
                                   .getSingleResult();
 
-            // ã‚«ãƒ«ãƒ†ã® PK ã‚’å¾—ã‚‹
+            // ƒJƒ‹ƒe‚Ì PK ‚ğ“¾‚é
             long karteId = karte.getId();
 
-            // ã‚¢ãƒ¬ãƒ«ã‚®ãƒ¼ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—ã™ã‚‹
+            // ƒAƒŒƒ‹ƒM[ƒf[ƒ^‚ğæ“¾‚·‚é
             List<ObservationModel> list1 =
                     (List<ObservationModel>)em.createQuery(QUERY_ALLERGY)
                                               .setParameter(KARTE_ID, karteId)
@@ -114,7 +116,7 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
                 karte.setAllergies(allergies);
             }
 
-            // èº«é•·ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—ã™ã‚‹
+            // g’·ƒf[ƒ^‚ğæ“¾‚·‚é
             List<ObservationModel> list2 =
                     (List<ObservationModel>)em.createQuery(QUERY_BODY_HEIGHT)
                                               .setParameter(KARTE_ID, karteId)
@@ -132,7 +134,7 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
                 karte.setHeights(physicals);
             }
 
-            // ä½“é‡ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—ã™ã‚‹
+            // ‘Ìdƒf[ƒ^‚ğæ“¾‚·‚é
             List<ObservationModel> list3 =
                     (List<ObservationModel>)em.createQuery(QUERY_BODY_WEIGHT)
                                               .setParameter(KARTE_ID, karteId)
@@ -150,7 +152,7 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
                 karte.setWeights(physicals);
             }
 
-            // ç›´è¿‘ã®æ¥é™¢æ—¥ã‚¨ãƒ³ãƒˆãƒªãƒ¼ã‚’å–å¾—ã—ã‚«ãƒ«ãƒ†ã«è¨­å®šã™ã‚‹
+            // ’¼‹ß‚Ì—ˆ‰@“úƒGƒ“ƒgƒŠ[‚ğæ“¾‚µƒJƒ‹ƒe‚Éİ’è‚·‚é
             List<PatientVisitModel> latestVisits =
                     (List<PatientVisitModel>)em.createQuery(QUERY_PATIENT_VISIT)
                                                .setParameter(PATIENT_PK, patientPK)
@@ -160,13 +162,13 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
             if (!latestVisits.isEmpty()) {
                 List<String> visits = new ArrayList<String>(latestVisits.size());
                 for (PatientVisitModel bean : latestVisits) {
-                    // æ¥é™¢æ—¥ã®ã¿ã‚’ä½¿ç”¨ã™ã‚‹
+                    // —ˆ‰@“ú‚Ì‚İ‚ğg—p‚·‚é
                     visits.add(bean.getPvtDate());
                 }
                 karte.setPatientVisits(visits);
             }
 
-            // æ–‡æ›¸å±¥æ­´ã‚¨ãƒ³ãƒˆãƒªãƒ¼ã‚’å–å¾—ã—ã‚«ãƒ«ãƒ†ã«è¨­å®šã™ã‚‹
+            // •¶‘—š—ğƒGƒ“ƒgƒŠ[‚ğæ“¾‚µƒJƒ‹ƒe‚Éİ’è‚·‚é
             List<DocumentModel> documents =
                     (List<DocumentModel>)em.createQuery(QUERY_DOC_INFO)
                                            .setParameter(KARTE_ID, karteId)
@@ -182,7 +184,7 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
                 karte.setDocInfoList(c);
             }
 
-            // æ‚£è€…Memoã‚’å–å¾—ã™ã‚‹
+            // Š³ÒMemo‚ğæ“¾‚·‚é
             List<PatientMemoModel> memo =
                     (List<PatientMemoModel>)em.createQuery(QUERY_PATIENT_MEMO)
                                               .setParameter(KARTE_ID, karteId)
@@ -194,18 +196,18 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
             return karte;
 
         } catch (NoResultException e) {
-            // æ‚£è€…ç™»éŒ²ã®éš›ã«ã‚«ãƒ«ãƒ†ã‚‚ç”Ÿæˆã—ã¦ã‚ã‚‹
+            // Š³Ò“o˜^‚ÌÛ‚ÉƒJƒ‹ƒe‚à¶¬‚µ‚Ä‚ ‚é
         }
 
         return null;
     }
 
     /**
-     * æ–‡æ›¸å±¥æ­´ã‚¨ãƒ³ãƒˆãƒªã‚’å–å¾—ã™ã‚‹ã€‚
-     * @param karteId ã‚«ãƒ«ãƒ†Id
-     * @param fromDate å–å¾—é–‹å§‹æ—¥
-     * @param status ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
-     * @return DocInfo ã®ã‚³ãƒ¬ã‚¯ã‚·ãƒ§ãƒ³
+     * •¶‘—š—ğƒGƒ“ƒgƒŠ‚ğæ“¾‚·‚éB
+     * @param karteId ƒJƒ‹ƒeId
+     * @param fromDate æ“¾ŠJn“ú
+     * @param status ƒXƒe[ƒ^ƒX
+     * @return DocInfo ‚ÌƒRƒŒƒNƒVƒ‡ƒ“
      */
     @Override
     public List<DocInfoModel> getDocumentList(long karteId, Date fromDate, boolean includeModifid) {
@@ -226,8 +228,8 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
 
         List<DocInfoModel> result = new ArrayList<DocInfoModel>();
         for (DocumentModel doc : documents) {
-            // ãƒ¢ãƒ‡ãƒ«ã‹ã‚‰DocInfo ã¸å¿…è¦ãªãƒ‡ãƒ¼ã‚¿ã‚’ç§»ã™
-            // ã‚¯ãƒ©ã‚¤ã‚¢ãƒ³ãƒˆãŒ DocInfo ã ã‘ã‚’åˆ©ç”¨ã™ã‚‹ã‚±ãƒ¼ã‚¹ãŒã‚ã‚‹ãŸã‚
+            // ƒ‚ƒfƒ‹‚©‚çDocInfo ‚Ö•K—v‚Èƒf[ƒ^‚ğˆÚ‚·
+            // ƒNƒ‰ƒCƒAƒ“ƒg‚ª DocInfo ‚¾‚¯‚ğ—˜—p‚·‚éƒP[ƒX‚ª‚ ‚é‚½‚ß
             doc.toDetuch();
             result.add(doc.getDocInfoModel());
         }
@@ -235,28 +237,28 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * æ–‡æ›¸(DocumentModel Object)ã‚’å–å¾—ã™ã‚‹ã€‚
-     * @param ids DocumentModel ã® pkã‚³ãƒ¬ã‚¯ã‚·ãƒ§ãƒ³
-     * @return DocumentModelã®ã‚³ãƒ¬ã‚¯ã‚·ãƒ§ãƒ³
+     * •¶‘(DocumentModel Object)‚ğæ“¾‚·‚éB
+     * @param ids DocumentModel ‚Ì pkƒRƒŒƒNƒVƒ‡ƒ“
+     * @return DocumentModel‚ÌƒRƒŒƒNƒVƒ‡ƒ“
      */
     @Override
     public List<DocumentModel> getDocuments(List<Long> ids) {
 
         List<DocumentModel> ret = new ArrayList<DocumentModel>(3);
 
-        // ãƒ«ãƒ¼ãƒ—ã™ã‚‹
+        // ƒ‹[ƒv‚·‚é
         for (Long id : ids) {
 
-            // DocuentBean ã‚’å–å¾—ã™ã‚‹
+            // DocuentBean ‚ğæ“¾‚·‚é
             DocumentModel document = (DocumentModel) em.find(DocumentModel.class, id);
 
-            // ModuleBean ã‚’å–å¾—ã™ã‚‹
+            // ModuleBean ‚ğæ“¾‚·‚é
             List modules = em.createQuery(QUERY_MODULE_BY_DOC_ID)
             .setParameter(ID, id)
             .getResultList();
             document.setModules(modules);
 
-            // SchemaModel ã‚’å–å¾—ã™ã‚‹
+            // SchemaModel ‚ğæ“¾‚·‚é
             List images = em.createQuery(QUERY_SCHEMA_BY_DOC_ID)
             .setParameter(ID, id)
             .getResultList();
@@ -269,34 +271,34 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆ DocumentModel ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ä¿å­˜ã™ã‚‹ã€‚
-     * @param karteId ã‚«ãƒ«ãƒ†Id
-     * @param document è¿½åŠ ã™ã‚‹DocumentModel ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ
-     * @return è¿½åŠ ã—ãŸæ•°
+     * ƒhƒLƒ…ƒƒ“ƒg DocumentModel ƒIƒuƒWƒFƒNƒg‚ğ•Û‘¶‚·‚éB
+     * @param karteId ƒJƒ‹ƒeId
+     * @param document ’Ç‰Á‚·‚éDocumentModel ƒIƒuƒWƒFƒNƒg
+     * @return ’Ç‰Á‚µ‚½”
      */
     @Override
     public long addDocument(DocumentModel document) {
 
-        // æ°¸ç¶šåŒ–ã™ã‚‹
+        // ‰i‘±‰»‚·‚é
         em.persist(document);
 
         // ID
         long id = document.getId();
 
-        // ä¿®æ­£ç‰ˆã®å‡¦ç†ã‚’è¡Œã†
+        // C³”Å‚Ìˆ—‚ğs‚¤
         long parentPk = document.getDocInfoModel().getParentPk();
 
         if (parentPk != 0L) {
 
-            // é©åˆçµ‚äº†æ—¥ã‚’æ–°ã—ã„ç‰ˆã®ç¢ºå®šæ—¥ã«ã™ã‚‹
+            // “K‡I—¹“ú‚ğV‚µ‚¢”Å‚ÌŠm’è“ú‚É‚·‚é
             Date ended = document.getConfirmed();
 
-            // ã‚ªãƒªã‚¸ãƒŠãƒ«ã‚’å–å¾—ã— çµ‚äº†æ—¥ã¨ status = M ã‚’è¨­å®šã™ã‚‹
+            // ƒIƒŠƒWƒiƒ‹‚ğæ“¾‚µ I—¹“ú‚Æ status = M ‚ğİ’è‚·‚é
             DocumentModel old = (DocumentModel) em.find(DocumentModel.class, parentPk);
             old.setEnded(ended);
             old.setStatus(IInfoModel.STATUS_MODIFIED);
 
-            // é–¢é€£ã™ã‚‹ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã¨ã‚¤ãƒ¡ãƒ¼ã‚¸ã«åŒã˜å‡¦ç†ã‚’å®Ÿè¡Œã™ã‚‹
+            // ŠÖ˜A‚·‚éƒ‚ƒWƒ…[ƒ‹‚ÆƒCƒ[ƒW‚É“¯‚¶ˆ—‚ğÀs‚·‚é
             Collection oldModules = em.createQuery(QUERY_MODULE_BY_DOC_ID)
             .setParameter(ID, parentPk).getResultList();
             for (Iterator iter = oldModules.iterator(); iter.hasNext(); ) {
@@ -321,30 +323,30 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     @Override
     public long addDocumentAndUpdatePVTState(DocumentModel document, long pvtPK, int state) {
 
-        // æ°¸ç¶šåŒ–ã™ã‚‹
+        // ‰i‘±‰»‚·‚é
         em.persist(document);
 
-        // PVT æ›´æ–°
+        // PVT XV  state==2 || state == 4
         PatientVisitModel exist = (PatientVisitModel) em.find(PatientVisitModel.class, new Long(pvtPK));
         exist.setState(state);
 
         // ID
         long id = document.getId();
 
-        // ä¿®æ­£ç‰ˆã®å‡¦ç†ã‚’è¡Œã†
+        // C³”Å‚Ìˆ—‚ğs‚¤
         long parentPk = document.getDocInfoModel().getParentPk();
 
         if (parentPk != 0L) {
 
-            // é©åˆçµ‚äº†æ—¥ã‚’æ–°ã—ã„ç‰ˆã®ç¢ºå®šæ—¥ã«ã™ã‚‹
+            // “K‡I—¹“ú‚ğV‚µ‚¢”Å‚ÌŠm’è“ú‚É‚·‚é
             Date ended = document.getConfirmed();
 
-            // ã‚ªãƒªã‚¸ãƒŠãƒ«ã‚’å–å¾—ã— çµ‚äº†æ—¥ã¨ status = M ã‚’è¨­å®šã™ã‚‹
+            // ƒIƒŠƒWƒiƒ‹‚ğæ“¾‚µ I—¹“ú‚Æ status = M ‚ğİ’è‚·‚é
             DocumentModel old = (DocumentModel) em.find(DocumentModel.class, parentPk);
             old.setEnded(ended);
             old.setStatus(IInfoModel.STATUS_MODIFIED);
 
-            // é–¢é€£ã™ã‚‹ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã¨ã‚¤ãƒ¡ãƒ¼ã‚¸ã«åŒã˜å‡¦ç†ã‚’å®Ÿè¡Œã™ã‚‹
+            // ŠÖ˜A‚·‚éƒ‚ƒWƒ…[ƒ‹‚ÆƒCƒ[ƒW‚É“¯‚¶ˆ—‚ğÀs‚·‚é
             Collection oldModules = em.createQuery(QUERY_MODULE_BY_DOC_ID)
             .setParameter(ID, parentPk).getResultList();
             for (Iterator iter = oldModules.iterator(); iter.hasNext(); ) {
@@ -366,44 +368,44 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆã‚’è«–ç†å‰Šé™¤ã™ã‚‹ã€‚
-     * @param pk è«–ç†å‰Šé™¤ã™ã‚‹ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆã® primary key
-     * @return å‰Šé™¤ã—ãŸä»¶æ•°
+     * ƒhƒLƒ…ƒƒ“ƒg‚ğ˜_—íœ‚·‚éB
+     * @param pk ˜_—íœ‚·‚éƒhƒLƒ…ƒƒ“ƒg‚Ì primary key
+     * @return íœ‚µ‚½Œ”
      */
     @Override
     public int deleteDocument(long id) {
 
         //
-        // å¯¾è±¡ Document ã‚’å–å¾—ã™ã‚‹
+        // ‘ÎÛ Document ‚ğæ“¾‚·‚é
         //
         Date ended = new Date();
         DocumentModel delete = (DocumentModel) em.find(DocumentModel.class, id);
 
         //
-        // å‚ç…§ã—ã¦ã„ã‚‹å ´åˆã¯ä¾‹å¤–ã‚’æŠ•ã’ã‚‹
+        // QÆ‚µ‚Ä‚¢‚éê‡‚Í—áŠO‚ğ“Š‚°‚é
         //
         if (delete.getLinkId() != 0L) {
-            throw new CanNotDeleteException("ä»–ã®ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆã‚’å‚ç…§ã—ã¦ã„ã‚‹ãŸã‚å‰Šé™¤ã§ãã¾ã›ã‚“ã€‚");
+            throw new CanNotDeleteException("‘¼‚ÌƒhƒLƒ…ƒƒ“ƒg‚ğQÆ‚µ‚Ä‚¢‚é‚½‚ßíœ‚Å‚«‚Ü‚¹‚ñB");
         }
 
         //
-        // å‚ç…§ã•ã‚Œã¦ã„ã‚‹å ´åˆã¯ä¾‹å¤–ã‚’æŠ•ã’ã‚‹
+        // QÆ‚³‚ê‚Ä‚¢‚éê‡‚Í—áŠO‚ğ“Š‚°‚é
         //
         Collection refs = em.createQuery(QUERY_DOCUMENT_BY_LINK_ID)
         .setParameter(ID, id).getResultList();
         if (refs != null && refs.size() >0) {
-            CanNotDeleteException ce = new CanNotDeleteException("ä»–ã®ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆã‹ã‚‰å‚ç…§ã•ã‚Œã¦ã„ã‚‹ãŸã‚å‰Šé™¤ã§ãã¾ã›ã‚“ã€‚");
+            CanNotDeleteException ce = new CanNotDeleteException("‘¼‚ÌƒhƒLƒ…ƒƒ“ƒg‚©‚çQÆ‚³‚ê‚Ä‚¢‚é‚½‚ßíœ‚Å‚«‚Ü‚¹‚ñB");
             throw ce;
         }
 
         //
-        // å˜ç‹¬ãƒ¬ã‚³ãƒ¼ãƒ‰ãªã®ã§å‰Šé™¤ãƒ•ãƒ©ã‚°ã‚’ãŸã¦ã‚‹
+        // ’P“ÆƒŒƒR[ƒh‚È‚Ì‚Åíœƒtƒ‰ƒO‚ğ‚½‚Ä‚é
         //
         delete.setStatus(IInfoModel.STATUS_DELETE);
         delete.setEnded(ended);
 
         //
-        // é–¢é€£ã™ã‚‹ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«ã«åŒã˜å‡¦ç†ã‚’è¡Œã†
+        // ŠÖ˜A‚·‚éƒ‚ƒWƒ…[ƒ‹‚É“¯‚¶ˆ—‚ğs‚¤
         //
         Collection deleteModules = em.createQuery(QUERY_MODULE_BY_DOC_ID)
         .setParameter(ID, id).getResultList();
@@ -414,7 +416,7 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
         }
 
         //
-        // é–¢é€£ã™ã‚‹ç”»åƒã«åŒã˜å‡¦ç†ã‚’è¡Œã†
+        // ŠÖ˜A‚·‚é‰æ‘œ‚É“¯‚¶ˆ—‚ğs‚¤
         //
         Collection deleteImages = em.createQuery(QUERY_SCHEMA_BY_DOC_ID)
         .setParameter(ID, id).getResultList();
@@ -428,9 +430,9 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆã®ã‚¿ã‚¤ãƒˆãƒ«ã‚’å¤‰æ›´ã™ã‚‹ã€‚
-     * @param pk å¤‰æ›´ã™ã‚‹ãƒ‰ã‚­ãƒ¥ãƒ¡ãƒ³ãƒˆã® primary key
-     * @return å¤‰æ›´ã—ãŸä»¶æ•°
+     * ƒhƒLƒ…ƒƒ“ƒg‚Ìƒ^ƒCƒgƒ‹‚ğ•ÏX‚·‚éB
+     * @param pk •ÏX‚·‚éƒhƒLƒ…ƒƒ“ƒg‚Ì primary key
+     * @return •ÏX‚µ‚½Œ”
      */
     @Override
     public int updateTitle(long pk, String title) {
@@ -440,18 +442,18 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * ModuleModelã‚¨ãƒ³ãƒˆãƒªã‚’å–å¾—ã™ã‚‹ã€‚
-     * @param spec ãƒ¢ã‚¸ãƒ¥ãƒ¼ãƒ«æ¤œç´¢ä»•æ§˜
-     * @return ModuleModelãƒªã‚¹ãƒˆã®ãƒªã‚¹ãƒˆ
+     * ModuleModelƒGƒ“ƒgƒŠ‚ğæ“¾‚·‚éB
+     * @param spec ƒ‚ƒWƒ…[ƒ‹ŒŸõd—l
+     * @return ModuleModelƒŠƒXƒg‚ÌƒŠƒXƒg
      */
     @Override
     public List<List> getModules(long karteId, String entity, List fromDate, List toDate) {
 
-        // æŠ½å‡ºæœŸé–“ã¯åˆ¥ã‘ã‚‰ã‚Œã¦ã„ã‚‹
+        // ’ŠoŠúŠÔ‚Í•Ê‚¯‚ç‚ê‚Ä‚¢‚é
         int len = fromDate.size();
         List<List> ret = new ArrayList<List>(len);
 
-        // æŠ½å‡ºæœŸé–“ã‚»ãƒƒãƒˆã®æ•°ã ã‘ç¹°ã‚Šè¿”ã™
+        // ’ŠoŠúŠÔƒZƒbƒg‚Ì”‚¾‚¯ŒJ‚è•Ô‚·
         for (int i = 0; i < len; i++) {
 
             List modules
@@ -469,20 +471,20 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * SchemaModelã‚¨ãƒ³ãƒˆãƒªã‚’å–å¾—ã™ã‚‹ã€‚
-     * @param karteId ã‚«ãƒ«ãƒ†ID
+     * SchemaModelƒGƒ“ƒgƒŠ‚ğæ“¾‚·‚éB
+     * @param karteId ƒJƒ‹ƒeID
      * @param fromDate
      * @param toDate
-     * @return SchemaModelã‚¨ãƒ³ãƒˆãƒªã®é…åˆ—
+     * @return SchemaModelƒGƒ“ƒgƒŠ‚Ì”z—ñ
      */
     @Override
     public List<List> getImages(long karteId, List fromDate, List toDate) {
 
-        // æŠ½å‡ºæœŸé–“ã¯åˆ¥ã‘ã‚‰ã‚Œã¦ã„ã‚‹
+        // ’ŠoŠúŠÔ‚Í•Ê‚¯‚ç‚ê‚Ä‚¢‚é
         int len = fromDate.size();
         List<List> ret = new ArrayList<List>(len);
 
-        // æŠ½å‡ºæœŸé–“ã‚»ãƒƒãƒˆã®æ•°ã ã‘ç¹°ã‚Šè¿”ã™
+        // ’ŠoŠúŠÔƒZƒbƒg‚Ì”‚¾‚¯ŒJ‚è•Ô‚·
         for (int i = 0; i < len; i++) {
 
             List modules
@@ -499,7 +501,7 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * ç”»åƒã‚’å–å¾—ã™ã‚‹ã€‚
+     * ‰æ‘œ‚ğæ“¾‚·‚éB
      * @param id SchemaModel Id
      * @return SchemaModel
      */
@@ -530,24 +532,26 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * å‚·ç—…åãƒªã‚¹ãƒˆã‚’å–å¾—ã™ã‚‹ã€‚
-     * @param spec æ¤œç´¢ä»•æ§˜
-     * @return å‚·ç—…åã®ãƒªã‚¹ãƒˆ
+     * •a–¼ƒŠƒXƒg‚ğæ“¾‚·‚éB
+     * @param spec ŒŸõd—l
+     * @return •a–¼‚ÌƒŠƒXƒg
      */
     @Override
-    public List<RegisteredDiagnosisModel> getDiagnosis(long karteId, Date fromDate) {
+    public List<RegisteredDiagnosisModel> getDiagnosis(long karteId, Date fromDate, boolean activeOnly) {
 
         List<RegisteredDiagnosisModel> ret = null;
 
-        // ç–¾æ‚£é–‹å§‹æ—¥ã‚’æŒ‡å®šã—ã¦ã„ã‚‹
+        // ¾Š³ŠJn“ú‚ğw’è‚µ‚Ä‚¢‚é
         if (fromDate != null) {
-            ret = (List<RegisteredDiagnosisModel>)em.createQuery(QUERY_DIAGNOSIS_BY_KARTE_DATE)
+            String query = activeOnly ? QUERY_DIAGNOSIS_BY_KARTE_DATE_ACTIVEONLY : QUERY_DIAGNOSIS_BY_KARTE_DATE;
+            ret = (List<RegisteredDiagnosisModel>) em.createQuery(query)
                     .setParameter(KARTE_ID, karteId)
                     .setParameter(FROM_DATE, fromDate)
                     .getResultList();
         } else {
-            // å…¨æœŸé–“ã®å‚·ç—…åã‚’å¾—ã‚‹
-            ret = (List<RegisteredDiagnosisModel>)em.createQuery(QUERY_DIAGNOSIS_BY_KARTE)
+            // ‘SŠúŠÔ‚Ì•a–¼‚ğ“¾‚é
+            String query = activeOnly ? QUERY_DIAGNOSIS_BY_KARTE_ACTIVEONLY : QUERY_DIAGNOSIS_BY_KARTE;
+            ret = (List<RegisteredDiagnosisModel>)em.createQuery(query)
                     .setParameter(KARTE_ID, karteId)
                     .getResultList();
         }
@@ -556,9 +560,9 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * å‚·ç—…åã‚’è¿½åŠ ã™ã‚‹ã€‚
-     * @param addList è¿½åŠ ã™ã‚‹å‚·ç—…åã®ãƒªã‚¹ãƒˆ
-     * @return idã®ãƒªã‚¹ãƒˆ
+     * •a–¼‚ğ’Ç‰Á‚·‚éB
+     * @param addList ’Ç‰Á‚·‚é•a–¼‚ÌƒŠƒXƒg
+     * @return id‚ÌƒŠƒXƒg
      */
     @Override
     public List<Long> addDiagnosis(List<RegisteredDiagnosisModel> addList) {
@@ -574,9 +578,9 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * å‚·ç—…åã‚’æ›´æ–°ã™ã‚‹ã€‚
+     * •a–¼‚ğXV‚·‚éB
      * @param updateList
-     * @return æ›´æ–°æ•°
+     * @return XV”
      */
     @Override
     public int updateDiagnosis(List<RegisteredDiagnosisModel> updateList) {
@@ -592,9 +596,9 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * å‚·ç—…åã‚’å‰Šé™¤ã™ã‚‹ã€‚
-     * @param removeList å‰Šé™¤ã™ã‚‹å‚·ç—…åã®idãƒªã‚¹ãƒˆ
-     * @return å‰Šé™¤æ•°
+     * •a–¼‚ğíœ‚·‚éB
+     * @param removeList íœ‚·‚é•a–¼‚ÌidƒŠƒXƒg
+     * @return íœ”
      */
     @Override
     public int removeDiagnosis(List<Long> removeList) {
@@ -611,9 +615,9 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * Observationã‚’å–å¾—ã™ã‚‹ã€‚
-     * @param spec æ¤œç´¢ä»•æ§˜
-     * @return Observationã®ãƒªã‚¹ãƒˆ
+     * Observation‚ğæ“¾‚·‚éB
+     * @param spec ŒŸõd—l
+     * @return Observation‚ÌƒŠƒXƒg
      */
     @Override
     public List<ObservationModel> getObservations(long karteId, String observation, String phenomenon, Date firstConfirmed) {
@@ -652,9 +656,9 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * Observationã‚’è¿½åŠ ã™ã‚‹ã€‚
-     * @param observations è¿½åŠ ã™ã‚‹Observationã®ãƒªã‚¹ãƒˆ
-     * @return è¿½åŠ ã—ãŸObservationã®Idãƒªã‚¹ãƒˆ
+     * Observation‚ğ’Ç‰Á‚·‚éB
+     * @param observations ’Ç‰Á‚·‚éObservation‚ÌƒŠƒXƒg
+     * @return ’Ç‰Á‚µ‚½Observation‚ÌIdƒŠƒXƒg
      */
     @Override
     public List<Long> addObservations(List<ObservationModel> observations) {
@@ -674,9 +678,9 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * Observationã‚’æ›´æ–°ã™ã‚‹ã€‚
-     * @param observations æ›´æ–°ã™ã‚‹Observationã®ãƒªã‚¹ãƒˆ
-     * @return æ›´æ–°ã—ãŸæ•°
+     * Observation‚ğXV‚·‚éB
+     * @param observations XV‚·‚éObservation‚ÌƒŠƒXƒg
+     * @return XV‚µ‚½”
      */
     @Override
     public int updateObservations(List<ObservationModel> observations) {
@@ -693,9 +697,9 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * Observationã‚’å‰Šé™¤ã™ã‚‹ã€‚
-     * @param observations å‰Šé™¤ã™ã‚‹Observationã®ãƒªã‚¹ãƒˆ
-     * @return å‰Šé™¤ã—ãŸæ•°
+     * Observation‚ğíœ‚·‚éB
+     * @param observations íœ‚·‚éObservation‚ÌƒŠƒXƒg
+     * @return íœ‚µ‚½”
      */
     @Override
     public int removeObservations(List<Long> observations) {
@@ -712,8 +716,8 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * æ‚£è€…ãƒ¡ãƒ¢ã‚’æ›´æ–°ã™ã‚‹ã€‚
-     * @param memo æ›´æ–°ã™ã‚‹ãƒ¡ãƒ¢
+     * Š³Òƒƒ‚‚ğXV‚·‚éB
+     * @param memo XV‚·‚éƒƒ‚
      */
     @Override
     public int updatePatientMemo(PatientMemoModel memo) {
@@ -732,7 +736,7 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     //--------------------------------------------------------------------------
 
     /**
-     * ç´¹ä»‹çŠ¶ã‚’ä¿å­˜ã¾ãŸã¯æ›´æ–°ã™ã‚‹ã€‚
+     * Ğ‰îó‚ğ•Û‘¶‚Ü‚½‚ÍXV‚·‚éB
      */
     @Override
     public long saveOrUpdateLetter(LetterModel model) {
@@ -741,13 +745,13 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * ç´¹ä»‹çŠ¶ã®ãƒªã‚¹ãƒˆã‚’å–å¾—ã™ã‚‹ã€‚
+     * Ğ‰îó‚ÌƒŠƒXƒg‚ğæ“¾‚·‚éB
      */
     @Override
     public List<LetterModel> getLetterList(long karteId, String docType) {
 
         if (docType.equals(TOUTOU)) {
-            // ç´¹ä»‹çŠ¶
+            // Ğ‰îó
             List<LetterModel> ret = (List<LetterModel>)
                         em.createQuery(QUERY_LETTER_BY_KARTE_ID)
                         .setParameter(KARTE_ID, karteId)
@@ -755,7 +759,7 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
             return ret;
 
         } else if (docType.equals(TOUTOU_REPLY)) {
-            // è¿”æ›¸
+            // •Ô‘
             List<LetterModel> ret = (List<LetterModel>)
                         em.createQuery(QUERY_REPLY_BY_KARTE_ID)
                         .setParameter(KARTE_ID, karteId)
@@ -767,7 +771,7 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     }
 
     /**
-     * ç´¹ä»‹çŠ¶ã‚’å–å¾—ã™ã‚‹ã€‚
+     * Ğ‰îó‚ğæ“¾‚·‚éB
      */
     @Override
     public LetterModel getLetter(long letterPk) {
@@ -794,11 +798,11 @@ public class KarteServiceBean implements KarteServiceBeanLocal {
     @Override
     public List<List> getAppointmentList(long karteId, List fromDate, List toDate) {
 
-        // æŠ½å‡ºæœŸé–“ã¯åˆ¥ã‘ã‚‰ã‚Œã¦ã„ã‚‹
+        // ’ŠoŠúŠÔ‚Í•Ê‚¯‚ç‚ê‚Ä‚¢‚é
         int len = fromDate.size();
         List<List> ret = new ArrayList<List>(len);
 
-        // æŠ½å‡ºæœŸé–“ã‚»ãƒƒãƒˆã®æ•°ã ã‘ç¹°ã‚Šè¿”ã™
+        // ’ŠoŠúŠÔƒZƒbƒg‚Ì”‚¾‚¯ŒJ‚è•Ô‚·
         for (int i = 0; i < len; i++) {
 
             List modules

@@ -7,7 +7,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 /**
- * è¨ºæ–­å±¥æ­´ã‚¯ãƒ©ã‚¹ã€‚
+ * f’f—š—ğƒNƒ‰ƒXB
  *
  * @author Kazushi Minagawa, Digital Globe,Inc.
  */
@@ -15,28 +15,28 @@ import javax.persistence.Transient;
 @Table(name = "d_diagnosis")
 public class RegisteredDiagnosisModel extends KarteEntryBean implements java.io.Serializable {
     
-    // ç–¾æ‚£å
+    // ¾Š³–¼
     @Column(nullable=false)
     private String diagnosis;
     
-    // ç–¾æ‚£ã‚³ãƒ¼ãƒ‰
+    // ¾Š³ƒR[ƒh
     private String diagnosisCode;
     
-    // ç–¾æ‚£ã‚³ãƒ¼ãƒ‰ä½“ç³»å
+    // ¾Š³ƒR[ƒh‘ÌŒn–¼
     private String diagnosisCodeSystem;
     
-    // ç—…ååˆ†é¡ãƒ¢ãƒ‡ãƒ«
+    // •a–¼•ª—Şƒ‚ƒfƒ‹
     @Embedded
     private DiagnosisCategoryModel diagnosisCategoryModel;
     
-    // è»¢å¸°ãƒ¢ãƒ‡ãƒ«
+    // “]‹Aƒ‚ƒfƒ‹
     @Embedded
     private DiagnosisOutcomeModel diagnosisOutcomeModel;
     
-    // ç–¾æ‚£ã®åˆè¨ºæ—¥
+    // ¾Š³‚Ì‰f“ú
     private String firstEncounterDate;
     
-    // é–¢é€£å¥åº·ä¿é™ºæƒ…å ±
+    // ŠÖ˜AŒ’N•ÛŒ¯î•ñ
     private String relatedHealthInsurance;
     
     @Transient
@@ -53,72 +53,72 @@ public class RegisteredDiagnosisModel extends KarteEntryBean implements java.io.
     }
     
     /**
-     * æœ‰åŠ¹ãªãƒ¢ãƒ‡ãƒ«ã‹ã©ã†ã‹ã‚’è¿”ã™ã€‚
-     * @return æœ‰åŠ¹ãªãƒ¢ãƒ‡ãƒ«ã®æ™‚ true
+     * —LŒø‚Èƒ‚ƒfƒ‹‚©‚Ç‚¤‚©‚ğ•Ô‚·B
+     * @return —LŒø‚Èƒ‚ƒfƒ‹‚Ì true
      */
     public boolean isValidMML() {
         return getDiagnosis() != null ? true : false;
     }
     
     /**
-     * ç–¾æ‚£åã‚’è¿”ã™ã€‚
-     * @return  ç–¾æ‚£å
+     * ¾Š³–¼‚ğ•Ô‚·B
+     * @return  ¾Š³–¼
      */
     public String getDiagnosis() {
         return diagnosis;
     }
     
     /**
-     * ç–¾æ‚£åã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param diagnosis  ç–¾æ‚£å
+     * ¾Š³–¼‚ğİ’è‚·‚éB
+     * @param diagnosis  ¾Š³–¼
      */
     public void setDiagnosis(String diagnosis) {
         this.diagnosis = diagnosis;
     }
     
     /**
-     * ç–¾æ‚£ã‚³ãƒ¼ãƒ‰ã‚’è¿”ã™ã€‚
-     * @return ç–¾æ‚£ã‚³ãƒ¼ãƒ‰
+     * ¾Š³ƒR[ƒh‚ğ•Ô‚·B
+     * @return ¾Š³ƒR[ƒh
      */
     public String getDiagnosisCode() {
         return diagnosisCode;
     }
     
     /**
-     * ç–¾æ‚£ã‚³ãƒ¼ãƒ‰ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param diagnosisCode ç–¾æ‚£ã‚³ãƒ¼ãƒ‰
+     * ¾Š³ƒR[ƒh‚ğİ’è‚·‚éB
+     * @param diagnosisCode ¾Š³ƒR[ƒh
      */
     public void setDiagnosisCode(String diagnosisCode) {
         this.diagnosisCode = diagnosisCode;
     }
     
     /**
-     * ç–¾æ‚£ã‚³ãƒ¼ãƒ‰ä½“ç³»åã‚’è¿”ã™ã€‚
-     * @return ç–¾æ‚£ã‚³ãƒ¼ãƒ‰ä½“ç³»å
+     * ¾Š³ƒR[ƒh‘ÌŒn–¼‚ğ•Ô‚·B
+     * @return ¾Š³ƒR[ƒh‘ÌŒn–¼
      */
     public String getDiagnosisCodeSystem() {
         return diagnosisCodeSystem;
     }
     
     /**
-     * ç–¾æ‚£ã‚³ãƒ¼ãƒ‰ä½“ç³»åã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param diagnosisCodeSystem ç–¾æ‚£ã‚³ãƒ¼ãƒ‰ä½“ç³»å
+     * ¾Š³ƒR[ƒh‘ÌŒn–¼‚ğİ’è‚·‚éB
+     * @param diagnosisCodeSystem ¾Š³ƒR[ƒh‘ÌŒn–¼
      */
     public void setDiagnosisCodeSystem(String diagnosisCodeSystem) {
         this.diagnosisCodeSystem = diagnosisCodeSystem;
     }
     
     /**
-     * åˆ†é¡åã‚’è¿”ã™ã€‚
-     * @return åˆ†é¡å
+     * •ª—Ş–¼‚ğ•Ô‚·B
+     * @return •ª—Ş–¼
      */
     public String getCategory() {
         return diagnosisCategoryModel != null ? diagnosisCategoryModel.getDiagnosisCategory() : null;
     }
     
     /**
-     * åˆ†é¡åã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param category åˆ†é¡å
+     * •ª—Ş–¼‚ğİ’è‚·‚éB
+     * @param category •ª—Ş–¼
      */
     public void setCategory(String category) {
         if (diagnosisCategoryModel == null) {
@@ -128,16 +128,16 @@ public class RegisteredDiagnosisModel extends KarteEntryBean implements java.io.
     }
     
     /**
-     * åˆ†é¡èª¬æ˜ã‚’è¿”ã™ã€‚
-     * @return åˆ†é¡èª¬æ˜
+     * •ª—Şà–¾‚ğ•Ô‚·B
+     * @return •ª—Şà–¾
      */
     public String getCategoryDesc() {
         return diagnosisCategoryModel != null ? diagnosisCategoryModel.getDiagnosisCategoryDesc() : null;
     }
     
     /**
-     * åˆ†é¡èª¬æ˜ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param categoryDesc åˆ†é¡èª¬æ˜
+     * •ª—Şà–¾‚ğİ’è‚·‚éB
+     * @param categoryDesc •ª—Şà–¾
      */
     public void setCategoryDesc(String categoryDesc) {
         if (diagnosisCategoryModel == null) {
@@ -147,16 +147,16 @@ public class RegisteredDiagnosisModel extends KarteEntryBean implements java.io.
     }
     
     /**
-     * åˆ†é¡ä½“ç³»åã‚’è¿”ã™ã€‚
-     * @return åˆ†é¡ä½“ç³»å
+     * •ª—Ş‘ÌŒn–¼‚ğ•Ô‚·B
+     * @return •ª—Ş‘ÌŒn–¼
      */
     public String getCategoryCodeSys() {
         return diagnosisCategoryModel != null ? diagnosisCategoryModel.getDiagnosisCategoryCodeSys() : null;
     }
     
     /**
-     * åˆ†é¡ä½“ç³»åã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param categoryTable åˆ†é¡ä½“ç³»å
+     * •ª—Ş‘ÌŒn–¼‚ğİ’è‚·‚éB
+     * @param categoryTable •ª—Ş‘ÌŒn–¼
      */
     public void setCategoryCodeSys(String categoryTable) {
         if (diagnosisCategoryModel == null) {
@@ -166,24 +166,24 @@ public class RegisteredDiagnosisModel extends KarteEntryBean implements java.io.
     }
     
     /**
-     * ç–¾æ‚£åˆè¨ºæ—¥ã‚’è¿”ã™ã€‚
-     * @return ç–¾æ‚£åˆè¨ºæ—¥
+     * ¾Š³‰f“ú‚ğ•Ô‚·B
+     * @return ¾Š³‰f“ú
      */
     public String getFirstEncounterDate() {
         return firstEncounterDate;
     }
     
     /**
-     * ç–¾æ‚£åˆè¨ºæ—¥ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param firstEncounterDate ç–¾æ‚£åˆè¨ºæ—¥
+     * ¾Š³‰f“ú‚ğİ’è‚·‚éB
+     * @param firstEncounterDate ¾Š³‰f“ú
      */
     public void setFirstEncounterDate(String firstEncounterDate) {
         this.firstEncounterDate = firstEncounterDate;
     }
     
     /**
-     * ç–¾æ‚£é–‹å§‹æ—¥ã‚’è¿”ã™ã€‚
-     * @return ç–¾æ‚£é–‹å§‹æ—¥
+     * ¾Š³ŠJn“ú‚ğ•Ô‚·B
+     * @return ¾Š³ŠJn“ú
      */
     public String getStartDate() {
         if (getStarted() != null) {
@@ -193,8 +193,8 @@ public class RegisteredDiagnosisModel extends KarteEntryBean implements java.io.
     }
     
     /**
-     * ç–¾æ‚£é–‹å§‹æ—¥ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param startDate ç–¾æ‚£é–‹å§‹æ—¥
+     * ¾Š³ŠJn“ú‚ğİ’è‚·‚éB
+     * @param startDate ¾Š³ŠJn“ú
      */
     public void setStartDate(String startDate) {
         if (startDate != null) {
@@ -208,8 +208,8 @@ public class RegisteredDiagnosisModel extends KarteEntryBean implements java.io.
     }
     
     /**
-     * ç–¾æ‚£çµ‚äº†æ—¥ã‚’è¿”ã™ã€‚
-     * @return ç–¾æ‚£çµ‚äº†æ—¥
+     * ¾Š³I—¹“ú‚ğ•Ô‚·B
+     * @return ¾Š³I—¹“ú
      */
     public String getEndDate() {
         if (getEnded() != null) {
@@ -219,30 +219,33 @@ public class RegisteredDiagnosisModel extends KarteEntryBean implements java.io.
     }
     
     /**
-     * ç–¾æ‚£çµ‚äº†æ—¥ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param endDate ç–¾æ‚£çµ‚äº†æ—¥
+     * ¾Š³I—¹“ú‚ğİ’è‚·‚éB
+     * @param endDate ¾Š³I—¹“ú
      */
     public void setEndDate(String endDate) {
-        if (endDate != null) {
+        if (endDate != null && (!endDate.equals(""))) {
             int index = endDate.indexOf('T');
             if (index < 0) {
                 endDate += "T00:00:00";
             }
             setEnded(ModelUtils.getDateTimeAsObject(endDate));
+
+        } else {
+            setEnded(null);
         }
     }
     
     /**
-     * è»¢å¸°ã‚’è¿”ã™ã€‚
-     * @return è»¢å¸°
+     * “]‹A‚ğ•Ô‚·B
+     * @return “]‹A
      */
     public String getOutcome() {
         return diagnosisOutcomeModel != null ? diagnosisOutcomeModel.getOutcome() : null;
     }
     
     /**
-     * è»¢å¸°ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param outcome è»¢å¸°
+     * “]‹A‚ğİ’è‚·‚éB
+     * @param outcome “]‹A
      */
     public void setOutcome(String outcome) {
         if (diagnosisOutcomeModel == null) {
@@ -252,16 +255,16 @@ public class RegisteredDiagnosisModel extends KarteEntryBean implements java.io.
     }
     
     /**
-     * è»¢å¸°èª¬æ˜ã‚’è¿”ã™ã€‚
-     * @return è»¢å¸°èª¬æ˜
+     * “]‹Aà–¾‚ğ•Ô‚·B
+     * @return “]‹Aà–¾
      */
     public String getOutcomeDesc() {
         return diagnosisOutcomeModel != null ? diagnosisOutcomeModel.getOutcomeDesc() : null;
     }
     
     /**
-     * è»¢å¸°èª¬æ˜ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param outcomeDesc è»¢å¸°èª¬æ˜ã‚’è¨­å®š
+     * “]‹Aà–¾‚ğİ’è‚·‚éB
+     * @param outcomeDesc “]‹Aà–¾‚ğİ’è
      */
     public void setOutcomeDesc(String outcomeDesc) {
         if (diagnosisOutcomeModel == null) {
@@ -271,15 +274,15 @@ public class RegisteredDiagnosisModel extends KarteEntryBean implements java.io.
     }
     
     /**
-     * è»¢å¸°ä½“ç³»ã‚’è¿”ã™ã€‚
-     * @return è»¢å¸°ä½“ç³»
+     * “]‹A‘ÌŒn‚ğ•Ô‚·B
+     * @return “]‹A‘ÌŒn
      */
     public String getOutcomeCodeSys() {
         return diagnosisOutcomeModel != null ? diagnosisOutcomeModel.getOutcomeCodeSys() : null;
     }
     
     /**
-     * è»¢å¸°ä½“ç³»ã‚’è¨­å®šã™ã‚‹ã€‚
+     * “]‹A‘ÌŒn‚ğİ’è‚·‚éB
      * @param outcomeTable
      */
     public void setOutcomeCodeSys(String outcomeTable) {
@@ -290,32 +293,32 @@ public class RegisteredDiagnosisModel extends KarteEntryBean implements java.io.
     }
     
     /**
-     * é–¢é€£å¥åº·ä¿é™ºæƒ…å ±ã‚’è¿”ã™ã€‚
-     * @return é–¢é€£å¥åº·ä¿é™ºæƒ…å ±
+     * ŠÖ˜AŒ’N•ÛŒ¯î•ñ‚ğ•Ô‚·B
+     * @return ŠÖ˜AŒ’N•ÛŒ¯î•ñ
      */
     public String getRelatedHealthInsurance() {
         return relatedHealthInsurance;
     }
     
     /**
-     * é–¢é€£å¥åº·ä¿é™ºæƒ…å ±ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param relatedHealthInsurance é–¢é€£å¥åº·ä¿é™ºæƒ…å ±
+     * ŠÖ˜AŒ’N•ÛŒ¯î•ñ‚ğİ’è‚·‚éB
+     * @param relatedHealthInsurance ŠÖ˜AŒ’N•ÛŒ¯î•ñ
      */
     public void setRelatedHealthInsurance(String relatedHealthInsurance) {
         this.relatedHealthInsurance = relatedHealthInsurance;
     }
     
     /**
-     * ã‚«ãƒ†ã‚´ãƒªãƒ¢ãƒ‡ãƒ«ã‚’è¿”ã™ã€‚
-     * @return ã‚«ãƒ†ã‚´ãƒªãƒ¢ãƒ‡ãƒ«
+     * ƒJƒeƒSƒŠƒ‚ƒfƒ‹‚ğ•Ô‚·B
+     * @return ƒJƒeƒSƒŠƒ‚ƒfƒ‹
      */
     public DiagnosisCategoryModel getDiagnosisCategoryModel() {
         return diagnosisCategoryModel;
     }
     
     /**
-     * ã‚«ãƒ†ã‚´ãƒªãƒ¢ãƒ‡ãƒ«ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @param diagnosisOutcomeModel ã‚«ãƒ†ã‚´ãƒªãƒ¢ãƒ‡ãƒ«
+     * ƒJƒeƒSƒŠƒ‚ƒfƒ‹‚ğİ’è‚·‚éB
+     * @param diagnosisOutcomeModel ƒJƒeƒSƒŠƒ‚ƒfƒ‹
      */
     public void setDiagnosisCategoryModel(
             DiagnosisCategoryModel diagnosisCategoryModel) {
@@ -323,16 +326,16 @@ public class RegisteredDiagnosisModel extends KarteEntryBean implements java.io.
     }
     
     /**
-     * è»¢å¸°ãƒ¢ãƒ‡ãƒ«ã‚’è¨­å®šã™ã‚‹ã€‚
-     * @return è»¢å¸°ãƒ¢ãƒ‡ãƒ«
+     * “]‹Aƒ‚ƒfƒ‹‚ğİ’è‚·‚éB
+     * @return “]‹Aƒ‚ƒfƒ‹
      */
     public DiagnosisOutcomeModel getDiagnosisOutcomeModel() {
         return diagnosisOutcomeModel;
     }
     
     /**
-     * è»¢å¸°ãƒ¢ãƒ‡ãƒ«ã‚’è¿”ã™ã€‚
-     * @param diagnosisOutcomeModel è»¢å¸°ãƒ¢ãƒ‡ãƒ«
+     * “]‹Aƒ‚ƒfƒ‹‚ğ•Ô‚·B
+     * @param diagnosisOutcomeModel “]‹Aƒ‚ƒfƒ‹
      */
     public void setDiagnosisOutcomeModel(
             DiagnosisOutcomeModel diagnosisOutcomeModel) {
@@ -390,10 +393,10 @@ public class RegisteredDiagnosisModel extends KarteEntryBean implements java.io.
         StringBuilder sb = new StringBuilder();
         sb.append(this.getDiagnosis());
         if (this.getStartDate() != null) {
-            sb.append(",").append("ç–¾æ‚£é–‹å§‹æ—¥:").append(this.getStartDate());
+            sb.append(",").append("¾Š³ŠJn“ú:").append(this.getStartDate());
         }
         if (this.getEndDate() != null) {
-            sb.append(",").append("ç–¾æ‚£çµ‚äº†æ—¥:").append(this.getEndDate());
+            sb.append(",").append("¾Š³I—¹“ú:").append(this.getEndDate());
         }
         return sb.toString();
     }
