@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="Shift_JIS" ?>
+
+<menubar toolBar="Yes" project="open.dolphin" version="1.0">
+
+    <menu text="ファイル(F)" mnemonic="F">
+    
+        <actionItem key="newKarteAction">
+            <text>新規カルテ...</text>
+            <accelerator>VK_N</accelerator>
+            <icon>New24.gif</icon>
+            <toolTip>新規カルテ作成</toolTip>
+            <enabled>false</enabled>
+        </actionItem>
+        
+        <actionItem key="copyNewKarteAction">
+            <text>コピーして新規カルテ...</text>
+            <icon>Add24.gif</icon>
+            <toolTip>コピーして新規カルテ作成</toolTip>
+            <enabled>false</enabled>
+        </actionItem>        
+        
+        <menuItem>
+            <text>-</text>
+        </menuItem>
+        
+        <actionItem key="newReferralAction">
+            <text>紹介状作成</text>
+            <icon>ComposeMail24.gif</icon>
+            <toolTip>紹介状作成</toolTip>
+            <enabled>false</enabled>
+        </actionItem>            
+        
+        <menuItem>
+            <text>-</text>
+        </menuItem>        
+           
+        <actionItem key="saveKarteAction">
+            <text>保存...</text>
+            <icon>Save24.gif</icon>
+            <accelerator>VK_S</accelerator>
+            <toolTip>保存</toolTip>
+            <enabled>false</enabled>
+        </actionItem> 
+        
+        <menuItem>
+            <text>-</text>
+        </menuItem>         
+
+        <actionItem key="printerSetupAction">
+            <text>印刷設定...</text>
+            <enabled>true</enabled>
+        </actionItem>         
+
+        <actionItem key="printAction">
+            <text>印刷...</text>
+            <icon>Print24.gif</icon>
+            <accelerator>VK_P</accelerator>
+            <toolTip>印刷</toolTip>
+            <enabled>false</enabled>
+        </actionItem>         
+        
+        <menuItem>
+            <text>-</text>
+        </menuItem>         
+
+        <actionItem key="closeAction">
+            <text>閉じる</text>
+            <accelerator>VK_W</accelerator>
+            <toolTip>閉じる</toolTip>
+            <enabled>true</enabled>
+        </actionItem>        
+
+    </menu>
+
+    <menu text="編集(E)" mnemonic="E">
+    
+        <actionItem key="modifyKarteAction">
+            <text>このカルテを修正</text>
+            <icon>Edit24.gif</icon>
+            <toolTip>このカルテを修正</toolTip>
+            <enabled>false</enabled>
+        </actionItem>     
+    
+        <menuItem>
+            <text>-</text>
+        </menuItem> 
+        
+        <actionItem key="undoAction">
+            <text>元に戻す</text>
+            <icon>Undo24.gif</icon>
+            <accelerator>VK_Z</accelerator>
+            <toolTip>元に戻す</toolTip>
+            <enabled>false</enabled>
+        </actionItem> 
+        
+        <actionItem key="redoAction">
+            <text>再実行</text>
+            <icon>Redo24.gif</icon>
+            <accelerator>VK_Y</accelerator>
+            <toolTip>再実行</toolTip>
+            <enabled>false</enabled>
+        </actionItem>         
+
+        <menuItem>
+            <text>-</text>
+        </menuItem>        
+
+        <actionItem key="cutAction">
+            <text>カット</text>
+            <icon>Cut24.gif</icon>
+            <accelerator>VK_X</accelerator>
+            <toolTip>カット</toolTip>
+            <enabled>false</enabled>
+        </actionItem>
+        
+        <actionItem key="copyAction">
+            <text>コピー</text>
+            <icon>Copy24.gif</icon>
+            <accelerator>VK_C</accelerator>
+            <toolTip>コピー</toolTip>
+            <enabled>false</enabled>
+        </actionItem>              
+
+        <actionItem key="pasteAction">
+            <text>ペースト</text>
+            <icon>Paste24.gif</icon>
+            <accelerator>VK_V</accelerator>
+            <toolTip>ペースト</toolTip>
+            <enabled>false</enabled>
+        </actionItem>        
+
+        <menuItem>
+            <text>-</text>
+        </menuItem>        
+
+        <actionItem key="deleteAction">
+            <text>削 除</text>
+            <icon>Delete24.gif</icon>
+            <toolTip>削除</toolTip>
+            <enabled>false</enabled>
+        </actionItem>                 
+          
+    </menu>
+
+    <menu text="書式(S)" mnemonic="S">
+    
+        <actionItem key="resetStyleAction">
+            <text>標準</text>
+            <enabled>false</enabled>
+        </actionItem> 
+        
+        <menuItem>
+            <text>-</text>
+        </menuItem>         
+
+        <styleItem key="redAction">
+            <text>赤</text>
+            <enabled>false</enabled>
+        </styleItem>        
+        
+        <styleItem key="blueAction">
+            <text>青</text>
+            <enabled>false</enabled>
+        </styleItem> 
+
+        <styleItem key="greenAction">
+            <text>緑</text>
+            <enabled>false</enabled>
+        </styleItem>           
+
+        <menuItem>
+            <text>-</text>
+        </menuItem>        
+        
+        <styleItem key="s10Action">
+            <text>10</text>
+            <enabled>false</enabled>
+        </styleItem>
+               
+        <styleItem key="s12Action">
+            <text>12</text>
+            <enabled>false</enabled>
+        </styleItem>
+        
+        <styleItem key="s14Action">
+            <text>14</text>
+            <enabled>false</enabled>
+        </styleItem>
+        
+        <styleItem key="s16Action">
+            <text>16</text>
+            <enabled>false</enabled>
+        </styleItem>
+        
+        <styleItem key="s18Action">
+            <text>18</text>
+            <enabled>false</enabled>
+        </styleItem>
+        
+        <actionItem key="s20Action">
+            <text>20</text>
+            <enabled>false</enabled>
+        </actionItem>
+        
+        <styleItem key="s24Action">
+            <text>24</text>
+            <enabled>false</enabled>
+        </styleItem>   
+        
+        <menuItem>
+            <text>-</text>
+        </menuItem>                                       
+        
+        <styleItem key="boldAction">
+            <text>ボールド</text>
+            <enabled>false</enabled>
+        </styleItem>
+        
+        <styleItem key="italicAction">
+            <text>イタリック</text>
+            <enabled>false</enabled>
+        </styleItem>        
+
+        <styleItem key="underlineAction">
+            <text>アンダーライン</text>
+            <enabled>false</enabled>
+        </styleItem>        
+      
+    </menu>
+
+    <menu text="挿入(I)" mnemonic="I">
+         <actionItem key="insertImageAction">
+            <text>画像...</text>
+            <enabled>false</enabled>
+        </actionItem>
+    </menu>
+
+</menubar>

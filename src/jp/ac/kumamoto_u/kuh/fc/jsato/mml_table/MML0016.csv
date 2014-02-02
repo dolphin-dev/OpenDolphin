@@ -1,0 +1,15 @@
+MML0016,Outcome （転帰）
+died,死亡
+worsening,悪化
+unchanged,不変
+recovering,回復
+fullyRecovered,全治
+sequelae,続発症（の発生）
+end,終了
+pause,中止
+continued,継続
+transfer,転医
+transferAcute,転医(急性病院へ）
+transferChronic,転医(慢性病院へ）
+home,自宅等へ退院
+unknown,不明

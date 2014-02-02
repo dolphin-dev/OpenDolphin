@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE attributes PUBLIC "-//NetBeans//DTD DefaultAttributes 1.0//EN" "http://www.netbeans.org/dtds/attributes-1_0.dtd">
+<attributes version="1.0">
+    <fileobject name="MedicineTablePanel.java">
+        <attr name="class_dependency_java.awt.dnd.DragGestureListener" stringvalue="MedicineTablePanel"/>
+        <attr name="class_dependency_java.beans.PropertyChangeListener" stringvalue="MedicineTablePanel"/>
+        <attr name="class_dependency_java.awt.dnd.DragSourceListener" stringvalue="MedicineTablePanel"/>
+        <attr name="class_dependency_javax.swing.JPanel" stringvalue="MedicineTablePanel"/>
+        <attr name="class_dependency_java.awt.dnd.DropTargetListener" stringvalue="MedicineTablePanel"/>
+    </fileobject>
+    <fileobject name="MasterSearchStatusPanel.java">
+        <attr name="class_dependency_java.beans.PropertyChangeListener" stringvalue="MasterSearchStatusPanel"/>
+        <attr name="class_dependency_javax.swing.JPanel" stringvalue="MasterSearchStatusPanel"/>
+    </fileobject>
+    <fileobject name="DiagnosisEditor.java">
+        <attr name="class_dependency_java.beans.PropertyChangeListener" stringvalue="DiagnosisEditor.DiagnosisTable"/>
+        <attr name="class_dependency_javax.swing.JPanel" stringvalue="DiagnosisEditor.DiagnosisTable"/>
+    </fileobject>
+    <fileobject name="BacteriaStampEditor.java">
+        <attr name="class_dependency_java.beans.PropertyChangeListener" stringvalue="BacteriaStampEditor.TestTablePanel"/>
+        <attr name="class_dependency_javax.swing.JPanel" stringvalue="BacteriaStampEditor.TestTablePanel"/>
+    </fileobject>
+    <fileobject name="ItemTablePanel.java">
+        <attr name="class_dependency_java.awt.dnd.DragGestureListener" stringvalue="ItemTablePanel"/>
+        <attr name="class_dependency_java.beans.PropertyChangeListener" stringvalue="ItemTablePanel"/>
+        <attr name="class_dependency_java.awt.dnd.DragSourceListener" stringvalue="ItemTablePanel"/>
+        <attr name="class_dependency_javax.swing.JPanel" stringvalue="ItemTablePanel"/>
+        <attr name="class_dependency_java.awt.dnd.DropTargetListener" stringvalue="ItemTablePanel"/>
+    </fileobject>
+</attributes>

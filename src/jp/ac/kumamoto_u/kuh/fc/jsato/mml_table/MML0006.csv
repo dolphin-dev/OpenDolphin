@@ -1,0 +1,9 @@
+MML0006,Access（アクセス権者）
+all,全てのアクセス者
+creatorFacility,文書の記載者と同じ施設のもの
+creatorDepartment,文書の記載者と同じ診療科のもの
+creator,文書の記載者
+patient,患者
+doctor,医師
+nurse,看護婦
+dentist,歯科医師

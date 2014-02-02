@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="Shift_JIS" ?>
+<stampBox project="open.dolphin" version="1.0">
+<root name="傷病名">
+<stampInfo name="エディタから発行..." role="diagnosis" entity="diagnosis" editable="false" memo="傷病名エディタ" />
+</root>
+<root name="チェックシート">
+<node name="初診時特有情報">
+<stampInfo name="初診時チェックシート..." role="soa" entity="firstClinic" editable="false" memo="デフォルト初診情報エディタ" />
+</node>
+<node name="基礎診療情報">
+<stampInfo name="アレルギ等チェックシート..." role="soa" entity="baseClinic" editable="false" memo="デフォルトの基礎的診療情報エディタ" />
+</node>
+<node name="生活習慣情報">
+<stampInfo name="生活習慣チェックシート..." role="soa" entity="lifestyle" editable="false" memo="デフォルトの生活習慣情報エディタ" />
+</node>
+</root>
+<root name="テキスト">
+</root>
+<root name="汎 用">
+<stampInfo name="エディタから発行..." role="p" entity="generalOrder" editable="false" memo="汎用エディタ" />
+</root>
+<root name="その他">
+<stampInfo name="エディタから発行..." role="p" entity="otherOrder" editable="false" memo="その他エディタ" />
+</root>
+<root name="処 置">
+<stampInfo name="エディタから発行..." role="p" entity="treatmentOrder" editable="false" memo="処置エディタ" />
+</root>
+<root name="手 術">
+<stampInfo name="エディタから発行..." role="p" entity="surgeryOrder" editable="false" memo="手術エディタ" />
+</root>
+<root name="放射線">
+<stampInfo name="エディタから発行..." role="p" entity="radiologyOrder" editable="false" memo="放射線エディタ" />
+</root>
+<root name="検体検査">
+<stampInfo name="エディタから発行..." role="p" entity="testOrder" editable="false" memo="検体検査ディタ" />
+</root>
+<root name="生体検査">
+<stampInfo name="エディタから発行..." role="p" entity="physiologyOrder" editable="false" memo="生体検査エディタ" />
+</root>
+<root name="細菌検査">
+<stampInfo name="エディタから発行..." role="p" entity="bacteriaOrder" editable="false" memo="細菌検査ディタ" />
+</root>
+<root name="注 射">
+<stampInfo name="エディタから発行..." role="p" entity="injectionOrder" editable="false" memo="注射エディタ" />
+</root>
+<root name="処 方">
+<stampInfo name="エディタから発行..." role="p" entity="medOrder" editable="false" memo="処方エディタ" />
+</root>
+<root name="初診・再診">
+<stampInfo name="エディタから発行..." role="p" entity="baseChargeOrder" editable="false" memo="初診・再診エディタ" />
+</root>
+<root name="指導・在宅">
+<stampInfo name="エディタから発行..." role="p" entity="instractionChargeOrder" editable="false" memo="指導・在宅エディタ" />
+</root>
+</stampBox>

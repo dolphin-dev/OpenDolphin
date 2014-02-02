@@ -1,0 +1,8 @@
+MML0004,Extraction policy（抽出基準）
+firstEncounter,初診時情報
+laboratory,検査情報
+prescription,処方箋
+summary,作成対象期間の要約
+random,特に基準なく抽出
+nonExtracted,抽出をしていない
+other,その他

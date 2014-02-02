@@ -1,0 +1,23 @@
+MML0020,Relative code（続柄コード）
+self,本人
+wife,妻
+husband,夫
+brother,兄弟
+sister,姉妹
+cousin,いとこ
+secondCousin,はとこ
+mother,母
+father,父
+aunt,おば
+uncle,おじ
+grandMother,祖母
+grandFather,祖父
+greatGrandMother,曾祖母
+greatGrandFather,曾祖父
+daughter,娘
+son,息子
+grandDaughter,孫娘
+grandSon,孫息子
+greatGrandDaughter,曾孫娘
+greatGrandSon,曾孫息子
+other,その他

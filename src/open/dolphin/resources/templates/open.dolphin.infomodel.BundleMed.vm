@@ -1,0 +1,34 @@
+##-------------------------------------
+##         RP Template    
+##-------------------------------------
+<HTML><BODY><TT><FONT SIZE="-1" COLOR="#000C9C">
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="5">
+  <TR BGCOLOR="#FFCED9">
+#if ($stampName == "新規スタンプ" || $stampName == "エディタから発行..." || $stampName == "チェックシート")
+     <TD COLSPAN="3">RP</TD>
+#else
+     <TD COLSPAN="3">RP (${stampName})</TD>
+#end
+  </TR>
+#foreach ($item in $model.getClaimItem())
+  <TR>
+     <TD>・${item.getName()}</TD>
+     <TD> X $!{item.getNumber()}</TD>
+     <TD>$!{item.getUnit()}</TD>
+  </TR>
+#end
+  <TR>
+     <TD COLSPAN="3">${model.getAdminDisplayString()}</TD>
+  </TR>
+#if ($model.getAdminMemo())
+  <TR>
+     <TD COLSPAN="2">${$model.getAdminMemo()}</TD>
+     <TD>$!{model.getMemo()}</TD>
+  </TR>
+#else
+  <TR>
+     <TD COLSPAN="3">$!{model.getMemo()}</TD>
+  </TR>
+#end
+</TABLE>
+</BODY></HTML>

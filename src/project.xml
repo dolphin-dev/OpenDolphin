@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<java version="1.4.1_02" class="java.beans.XMLDecoder"> 
+ <object class="open.dolphin.project.ProjectStub"> 
+  <void property="MMLVersion"> 
+   <string>230</string> 
+  </void> 
+  <void property="claimAddress"> 
+   <string>172.168.158.2</string> 
+  </void> 
+  <void property="claimHostName"> 
+   <string>日医標準レセコン(ORCA)</string> 
+  </void> 
+  <void property="claimPort"> 
+   <int>5001</int> 
+  </void> 
+  <void property="departmentList"> 
+   <string>内科,小児科</string> 
+  </void> 
+  <void property="facilityAddress"> 
+   <string>横浜市中区山下町1番地 シルクビル</string> 
+  </void> 
+  <void property="facilityName"> 
+   <string>シルククリニック</string> 
+  </void> 
+  <void property="facilityZipCode"> 
+   <string>231-0023</string> 
+  </void> 
+  <void property="hostAddress"> 
+   <string>172.168.158.2</string> 
+  </void> 
+  <void property="hostPort"> 
+   <int>389</int> 
+  </void> 
+  <void property="mode"> 
+   <int>0</int> 
+  </void> 
+  <void property="name"> 
+   <string>miyazaki</string> 
+  </void> 
+  <void property="phoneNumber"> 
+   <string>045-681-5251</string> 
+  </void> 
+  <void property="sendClaim"> 
+   <boolean>true</boolean> 
+  </void> 
+  <void property="sendDiagnosis"> 
+   <boolean>true</boolean> 
+  </void> 
+  <void property="sendMML"> 
+   <boolean>true</boolean> 
+  </void> 
+  <void property="uploadShareDirectory"> 
+   <string>public</string> 
+  </void> 
+  <void property="uploaderIPAddress"> 
+   <string>172.168.158.2</string> 
+  </void> 
+  <void property="userId"> 
+   <string>minagawa</string> 
+  </void> 
+ </object> 
+</java> 

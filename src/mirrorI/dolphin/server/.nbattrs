@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE attributes PUBLIC "-//NetBeans//DTD DefaultAttributes 1.0//EN" "http://www.netbeans.org/dtds/attributes-1_0.dtd">
+<attributes version="1.0">
+    <fileobject name="PatientRegister.java">
+        <attr name="class_dependency_org.xml.sax.helpers.DefaultHandler" stringvalue="PatientRegister"/>
+        <attr name="class_dependency_org.xml.sax.ErrorHandler" stringvalue="PatientRegister.MyErrorHandler"/>
+    </fileobject>
+    <fileobject name="PVTPostgres.java">
+        <attr name="class_dependency_open.dolphin.dao.SqlDaoBean" stringvalue="PVTPostgres"/>
+    </fileobject>
+</attributes>

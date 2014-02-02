@@ -1,0 +1,14 @@
+MML0008,Document relation（関連文書との関係）
+origin,"parent文書は原因で，本文書はその結果である．"
+oldEdition,"parent文書は訂正前文書で，本文書はその訂正後文書である．"
+order,"parent文書はオーダーで，本文書はそのオーダー結果である．"
+consult,"parent文書はコンサルト（質問，依頼）で，本文書はその返答である．"
+originalDiagnosis,"parent文書は変遷前病名で，本文書はその変遷後病名である．"
+diagnosis,"parent文書は病名で，本文書はその関連情報である．"
+surgery,"parent文書は手術記録情報で，本文書はその関連情報である．"
+patient,"parent文書は患者情報で，本文書はその関連情報である．"
+surgery,"parent文書は手術記録情報で，本文書はその関連情報である．"
+patient,"parent文書は患者情報で，本文書はその関連情報である．"
+healthInsurance,"parent文書は健康保険で，本文書はその関連情報である．"
+detail,"parent文書は詳細情報で，本文書はその要約である．"
+simpleLink,parent文書は本文書の参照情報である．

@@ -1,0 +1,159 @@
+##------------------------------------- start
+#set ($top = $root.getRootElement())
+#set ($patientId = $top.getChildTextTrim("patientId"))
+#set ($confirmDate = $top.getChildTextTrim("confirmDate"))
+#set ($groupId = $top.getChildTextTrim("groupId"))
+#set ($creator = $top.getChild("creator"))
+#set ($docInfos = $top.getChildren("docInfo"))
+#set ($modules = $top.getChildren("module"))
+##------------------------------------- start template
+<?xml version="1.0" encoding="UTF-8"?> 
+<Mml version="2.3" createDate="${confirmDate}" 
+	xmlns:xhtml="http://www.w3.org/1999/xhtml" 
+	xmlns:mmlCm="http://www.medxml.net/MML/SharedComponent/Common/1.0" 
+	xmlns:mmlNm="http://www.medxml.net/MML/SharedComponent/Name/1.0" 
+	xmlns:mmlFc="http://www.medxml.net/MML/SharedComponent/Facility/1.0" 
+	xmlns:mmlDp="http://www.medxml.net/MML/SharedComponent/Department/1.0" 
+	xmlns:mmlAd="http://www.medxml.net/MML/SharedComponent/Address/1.0" 
+	xmlns:mmlPh="http://www.medxml.net/MML/SharedComponent/Phone/1.0" 
+	xmlns:mmlPsi="http://www.medxml.net/MML/SharedComponent/PersonalizedInfo/1.0" 
+	xmlns:mmlCi="http://www.medxml.net/MML/SharedComponent/CreatorInfo/1.0" 
+	xmlns:mmlPi="http://www.medxml.net/MML/ContentModule/PatientInfo/1.0" 
+	xmlns:mmlBc="http://www.medxml.net/MML/ContentModule/BaseClinic/1.0" 
+	xmlns:mmlFcl="http://www.medxml.net/MML/ContentModule/FirstClinic/1.0" 
+	xmlns:mmlHi="http://www.medxml.net/MML/ContentModule/HealthInsurance/1.1" 
+	xmlns:mmlLs="http://www.medxml.net/MML/ContentModule/Lifestyle/1.0" 
+	xmlns:mmlPc="http://www.medxml.net/MML/ContentModule/ProgressCourse/1.0" 
+	xmlns:mmlRd="http://www.medxml.net/MML/ContentModule/RegisteredDiagnosis/1.0" 
+	xmlns:mmlSg="http://www.medxml.net/MML/ContentModule/Surgery/1.0" 
+	xmlns:mmlSm="http://www.medxml.net/MML/ContentModule/Summary/1.0" 
+	xmlns:mmlLb="http://www.medxml.net/MML/ContentModule/test/1.0" 
+	xmlns:mmlRp="http://www.medxml.net/MML/ContentModule/report/1.0" 
+	xmlns:mmlRe="http://www.medxml.net/MML/ContentModule/Referral/1.0" 
+	xmlns:mmlSc="http://www.medxml.net/MML/SharedComponent/Security/1.0" 
+	xmlns:claim="http://www.medxml.net/claim/claimModule/2.1" 
+	xmlns:claimA="http://www.medxml.net/claim/claimAmountModule/2.1">
+	<MmlHeader>
+		<mmlCi:CreatorInfo>
+			<mmlPsi:PersonalizedInfo>
+				<mmlCm:Id mmlCm:type="local" mmlCm:tableId="MML0024">${creator.getChildTextTrim("id")}</mmlCm:Id> 
+				<mmlPsi:personName>
+					<mmlNm:Name mmlNm:repCode="I" mmlNm:tableId="MML0025">
+						<mmlNm:fullname>${creator.getChildTextTrim("kanjiName")}</mmlNm:fullname>
+					</mmlNm:Name>
+				</mmlPsi:personName>
+				<mmlFc:Facility>
+					<mmlFc:name mmlFc:repCode="I" mmlFc:tableId="MML0025">${creator.getChild("organization").getChildTextTrim("name")}</mmlFc:name> 
+					<mmlCm:Id mmlCm:type="JMARI" mmlCm:tableId="MML0027">${creator.getChild("organization").getChildTextTrim("id")}</mmlCm:Id> 
+				</mmlFc:Facility>
+				<mmlDp:Department>
+					<mmlDp:name mmlDp:repCode="I" mmlDp:tableId="MML0025">${claimInfo.getChildTextTrim("department")}</mmlDp:name> 
+					<mmlCm:Id mmlCm:type="medical" mmlCm:tableId="MML0028">${claimInfo.getChildTextTrim("departmentId")}</mmlCm:Id> 
+				</mmlDp:Department>
+				<mmlPsi:addresses>
+					<mmlAd:Address mmlAd:repCode="I" mmlAd:tableId="MML0025">
+						<mmlAd:full>${creator.getChild("organization").getChild("address").getChildTextTrim("address")}</mmlAd:full> 
+						<mmlAd:zip>${creator.getChild("organization").getChild("address").getChildTextTrim("zipCode")}</mmlAd:zip> 
+					</mmlAd:Address>
+				</mmlPsi:addresses>
+			</mmlPsi:PersonalizedInfo>
+			<mmlCi:creatorLicense mmlCi:tableId="MML0026">${creator.getChildTextTrim("license")}</mmlCi:creatorLicense> 
+		</mmlCi:CreatorInfo>
+		<masterId>
+  			<mmlCm:Id mmlCm:type="facility" mmlCm:tableId="MML0024">${patientId}</mmlCm:Id> 
+		</masterId>
+		<toc>
+  			<tocItem>http://www.medxml.net/MML/SharedComponent/Common/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/SharedComponent/Name/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/SharedComponent/Facility/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/SharedComponent/Department/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/SharedComponent/Address/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/SharedComponent/Phone/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/SharedComponent/PersonalizedInfo/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/SharedComponent/CreatorInfo/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/SharedComponent/Security/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/ContentModule/PatientInfo/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/ContentModule/BaseClinic/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/ContentModule/FirstClinic/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/ContentModule/HealthInsurance/1.1</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/ContentModule/Lifestyle/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/ContentModule/ProgressCourse/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/ContentModule/RegisteredDiagnosis/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/ContentModule/Surgery/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/ContentModule/Summary/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/ContentModule/test/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/ContentModule/report/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/MML/ContentModule/Referral/1.0</tocItem> 
+  			<tocItem>http://www.medxml.net/claim/claimModule/2.1</tocItem> 
+  			<tocItem>http://www.medxml.net/claim/claimAmountModule/2.1</tocItem> 
+		</toc>
+	</MmlHeader>
+	<MmlBody>
+	
+#foreach ($docInfo in $docInfos)
+#foreach ($module in $modules)
+#set ($rd = $module.getChild("registeredDiagnosisModule"))	
+		<MmlModuleItem>
+			<docInfo contentModuleType="registeredDiagnosis">
+				<securityLevel>
+					<accessRight permit="all">
+						<mmlSc:facility>
+							<mmlSc:facilityName mmlSc:facilityCode="creator">ãLç⁄é“é{ê›</mmlSc:facilityName> 
+						</mmlSc:facility>
+					</accessRight>
+				</securityLevel>
+				<title generationPurpose="record">${docInfo.getChildTextTrim("title")}</title> 
+				<docId>
+  					<uid>${docInfo.getChildTextTrim("docId")}</uid> 
+  					<groupId groupClass="record">${groupId}</groupId> 
+				</docId>
+				<confirmDate>${confirmDate}</confirmDate> 
+				<mmlCi:CreatorInfo>
+					<mmlPsi:PersonalizedInfo>
+  						<mmlCm:Id mmlCm:type="local" mmlCm:tableId="MML0024">${creator.getChildTextTrim("id")}</mmlCm:Id> 
+							<mmlPsi:personName>
+								<mmlNm:Name mmlNm:repCode="I" mmlNm:tableId="MML0025">
+  									<mmlNm:fullname>${creator.getChildTextTrim("kanjiName")}</mmlNm:fullname> 
+								</mmlNm:Name>
+							</mmlPsi:personName>
+						<mmlFc:Facility>
+  						<mmlFc:name mmlFc:repCode="I" mmlFc:tableId="MML0025">${creator.getChild("organization").getChildTextTrim("name")}</mmlFc:name> 
+  							<mmlCm:Id mmlCm:type="JMARI" mmlCm:tableId="MML0027">${creator.getChild("organization").getChildTextTrim("id")}</mmlCm:Id> 
+  						</mmlFc:Facility>
+						<mmlDp:Department>
+  							<mmlDp:name mmlDp:repCode="I" mmlDp:tableId="MML0025">${claimInfo.getChildTextTrim("department")}</mmlDp:name> 
+  							<mmlCm:Id mmlCm:type="medical" mmlCm:tableId="MML0028">${claimInfo.getChildTextTrim("departmentId")}</mmlCm:Id> 
+  						</mmlDp:Department>
+						<mmlPsi:addresses>
+							<mmlAd:Address mmlAd:repCode="I" mmlAd:tableId="MML0025">
+  								<mmlAd:full>${creator.getChild("organization").getChild("address").getChildTextTrim("address")}</mmlAd:full> 
+  								<mmlAd:zip>${creator.getChild("organization").getChild("address").getChildTextTrim("zipCode")}</mmlAd:zip> 
+  							</mmlAd:Address>
+  						</mmlPsi:addresses>
+  					</mmlPsi:PersonalizedInfo>
+  					<mmlCi:creatorLicense mmlCi:tableId="MML0026">${creator.getChildTextTrim("license")}</mmlCi:creatorLicense> 
+  				</mmlCi:CreatorInfo>
+  				<extRefs /> 
+  			</docInfo>
+			<content>
+				<mmlRd:RegisteredDiagnosisModule>
+#if ($rd.getChild("diagnosisCode"))				
+					<mmlRd:diagnosis mmlRd:code="${rd.getChildTextTrim("diagnosisCode")}" mmlRd:system="ICD10_2001-10-03MEDIS">${rd.getChildTextTrim("diagnosis")}</mmlRd:diagnosis> 
+#else
+					<mmlRd:diagnosis>${rd.getChildTextTrim("diagnosis")}</mmlRd:diagnosis> 					
+#end
+#if ($rd.getChild("category"))					
+					<mmlRd:categories>
+						<mmlRd:category mmlRd:tableId="MML0012">${rd.getChildTextTrim("category")}</mmlRd:category> 
+					</mmlRd:categories>
+#end
+#if ($rd.getChild("startDate"))					
+					<mmlRd:startDate>${rd.getChildTextTrim("startDate")}</mmlRd:startDate>
+#end					
+				</mmlRd:RegisteredDiagnosisModule>
+			</content>
+		</MmlModuleItem>
+#end
+#end		
+	</MmlBody>
+</Mml>

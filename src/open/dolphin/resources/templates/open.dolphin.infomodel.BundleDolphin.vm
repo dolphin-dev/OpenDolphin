@@ -1,0 +1,33 @@
+##------------------------------------- start here
+#set ($top = $root.getRootElement())
+#set ($claimItems = $top.getChildren("claimItem"))
+##------------------------------------- template here
+<HTML><BODY><TT><FONT SIZE="-1" COLOR="#000C9C">
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="5">
+	<TR BGCOLOR="#FFCED9">
+#if ($stampName == "新規スタンプ" || $stampName == "エディタから発行..." || $stampName == "チェックシート")
+		<TD COLSPAN="3">${model.getOrderName()}</TD>
+#else
+		<TD COLSPAN="3">${model.getOrderName()}(${stampName})</TD>
+#end
+	</TR>
+#foreach ($item in $model.getClaimItem())
+	<TR>
+#if ($item.getNumber())
+		<TD>・${item.getName()}</TD>
+		<TD> X ${item.getNumber()}</TD>
+		<TD>$!{item.getUnit()}</TD>
+#else
+		<TD>・${item.getName()}</TD>
+		<TD>　</TD>
+		<TD>　</TD>
+#end
+	</TR>
+#end
+#if ($model.getMemo())
+	<TR>
+		<TD COLSPAN="3">$!{model.getMemo()}</TD>
+	</TR>
+#end
+</TABLE>	
+</BODY></HTML>

@@ -1,0 +1,12 @@
+MML0009,Other ID type（その他のID種別）
+temporaryPatientId,緊急時の患者本人の仮ID
+spouseId,配偶者のID
+motherId,母親のID
+fatherId,父親のID
+childId,子供のID
+relativeId,親戚のID
+roommateId,同居人のID
+friendId,知人のID
+representativeId,代理人のID
+emergencyContactId,緊急連絡者のID
+coWorkerId,職場の関係者のID

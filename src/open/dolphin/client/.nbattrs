@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE attributes PUBLIC "-//NetBeans//DTD DefaultAttributes 1.0//EN" "http://www.netbeans.org/dtds/attributes-1_0.dtd">
+<attributes version="1.0">
+    <fileobject name="LocalIdNumbering.java">
+        <attr name="class_dependency_javax.swing.JPanel" stringvalue="LocalIdNumbering"/>
+    </fileobject>
+    <fileobject name="JTextPaneDump.java">
+        <attr name="class_dependency_java.awt.event.ActionListener" stringvalue="JTextPaneDump"/>
+        <attr name="class_dependency_java.awt.Panel" stringvalue="JTextPaneDump"/>
+    </fileobject>
+    <fileobject name="MainWindow.java">
+        <attr name="class_dependency_javax.swing.table.AbstractTableModel" stringvalue="MainWindow.ServiceTableModel"/>
+        <attr name="class_dependency_java.awt.event.MouseAdapter" stringvalue="MainWindow.Mediator"/>
+        <attr name="class_dependency_java.awt.event.ActionListener" stringvalue="MainWindow.Mediator"/>
+        <attr name="class_dependency_javax.swing.table.DefaultTableCellRenderer" stringvalue="MainWindow.ProxyRenderer"/>
+        <attr name="class_dependency_open.dolphin.client.MainWindow.ServiceManagerState" stringvalue="MainWindow.LogoffState;MainWindow.LoginState"/>
+    </fileobject>
+    <fileobject name="Panel2.java">
+        <attr name="class_dependency_java.awt.print.Printable" stringvalue="Panel2"/>
+        <attr name="class_dependency_javax.swing.JPanel" stringvalue="Panel2"/>
+    </fileobject>
+    <fileobject name="StampHolder.java">
+        <attr name="class_dependency_java.awt.dnd.DragGestureListener" stringvalue="StampHolder"/>
+        <attr name="class_dependency_java.beans.PropertyChangeListener" stringvalue="StampHolder"/>
+        <attr name="class_dependency_java.awt.dnd.DragSourceListener" stringvalue="StampHolder"/>
+        <attr name="class_dependency_javax.swing.JLabel" stringvalue="StampHolder"/>
+    </fileobject>
+    <fileobject name="DiagnosisDocument.java">
+        <attr name="class_dependency_java.beans.PropertyChangeListener" stringvalue="DiagnosisDocument"/>
+        <attr name="class_dependency_java.awt.dnd.DragGestureListener" stringvalue="DiagnosisDocument"/>
+        <attr name="class_dependency_java.awt.dnd.DragSourceListener" stringvalue="DiagnosisDocument"/>
+        <attr name="class_dependency_java.awt.dnd.DropTargetListener" stringvalue="DiagnosisDocument"/>
+    </fileobject>
+    <fileobject name="ChangePasswordService.java">
+        <attr name="class_dependency_javax.swing.JPanel" stringvalue="ChangePasswordService.ChangePasswordPanel"/>
+    </fileobject>
+</attributes>

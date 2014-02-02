@@ -1,0 +1,4 @@
+MML0029,Department ID type
+medical,医科診療科コード（MML0028参照）
+dental,歯科診療科コード（MML0030参照）
+facility,施設内（ユーザー定義）診療科コード

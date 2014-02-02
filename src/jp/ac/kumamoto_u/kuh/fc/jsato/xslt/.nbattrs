@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<attributes version="1.0">
+   <fileobject name="HyperlinkHandler.java">
+      <attr name="class_dependency_java.lang.Runnable" stringvalue="HyperlinkHandler.MyLocalFileRun"/>
+      <attr name="class_dependency_javax.swing.event.HyperlinkListener" stringvalue="HyperlinkHandler"/>
+   </fileobject>
+</attributes>

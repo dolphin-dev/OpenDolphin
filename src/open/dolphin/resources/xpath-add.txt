@@ -1,0 +1,63 @@
+Mml,version
+Mml/MmlHeader/masterId/mmlCm:Id,mmlCm:type,mmlCm:tableId
+Mml/MmlBody/MmlModuleItem/docInfo/docId/uid
+# Mml/MmlBody/MmlModuleItem/content
+#
+# Patient
+#
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:uniqueInfo/mmlPi:masterId/mmlCm:Id,mmlCm:type,mmlCm:tableId
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:personName/mmlNm:Name,mmlNm:repCode,mmlNm:tableId
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:personName/mmlNm:Name/mmlNm:fullname
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:personName/mmlNm:Name/mmlNm:family
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:personName/mmlNm:Name/mmlNm:given
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:personName/mmlNm:Name/mmlNm:middle
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:personName/mmlNm:Name/mmlNm:prefix
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:personName/mmlNm:Name/mmlNm:degree
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:birthday
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:sex
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:nationality,mmlPi:subtype
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:marital
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:addresses/mmlAd:Address,mmlAd:repCode,mmlAd:addressClass
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:addresses/mmlAd:Address/mmlAd:full
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:addresses/mmlAd:Address/mmlAd:prefecture
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:addresses/mmlAd:Address/mmlAd:city
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:addresses/mmlAd:Address/mmlAd:town
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:addresses/mmlAd:Address/mmlAd:homeNumber
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:addresses/mmlAd:Address/mmlAd:zip
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:addresses/mmlAd:Address/mmlAd:countryCode
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:phones/mmlPh:Phone,mmlPh:telEquipType
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:phones/mmlPh:Phone/mmlPh:area
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:phones/mmlPh:Phone/mmlPh:city
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:phones/mmlPh:Phone/mmlPh:number
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:phones/mmlPh:Phone/mmlPh:extension
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:phones/mmlPh:Phone/mmlPh:country
+Mml/MmlBody/MmlModuleItem/content/mmlPi:PatientModule/mmlPi:phones/mmlPh:Phone/mmlPh:memo
+#
+# Health
+#
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule,mmlHi:countryType
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:insuranceClass,mmlHi:ClassCode,mmlHi:tableId
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:insuranceNumber
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:clientId/mmlHi:group
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:clientId/mmlHi:number
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:familyClass
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:startDate
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:expiredDate
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:continuedDiseases/mmlHi:diseases
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:paymentInRatio
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:paymentOutRatio
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:publicInsurance/mmlHi:publicInsuranceItem,mmlHi:priority
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:publicInsurance/mmlHi:publicInsuranceItem/mmlHi:providerName
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:publicInsurance/mmlHi:publicInsuranceItem/mmlHi:provider
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:publicInsurance/mmlHi:publicInsuranceItem/mmlHi:recipient
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:publicInsurance/mmlHi:publicInsuranceItem/mmlHi:startDate
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:publicInsurance/mmlHi:publicInsuranceItem/mmlHi:expiredDate
+Mml/MmlBody/MmlModuleItem/content/mmlHi:HealthInsuranceModule/mmlHi:publicInsurance/mmlHi:publicInsuranceItem/mmlHi:paymentRatio,mmlHi:ratioType
+#
+# Claim
+#
+Mml/MmlBody/MmlModuleItem/content/claim:ClaimModule/claim:information,claim:status,claim: registTime
+Mml/MmlBody/MmlModuleItem/content/claim:ClaimModule/claim:information/claim:appoint/claim:appName,claim:appCode,claim:appCodeId
+Mml/MmlBody/MmlModuleItem/content/claim:ClaimModule/claim:information/claim:appoint/claim:memo
+Mml/MmlBody/MmlModuleItem/content/claim:ClaimModule/claim:bundle/claim:item,claim:code
+Mml/MmlBody/MmlModuleItem/content/claim:ClaimModule/claim:bundle/claim:item/claim:name
