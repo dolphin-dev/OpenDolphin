@@ -1,0 +1,299 @@
+##----------------------------------------------------------------------------- start
+#set ($top = $root.getRootElement())
+#set ($patient = $top.getChild("patient"))
+#set ($docInfo = $top.getChild("docInfo"))
+#set ($confirmDate = $docInfo.getChildTextTrim("confirmDate"))
+#set ($creator = $docInfo.getChild("creator"))
+#set ($claimInfo = $docInfo.getChild("claimInfo"))
+#set ($modules = $top.getChildren("module"))
+##----------------------------------------------------------------------------- start creatorInfo macro
+#macro (creatorInfoMacro)
+    <mmlCi:CreatorInfo>
+      <mmlPsi:PersonalizedInfo>
+        <mmlCm:Id mmlCm:type="local" mmlCm:tableId="MML0024">${creator.getChildTextTrim("id")}</mmlCm:Id> 
+        <mmlPsi:personName>
+          <mmlNm:Name mmlNm:repCode="I" mmlNm:tableId="MML0025">
+            <mmlNm:fullname>${creator.getChildTextTrim("kanjiName")}</mmlNm:fullname> 
+          </mmlNm:Name>
+       </mmlPsi:personName>
+       <mmlFc:Facility>
+         <mmlFc:name mmlFc:repCode="I" mmlFc:tableId="MML0025">${creator.getChild("organization").getChildTextTrim("name")}</mmlFc:name> 
+         <mmlCm:Id mmlCm:type="JMARI" mmlCm:tableId="MML0027">${creator.getChild("organization").getChildTextTrim("id")}</mmlCm:Id> 
+       </mmlFc:Facility>
+       <mmlDp:Department>
+         <mmlDp:name mmlDp:repCode="I" mmlDp:tableId="MML0025">${claimInfo.getChildTextTrim("department")}</mmlDp:name> 
+         <mmlCm:Id mmlCm:type="medical" mmlCm:tableId="MML0028">${claimInfo.getChildTextTrim("departmentId")}</mmlCm:Id> 
+       </mmlDp:Department>
+       <mmlPsi:addresses>
+         <mmlAd:Address mmlAd:repCode="I" mmlAd:tableId="MML0025">
+           <mmlAd:full>${creator.getChild("organization").getChild("address").getChildTextTrim("address")}</mmlAd:full> 
+           <mmlAd:zip>${creator.getChild("organization").getChild("address").getChildTextTrim("zipCode")}</mmlAd:zip> 
+         </mmlAd:Address>
+       </mmlPsi:addresses>
+      </mmlPsi:PersonalizedInfo>
+      <mmlCi:creatorLicense mmlCi:tableId="MML0026">${creator.getChildTextTrim("license")}</mmlCi:creatorLicense> 
+    </mmlCi:CreatorInfo>
+#end    
+##----------------------------------------------------------------------------- end creatorInfo macro
+##
+##----------------------------------------------------------------------------- start docInfo macro
+#macro (docInfoMacro $mModuleInfo $mSchemas)
+      <docInfo contentModuleType="${mModuleInfo.getChildTextTrim("entity")}">
+        <securityLevel>
+#foreach ($ar in $docInfo.getChildren("accessRight"))        
+          <accessRight permit="${ar.getChildTextTrim("permission")}">
+#if ($ar.getChildTextTrim("licenseeCodeType") == "facilityCode")          
+            <mmlSc:facility>
+              <mmlSc:facilityName mmlSc:facilityCode="${ar.getChildTextTrim("licenseeCode")}">${ar.getChildTextTrim("licenseeName")}</mmlSc:facilityName> 
+            </mmlSc:facility>
+#elseif ($ar.getChildTextTrim("licenseeCodeType") == "personCode")
+            <mmlSc:person>
+              <mmlSc:personName mmlSc:personCode="${ar.getChildTextTrim("licenseeCode")}">${ar.getChildTextTrim("licenseeName")}</mmlSc:personName> 
+            </mmlSc:person>
+#end
+         </accessRight>
+#end          
+        </securityLevel>
+        <title generationPurpose="record">${docInfo.getChildTextTrim("title")}</title> 
+        <docId>
+          <uid>${mModuleInfo.getChildTextTrim("moduleId")}</uid> 
+          #if ($mModuleInfo.getChildTextTrim("parentId"))
+          <parentId relation="${mModuleInfo.getChildTextTrim("parentIdRelation")}">${mModuleInfo.getChildTextTrim("parentId")}</parentId>
+          #end
+          <groupId groupClass="record">${docInfo.getChildTextTrim("docId")}</groupId> 
+        </docId>
+        <confirmDate firstConfirmDate="${docInfo.getChildTextTrim("firstConfirmDate")}">${confirmDate}</confirmDate> 
+		#creatorInfoMacro()
+#if ($mSchemas)
+        <extRefs>
+#foreach($schema in $mSchemas)
+#set ($extRef = $schema.getChild("model").getChild("extRef"))
+          <mmlCm:extRef mmlCm:contentType="${extRef.getChildTextTrim("contentType")}" mmlCm:medicalRole="${extRef.getChildTextTrim("medicalRole")}" mmlCm:title="${extRef.getChildTextTrim("title")}" mmlCm:href="${extRef.getChildTextTrim("href")}"/>
+#end
+        </extRefs>
+#else		
+        <extRefs />
+#end        
+      </docInfo>
+#end      
+##----------------------------------------------------------------------------- end docInfo macro
+##
+##----------------------------------------------------------------------------- start baseClinic
+#macro (baseClinicMacro $mModule)
+  #set ($model = $mModule.getChild("model").getChild("baseClinicModule"))
+	<MmlModuleItem>
+	  #docInfoMacro($mModule.getChild("moduleInfo") false)
+	  <content>
+	    <mmlBc:BaseClinicModule>
+	    #if ($model.getChild("allergy"))
+	      <mmlBc:allergy>
+	     #foreach ($allergy in $model.getChildren("allergy"))
+	        <mmlBc:allergyItem>
+	          <mmlBc:factor>${allergy.getChildTextTrim("factor")}</mmlBc:factor>
+	          #if ($allergy.getChildTextTrim("severity"))
+	          <mmlBc:severity>${allergy.getChildTextTrim("severity")}</mmlBc:severity>
+	          #end
+	          #if ($allergy.getChildTextTrim("identifiedDate"))
+	          <mmlBc:identifiedDate>${allergy.getChildTextTrim("identifiedDate")}</mmlBc:identifiedDate>
+	          #end
+	          #if ($allergy.getChildTextTrim("memo"))
+	          <mmlBc:memo>${allergy.getChildTextTrim("memo")}</mmlBc:memo>
+	          #end
+	        </mmlBc:allergyItem>
+	     #end   
+	      </mmlBc:allergy>
+	    #end
+	    #if ($model.getChild("bloodType"))
+	      <mmlBc:bloodtype>
+	        <mmlBc:abo>${model.getChild("bloodType").getChildTextTrim("abo")}</mmlBc:abo>
+	        #if ($model.getChild("bloodType").getChildTextTrim("rhod"))
+	        <mmlBc:rh>${model.getChild("bloodType").getChildTextTrim("rhod")}</mmlBc:rh>
+	        #end
+	        #if ($model.getChild("bloodType").getChildTextTrim("others"))
+	        <mmlBc:others>${model.getChild("bloodType").getChildTextTrim("others")}</mmlBc:others>
+	        #end
+	        #if ($model.getChild("bloodType").getChildTextTrim("memo"))
+	        <mmlBc:memo>${model.getChild("bloodType").getChildTextTrim("memo")}</mmlBc:memo>
+	        #end
+	      </mmlBc:bloodtype>
+	    #end
+	    #if ($model.getChild("infection"))
+	      <mmlBc:infection>
+	     #foreach ($infection in $model.getChildren("infection"))
+	        <mmlBc:infectionItem>
+	          <mmlBc:factor>${infection.getChildTextTrim("factor")}</mmlBc:factor>
+	          #if ($infection.getChildTextTrim("examValue"))
+	          <mmlBc:examValue>${infection.getChildTextTrim("examValue")}</mmlBc:examValue>
+	          #end
+	          #if ($infection.getChildTextTrim("identifiedDate"))
+	          <mmlBc:identifiedDate>${infection.getChildTextTrim("identifiedDate")}</mmlBc:identifiedDate>
+	          #end
+	          #if ($infection.getChildTextTrim("memo"))
+	          <mmlBc:memo>${infection.getChildTextTrim("memo")}</mmlBc:memo>
+	          #end
+	        </mmlBc:infectionItem>
+	     #end   
+	      </mmlBc:infection>
+	    #end    
+	    </mmlBc:BaseClinicModule>
+	  </content>
+	</MmlModuleItem>
+#end
+##------------------------------------------------------------------------------ end baseClinic
+##
+##----------------------------------------------------------------------------- start lifeStyle
+#macro (lifestyleMacro $mModule)
+  #set ($model = $mModule.getChild("model").getChild("lifestyleModule"))
+	<MmlModuleItem>
+	  #docInfoMacro($mModule.getChild("moduleInfo") false)
+	  <content>
+	    <mmlLs:LifestyleModule>
+	      <mmlLs:occupation>${model.getChildTextTrim("occupation")}</mmlLs:occupation>
+	      <mmlLs:tobacco>${model.getChildTextTrim("tobacco")}</mmlLs:tobacco>
+	      <mmlLs:alcohol>${model.getChildTextTrim("alcohol")}</mmlLs:alcohol>
+	      #if ($model.getChildTextTrim("other"))
+	      <mmlLs:other>${model.getChildTextTrim("other")}</mmlLs:other>
+	      #end
+	    </mmlLs:LifestyleModule>
+	  </content>
+	</MmlModuleItem>
+#end
+##------------------------------------------------------------------------------ end lifeStyle
+##
+##----------------------------------------------------------------------------- start progressMacro
+#macro (progressMacro $mModule)
+#if ($mModule.getChild("moduleInfo").getChildTextTrim("role") == "soaSpec")
+    <MmlModuleItem>
+      #if ($top.getChild("schema"))
+      #docInfoMacro($mModule.getChild("moduleInfo") $top.getChildren("schema"))
+      #else
+      #docInfoMacro($mModule.getChild("moduleInfo") false)
+      #end
+      <content>
+        <mmlPc:ProgressCourseModule>
+          <mmlPc:FreeExpression>
+#set ($paragraphs = $mModule.getChild("model").getChild("progressCourse").getChild("freeText").getChild("kartePane").getChildren("paragraph"))
+#foreach ($paragraph in $paragraphs)
+#set ($contents = $paragraph.getChildren("content"))
+#foreach ($content in $contents)
+            $!{content.getChildTextTrim("text")}
+#end
+            <xhtml:br/>
+#end            
+#else
+##---------- P フリーテキスト<xhtml:br/>
+          </mmlPc:FreeExpression>
+        </mmlPc:ProgressCourseModule>
+      </content>
+    </MmlModuleItem>          
+#end
+#end
+##----------------------------------------------------------------------------- end progressMacro
+##
+##----------------------------------------------------------------------------- start budleDolphin Macro
+#macro (bundleDolphinMacro $mModule)
+            $mModule.getChild("model").getChild("bundleDolphin").getChildTextTrim("orderName")<xhtml:br/>
+#set ($items = $mModule.getChild("model").getChild("bundleDolphin").getChildren("claimItem"))
+#foreach ($item in $items)
+#if($item.getChildTextTrim("number"))
+            　・${item.getChildTextTrim("name")}　X　${item.getChildTextTrim("number")}　$!{item.getChildTextTrim("unit")}<xhtml:br/>
+#else
+			 ・${item.getChildTextTrim("name")}<xhtml:br/>
+#end            
+#end
+            　$!{mModule.getChild("model").getChild("bundleDolphin").getChildTextTrim("memo")}<xhtml:br/>
+#end
+##----------------------------------------------------------------------------- end budleDolphin Macro
+##
+##----------------------------------------------------------------------------- start medOrder Macro
+#macro (medOrderMacro $mModule)
+            RP<xhtml:br/>
+#set ($items = $mModule.getChild("model").getChild("bundleMed").getChildren("claimItem"))
+#foreach ($item in $items)
+            　・${item.getChildTextTrim("name")}　X　${item.getChildTextTrim("number")}　$!{item.getChildTextTrim("unit")}<xhtml:br/>
+#end
+            　${mModule.getChild("model").getChild("bundleMed").getChildTextTrim("adminDisplayString")}<xhtml:br/>
+            　$!{mModule.getChild("model").getChild("bundleMed").getChildTextTrim("memo")}<xhtml:br/>
+#end
+##----------------------------------------------------------------------------- end medOrder Macro
+##
+##
+##----------------------------------------------------------------------------- start MMLHeader
+<?xml version="1.0" ?> 
+<Mml version="2.3" createDate="${confirmDate}" 
+	 xmlns:xhtml="http://www.w3.org/1999/xhtml"
+	 xmlns:mmlCm="http://www.medxml.net/MML/SharedComponent/Common/1.0"
+	 xmlns:mmlNm="http://www.medxml.net/MML/SharedComponent/Name/1.0"
+	 xmlns:mmlFc="http://www.medxml.net/MML/SharedComponent/Facility/1.0"
+	 xmlns:mmlDp="http://www.medxml.net/MML/SharedComponent/Department/1.0"
+	 xmlns:mmlAd="http://www.medxml.net/MML/SharedComponent/Address/1.0"
+	 xmlns:mmlPh="http://www.medxml.net/MML/SharedComponent/Phone/1.0"
+	 xmlns:mmlPsi="http://www.medxml.net/MML/SharedComponent/PersonalizedInfo/1.0"
+	 xmlns:mmlCi="http://www.medxml.net/MML/SharedComponent/CreatorInfo/1.0"
+	 xmlns:mmlPi="http://www.medxml.net/MML/ContentModule/PatientInfo/1.0"
+	 xmlns:mmlBc="http://www.medxml.net/MML/ContentModule/BaseClinic/1.0"
+	 xmlns:mmlFcl="http://www.medxml.net/MML/ContentModule/FirstClinic/1.0"
+	 xmlns:mmlHi="http://www.medxml.net/MML/ContentModule/HealthInsurance/1.1"
+	 xmlns:mmlLs="http://www.medxml.net/MML/ContentModule/Lifestyle/1.0"
+	 xmlns:mmlPc="http://www.medxml.net/MML/ContentModule/ProgressCourse/1.0"
+	 xmlns:mmlRd="http://www.medxml.net/MML/ContentModule/RegisteredDiagnosis/1.0"
+	 xmlns:mmlSg="http://www.medxml.net/MML/ContentModule/Surgery/1.0"
+	 xmlns:mmlSm="http://www.medxml.net/MML/ContentModule/Summary/1.0"
+	 xmlns:mmlLb="http://www.medxml.net/MML/ContentModule/test/1.0"
+	 xmlns:mmlRp="http://www.medxml.net/MML/ContentModule/report/1.0"
+	 xmlns:mmlRe="http://www.medxml.net/MML/ContentModule/Referral/1.0"
+	 xmlns:mmlSc="http://www.medxml.net/MML/SharedComponent/Security/1.0"
+	 xmlns:claim="http://www.medxml.net/claim/claimModule/2.1"
+	 xmlns:claimA="http://www.medxml.net/claim/claimAmountModule/2.1">
+  <MmlHeader>
+	#creatorInfoMacro()
+    <masterId>
+      <mmlCm:Id mmlCm:type="facility" mmlCm:tableId="JPN">${patient.getChildTextTrim("id")}</mmlCm:Id> 
+    </masterId>
+    <toc>
+      <tocItem>http://www.medxml.net/MML/SharedComponent/Common/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/SharedComponent/Name/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/SharedComponent/Facility/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/SharedComponent/Department/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/SharedComponent/Address/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/SharedComponent/Phone/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/SharedComponent/PersonalizedInfo/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/SharedComponent/CreatorInfo/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/SharedComponent/Security/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/ContentModule/PatientInfo/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/ContentModule/BaseClinic/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/ContentModule/FirstClinic/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/ContentModule/HealthInsurance/1.1</tocItem> 
+      <tocItem>http://www.medxml.net/MML/ContentModule/Lifestyle/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/ContentModule/ProgressCourse/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/ContentModule/RegisteredDiagnosis/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/ContentModule/Surgery/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/ContentModule/Summary/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/ContentModule/test/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/ContentModule/report/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/MML/ContentModule/Referral/1.0</tocItem> 
+      <tocItem>http://www.medxml.net/claim/claimModule/2.1</tocItem> 
+      <tocItem>http://www.medxml.net/claim/claimAmountModule/2.1</tocItem> 
+    </toc>
+  </MmlHeader>
+##----------------------------------------------------------------------------- end MMLHeader
+##
+##----------------------------------------------------------------------------- start MMLBody
+  <MmlBody>
+#foreach ($module in $modules)
+#if ($module.getChild("model").getChild("baseClinicModule"))
+  #baseClinicMacro($module)
+#elseif ($module.getChild("model").getChild("lifestyleModule"))
+  #lifestyleMacro($module)
+#elseif ($module.getChild("model").getChild("firstClinicModule"))
+  ##firstClinicMacro($module) 
+#elseif ($module.getChild("model").getChild("progressCourse"))
+  #progressMacro($module)
+#elseif ($module.getChild("model").getChild("bundleDolphin"))
+  #bundleDolphinMacro($module)
+#elseif ($module.getChild("model").getChild("bundleMed"))
+  #medOrderMacro($module)
+#end
+#end
+  </MmlBody>
+</Mml>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE attributes PUBLIC "-//NetBeans//DTD DefaultAttributes 1.0//EN" "http://www.netbeans.org/dtds/attributes-1_0.dtd">
+<attributes version="1.0">
+    <fileobject name="ChangePasswordService.java">
+        <attr name="class_dependency_javax.swing.JPanel" stringvalue="ChangePasswordService.ChangePasswordPanel"/>
+    </fileobject>
+    <fileobject name="JTextPaneDump.java">
+        <attr name="class_dependency_java.awt.Panel" stringvalue="JTextPaneDump"/>
+        <attr name="class_dependency_java.awt.event.ActionListener" stringvalue="JTextPaneDump"/>
+    </fileobject>
+    <fileobject name="LocalIdNumbering.java">
+        <attr name="class_dependency_javax.swing.JPanel" stringvalue="LocalIdNumbering"/>
+    </fileobject>
+</attributes>

@@ -1,0 +1,7 @@
+create index patient_idx1 on d_patient (facilityId, patientid);
+
+create index pvt_idx1 on d_patient_visit (facilityid, pvtdate);
+
+create index pub_tree_idx1 on d_published_tree (publishtype);
+
+

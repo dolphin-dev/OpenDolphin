@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<Mml version="2.3" createDate="${claimHelper.getConfirmDate()}" 
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:mmlCm="http://www.medxml.net/MML/SharedComponent/Common/1.0"
+        xmlns:mmlNm="http://www.medxml.net/MML/SharedComponent/Name/1.0"
+        xmlns:mmlFc="http://www.medxml.net/MML/SharedComponent/Facility/1.0"
+        xmlns:mmlDp="http://www.medxml.net/MML/SharedComponent/Department/1.0"
+        xmlns:mmlAd="http://www.medxml.net/MML/SharedComponent/Address/1.0"
+        xmlns:mmlPh="http://www.medxml.net/MML/SharedComponent/Phone/1.0"
+        xmlns:mmlPsi="http://www.medxml.net/MML/SharedComponent/PersonalizedInfo/1.0"
+        xmlns:mmlCi="http://www.medxml.net/MML/SharedComponent/CreatorInfo/1.0"
+        xmlns:mmlPi="http://www.medxml.net/MML/ContentModule/PatientInfo/1.0"
+        xmlns:mmlBc="http://www.medxml.net/MML/ContentModule/BaseClinic/1.0"
+        xmlns:mmlFcl="http://www.medxml.net/MML/ContentModule/FirstClinic/1.0"
+        xmlns:mmlHi="http://www.medxml.net/MML/ContentModule/HealthInsurance/1.1"
+        xmlns:mmlLs="http://www.medxml.net/MML/ContentModule/Lifestyle/1.0"
+        xmlns:mmlPc="http://www.medxml.net/MML/ContentModule/ProgressCourse/1.0"
+        xmlns:mmlRd="http://www.medxml.net/MML/ContentModule/RegisteredDiagnosis/1.0"
+        xmlns:mmlSg="http://www.medxml.net/MML/ContentModule/Surgery/1.0"
+        xmlns:mmlSm="http://www.medxml.net/MML/ContentModule/Summary/1.0"
+        xmlns:mmlLb="http://www.medxml.net/MML/ContentModule/test/1.0"
+        xmlns:mmlRp="http://www.medxml.net/MML/ContentModule/report/1.0"
+        xmlns:mmlRe="http://www.medxml.net/MML/ContentModule/Referral/1.0"
+        xmlns:mmlSc="http://www.medxml.net/MML/SharedComponent/Security/1.0"
+        xmlns:claim="http://www.medxml.net/claim/claimModule/2.1"
+        xmlns:claimA="http://www.medxml.net/claim/claimAmountModule/2.1">
+    <MmlHeader>
+        <mmlCi:CreatorInfo>
+            <mmlPsi:PersonalizedInfo>
+                <mmlCm:Id mmlCm:type="local" mmlCm:tableId="MML0024">${claimHelper.getCreatorId()}</mmlCm:Id>
+                <mmlPsi:personName>
+                    <mmlNm:Name mmlNm:repCode="I" mmlNm:tableId="MML0025">
+                        <mmlNm:fullname>${claimHelper.getCreatorName()}</mmlNm:fullname>
+                    </mmlNm:Name>
+                </mmlPsi:personName>
+                <mmlFc:Facility>
+                    <mmlFc:name mmlFc:repCode="I" mmlFc:tableId="MML0025">${claimHelper.getFacilityName()}</mmlFc:name>
+                    <mmlCm:Id mmlCm:type="insurance" mmlCm:tableId="MML0027">${claimHelper.getJmariCode()}</mmlCm:Id>
+                </mmlFc:Facility>
+                <mmlDp:Department>
+                    <mmlDp:name mmlDp:repCode="I" mmlDp:tableId="MML0025">${claimHelper.getCreatorDeptDesc()}</mmlDp:name>
+                    <mmlCm:Id mmlCm:type="medical" mmlCm:tableId="MML0029">${claimHelper.getCreatorDept()}</mmlCm:Id>
+                </mmlDp:Department>
+            </mmlPsi:PersonalizedInfo>
+            <mmlCi:creatorLicense mmlCi:tableId="MML0026">${claimHelper.getCreatorLicense()}</mmlCi:creatorLicense>
+        </mmlCi:CreatorInfo>
+        <masterId>
+            <mmlCm:Id mmlCm:type="facility" mmlCm:tableId="MML0024">${claimHelper.getPatientId()}</mmlCm:Id>
+        </masterId>
+        <toc>
+            <tocItem>http://www.medxml.net/MML/SharedComponent/Common/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/SharedComponent/Name/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/SharedComponent/Facility/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/SharedComponent/Department/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/SharedComponent/Address/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/SharedComponent/Phone/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/SharedComponent/PersonalizedInfo/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/SharedComponent/CreatorInfo/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/SharedComponent/Security/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/ContentModule/PatientInfo/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/ContentModule/BaseClinic/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/ContentModule/FirstClinic/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/ContentModule/HealthInsurance/1.1</tocItem>
+            <tocItem>http://www.medxml.net/MML/ContentModule/Lifestyle/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/ContentModule/ProgressCourse/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/ContentModule/RegisteredDiagnosis/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/ContentModule/Surgery/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/ContentModule/Summary/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/ContentModule/test/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/ContentModule/report/1.0</tocItem>
+            <tocItem>http://www.medxml.net/MML/ContentModule/Referral/1.0</tocItem>
+            <tocItem>http://www.medxml.net/claim/claimModule/2.1</tocItem>
+            <tocItem>http://www.medxml.net/claim/claimAmountModule/2.1</tocItem>
+        </toc>
+    </MmlHeader>
+    <MmlBody>
+##-------------------------------------------------------------------------------------------------------------------------------
+## HealthInsurance
+##-------------------------------------------------------------------------------------------------------------------------------
+#if ($claimHelper.getSelectedInsurance())
+            <MmlModuleItem>
+                <docInfo contentModuleType="healthInsurance">
+                    <securityLevel>
+                        <accessRight permit="all">
+                            <mmlSc:facility>
+                                <mmlSc:facilityName mmlSc:facilityCode="creator">ãLç⁄é“é{ê›</mmlSc:facilityName>
+                            </mmlSc:facility>
+                        </accessRight>
+                    </securityLevel>
+                    <title generationPurpose="record">${claimHelper.getGenerationPurpose()}</title>
+                    <docId>
+                        <uid>${claimHelper.getDocId()}</uid>
+                        <groupId groupClass="record">${claimHelper.getDocId()}</groupId>
+                    </docId>
+                    <confirmDate>${claimHelper.getConfirmDate()}</confirmDate>
+                    <mmlCi:CreatorInfo>
+                        <mmlPsi:PersonalizedInfo>
+                            <mmlCm:Id mmlCm:type="local" mmlCm:tableId="MML0024">${claimHelper.getCreatorId()}</mmlCm:Id>
+                            <mmlPsi:personName>
+                                <mmlNm:Name mmlNm:repCode="I" mmlNm:tableId="MML0025">
+                                    <mmlNm:fullname>${claimHelper.getCreatorName()}</mmlNm:fullname>
+                                </mmlNm:Name>
+                            </mmlPsi:personName>
+                            <mmlFc:Facility>
+                                <mmlFc:name mmlFc:repCode="I" mmlFc:tableId="MML0025">${claimHelper.getFacilityName()}</mmlFc:name>
+                                <mmlCm:Id mmlCm:type="insurance" mmlCm:tableId="MML0027">${claimHelper.getJmariCode()}</mmlCm:Id>
+                            </mmlFc:Facility>
+                        </mmlPsi:PersonalizedInfo>
+                        <mmlCi:creatorLicense mmlCi:tableId="MML0026">${claimHelper.getCreatorLicense()}</mmlCi:creatorLicense>
+                    </mmlCi:CreatorInfo>
+                    <extRefs />
+                </docInfo>
+                <content>
+                    <mmlHi:HealthInsuranceModule mmlHi:countryType="JPN">
+#if ($claimHelper.getSelectedInsurance().getInsuranceClass() && $claimHelper.getSelectedInsurance().getInsuranceClassCode())
+                        <mmlHi:insuranceClass mmlHi:ClassCode="${claimHelper.getSelectedInsurance().getInsuranceClassCode()}" mmlHi:tableId="MML0031">${claimHelper.getSelectedInsurance().getInsuranceClass()}</mmlHi:insuranceClass>
+#end
+			<mmlHi:insuranceNumber>${claimHelper.getSelectedInsurance().getInsuranceNumber()}</mmlHi:insuranceNumber>
+                    	<mmlHi:clientId>
+                            <mmlHi:group>${claimHelper.getSelectedInsurance().getClientGroup()}</mmlHi:group>
+                            <mmlHi:number>${claimHelper.getSelectedInsurance().getClientNumber()}</mmlHi:number>
+                    	</mmlHi:clientId>
+                    	<mmlHi:familyClass>${claimHelper.getSelectedInsurance().getFamilyClass()}</mmlHi:familyClass>
+                    	<mmlHi:startDate>${claimHelper.getSelectedInsurance().getStartDate()}</mmlHi:startDate>
+                    	<mmlHi:expiredDate>${claimHelper.getSelectedInsurance().getExpiredDate()}</mmlHi:expiredDate>
+#if ($claimHelper.getSelectedInsurance().getPayInRatio())
+                    	<mmlHi:paymentInRatio>${claimHelper.getSelectedInsurance().getPayInRatio()}</mmlHi:paymentInRatio>
+#end
+#if ($claimHelper.getSelectedInsurance().getPayOutRatio())
+                    	<mmlHi:paymentOutRatio>${claimHelper.getSelectedInsurance().getPayOutRatio()}</mmlHi:paymentOutRatio>
+#end
+#if ($claimHelper.getSelectedInsurance().getPVTPublicInsuranceItem())
+                        <mmlHi:publicInsurance>
+#foreach ($publicItem in $claimHelper.getSelectedInsurance().getPVTPublicInsuranceItem())
+                            <mmlHi:publicInsuranceItem mmlHi:priority="${publicItem.getPriority()}">
+                                <mmlHi:providerName>${publicItem.getProviderName()}</mmlHi:providerName>
+				<mmlHi:provider>${publicItem.getProvider()}</mmlHi:provider>
+				<mmlHi:recipient>${publicItem.getRecipient()}</mmlHi:recipient>
+				<mmlHi:startDate>${publicItem.getStartDate()}</mmlHi:startDate>
+				<mmlHi:expiredDate>${publicItem.getExpiredDate()}</mmlHi:expiredDate>
+				<mmlHi:paymentRatio mmlHi:ratioType="${publicItem.getPaymentRatioType()}">${publicItem.getPaymentRatio()}</mmlHi:paymentRatio>
+                            </mmlHi:publicInsuranceItem>
+#end
+                        </mmlHi:publicInsurance>
+#end
+                    </mmlHi:HealthInsuranceModule>
+                </content>
+            </MmlModuleItem>
+#end
+##-----------------------------------------------------------------------------------------------------------------------------------
+## Claim
+##-----------------------------------------------------------------------------------------------------------------------------------
+        <MmlModuleItem>
+            <docInfo contentModuleType="claim">
+                <securityLevel>
+                    <accessRight permit="all">
+                        <mmlSc:facility>
+                            <mmlSc:facilityName mmlSc:facilityCode="creator">ãLç⁄é“é{ê›</mmlSc:facilityName>
+                        </mmlSc:facility>
+                    </accessRight>
+                </securityLevel>
+                <title generationPurpose="record">${claimHelper.getGenerationPurpose()}</title>
+                <docId>
+                    <uid>${claimHelper.getDocId()}</uid>
+                    <groupId groupClass="record">${claimHelper.getDocId()}</groupId>
+                </docId>
+                <confirmDate>${claimHelper.getConfirmDate()}</confirmDate>
+                <mmlCi:CreatorInfo>
+                    <mmlPsi:PersonalizedInfo>
+                        <mmlCm:Id mmlCm:type="local" mmlCm:tableId="MML0024">${claimHelper.getCreatorId()}</mmlCm:Id>
+                        <mmlPsi:personName>
+                            <mmlNm:Name mmlNm:repCode="I" mmlNm:tableId="MML0025">
+                                <mmlNm:fullname>${claimHelper.getCreatorName()}</mmlNm:fullname>
+                            </mmlNm:Name>
+                        </mmlPsi:personName>
+                        <mmlFc:Facility>
+                            <mmlFc:name mmlFc:repCode="I" mmlFc:tableId="MML0025">${claimHelper.getFacilityName()}</mmlFc:name>
+                            <mmlCm:Id mmlCm:type="insurance" mmlCm:tableId="MML0027">${claimHelper.getJmariCode()}</mmlCm:Id>
+                        </mmlFc:Facility>
+                        <mmlDp:Department>
+                            <mmlDp:name mmlDp:repCode="I" mmlDp:tableId="MML0025">${claimHelper.getCreatorDeptDesc()}</mmlDp:name>
+                            <mmlCm:Id mmlCm:type="medical" mmlCm:tableId="MML0029">${claimHelper.getCreatorDept()}</mmlCm:Id>
+                        </mmlDp:Department>
+                    </mmlPsi:PersonalizedInfo>
+                    <mmlCi:creatorLicense mmlCi:tableId="MML0026">${claimHelper.getCreatorLicense()}</mmlCi:creatorLicense>
+                </mmlCi:CreatorInfo>
+                <extRefs />
+            </docInfo>
+            <content>
+                <claim:ClaimModule>
+                    <claim:information claim:status="perform"
+                                       claim:orderTime="${claimHelper.getConfirmDate()}"
+                                       claim:admitFlag="false"
+#if ($claimHelper.getHealthInsuranceGUID())
+                                       claim:insuranceUid="${claimHelper.getHealthInsuranceGUID()}"
+#end   
+                                       claim:defaultTableId="dolphin_2001_10_03">
+                        <mmlHi:insuranceClass mmlHi:ClassCode="${claimHelper.getHealthInsuranceClassCode()}" mmlHi:tableId="MML0031">${claimHelper.getHealthInsuranceDesc()}</mmlHi:insuranceClass>
+                    </claim:information>
+##-------------------------------------
+## start bundle
+##-------------------------------------
+#foreach ($bundle in $claimHelper.getClaimBundle())
+#if ($bundle.getClassCode())
+                    <claim:bundle claim:classCode="${bundle.getClassCode()}" claim:classCodeId="Claim007">
+                        <claim:className>${bundle.getClassName()}</claim:className>
+#else
+                    <claim:bundle>
+#end
+                        <claim:bundleNumber>${bundle.getBundleNumber()}</claim:bundleNumber>
+##-------------------------------------
+## start item
+##-------------------------------------
+#foreach ($item in $bundle.getClaimItem())
+#if ($item.getClassCode()=="0")
+                        <claim:item claim:subclassCode="${item.getClassCode()}" claim:subclassCodeId="Claim003" claim:code="${item.getCode()}">
+#else
+                        <claim:item claim:subclassCodeId="Claim003" claim:code="${item.getCode()}">
+#end
+                            <claim:name>${item.getName()}</claim:name>
+#if ($item.getNumber())
+                            <claim:number claim:numberCode="10" claim:numberCodeId="Claim004">${item.getNumber()}</claim:number>
+#end
+                        </claim:item>
+#if ($item.getCanDispose())
+                       <claim:item claim:subclassCodeId="Claim003" claim:code="099309901">
+                            <claim:name>(écó îpä¸)</claim:name>
+                       </claim:item>
+#end
+#end
+##-------------------------------------
+## admin To item 2010-03-09
+##-------------------------------------
+#if ($bundle.getAdmin())
+                        <claim:item claim:subclassCodeId="Claim003" claim:code="${bundle.getAdminCode()}">
+                            <claim:name>${bundle.getAdmin()}</claim:name>
+                        </claim:item>
+#end
+##------------------------------------- end item
+#if ($bundle.getMemo())	 
+                        <claim:memo>${bundle.getMemo()}</claim:memo>
+#end	    
+                    </claim:bundle>
+#end
+##--------------------------------------end bundle
+                </claim:ClaimModule>
+            </content>
+        </MmlModuleItem>
+    </MmlBody>
+</Mml>

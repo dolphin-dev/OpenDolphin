@@ -1,0 +1,32 @@
+##------------------------------------- start here
+##   Bundle Template
+##------------------------------------- template here
+<HTML><BODY><TT><FONT SIZE="${hints.getFontSize()}" COLOR="${hints.getBackgroundAs16String()}">
+<TABLE BORDER="${hints.getBorder()}" CELLSPACING="${hints.getCellSpacing()}" CELLPADDING="${hints.getCellPadding()}">
+	<TR BGCOLOR="${hints.getLabelColorAs16String()}">
+#if ($stampName == "新規スタンプ" || $stampName == "エディタから発行..." || $stampName == "チェックシート")
+		<TD COLSPAN="3">${model.getOrderName()}</TD>
+#else
+		<TD COLSPAN="3">${model.getOrderName()}(${stampName})</TD>
+#end
+	</TR>
+#foreach ($item in $model.getClaimItem())
+	<TR>
+#if ($item.getNumber())
+		<TD>・${item.getName()}</TD>
+		<TD> X ${item.getNumber()}</TD>
+		<TD>$!{item.getUnit()}</TD>
+#else
+		<TD>・${item.getName()}</TD>
+		<TD>　</TD>
+		<TD>　</TD>
+#end
+	</TR>
+#end
+#if ($model.getMemo())
+	<TR>
+		<TD COLSPAN="3">$!{model.getMemo()}</TD>
+	</TR>
+#end
+</TABLE>	
+</BODY></HTML>

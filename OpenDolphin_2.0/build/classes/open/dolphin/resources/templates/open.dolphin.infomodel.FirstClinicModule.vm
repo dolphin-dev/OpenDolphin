@@ -1,0 +1,170 @@
+##--------------------------------------------------
+##                 familyHistory
+##--------------------------------------------------
+#macro (familyHistory $histories)
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="5">
+	<TR BGCOLOR="#FFCED9">
+		<TD COLSPAN="4">家族歴</TD>
+	</TR>
+	<TR>
+		<TD ALIGN="LEFT">続 柄</TD>
+		<TD ALIGN="LEFT">疾患名</TD>
+		<TD ALIGN="LEFT">年齢</TD>
+		<TD ALIGN="LEFT">メ　モ</TD>
+	</TR>
+#foreach ($history in $histories)		
+	<TR>
+		<TD ALIGN="LEFT">・${history.getRelation()}</TD>
+		<TD ALIGN="LEFT">$!{history.getDiagnosis()}</TD>
+		<TD ALIGN="LEFT">$!{history.getAge()}</TD>
+		<TD ALIGN="LEFT">$!{history.getMemo()}</TD>
+	</TR>
+#end	
+</TABLE>
+#end
+##--------------------------------------------------
+##                 birthInfo
+##--------------------------------------------------
+#macro (birthInfo $birthInfo)
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="5">
+	<TR BGCOLOR="#FFCED9">
+		<TD COLSPAN="2">出生時情報</TD>
+	</TR>
+#if ($birthInfo.getFacilityName())	
+	<TR>	
+		<TD>・出生施設</TD>
+		<TD>${birthInfo.getFacilityName()}</TD>
+	</TR>
+#end
+#if ($birthInfo.getDeliveryWeeks())	
+	<TR>	
+		<TD>・分娩週数</TD>
+		<TD>${birthInfo.getDeliveryWeeks()}</TD>
+	</TR>
+#end		
+#if ($birthInfo.getDeliveryMethod())	
+	<TR>	
+		<TD>・分娩方法</TD>
+		<TD>${birthInfo.getDeliveryMethod()}</TD>
+	</TR>
+#end
+#if ($birthInfo.getBodyWeight())	
+	<TR>	
+		<TD>・体重</TD>
+		<TD>${birthInfo.getBodyWeight()} g</TD>
+	</TR>
+#end
+#if ($birthInfo.getBodyHeight())	
+	<TR>	
+		<TD>・身長</TD>
+		<TD>${birthInfo.getBodyHeight()} cm</TD>
+	</TR>
+#end
+#if ($birthInfo.getChestCircumference())	
+	<TR>	
+		<TD>・胸囲</TD>
+		<TD>${birthInfo.getChestCircumference()} cm</TD>
+	</TR>
+#end
+#if ($birthInfo.getHeadCircumferenc())	
+	<TR>	
+		<TD>・頭囲</TD>
+		<TD>${birthInfo.getHeadCircumferenc()} cm</TD>
+	</TR>
+#end
+#if ($birthInfo.getMemo())	
+	<TR>	
+		<TD>・メモ</TD>
+		<TD>${birthInfo.getMemo()} cm</TD>
+	</TR>
+#end	
+</TABLE>
+#end
+##--------------------------------------------------
+##                  vaccination
+##--------------------------------------------------
+#macro (vaccination $vaccinations)
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="5">
+	<TR BGCOLOR="#FFCED9">
+		<TD COLSPAN="4">予防接種情報</TD>
+	</TR>
+	<TR>
+		<TD ALIGN="LEFT">ワクチン名</TD>
+		<TD ALIGN="LEFT">実施状態</TD>
+		<TD ALIGN="LEFT">接種年齢</TD>
+		<TD ALIGN="LEFT">メ　モ</TD>
+	</TR>
+#foreach ($vaccination in $vaccinations)		
+	<TR>
+		<TD ALIGN="LEFT">・${vaccination.getVaccine()}</TD>
+		<TD ALIGN="LEFT">$!{vaccination.getInjected()}</TD>
+		<TD ALIGN="LEFT">$!{vaccination.getAge()}</TD>
+		<TD ALIGN="LEFT">$!{vaccination.getMemo()}</TD>
+	</TR>
+#end	
+</TABLE>
+#end
+##--------------------------------------------------
+##                pastHistory
+##--------------------------------------------------
+#macro (pastHistory)
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="5">
+	<TR BGCOLOR="#FFCED9">
+		<TD>既往歴</TD>
+	</TR>
+	<TR>
+		<TD>・${model.getPastHistory()}</TD>
+	</TD>
+</TABLE>
+#end
+##--------------------------------------------------
+##              chiefComplaints
+##--------------------------------------------------
+#macro (chiefComplaints)
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="5">
+	<TR BGCOLOR="#FFCED9">
+		<TD>主訴</TD>
+	</TR>
+	<TR>
+		<TD>・${model.getChiefComplaints()}</TD>
+	</TD>
+</TABLE>
+#end
+##--------------------------------------------------
+##              presentIllnessNotes
+##--------------------------------------------------
+#macro (presentIllnessNotes)
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="5">
+	<TR BGCOLOR="#FFCED9">
+		<TD>現病歴</TD>
+	</TR>
+	<TR>
+		<TD>・${model.getPresentIllnessNotes()}</TD>
+	</TD>
+</TABLE>
+#end
+##--------------------------------------------------
+##                 main
+##--------------------------------------------------
+<HTML><BODY><TT><FONT SIZE="-1" COLOR="#000C9C">
+#if ($model.getFamilyHistory())
+	#familyHistory ($model.getFamilyHistory())
+#end
+#if ($model.getChildhood())
+	#if ($model.getChildhood().getBirthInfo())
+		#birthInfo ($model.getChildhood().getBirthInfo())
+	#end
+	#if ($model.getChildhood().getVaccination())
+		#vaccination ($model.getChildhood().getVaccination())
+	#end		
+#end
+#if ($model.getPastHistory())
+	#pastHistory()
+#end
+#if ($model.getChiefComplaints())
+	#chiefComplaints()
+#end
+#if ($model.getPresentIllnessNotes())
+	#presentIllnessNotes()
+#end
+</BODY></HTML>
