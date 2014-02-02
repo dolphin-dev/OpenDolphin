@@ -1,0 +1,53 @@
+<project name="OpenDolphin" default="all" basedir=".">
+    
+    <property name="src.dir"	value="${basedir}/src"/>
+    <property name="build.dir"	value="${basedir}/build"/>
+    <property name="dist.dir"	value="${basedir}/dist"/>
+	
+    <!-- Package all the EJB classes -->
+    <target name="package-ejb">
+        <jar jarfile="${dist.dir}/beans.jar">
+            <fileset dir="${build.dir}/classes">
+                
+                <include name="open/dolphin/ejb/*.class"/>
+                <include name="open/dolphin/dto/*.class"/>
+                <include name="open/dolphin/infomodel/*.class"/>
+                <include name="open/dolphin/exception/*.class"/>
+                
+            </fileset>
+            
+            <metainf dir="${basedir}">
+                <include name="persistence.xml"/>
+            </metainf>
+            
+            <fileset dir="${basedir}">
+                <include name="*.properties"/>
+            </fileset>  
+        </jar>
+    </target>
+    
+    <!-- Creates an ear file containing all
+       the modules as well as application.xml. -->
+    <target name="assemble-app">
+        <jar jarfile="${dist.dir}/openDolphin-1.4-postgres.ear">
+            
+            <metainf dir="${basedir}">
+                <include name="application.xml"/>
+                <include name="jboss-app.xml" />
+            </metainf>
+            
+            <fileset dir="${dist.dir}">
+                <include name="beans.jar"/>
+            </fileset>
+        </jar>
+        
+        <delete file="${dist.dir}/beans.jar"/>
+    </target>
+    
+    
+    <target name="all">
+        <antcall target="package-ejb" />
+        <antcall target="assemble-app" />
+    </target>
+    
+</project>
