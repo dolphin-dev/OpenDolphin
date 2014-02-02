@@ -1,636 +1,1151 @@
 /*
  * KartePane.java
  * Copyright(C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2003-2004 Digital Globe, Inc. All rights reserved.
+ * Copyright (C) 2003-2006 Digital Globe, Inc. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *	
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *	
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package open.dolphin.client;
 
+import java.awt.im.InputSubset;
+import java.util.prefs.Preferences;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
 
-import open.dolphin.dao.*;
-import open.dolphin.infomodel.ExtRef;
+import open.dolphin.client.ChartMediator.CompState;
+import open.dolphin.dao.SqlOrcaSetDao;
+import open.dolphin.delegater.StampDelegater;
+import open.dolphin.infomodel.ClaimBundle;
+import open.dolphin.infomodel.ExtRefModel;
 import open.dolphin.infomodel.IInfoModel;
-import open.dolphin.infomodel.Module;
-import open.dolphin.infomodel.ModuleInfo;
-import open.dolphin.infomodel.Schema;
-import open.dolphin.project.*;
+import open.dolphin.infomodel.ModuleModel;
+import open.dolphin.infomodel.ModuleInfoBean;
+import open.dolphin.infomodel.SchemaModel;
+import open.dolphin.infomodel.StampModel;
+import open.dolphin.util.BeanUtils;
 
-import java.awt.dnd.*;
 import java.awt.datatransfer.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
+import java.util.List;
 import java.awt.*;
 import java.beans.*;
-import java.awt.im.InputSubset;
-// Junzo SATO
-import jp.ac.kumamoto_u.kuh.fc.jsato.swing_beans.*;
+
+import jp.ac.kumamoto_u.kuh.fc.jsato.swing_beans.SchemaEditorDialog;
 
 /**
- * Karte Pane  
+ * Karte Pane
  *
- * @author  Kazushi Minagawa, Digital Globe, inc.
+ * @author Kazushi Minagawa, Digital Globe, inc.
  */
-public final class KartePane extends JTextPane implements DropTargetListener, PropertyChangeListener {
+public class KartePane implements PropertyChangeListener {
     
-    private static final int TITLE_LENGTH       = 15;
-    private static final int COPY_CAPACITY      = 10;
-    private static final int STAMP_CAPACITY     = 10;
-    private static final int TT_NONE_SELECTION  = 0;
-    private static final int TT_TEXT_SELECTION  = 1;
-    private static final int TT_STAMP_SELECTION = 2;
-    private static final int TT_IMAGE_SELECTION = 3;
-     
-    private static final DataFlavor SUPPORT_FLAVOR = 
-                            StampTreeTransferable.stampTreeNodeFlavor;    
+    /** SOA 及び P Pane の幅 */
+    public static final int PANE_WIDTH = 345;
     
-    private static int stampId;
-    private SelectionController selectionController;
-    private ArrayList stampSelectionList;
-    private ArrayList imageSelectionList;
+    /** SOA 及び P Pane の最大高さ */
+    public static final int PANE_HEIGHT = 3*700;
+    
+    /** 2号カルテの分離線幅 */
+    public static final int PANE_DIVIDER_WIDTH = 2;
+    
+    private static final int MARGIN_LEFT = 10;
+    
+    /** Pane の上マージン */
+    private static final int MARGIN_TOP = 10;
+    
+    /** Pane の右マージン */
+    private static final int MARGIN_RIGHT = 10;
+    
+    /** Pane の下マージン */
+    private static final int MARGIN_BOTTOM = 10;
+    
+    
+    private static final int TITLE_LENGTH = 15;
+    
+    private static final Color UNEDITABLE_COLOR = new Color(227, 250, 207);
+    
+    // JTextPane (このクラスはJTextPaneへのデコレータ的役割を担う)
+    private JTextPane textPane;
+    
+    // SOA / P のロール
     private String myRole;
+    
+    // 相手のKartePane
     private KartePane myPartner;
-    private boolean dirty;
+    
+    // このKartePaneのオーナ
     private KarteEditor parent;
+    
+    // StampHolderのTransferHandler
+    private StampHolderTransferHandler stampHolderTransferHandler;
+    
+    // SchemaHolderのTransferHandler
+    private SchemaHolderTransferHandler schemaHolderTransferHandler;
+    
+    private int stampId;
+    
+    // Dirty Flag
+    private boolean dirty;
+    
+    // 初期化された時のDocumentの長さ
     private int initialLength;
+    
+    // ChartMediator(MenuSupport)
     private ChartMediator mediator;
+    
+    // このオブジェクトで生成する文書DocumentModelの文書ID
     private String docId;
-    private DropTarget dropTarget;
-    private Color uneditableColor = new Color(227, 250, 207);
-    private StampEditorDialog stampEditor;
     
-
-    /** Creates new KartePane2 */
-    public KartePane(boolean editable, ChartMediator mediator) {
-        
-        this.addFocusListener(new FocusAdapter() {
-            public void focusGained(FocusEvent event) {
-                getInputContext().setCharacterSubsets(new Character.Subset[] {InputSubset.KANJI});
-            }
-            public void focusLosted(FocusEvent event) {
-                getInputContext().setCharacterSubsets(null);
-            }
-        });
+    // 保存後及びブラウズ時の編集不可を表すカラー
+    private Color uneditableColor = UNEDITABLE_COLOR;
     
-        this.mediator = mediator;
+    // このペインからDragg及びDroppされたスタンプの情報
+    private IComponentHolder[] drragedStamp;
+    private int draggedCount;
+    private int droppedCount;
+    
+    //
+    // Listeners
+    //
+    private ContextListener contextListener;
+    private FocusCaretListener focusCaret;
+    private DocumentListener dirtyListner;
+    
+    
+    /** 
+     * Creates new KartePane2 
+     */
+    public KartePane() {
+        //
+        // StyledDocumentを生成しJTextPaneを生成する
+        //
+        KarteStyledDocument doc = new KarteStyledDocument();
+        setTextPane(new JTextPane(doc));
         
-        // Assign key stroke
-        Keymap keymap = getKeymap();
-        KeyStroke keystroke = KeyStroke.getKeyStroke(KeyEvent.VK_X,KeyEvent.CTRL_MASK);
-        keymap.addActionForKeyStroke(keystroke, mediator.cutAction);
-        
-        keystroke = KeyStroke.getKeyStroke(KeyEvent.VK_C,KeyEvent.CTRL_MASK);
-        keymap.addActionForKeyStroke(keystroke, mediator.copyAction);
-        
-        keystroke = KeyStroke.getKeyStroke(KeyEvent.VK_V,KeyEvent.CTRL_MASK);
-        keymap.addActionForKeyStroke(keystroke, mediator.pasteAction);
-        
-        keystroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z,KeyEvent.CTRL_MASK);
-        keymap.addActionForKeyStroke(keystroke, mediator.undoAction);
-        
-        keystroke = KeyStroke.getKeyStroke(KeyEvent.VK_Y,KeyEvent.CTRL_MASK);
-        keymap.addActionForKeyStroke(keystroke, mediator.redoAction);
-        
-        selectionController = new SelectionController();
-                
-        addCaretListener(mediator);
-        
-        setEditableProp(editable);
-        
-        this.setDragEnabled(true);
+        //
+        // 基本属性を設定する
+        //
+        getTextPane().setMinimumSize(new Dimension(PANE_WIDTH, PANE_WIDTH));
+        getTextPane().setMaximumSize(new Dimension(PANE_WIDTH, PANE_HEIGHT));
+        getTextPane().setMargin(new Insets(MARGIN_TOP, MARGIN_LEFT, MARGIN_BOTTOM, MARGIN_RIGHT));
+        getTextPane().setAlignmentY(Component.TOP_ALIGNMENT);
+        doc.setParent(this);
+        stampHolderTransferHandler = new StampHolderTransferHandler();
+        schemaHolderTransferHandler = new SchemaHolderTransferHandler();
     }
     
-    public void setEditableProp(boolean b) {
-        if( b && (dropTarget == null)) {
-            dropTarget = new DropTarget(this, this);
-            getDocument().addUndoableEditListener(mediator);
-        }
-        else {
-            setBackgroundUneditable();
-        }
-        setEditable(b);
-    }
-    
-    public void setBackgroundUneditable() {
-        setBackground(uneditableColor);
-        setOpaque(true);
-    }
-    
-    public void setRole(String role, KartePane partner) {
-        myRole = role;
-        myPartner = partner;
-    }
-    
-    public void setParent(KarteEditor parent) {
+    /**
+     * このPaneのオーナを設定する。
+     * @param parent KarteEditorオーナ
+     */
+    protected void setParent(KarteEditor parent) {
         this.parent = parent;
     }
     
-    public void setDocId(String val) {
-        docId = val;
+    /**
+     * このPaneのオーナを返す。
+     * @return KarteEditorオーナ
+     */
+    protected KarteEditor getParent() {
+        return parent;
     }
-    
-    public boolean isDirty() {
-        return isEditable() ? dirty : false;
-    }    
-    
-    public String getTitle() {
-        String text = null;
-        try {
-            KarteStyledDocument doc = (KarteStyledDocument)getDocument();
-            int len = doc.getLength();
-            int freeTop = doc.getFreeTop();
-            int freeLen = len - freeTop;
-            freeLen = freeLen < TITLE_LENGTH ? freeLen : TITLE_LENGTH;
-            text = getText(freeTop, freeLen).trim();
-        }
-        catch (Exception e) {
-        	System.out.println("Exception while getting the documednt title: " + e.toString());
-        	e.printStackTrace();
-        }
-        return text;
-    }    
     
     /**
-     * このペインのコンテンツをクリアする。
+     * 編集不可を表すカラーを設定する。
+     * @param uneditableColor 編集不可を表すカラー
      */
-    public void init() {
-    	
-        KarteStyledDocument doc = new KarteStyledDocument();
-		this.setDocument(doc);
-        doc.setParent(this);
-        
-        if (stampSelectionList != null) {
-            stampSelectionList.clear();
-        }
-        if (imageSelectionList != null) {
-            imageSelectionList.clear();
-        }
+    public void setUneditableColor(Color uneditableColor) {
+        this.uneditableColor = uneditableColor;
     }
     
-    public void setTimestamp(String val) {
+    /**
+     * 編集不可を表すカラーを返す。
+     * @return 編集不可を表すカラー
+     */
+    public Color getUneditableColor() {
+        return uneditableColor;
+    }
+    
+    /**
+     * このPaneで生成するDocumentModelの文書IDを設定する。
+     * @param docId 文書ID
+     */
+    protected void setDocId(String docId) {
+        this.docId = docId;
+    }
+    
+    /**
+     * このPaneで生成するDocumentModelの文書IDを返す。
+     * @return 文書ID
+     */
+    protected String getDocId() {
+        return docId;
+    }
+    
+    /**
+     * ChartMediatorを設定する。
+     * @param mediator ChartMediator
+     */
+    protected void setMediator(ChartMediator mediator) {
+        this.mediator = mediator;
+    }
+    
+    /**
+     * ChartMediatorを返す。
+     * @return ChartMediator
+     */
+    protected ChartMediator getMediator() {
+        return mediator;
+    }
+    
+    /**
+     * パートナPaneを設定する。
+     * @param myPartner パートナPane
+     */
+    protected void setMyPartner(KartePane myPartner) {
+        this.myPartner = myPartner;
+    }
+    
+    /**
+     * パートナPaneを返す。
+     * @return パートナPane
+     */
+    protected KartePane getMyPartner() {
+        return myPartner;
+    }
+    
+    /**
+     * このPaneのロールを設定する。
+     * @param myRole SOAまたはPのロール
+     */
+    public void setMyRole(String myRole) {
+        this.myRole = myRole;
+    }
+    
+    /**
+     *  このPaneのロールを返す。
+     * @return SOAまたはPのロール
+     */
+    public String getMyRole() {
+        return myRole;
+    }
+    
+    /**
+     * JTextPaneを設定する。
+     * @param textPane JTextPane
+     */
+    protected void setTextPane(JTextPane textPane) {
+        this.textPane = textPane;
+    }
+    
+    /**
+     * JTextPaneを返す。
+     * @return JTextPane
+     */
+    protected JTextPane getTextPane() {
+        return textPane;
+    }
+    
+    /**
+     * JTextPaneのStyledDocumentを返す。
+     * @return JTextPaneのStyledDocument
+     */
+    protected KarteStyledDocument getDocument() {
+        return (KarteStyledDocument) getTextPane().getDocument();
+    }
+    
+    /**
+     * 初期長を設定する。
+     * @param Documentの初期長
+     */
+    protected void setInitialLength(int initialLength) {
+        this.initialLength = initialLength;
+    }
+    
+    /**
+     * 初期長を返す。
+     * @return Documentの初期長
+     */
+    protected int getInitialLength() {
+        return initialLength;
+    }
+    
+    /**
+     * このPaneからDragされたスタンプ数を返す。
+     * @return このPaneからDragされたスタンプ数
+     */
+    protected int getDraggedCount() {
+        return draggedCount;
+    }
+    
+    /**
+     * このPaneからDragされたスタンプ数を設定する。
+     * @param draggedCount このPaneからDragされたスタンプ数
+     */
+    protected void setDraggedCount(int draggedCount) {
+        this.draggedCount = draggedCount;
+    }
+    
+    /**
+     * このPaneにDropされたスタンプ数を返す。
+     * @return このPaneにDropされたスタンプ数
+     */
+    protected int getDroppedCount() {
+        return droppedCount;
+    }
+    
+    /**
+     * このPaneにDropされたスタンプ数を設定する。
+     * @param droppedCount このPaneにDropされたスタンプ数
+     */
+    protected void setDroppedCount(int droppedCount) {
+        this.droppedCount = droppedCount;
+    }
+    
+    /**
+     * このPaneからDragされたスタンプを返す。
+     * @return このPaneからDragされたスタンプ配列
+     */
+    protected IComponentHolder[] getDrragedStamp() {
+        return drragedStamp;
+    }
+    
+    /**
+     * このPaneからDragされたスタンプを設定（記録）する。
+     * @param drragedStamp このPaneからDragされたスタンプ配列
+     */
+    protected void setDrragedStamp(IComponentHolder[] drragedStamp) {
+        this.drragedStamp = drragedStamp;
+    }
+    
+    /**
+     * 初期化する。
+     * @param editable 編集可能かどうかのフラグ
+     * @param mediator チャートメディエータ（実際にはメニューサポート）
+     */
+    public void init(boolean editable, ChartMediator mediator) {
         
-        final KarteStyledDocument doc = (KarteStyledDocument)getDocument();
-        doc.setTimestamp(val);
+        // Mediatorを保存する
+        setMediator(mediator);
         
-        // Dirty 判定用の DocumentListener をつける
-        if (isEditable()) {
+        // JTextPaneへアクションを登録する
+        // Undo & Redo
+        ActionMap map = getTextPane().getActionMap();
+        KeyStroke keystroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+        map.put(keystroke, mediator.getAction(GUIConst.ACTION_UNDO));
+        keystroke = KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+        map.put(keystroke, mediator.getAction(GUIConst.ACTION_REDO));
+        
+        // Drag は editable に関係なく可能
+        getTextPane().setDragEnabled(true);
+        
+        // Dirty 判定用の DocumentListener を設定する
+        final KarteStyledDocument doc = getDocument();
+        
+        if (getTextPane().isEditable()) {
             
             // スタンプ挿入後が初期長になる
-            initialLength = doc.getLength();
+            setInitialLength(0);
             
-            doc.addDocumentListener(new DocumentListener() {
+            dirtyListner = new DocumentListener() {
                 
+                // JTextPaneへの挿入でdirtyかどうかを判定する
                 public void insertUpdate(DocumentEvent e) {
-                    //boolean newDirty = true;
-                    boolean newDirty = doc.getLength() > initialLength ? true : false;
+                    boolean newDirty = doc.getLength() > getInitialLength() ? true : false;
                     if (newDirty != dirty) {
                         dirty = newDirty;
-                        
-                        // KarteEditor へ通知
-                        parent.setDirty(dirty);
+                        // KarteEditor へ通知する
+                        getParent().setDirty(dirty);
                     }
                 }
                 
+                // 削除が起こった時dirtyかどうかを判定する
                 public void removeUpdate(DocumentEvent e) {
-                    boolean newDirty = doc.getLength() > initialLength ? true : false;
+                    boolean newDirty = doc.getLength() > getInitialLength() ? true : false;
                     if (newDirty != dirty) {
                         dirty = newDirty;
-                        
                         // KarteEditor へ通知
-                        parent.setDirty(dirty);
+                        getParent().setDirty(dirty);
                     }
                 }
                 
                 public void changedUpdate(DocumentEvent e) {
                 }
-            });
+            };
+            
+            doc.addDocumentListener(dirtyListner);
         }
-    }    
+        
+        // コンテキストメニュー用のリスナ設定する
+        contextListener = new ContextListener(this, mediator);
+        getTextPane().addMouseListener(contextListener);
+        
+        // Focusとキャレットのコントローラを生成する
+        focusCaret = new FocusCaretListener(getTextPane(), mediator);
+        
+        // TextPaneにFocusListenerを追加する
+        getTextPane().addFocusListener(focusCaret);
+        
+        // TextPaneにCaretListenerを追加する
+        getTextPane().addCaretListener(focusCaret);
+        
+        // Editable Property を設定する
+        setEditableProp(editable);
+    }
     
-    ////////////////////////////////////////////////
+    /**
+     * リソースをくりあする。
+     */
+    public void clear() {
+        
+        if (dirtyListner != null) {
+            getTextPane().getDocument().removeDocumentListener(dirtyListner);
+            dirtyListner = null;
+        }
+        
+        if (contextListener != null) {
+            getTextPane().removeMouseListener(contextListener);
+            contextListener = null;
+        }
+        
+        if (focusCaret != null) {
+            getTextPane().removeFocusListener(focusCaret);
+            getTextPane().removeCaretListener(focusCaret);
+            focusCaret = null;
+        }
+        
+        try {
+            KarteStyledDocument doc = getDocument();
+            doc.remove(0, doc.getLength());
+            doc = null;
+        } catch (Exception e) {
+            
+        }
+        
+        setTextPane(null);
+    }
     
-	public void setLogicalStyle(String str) {
-		((KarteStyledDocument)this.getDocument()).setLogicalStyle(str);
-	}
+    /**
+     * FocusCaretListener
+     */
+    class FocusCaretListener implements FocusListener, CaretListener {
+        
+        private JTextPane myPane;
+        private ChartMediator myMediator;
+        private boolean hasSelection;
+        private CompState curState;
+        
+        public FocusCaretListener(JTextPane myPane, ChartMediator mediator) {
+            this.myPane = myPane;
+            myMediator = mediator;
+        }
+        
+        /**
+         * Focusされた時のメニューを制御する。
+         */
+        public void focusGained(FocusEvent e) {
+            //System.out.println(getMyRole() + " gained");
+            //
+            // 自動 IME on
+            //
+            myPane.getInputContext().setCharacterSubsets(new Character.Subset[] {InputSubset.KANJI});
+            // 
+            // Mediatorの curCompo に設定する
+            // Mediatorはフォーカスがある方のpaneを保存している
+            //
+            myMediator.setCurrentComponent(myPane);
+            
+            // Menuを制御する
+            curState = getMyRole().equals(IInfoModel.ROLE_SOA) ? CompState.SOA : CompState.P;
+            controlMenus();
+        }
+        
+        /**
+         * FocusLostの処理を行う。
+         */
+        public void focusLost(FocusEvent e) {
+            //System.out.println(getMyRole() + " lost");
+            hasSelection = false;
+            //curState = CompState.NONE;
+            //controlMenus();
+        }
+        
+        /**
+         * Caret更新時の処理を行う。
+         */
+        public void caretUpdate(CaretEvent e) {
+            boolean newSelection =  (e.getDot() != e.getMark()) ? true : false;
+            if (newSelection != hasSelection) {
+                hasSelection = newSelection;
+                // テキスト選択の状態へ遷移する
+                if (hasSelection) {
+                    curState = getMyRole().equals(IInfoModel.ROLE_SOA) ? CompState.SOA_TEXT : CompState.P_TEXT;
+                } else {
+                    curState = getMyRole().equals(IInfoModel.ROLE_SOA) ? CompState.SOA : CompState.P;
+                }
+                controlMenus();
+            }
+        }
+        
+        /**
+         * メニューを制御する。
+         *
+         */
+        private void controlMenus() {
+            
+            // 全メニューをdisableにする
+            myMediator.getAction(GUIConst.ACTION_CUT).setEnabled(false);
+            myMediator.getAction(GUIConst.ACTION_COPY).setEnabled(false);
+            myMediator.getAction(GUIConst.ACTION_PASTE).setEnabled(false);
+            myMediator.getAction(GUIConst.ACTION_UNDO).setEnabled(false);
+            myMediator.getAction(GUIConst.ACTION_REDO).setEnabled(false);
+            myMediator.getAction(GUIConst.ACTION_INSERT_TEXT).setEnabled(false);
+            myMediator.getAction(GUIConst.ACTION_INSERT_SCHEMA).setEnabled(false);
+            myMediator.getAction(GUIConst.ACTION_INSERT_STAMP).setEnabled(false);
+            
+            // 各Stateはenableになる条件だけを管理する
+            switch (curState) {
+                
+                case NONE:
+                    break;
+                    
+                case SOA:
+                    // SOAPaneにFocusがありテキスト選択がない状態
+                    if (myPane.isEditable()) {
+                        myMediator.getAction(GUIConst.ACTION_PASTE).setEnabled(canPaste());
+                        myMediator.getAction(GUIConst.ACTION_INSERT_TEXT).setEnabled(true);
+                        myMediator.getAction(GUIConst.ACTION_INSERT_SCHEMA).setEnabled(true);
+                    }
+                    break;
+                    
+                case SOA_TEXT:
+                    // SOAPaneにFocusがありテキスト選択がある状態
+                    myMediator.getAction(GUIConst.ACTION_CUT).setEnabled(myPane.isEditable());
+                    myMediator.getAction(GUIConst.ACTION_COPY).setEnabled(true);
+                    boolean pasteOk = (myPane.isEditable() && canPaste()) ? true : false;
+                    myMediator.getAction(GUIConst.ACTION_PASTE).setEnabled(pasteOk);
+                    break;
+                    
+                case P:
+                    // PPaneにFocusがありテキスト選択がない状態
+                    if (myPane.isEditable()) {
+                        myMediator.getAction(GUIConst.ACTION_PASTE).setEnabled(canPaste());
+                        myMediator.getAction(GUIConst.ACTION_INSERT_TEXT).setEnabled(true);
+                        myMediator.getAction(GUIConst.ACTION_INSERT_STAMP).setEnabled(true);
+                    }
+                    break;
+                    
+                case P_TEXT:
+                    // PPaneにFocusがありテキスト選択がある状態
+                    myMediator.getAction(GUIConst.ACTION_CUT).setEnabled(myPane.isEditable());
+                    myMediator.getAction(GUIConst.ACTION_COPY).setEnabled(true);
+                    pasteOk = (myPane.isEditable() && canPaste()) ? true : false;
+                    myMediator.getAction(GUIConst.ACTION_PASTE).setEnabled(pasteOk);
+                    break;
+            }
+        }
+    }
     
-	public void clearLogicalStyle() {
-		((KarteStyledDocument)this.getDocument()).clearLogicalStyle();
-	}
-	
-	public void makeParagraph() {
-		((KarteStyledDocument)this.getDocument()).makeParagraph();
-	}	
-    	
-	public void insertFreeString(String s, AttributeSet a) {
-		((KarteStyledDocument)this.getDocument()).insertFreeString(s, a);
-	}
-	
-	////////////////////////////////////////////////          
+    /**
+     * KartePaneのコンテキストメニュークラス。
+     */
+    class ContextListener extends MouseAdapter {
+        
+        private KartePane context;
+        private ChartMediator myMediator;
+        
+        public ContextListener(KartePane kartePane, ChartMediator mediator) {
+            context = kartePane;
+            myMediator = mediator;
+        }
+        
+        private JPopupMenu createMenus() {
+            final JPopupMenu contextMenu = new JPopupMenu();
+            // cut, copy, paste メニューを追加する
+            contextMenu.add(myMediator.getAction(GUIConst.ACTION_CUT));
+            contextMenu.add(myMediator.getAction(GUIConst.ACTION_COPY));
+            contextMenu.add(myMediator.getAction(GUIConst.ACTION_PASTE));
+            // テキストカラーメニューを追加する
+            if (context.getTextPane().isEditable()) {
+                ColorChooserComp ccl = new ColorChooserComp();
+                ccl.addPropertyChangeListener(ColorChooserComp.SELECTED_COLOR, new PropertyChangeListener() {
+                    public void propertyChange(PropertyChangeEvent e) {
+                        Color selected = (Color) e.getNewValue();
+                        Action action = new StyledEditorKit.ForegroundAction("selected", selected);
+                        action.actionPerformed(new ActionEvent(context.getTextPane(), ActionEvent.ACTION_PERFORMED, "foreground"));
+                        contextMenu.setVisible(false);
+                    }
+                });
+                JLabel l = new JLabel("  カラー:");
+                JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+                p.add(l);
+                p.add(ccl);
+                contextMenu.add(p);
+            } else {
+                contextMenu.addSeparator();
+            }
+            
+            // PPane の場合はStampMenuを追加する
+            if (getMyRole().equals(IInfoModel.ROLE_P)) {
+                //contextMenu.addSeparator();
+                myMediator.addStampMenu(contextMenu, context);
+            } else {
+                // TextMenuを追加する
+                myMediator.addTextMenu(contextMenu);
+            }
+            
+            return contextMenu;
+        }
+        
+        public void mousePressed(MouseEvent e) {
+            mabeShowPopup(e);
+        }
+        
+        public void mouseReleased(MouseEvent e) {
+            mabeShowPopup(e);
+        }
+        
+        public void mabeShowPopup(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+                JPopupMenu contextMenu = createMenus();
+                contextMenu.show(e.getComponent(), e.getX(), e.getY());
+            }
+        }
+    }
     
-    /*
+    /**hanagui+
+     *
+     * 編集可能かどうかの属性をTextPaneに設定する。
+     * @param editable 編集可能なPaneの時true
+     */
+    protected void setEditableProp(boolean editable) {
+        if (editable) {
+            getDocument().addUndoableEditListener(getMediator());
+            if (myRole.equals(IInfoModel.ROLE_SOA)) {
+                SOACodeHelper helper = new SOACodeHelper(this, getMediator());
+            } else {
+                PCodeHelper helper = new PCodeHelper(this, getMediator());
+            }
+        } else {
+            setBackgroundUneditable();
+        }
+        getTextPane().setEditable(editable);
+    }
+    
+    /**
+     * 背景を編集不可カラーに設定する。
+     */
+    protected void setBackgroundUneditable() {
+        getTextPane().setBackground(getUneditableColor());
+        getTextPane().setOpaque(true);
+    }
+    
+    /**
+     * ロールとパートナを設定する。
+     * @param role このペインのロール
+     * @param partner パートナ
+     */
+    protected void setRole(String role, KartePane partner) {
+        setMyRole(role);
+        setMyPartner(partner);
+    }
+    
+    /**
+     * Dirtyかどうかを返す。
+     * @return dirty の時 true
+     */
+    protected boolean isDirty() {
+        return getTextPane().isEditable() ? dirty : false;
+    }
+    
+    /**
+     * 保存時につけるドキュメントのタイトルをDocument Objectから抽出する。
+     * @return 先頭から指定された長さを切り出した文字列
+     */
+    protected String getTitle() {
+        try {
+            KarteStyledDocument doc = getDocument();
+            int len = doc.getLength();
+            int freeTop = 0; // doc.getFreeTop();
+            int freeLen = len - freeTop;
+            freeLen = freeLen < TITLE_LENGTH ? freeLen : TITLE_LENGTH;
+            return getTextPane().getText(freeTop, freeLen).trim();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    /**
+     * Documentの段落スタイルを設定する。
+     * @param str スタイル
+     */
+    public void setLogicalStyle(String str) {
+        getDocument().setLogicalStyle(str);
+    }
+    
+    /**
+     * Documentの段落論理スタイルをクリアする。
+     */
+    public void clearLogicalStyle() {
+        getDocument().clearLogicalStyle();
+    }
+    
+    /**
+     * 段落を構成する。
+     */
+    public void makeParagraph() {
+        getDocument().makeParagraph();
+    }
+    
+    /**
+     * Documentに文字列を挿入する。
+     * @param str 挿入する文字列
+     * @param attr 属性
+     */
+    public void insertFreeString(String s, AttributeSet a) {
+        getDocument().insertFreeString(s,a);
+    }
+    
+    /**
      * このペインに Stamp を挿入する。
      */
-    public void stamp(Module s) {
-        if (s == null) {
-            return;
+    public void stamp(final ModuleModel stamp) {
+        if (stamp != null) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    StampHolder h = new StampHolder(KartePane.this, stamp);
+                    h.setTransferHandler(stampHolderTransferHandler);
+                    KarteStyledDocument doc = getDocument();
+                    doc.stamp(h);
+                }
+            });
         }
-        
-        // StampHolder に格納しコンポーネントとして挿入する
-        StampHolder h = new StampHolder(this, stampId++, s);
-        h.addMouseListener(selectionController);
-        ((KarteStyledDocument)this.getDocument()).stamp(h);
-    }
-        
-    public void stampSchema(Schema o) {
-        if (o == null) {
-            return;
-        }
-        SchemaHolder h = new SchemaHolder(this, stampId, o);
-        h.addMouseListener(selectionController);
-        ((KarteStyledDocument)this.getDocument()).stampSchema(h);
     }
     
-    /*
+    /**
+     * このペインに Stamp を挿入する。
+     */
+    public void flowStamp(ModuleModel stamp) {
+        if (stamp != null) {
+            StampHolder h = new StampHolder(this, stamp);
+            h.setTransferHandler(stampHolderTransferHandler);
+            KarteStyledDocument doc = getDocument();
+            doc.flowStamp(h);
+        }
+    }
+    
+    /**
+     * このペインにシェーマを挿入する。
+     * @param schema シェーマ
+     */
+    public void stampSchema(final SchemaModel schema) {
+        if (schema != null) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    
+                    SchemaHolder h = new SchemaHolder(KartePane.this, schema);
+                    h.setTransferHandler(schemaHolderTransferHandler);
+                    KarteStyledDocument doc = getDocument();
+                    doc.stampSchema(h);
+                }
+            });
+        }
+    }
+    
+    /**
+     * このペインにシェーマを挿入する。
+     * @param schema  シェーマ
+     */
+    public void flowSchema(SchemaModel schema) {
+        if (schema != null) {
+            SchemaHolder h = new SchemaHolder(this, schema);
+            h.setTransferHandler(schemaHolderTransferHandler);
+            KarteStyledDocument doc = (KarteStyledDocument) getTextPane().getDocument();
+            doc.flowSchema(h);
+        }
+    }
+    
+    /**
      * このペインに TextStamp を挿入する。
      */
-    public void insertTextStamp(String s) {
-        ((KarteStyledDocument)this.getDocument()).insertTextStamp(s);
-    }
-           
-    ////////////////////////////////////////////////
-        
-    public boolean isDragAcceptable(DropTargetDragEvent evt) {
-        return (isEditable() && ((evt.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) != 0))
-               ? true
-               : false;
-    }
-    
-    public boolean isDropAcceptable(DropTargetDropEvent evt) {
-        return (isEditable() && ((evt.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) != 0))
-               ? true
-               : false;
-    }    
-    
-    public void dragEnter(DropTargetDragEvent evt) {
-        if (! isDragAcceptable(evt)) {
-            evt.rejectDrag();
-        }
-    }
-   
-    public void dragOver(DropTargetDragEvent evt) {
-        if (isDragAcceptable(evt)) {
-            // Called from the event dispatch
-            parent.setDropTargetBorder(true);
-        }
-    }
-   
-    public void dragExit(DropTargetEvent evt) {
-        parent.setDropTargetBorder(false);
-    }
-   
-    public void dropActionChanged(DropTargetDragEvent evt) {
-        if (! isDragAcceptable(evt)) {
-            evt.rejectDrag();
-        }
-    }
-    
-    public void drop(DropTargetDropEvent event) {
-        
-        if (! isDropAcceptable(event)) {
-            event.rejectDrop();
-            parent.setDropTargetBorder(false);
-            Toolkit.getDefaultToolkit().beep();
-            event.getDropTargetContext().dropComplete(true);
-            return;
-        }
-        
-        // Get Transferable
-        final Transferable tr = event.getTransferable();
-        
-        // Drop 位置を得る
-        final Point loc = event.getLocation();
-        
-        // Called from the event dispatch
-        event.acceptDrop(DnDConstants.ACTION_COPY);
-        event.getDropTargetContext().dropComplete(true);
-        parent.setDropTargetBorder(false);
-        
-        // Do actual drop
-        Runnable r = new Runnable() {
-            public void run() {
-                boolean ok = doDrop(tr, loc);
-            }
-        };
-        Thread t = new Thread(r);
-        t.start();
-    }
-    
-    //////////////////////////////////////////////////////////
-    
-    private boolean doDrop(Transferable tr, Point loc) {
-        
-        int flavor = -1;
-        
-        // サポートしている　Data Flavor か
-        if (tr.isDataFlavorSupported(SUPPORT_FLAVOR)) { 
-            flavor = 0;
-            
-        } else if (tr.isDataFlavorSupported(SchemaListTransferable.schemaListFlavor)) {
-            flavor = 1;
-        }
-        //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-        // Junzo SATO
-        else if (tr.isDataFlavorSupported(ImageSelection.imageFlavor)) {
-            flavor = 2;
-        }
-        //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-        else {
-            return false;
-        }
-                
-        boolean ret = false;
-        
-        switch (flavor) {
-        	
-            case 0: 
-                ModuleInfo stampInfo = null;
-
-                try {
-                    StampTreeNode node = (StampTreeNode)tr.getTransferData(SUPPORT_FLAVOR);
-                    stampInfo = (ModuleInfo)node.getStampInfo();
-                    ret = true;
-                }
-                catch (Exception e) {
-                    System.out.println("Exception while getting the stampInfo: " + e.toString());
-                    e.printStackTrace();
-                    break;
-                }
-                
-                // TextStamp
-                String role = stampInfo.getRole();
-                if (role.equals("text")) {
-                    if (myRole.equals("soa")) {
-                        stampInfoDropped(stampInfo);
-                    }
-                    else {
-                        myPartner.stampInfoDropped(stampInfo);
-                    }
-                }
-                // SOA / P
-                else if ( myRole.equals(role) ) {
-                    stampInfoDropped(stampInfo);
-                }
-                else {
-                    myPartner.stampInfoDropped(stampInfo);
-                }
-                break;
-                
-            case 1:     
-                if (myRole.equals("soa")) {
-                    try {
-                        SchemaList list = (SchemaList)tr.getTransferData(SchemaListTransferable.schemaListFlavor);
-                        Schema s = list.schemaList[0];
-                        int pos = viewToModel(loc);
-                        dndSchema(s, pos);
-                        
-                    } catch (Exception sce) {
-                        System.out.println("Exception while getting the Schema: " + sce.toString());
-                        sce.printStackTrace();
-                    }
-                    
-                } else {
-                    Toolkit.getDefaultToolkit().beep();
-                }
-                ret = true;
-                break;
-            //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-            // Junzo SATO
-            case 2:
-                Image trImg = null;
-                try {
-                    trImg = (Image)tr.getTransferData(ImageSelection.imageFlavor);
-                    ret = true;
-                }
-                catch (Exception e) {
-                    System.out.println("Exception while getting the image: " + e.toString());
-                    e.printStackTrace();
-                    break;
-                }
-                
-                if (myRole.equals("soa")) {
-                    myInsertImage(trImg);
-                }
-                else {
-                    myPartner.myInsertImage(trImg);
-                }
-                break;
-            //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX         
-        }
-        return ret;
-    }   
-    
-    private void startAnimation() {
-        
+    public void insertTextStamp(final String s) {
         SwingUtilities.invokeLater(new Runnable() {
-                    
             public void run() {
-                ChartPlugin context = (ChartPlugin)parent.context;
-                StatusPanel sp = context.getStatusPanel();
-                sp.start("スタンプを取得しています...");
+                KarteStyledDocument doc = getDocument();
+                doc.insertTextStamp(s);
             }
         });
     }
     
-    private void stopAnimation() {
-        
-        SwingUtilities.invokeLater(new Runnable() {
-                    
-            public void run() {
-                ChartPlugin context = (ChartPlugin)parent.context;
-                StatusPanel sp = context.getStatusPanel();
-                sp.stop("");                    
-            }
-        });
-    }    
-    
-    /*
-     * 永続化されているスタンプを取得してこのペインに展開する。
+    /**
+     * StampInfoがDropされた時、そのデータをペインに挿入する。
+     * @param stampInfo ドロップされたスタンプ情報
      */
-    private void applySerializedStamp(final ModuleInfo stampInfo) {
+    public void stampInfoDropped(ModuleInfoBean stampInfo) {
         
-        startAnimation();
-
-        String rdn = stampInfo.getStampId();
-        IInfoModel model = null;
-        if (stampInfo.isASP()) {
-            AspStampModelDao dao = (AspStampModelDao)StampDaoFactory.createAspDao(KartePane.this, "dao.aspStampModel");
-            model = (IInfoModel)dao.get(rdn);
-            
-        } else { 
-        	// Database から Stamp Model を取得する
-            SqlStampDao dao = (SqlStampDao)SqlDaoFactory.create(KartePane.this, "dao.stamp");
-            String category = stampInfo.getEntity();
-            String userId = Project.getUserId();
-            model = (IInfoModel)dao.getStamp(userId, category, rdn);
-        }
-
-        if (model != null) {
-            final Module stamp = new Module();
-            stamp.setModel(model);
-            stamp.setModuleInfo(stampInfo);
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    stamp(stamp);
-                }
-            });
-        }
-
-        stopAnimation();
-    }
-    
-    /*
-     * TextStamp をこのペインに挿入する。
-     */
-    private void applyTextStamp(final ModuleInfo stampInfo) {
+        //
+        // Drop された StampInfo の属性に応じて処理を振分ける
+        //
+        String entity = stampInfo.getEntity();
+        //System.out.println(entity);
         
-        startAnimation();
-
-        String rdn = stampInfo.getStampId();
-        IInfoModel model = null;
+        String role = stampInfo.getStampRole();
+        //System.out.println(role);
         
-        if (stampInfo.isASP()) {
-            AspStampModelDao dao = (AspStampModelDao)StampDaoFactory.createAspDao(KartePane.this, "dao.aspStampModel");
-            model = (IInfoModel)dao.get(rdn);
         
-        } else {
-            SqlStampDao dao = (SqlStampDao)SqlDaoFactory.create(KartePane.this, "dao.stamp");
-            String category = stampInfo.getEntity();
-            String userId = Project.getUserId();
-            model = (IInfoModel)dao.getStamp(userId, category, rdn);
-        }
-
-        if (model != null) {
-            final String str = model.toString();       // toString()!!
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    insertTextStamp(str);
-                }
-            });
-        }
-
-        stopAnimation();
-    }    
-    
-    /*
-     * StampInfo が Drop された時の処理を行なう。
-     */    
-    private void stampInfoDropped(ModuleInfo stampInfo) {
-        
-        final String entity = stampInfo.getEntity();
-        
+        //
         // 病名の場合は２号カルテペインには展開しない
-        if (entity.equals("diagnosis")) {
+        //
+        if (entity.equals(IInfoModel.ENTITY_DIAGNOSIS)) {
             Toolkit.getDefaultToolkit().beep();
             return;
         }
         
-        // Text スタンプを処理する
-        if (entity.equals("text")) {
+        //
+        // Text スタンプを挿入する
+        //
+        if (entity.equals(IInfoModel.ENTITY_TEXT)) {
             applyTextStamp(stampInfo);
             return;
         }
         
-        // データベースに保存されているスタンプを処理する
+        //
+        // ORCA 入力セットの場合
+        //
+        if (role.equals(IInfoModel.ROLE_ORCA_SET)) {
+            //System.out.println("orca set dropped");
+            applyOrcaSet(stampInfo);
+            return;
+        }
+        
+        //
+        // データベースに保存されているスタンプを挿入する
+        //
         if (stampInfo.isSerialized()) {
+            //System.out.println("apply serialized stamp");
             applySerializedStamp(stampInfo);
             return;
         }
         
-        // StampEditor を起動する
-        try{
-            stampEditor = new StampEditorDialog(entity);
-            // Stamp Model の受け手をこのペインに設定する
-            stampEditor.addPropertyChangeListener("value", KartePane.this);
-            
-            // Stamp object を生成しエディタをセットする
-            Module stamp = new Module();
-            stamp.setModuleInfo(stampInfo);
-            stampEditor.setValue(stamp);
-            
-        } catch (Exception e) {
-        	System.out.println("Exception while opening the stamp editor: " + e.toString());
-        	e.printStackTrace();
-            stampEditor = null;
-        }
-
-        if (stampEditor == null) {
-            System.out.println("Can not get the StampEditor: " + entity);
-            return;
-        }
-
-		// Event dispatch から起動
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                stampEditor.run();
-            }
-        });
-    }    
+        //
+        // Stamp エディタを起動する
+        //
+        ModuleModel stamp = new ModuleModel();
+        stamp.setModuleInfo(stampInfo);
         
-    /*
-     * Schema が DnD された場合、シェーマエディタを開いて編集する。
-     */    
-    public void myInsertImage(Image trImg) {
-        try {
-             //open schema editor
-             //editSchemaImage(trImg);
+        StampEditorDialog stampEditor = new StampEditorDialog(entity, stamp);
+        stampEditor.addPropertyChangeListener(StampEditorDialog.VALUE_PROP, this);
+        stampEditor.start();
+    }
+    
+    /**
+     * StampInfoがDropされた時、そのデータをペインに挿入する。
+     * @param addList スタンプ情報のリスト
+     */
+    public void stampInfoDropped(final ArrayList<ModuleInfoBean> addList) {
+        
+        
+        Runnable serializedRunner = new Runnable() {
             
+            public void run() {
+                
+                startAnimation();
+                
+                StampDelegater sdl = new StampDelegater();
+                final List<StampModel> list = sdl.getStamp(addList);
+                
+                stopAnimation();
+                
+                if (list != null) {
+                    //for (int i = list.size() -1; i > -1; i--) {
+                    for (int i = 0; i < list.size(); i++) {
+                        ModuleInfoBean stampInfo = addList.get(i);
+                        StampModel theModel = list.get(i);
+                        IInfoModel model = (IInfoModel) BeanUtils.xmlDecode(theModel.getStampBytes());
+                        if (model != null) {
+                            ModuleModel stamp = new ModuleModel();
+                            stamp.setModel(model);
+                            stamp.setModuleInfo(stampInfo);
+                            stamp(stamp);
+                        }
+                    }
+                }
+            }
+        };
+        Thread t = new Thread(serializedRunner);
+        t.setPriority(Thread.NORM_PRIORITY);
+        t.start();
+    }
+    
+    /**
+     * TextStampInfo が Drop された時の処理を行なう。
+     */
+    public void textStampInfoDropped(final ArrayList<ModuleInfoBean> addList) {
+        
+        Runnable serializedRunner = new Runnable() {
+            
+            public void run() {
+                
+                startAnimation();
+                
+                StampDelegater sdl = new StampDelegater();
+                final List<StampModel> list = sdl.getStamp(addList);
+                
+                stopAnimation();
+                
+                if (list != null) {
+                    //for (int i = list.size() -1; i > -1; i--) {
+                    for (int i = 0; i < list.size(); i++) {
+                        StampModel theModel = list.get(i);
+                        IInfoModel model = (IInfoModel) BeanUtils.xmlDecode(theModel.getStampBytes());
+                        if (model != null) {
+                            insertTextStamp(model.toString() + "\n");
+                        }
+                    }
+                }
+            }
+        };
+        Thread t = new Thread(serializedRunner);
+        t.setPriority(Thread.NORM_PRIORITY);
+        t.start();
+    }
+    
+    /**
+     * TextStamp をこのペインに挿入する。
+     */
+    private void applyTextStamp(final ModuleInfoBean stampInfo) {
+        
+        Runnable textRunner = new Runnable() {
+            
+            public void run() {
+                
+                startAnimation();
+                
+                String rdn = stampInfo.getStampId();
+                IInfoModel model = null;
+                
+                StampDelegater sdl = new StampDelegater();
+                StampModel getStamp = sdl.getStamp(rdn);
+                
+                if (getStamp != null) {
+                    
+                    try {
+                        // String beanXml = getStamp.getStampXml();
+                        // byte[] bytes = beanXml.getBytes("UTF-8");
+                        byte[] bytes = getStamp.getStampBytes();
+                        // XMLDecode
+                        XMLDecoder d = new XMLDecoder(new BufferedInputStream(
+                                new ByteArrayInputStream(bytes)));
+                        
+                        model = (IInfoModel) d.readObject();
+                        
+                    } catch (Exception e) {
+                    }
+                }
+                
+                stopAnimation();
+                
+                if (model != null) {
+                    insertTextStamp(model.toString());
+                }
+            }
+        };
+        Thread t = new Thread(textRunner);
+        t.setPriority(Thread.NORM_PRIORITY);
+        t.start();
+    }
+    
+    /**
+     * 永続化されているスタンプを取得してこのペインに展開する。
+     */
+    private void applySerializedStamp(final ModuleInfoBean stampInfo) {
+        
+        Runnable serializedRunner = new Runnable() {
+            
+            public void run() {
+                
+                startAnimation();
+                
+                String rdn = stampInfo.getStampId();
+                IInfoModel model = null;
+                
+                StampDelegater sdl = new StampDelegater();
+                StampModel getStamp = sdl.getStamp(rdn);
+                
+                if (getStamp != null) {
+                    model = (IInfoModel) BeanUtils.xmlDecode(getStamp.getStampBytes());
+                }
+                
+                stopAnimation();
+                
+                final ModuleModel stamp = new ModuleModel();
+                stamp.setModel(model);
+                stamp.setModuleInfo(stampInfo);
+                stamp(stamp);
+            }
+        };
+        
+        Thread t = new Thread(serializedRunner);
+        t.setPriority(Thread.NORM_PRIORITY);
+        t.start();
+    }
+    
+    /**
+     * ORCA の入力セットを取得してこのペインに展開する。
+     */
+    private void applyOrcaSet(final ModuleInfoBean stampInfo) {
+        
+        Runnable serializedRunner = new Runnable() {
+            
+            public void run() {
+                
+                startAnimation();
+                
+                String id = stampInfo.getStampId();
+                
+                SqlOrcaSetDao sdl = new SqlOrcaSetDao();
+                List<ModuleModel> models = sdl.getStamp(stampInfo);
+                
+                stopAnimation();
+                
+                if (models != null) {
+                    for (ModuleModel stamp : models) {
+                        stamp(stamp);
+                    }
+                }
+            }
+        };
+        
+        Thread t = new Thread(serializedRunner);
+        t.setPriority(Thread.NORM_PRIORITY);
+        t.start(); 
+    }
+    
+    
+    /**
+     * ProgressBarアニメーションを開始する。
+     */
+    private void startAnimation() {
+        Runnable awt = new Runnable() {
+            public void run() {
+                IChart context = (IChart) getParent().getContext();
+                IStatusPanel sp = context.getStatusPanel();
+                sp.start("スタンプを取得しています...");
+            }
+        };
+        SwingUtilities.invokeLater(awt);
+    }
+    
+    /**
+     * ProgressBarをストップする。
+     */
+    private void stopAnimation() {
+        Runnable awt = new Runnable() {
+            public void run() {
+                IChart context = (IChart) getParent().getContext();
+                IStatusPanel sp = context.getStatusPanel();
+                sp.stop("");
+            }
+        };
+        SwingUtilities.invokeLater(awt);
+    }
+    
+    /**
+     * Schema が DnD された場合、シェーマエディタを開いて編集する。
+     */
+    public void myInsertImage(Image trImg) {
+        
+        try {
             ImageIcon org = new ImageIcon(trImg);
-            Schema schema = new Schema();
+            
+            // Size を判定する
+            int maxImageWidth = ClientContext.getInt("image.max.width");
+            int maxImageHeight = ClientContext.getInt("image.max.height");
+            Dimension maxSImageSize = new Dimension(maxImageWidth, maxImageHeight);
+            final Preferences pref = Preferences.userNodeForPackage(this.getClass());
+            if (org.getIconWidth() > maxImageWidth || org.getIconHeight() > maxImageHeight) {
+                if (pref.getBoolean("showImageSizeMessage", true)) {
+                    String title = ClientContext.getFrameTitle("画像サイズについて");
+                    JLabel msg1 = new JLabel("カルテに挿入する画像は、最大で " + maxImageWidth + " x " + maxImageHeight + " pixcel に制限しています。");
+                    JLabel msg2 = new JLabel("そのため保存時には画像を縮小します。");
+                    final JCheckBox cb = new JCheckBox("今後このメッセージを表示しない");
+                    cb.setFont(new Font("Dialog", Font.PLAIN, 10));
+                    cb.addActionListener(new ActionListener() {
+                        public void actionPerformed(ActionEvent e) {
+                            pref.putBoolean("showImageSizeMessage", !cb.isSelected());
+                        }
+                    });
+                    JPanel p1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 3));
+                    p1.add(msg1);
+                    JPanel p2 = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 3));
+                    p2.add(msg2);
+                    JPanel p3 = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 3));
+                    p3.add(cb);
+                    JPanel box = new JPanel();
+                    box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
+                    box.add(p1);
+                    box.add(p2);
+                    box.add(p3);
+                    box.setBorder(BorderFactory.createEmptyBorder(0, 0, 11, 11));
+                    Window parent = SwingUtilities.getWindowAncestor(getTextPane());
+                    
+                    JOptionPane.showMessageDialog(parent,
+                            new Object[]{box},
+                            ClientContext.getFrameTitle(getTitle()),
+                            JOptionPane.INFORMATION_MESSAGE,
+                            ClientContext.getImageIcon("about_32.gif"));
+                    
+                    
+                }
+            }
+            
+            SchemaModel schema = new SchemaModel();
             schema.setIcon(org);
             
             // IInfoModel として ExtRef を保持している
-            ExtRef ref = new ExtRef();
+            ExtRefModel ref = new ExtRefModel();
             ref.setContentType("image/jpeg");
             ref.setTitle("Schema Image");
-            schema.setModel(ref);
+            schema.setExtRef(ref);
             
-            String fileName = docId + "-" + stampId + ".jpg";
+            stampId++;
+            String fileName = getDocId() + "-" + stampId + ".jpg";
             schema.setFileName(fileName);
             ref.setHref(fileName);
             
-            final SchemaEditorDialog dlg = new SchemaEditorDialog((Frame)null, true, schema, true);
+            final SchemaEditorDialog dlg = new SchemaEditorDialog((Frame) null, true, schema, true);
             dlg.addPropertyChangeListener(KartePane.this);
-            SwingUtilities.invokeLater(new Runnable() {
-
+            Runnable awt = new Runnable() {
                 public void run() {
                     dlg.run();
                 }
-           });
-        }
-        catch (Exception e) {
-			System.out.println("Exception while opening the schema editor: " + e.toString());
+            };
+            EventQueue.invokeLater(awt);
+            
+        } catch (Exception e) {
             e.printStackTrace();
         }
-   }   
+    }
     
-    /*
+    /**
      * StampEditor の編集が終了するとここへ通知される。
+     * 通知されたスタンプをペインに挿入する。
      */
     public void propertyChange(PropertyChangeEvent e) {
         
@@ -638,536 +1153,91 @@ public final class KartePane extends JTextPane implements DropTargetListener, Pr
         
         if (prop.equals("imageProp")) {
             
-            Schema schema = (Schema)e.getNewValue();
+            SchemaModel schema = (SchemaModel) e.getNewValue();
             
-            if (schema == null) {
-                return;
+            if (schema != null) {
+                // 編集されたシェーマをこのペインに挿入する
+                stampSchema(schema);
             }
             
-            // 編集されたシェーマをこのペインに挿入する
-            //SchemaHolder sh = new SchemaHolder(this, stampId++, schema);
-            //sh.addMouseListener(selectionController);
-            //((KarteStyledDocument)getDocument()).stampSchema(sh);
-			stampSchema(schema);
-        
-        } else if (prop.equals("value")) {
+        } else if (prop.equals(StampEditorDialog.VALUE_PROP)) {
             
             Object o = e.getNewValue();
-
-            if (o == null) {
-            	// Canceld
-                return;
+            
+            if (o != null) {
+                // 編集された Stamp をこのペインに挿入する
+                ModuleModel stamp = (ModuleModel) o;
+                stamp(stamp);
             }
-
-			// 編集された Stamp をこのペインに挿入する
-            Module stamp = (Module)o;
-            stamp(stamp);
         }
     }
     
-    private void dndSchema(Schema schema, int pos) {
-        removeImage();
-        SchemaHolder sh = new SchemaHolder(this, stampId++, schema);
-        sh.addMouseListener(selectionController);
-        ((KarteStyledDocument)getDocument()).dndSchema(sh, pos);
-    }
-    
-    public void doCopy() {
-     
-        switch (getCurrentSelection()) {
-            case TT_TEXT_SELECTION:
-                this.copy();
-                break;
-                
-            case TT_STAMP_SELECTION:
-                copyStamp();
-                break;
-                
-            case TT_IMAGE_SELECTION:
-                copyImage();
-                break;
-        }
-    }
-    
-    public void doCut() {
-        
-        switch (getCurrentSelection()) {
-            case TT_TEXT_SELECTION:
-                this.cut();
-                break;
-                
-            case TT_STAMP_SELECTION:
-                cutStamp();
-                break;
-                
-            case TT_IMAGE_SELECTION:
-                cutImage();
-                break;
-        }
-    }
-     
-    public void doDelete() {
-         
-        switch (getCurrentSelection()) {
-            case TT_TEXT_SELECTION:
-                this.replaceSelection("");
-                break;
-                
-            case TT_STAMP_SELECTION:
-                removeStamp(); 
-                break;
-                
-            case TT_IMAGE_SELECTION:
-                removeImage();
-                break;
-        }
-    }
-    
-    public void doPaste() {
-        
-        Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
-        
-        if (t == null) {
-            return;
-        }
-
-        if (t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-            this.paste();
-            return;
-        }
-                
-        if ( t.isDataFlavorSupported(StampListTransferable.stampListFlavor) ||
-             t.isDataFlavorSupported(OrderListTransferable.orderListFlavor) ) {
-            pasteStamp();
-            return;
-        }
-        
-        if (t.isDataFlavorSupported(SchemaListTransferable.schemaListFlavor)) {
-            pasteImage();
-            return;
-        }
-    }    
-    
-    public boolean hasSelection() {    
-        return (getCurrentSelection() != TT_NONE_SELECTION) ? true : false;
-    }
-    
-    public boolean hasTextSelection() {    
-        return (getCurrentSelection() != TT_TEXT_SELECTION) ? true : false;
-    }    
-    
-    public boolean canPaste() {
+    /**
+     * メニュー制御のため、ペースト可能かどうかを返す。
+     * @return ペースト可能な時 true
+     */
+    protected boolean canPaste() {
         
         boolean ret = false;
         Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
-        if ( t == null ) {
+        if (t == null) {
             return false;
         }
         
-        if ( t.isDataFlavorSupported(DataFlavor.stringFlavor) ) {
+        if (t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
             return true;
         }
         
-        if (myRole.equals("p")) {
+        if (getMyRole().equals(IInfoModel.ROLE_P)) {
             if (t.isDataFlavorSupported(OrderListTransferable.orderListFlavor)) {
                 ret = true;
             }
-        }
-        else {
-            if ( t.isDataFlavorSupported(StampListTransferable.stampListFlavor) || 
-                 t.isDataFlavorSupported(SchemaListTransferable.schemaListFlavor) ) {
+        } else {
+            if (t.isDataFlavorSupported(StampListTransferable.stampListFlavor)
+            || t.isDataFlavorSupported(SchemaListTransferable.schemaListFlavor)) {
                 ret = true;
             }
         }
         return ret;
-    }    
+    }
     
-    private void cutStamp() {
+    /**
+     * このペインからスタンプを削除する。
+     * @param sh 削除するスタンプのホルダ
+     */
+    public void removeStamp(StampHolder sh) {
+        getDocument().removeStamp(sh.getStartPos(), 2);
+    }
     
-        Transferable t = getStampTrain();
-        if (t != null) {
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(t, null);
-            removeStamp();
-        }  
-    } 
-    
-    private void cutImage() {
-    
-        Transferable t = getImageTrain();
-        if (t != null) {
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(t, null);
-            removeImage();
-        }  
-    } 
-    
-    public boolean copyStamp() {
-        Transferable t = getStampTrain();
-        if (t != null) {
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(t, null);
-            return true;
-        }
-        else {
-            return false;
+    /**
+     * このペインからスタンプを削除する。
+     * @param sh 削除するスタンプのホルダリスト
+     */
+    public void removeStamp(StampHolder[] sh) {
+        if (sh != null && sh.length > 0) {
+            for (int i = 0; i < sh.length; i++) {
+                removeStamp(sh[i]);
+            }
         }
     }
     
-    private void copyImage() {
-        
-        Transferable t = getImageTrain();
-        if (t != null) {
-            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(t, null);
-        }
-    }
-        
-    public Transferable getStampTrain() {
-        
-        if ( (stampSelectionList == null) || (stampSelectionList.size() == 0) ) {
-            return null;
-        }
-        
-        Transferable t = null;
-        
-        try {
-            int size = stampSelectionList.size();
-            
-            Module[] copyList = new Module[size];
-            for (int i = 0; i < size; i++) {
-                StampHolder sh = (StampHolder)stampSelectionList.get(i);
-                copyList[i] = sh.getStamp();             
-            }
-            
-            if (myRole.equals("p")) {
-                OrderList list = new OrderList();
-                list.orderList = copyList;
-                t = new OrderListTransferable(list);
-            }
-            else {
-                StampList list = new StampList();
-                list.setStampList(copyList);
-                t = new StampListTransferable(list);
-            }
-        }
-        catch (Exception e) {
-            t = null;
-        }
-        return t;
-    }    
-    
-    public Transferable getImageTrain() {
-        
-        if ( (imageSelectionList == null) || (imageSelectionList.size() == 0) ) {
-            return null;
-        }
-        
-        Transferable t = null;
-        
-        try {
-            int size = imageSelectionList.size();
-            Schema[] copyList = new Schema[size];
-            for (int i = 0; i < size; i++) {
-                SchemaHolder sh = (SchemaHolder)imageSelectionList.get(i);
-                copyList[i] = sh.schema;
-            }
-            SchemaList list = new SchemaList();
-            list.schemaList = copyList;
-            t = new SchemaListTransferable(list);
-        }
-        catch (Exception e) {
-            t = null;
-        }
-        return t;
-    }     
-    
-    public void pasteStamp() {
-
-        Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
-        if (t == null) {
-            return;
-        }
-
-        try {
-            Module[] list = null;
-            if (myRole.equals("p")) {
-                if (t.isDataFlavorSupported(OrderListTransferable.orderListFlavor)) {
-                    OrderList o = (OrderList)t.getTransferData(OrderListTransferable.orderListFlavor);
-                    list = o.orderList;
-                }
-            }
-            else {
-                if (t.isDataFlavorSupported(StampListTransferable.stampListFlavor)) {
-                    StampList o = (StampList)t.getTransferData(StampListTransferable.stampListFlavor);
-                    list = o.getStampList();
-                }
-            }
-                
-            if (list != null) {
-                int len = list.length;
-                for(int i = 0; i < len; i++) {
-                    stamp((Module)list[i]);
-                }
-            }
-        }
-        catch (UnsupportedFlavorException e) {
-        } 
-        catch (IOException e) {
-        }
-    } 
-    
-    private void pasteImage() {
-        
-        Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
-        if (t == null) {
-            return;
-        }
-
-        try {
-            Schema[] list = null;
-            if (t.isDataFlavorSupported(SchemaListTransferable.schemaListFlavor)) {
-                SchemaList o = (SchemaList)t.getTransferData(SchemaListTransferable.schemaListFlavor);
-                list = o.schemaList;
-            }
-                
-            if (list != null) {
-                int size = list.length;
-                for(int i = 0; i < size; i++) {
-                    stampSchema((Schema)list[i]);
-                }
-            }
-        }
-        catch (UnsupportedFlavorException e) {
-        } 
-        catch (IOException e) {
-        }
-    }     
-    
-    public void removeStamp() {
-        int len = stampSelectionList.size();
-        StampHolder ta;
-        for (int i = len -1; i > -1; i--) {
-            ta = (StampHolder)stampSelectionList.remove(i);
-            ta.setSelected(false);
-            int start = ta.getStartPos();
-            int end = ta.getEndPos();
-            ((KarteStyledDocument)getDocument()).removeStamp(start, 3); // TODO 3
-        }
-    }   
-    
-    private void removeImage() {
-        int len = imageSelectionList.size();
-        SchemaHolder ta;
-        for (int i = len -1; i > -1; i--) {
-            ta = (SchemaHolder)imageSelectionList.remove(i);
-            ta.setSelected(false);
-            int start = ta.getStartPos();
-            int end = ta.getEndPos();
-            ((KarteStyledDocument)getDocument()).removeStamp(start, 2);
-        }
-    }  
-    
-    public int getCurrentSelection() {
-    
-        int selection = TT_NONE_SELECTION;
-        
-        if ( (stampSelectionList != null) && (stampSelectionList.size() > 0)) {
-            selection = TT_STAMP_SELECTION;
-        }
-        else if ( (imageSelectionList != null) && (imageSelectionList.size() > 0)) {
-            selection = TT_IMAGE_SELECTION;
-        }
-        else if (getSelectionStart() != getSelectionEnd()) {
-            selection = TT_TEXT_SELECTION;
-        }
-        return selection;
+    /**
+     * このペインからシェーマを削除する。
+     * @param sh 削除するシェーマのホルダ
+     */
+    public void removeSchema(SchemaHolder sh) {
+        getDocument().removeStamp(sh.getStartPos(), 2);
     }
     
-    public void notifySelection() {
-        SelectionEvent se = new SelectionEvent(this);
-        mediator.selected(se);
-    }
-    
-    public void clearAllSelection() {
-        selectionController.clearAllSelection();
-    }
-    
-    public void diSelectStamp() {
-        selectionController.clearSelection(stampSelectionList);
-        selectionController.clearSelection(imageSelectionList);
-    }
-    
-    protected final class SelectionController extends MouseAdapter {
-        
-        public SelectionController() {
-            super();
+    /**
+     * このペインからシェーマを削除する。
+     * @param sh 削除するシェーマのホルダリスト
+     */
+    public void removeSchema(SchemaHolder[] sh) {
+        if (sh != null && sh.length > 0) {
+            for (int i = 0; i < sh.length; i++) {
+                removeSchema(sh[i]);
+            }
         }
-        
-        public void mousePressed(MouseEvent e) {
-        	
-			IComponentHolder ch = (IComponentHolder)e.getSource();
-			
-			boolean diselectOther = false;
-    
-			// スタンプ選択の場合
-			if (ch.getContentType() == IComponentHolder.TT_STAMP) {
-				if (stampSelectionList == null) {
-					stampSelectionList = new ArrayList(10);
-				}
-        
-				// 選択制御及び　テキストとイメージ選択をクリアするかどうか
-				diselectOther = controlSelection(stampSelectionList, ch, e.isShiftDown());
-        
-				// 排他制御
-				if (diselectOther) {
-					clearTextSelection();
-					clearSelection(imageSelectionList);
-				}
-			}
-			else {
-				// イメージ選択の場合
-				if (imageSelectionList == null) {
-					imageSelectionList = new ArrayList(10);
-				}
-        
-				// 選択制御及び　テキストとスタンプ選択をクリアするかどうか
-				diselectOther = controlSelection(imageSelectionList, ch, e.isShiftDown());
-        
-				// 排他制御
-				if (diselectOther) {
-					clearTextSelection();
-					clearSelection(stampSelectionList);
-				}
-			}
-    
-			// 選択イベントを通知する
-			notifySelection(); 
-        }
-        
-        public void mouseClicked(MouseEvent e) {
-        	
-            IComponentHolder ch = (IComponentHolder)e.getSource();
-            
-            // ダブルクリックで編集
-            if (e.getClickCount() == 2) {
-                ch.edit(isEditable());
-                return;
-            }
-            
-            /*
-            // シングルクリック
-            boolean diselectOther = false;
-            
-            // スタンプ選択の場合
-            if (ch.getContentType() == IComponentHolder.TT_STAMP) {
-                if (stampSelectionList == null) {
-                    stampSelectionList = new ArrayList(10);
-                }
-                
-                // 選択制御及び　テキストとイメージ選択をクリアするかどうか
-                diselectOther = controlSelection(stampSelectionList, ch, e.isShiftDown());
-                
-                // 排他制御
-                if (diselectOther) {
-                    clearTextSelection();
-                    clearSelection(imageSelectionList);
-                }
-            }
-            else {
-                // イメージ選択の場合
-                if (imageSelectionList == null) {
-                    imageSelectionList = new ArrayList(10);
-                }
-                
-                // 選択制御及び　テキストとスタンプ選択をクリアするかどうか
-                diselectOther = controlSelection(imageSelectionList, ch, e.isShiftDown());
-                
-                // 排他制御
-                if (diselectOther) {
-                    clearTextSelection();
-                    clearSelection(stampSelectionList);
-                }
-            }
-            
-            // 選択イベントを通知する
-            notifySelection(); */
-        }
-        
-        // Cursor 調整
-        public void mouseEntered(MouseEvent e) {
-            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        }
-        public void mouseExited(MouseEvent e) {
-            setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-        }    
-        
-        // 選択のコントロール
-        private boolean controlSelection(ArrayList list, IComponentHolder sh, boolean isShiftDown) {
-            
-            // 相手ペイン・スタンプとイメージ間の選択クリアフラグ
-            boolean diselectOther = false;
-            
-            // 今選択リストが空であれば、他の選択はクリア
-            if (list.size() == 0 ) {
-                diselectOther = true;
-            }
-
-            if (isShiftDown) {
-                
-                if (sh.toggleSelection()) {
-                    list.add(sh);
-                }
-                else {
-                    int id = sh.getId();
-                    int len = list.size();
-                    int index;
-                    IComponentHolder h = null;
-                    for (index = 0; index < len; index++) {
-                        h = (IComponentHolder)list.get(index);
-                        if (h.getId() == id) {
-                            break;
-                        }
-                    }
-                    list.remove(index);
-                }
-            }
-            else {
-                int len = list.size();
-                int id = sh.getId();
-                IComponentHolder h = null;
-                for (int i = len -1; i > -1; i--) {
-                    h = (IComponentHolder)list.remove(i);
-                    if (id != h.getId()) {
-                        h.setSelected(false);
-                    }
-                }
-                if (sh.toggleSelection()) {
-                    list.add(sh);
-                }
-            }
-            
-            return diselectOther;
-       }
-              
-       public void clearAllSelection() {
-           clearTextSelection();
-           clearSelection(stampSelectionList);
-           clearSelection(imageSelectionList);
-       }
-       
-       private void clearTextSelection() {
-            if (getSelectionStart() != getSelectionEnd()) {
-                int pos = getCaretPosition();
-                select(pos,pos);
-            }
-       }
-       
-       private void clearSelection(ArrayList list) {
-           if ((list != null) && (list.size() > 0 )) {
-                int len = list.size();
-                IComponentHolder sh;
-                for (int i = len -1; i > -1 ; i--) {
-                    sh = (IComponentHolder)list.remove(i);
-                    sh.setSelected(false);
-                }
-           }
-       }
     }
 }

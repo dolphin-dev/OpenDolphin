@@ -20,6 +20,7 @@
 package open.dolphin.dao;
 
 import open.dolphin.client.*;
+import open.dolphin.plugin.IPluginContext;
 import open.dolphin.project.*;
 
 /**
@@ -38,10 +39,10 @@ public class SqlDaoFactory {
     public static SqlDaoBean create(Object o, String keyString) {
         
         SqlDaoBean dao = null;
-        String className = ClientContext.getString(keyString);
         
         try {            
-            dao = (SqlDaoBean)Class.forName(className).newInstance();
+            IPluginContext plCtx = ClientContext.getPluginContext();
+            dao = (SqlDaoBean)plCtx.lookup(keyString);
             dao.setDriver("org.postgresql.Driver");
             
             if (keyString.equals("dao.master")) {
@@ -58,6 +59,7 @@ public class SqlDaoFactory {
                 dao.setUser("dolphin");
                 dao.setPasswd("");
             }
+            
         } catch (Exception e) {
             //assert false : e;
             System.out.println(e);

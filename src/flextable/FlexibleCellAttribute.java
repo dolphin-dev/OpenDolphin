@@ -12,7 +12,8 @@ public class FlexibleCellAttribute
              implements CellAttribute,
                         Serializable {
 
-    // The rowSize and columnSize values must be kept in
+    private static final long serialVersionUID = -5516690872270766205L;
+	// The rowSize and columnSize values must be kept in
     // synch with the Table data; that is managed by the Table
     // model.
     protected int rowSize;

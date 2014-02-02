@@ -22,8 +22,8 @@ package open.dolphin.client;
 import javax.swing.*;
 import javax.swing.event.*;
 
-import open.dolphin.infomodel.LifestyleModule;
-import open.dolphin.infomodel.Module;
+import open.dolphin.infomodel.LifestyleModel;
+import open.dolphin.infomodel.ModuleModel;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -34,6 +34,8 @@ import java.awt.im.InputSubset;
  */
 public final class LifestyleStampEditor extends StampModelEditor {
    
+	private static final long serialVersionUID = 4874515806145819483L;
+	
 	private LifestylePanel lifestylePanel;
    
 	/**
@@ -67,6 +69,8 @@ public final class LifestyleStampEditor extends StampModelEditor {
 	 */
 	final class LifestylePanel extends JPanel {
 
+		private static final long serialVersionUID = -5494331746255054637L;
+		
 		//private JTextField tobaccoField = new JTextField(10);
 		private String[] tobaccoCategories = ClientContext.getStringArray("lifestyle.tobacco.categories");
 		private String[] alcoholCategories = ClientContext.getStringArray("lifestyle.alcohol.categories");
@@ -86,7 +90,7 @@ public final class LifestyleStampEditor extends StampModelEditor {
         
 		private JTextField occupationField = new JTextField(10);
 		private JTextField otherField = new JTextField(10);
-		private Module savedStamp;
+		private ModuleModel savedStamp;
 
 		/**
 		 * Constructor
@@ -111,10 +115,6 @@ public final class LifestyleStampEditor extends StampModelEditor {
 				public void focusGained(FocusEvent event) {
 					JTextField tf = (JTextField)event.getSource();
 					tf.getInputContext().setCharacterSubsets(new Character.Subset[] {InputSubset.KANJI});
-				}
-				public void focusLosted(FocusEvent event) {
-					JTextField tf = (JTextField)event.getSource();
-					tf.getInputContext().setCharacterSubsets(null);
 				}
 			};
             
@@ -222,9 +222,9 @@ public final class LifestyleStampEditor extends StampModelEditor {
 		 */
 		protected void setValue(Object stamp) {
             
-			savedStamp = (Module)stamp;
+			savedStamp = (ModuleModel)stamp;
             
-			LifestyleModule model = (LifestyleModule)savedStamp.getModel();
+			LifestyleModel model = (LifestyleModel)savedStamp.getModel();
             
 			if (model == null) {
 				return;
@@ -264,7 +264,7 @@ public final class LifestyleStampEditor extends StampModelEditor {
 		 */
 		protected Object getValue() {
 
-			LifestyleModule model = new LifestyleModule();
+			LifestyleModel model = new LifestyleModel();
 
 			//String data = tobaccoField.getText().trim();
 			String data = getTobacco();

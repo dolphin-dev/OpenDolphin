@@ -20,7 +20,7 @@ package open.dolphin.client;
 
 import javax.swing.tree.*;
 
-import open.dolphin.infomodel.ModuleInfo;
+import open.dolphin.infomodel.ModuleInfoBean;
 
 /**
  * StampTree のノードクラス。
@@ -29,7 +29,7 @@ import open.dolphin.infomodel.ModuleInfo;
  */
 public class StampTreeNode extends DefaultMutableTreeNode {
 	
-	private String treeId;
+	private static final long serialVersionUID = -4253332364508651955L;
 
     /**
      * コンストラクタ
@@ -39,7 +39,7 @@ public class StampTreeNode extends DefaultMutableTreeNode {
         super(userObject);
         
         // StampInfo で初期化された場合は葉ノードにする
-        if (userObject instanceof open.dolphin.infomodel.ModuleInfo) {
+        if (userObject instanceof open.dolphin.infomodel.ModuleInfoBean) {
             this.allowsChildren = false;
         }
     }
@@ -47,22 +47,14 @@ public class StampTreeNode extends DefaultMutableTreeNode {
     /**
      * 葉かどうかを返す
      */
-    public boolean isLeaf () {
+    public boolean isLeaf() {
         return (! this.allowsChildren);
     }
     
     /**
      * StampInfo を返す
      */
-    public ModuleInfo getStampInfo() {
-        return (ModuleInfo)userObject;
+    public ModuleInfoBean getStampInfo() {
+        return (ModuleInfoBean) userObject;
     }
-
-	public void setTreeId(String treeId) {
-		this.treeId = treeId;
-	}
-
-	public String getTreeId() {
-		return treeId;
-	}
 }

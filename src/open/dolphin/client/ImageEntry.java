@@ -18,15 +18,20 @@
  */
 package open.dolphin.client;
 
+import java.io.Serializable;
+
 import javax.swing.*;
 
 /**
+ * ImageEntry
  *
  * @author  Kazushi Minagawa, Digital globe, Inc.
  */
-public class ImageEntry {
+public class ImageEntry implements Serializable {
     
-    private String confirmDate;
+    private static final long serialVersionUID = 9128295991392062419L;
+
+	private String confirmDate;
     
     private String title;
     
@@ -36,7 +41,9 @@ public class ImageEntry {
     
     private ImageIcon imageIcon;
     
-    private String dn;
+    private long id;
+    
+    private String url;
     
     /** Creates a new instance of ImageEntry */
     public ImageEntry() {
@@ -82,11 +89,25 @@ public class ImageEntry {
         imageIcon = val;
     }   
     
-    public String getDN() {
-        return dn;
+    public long getId() {
+        return id;
     }
     
-    public void setDN(String val) {
-        dn = val;
-    }    
+    public void setId(long val) {
+        id = val;
+    }
+
+	/**
+	 * @param url The url to set.
+	 */
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	/**
+	 * @return Returns the url.
+	 */
+	public String getUrl() {
+		return url;
+	}    
 }

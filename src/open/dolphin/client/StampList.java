@@ -18,7 +18,7 @@
  */
 package open.dolphin.client;
 
-import open.dolphin.infomodel.Module;
+import open.dolphin.infomodel.ModuleModel;
 
 /**
  *
@@ -26,17 +26,19 @@ import open.dolphin.infomodel.Module;
  */
 public class StampList implements java.io.Serializable {
     
-    Module[] stampList;
+    private static final long serialVersionUID = 5919106499806109895L;
+	
+    ModuleModel[] stampList;
 
     /** Creates new StampList */
     public StampList() {
     }
 
-	public void setStampList(Module[] stampList) {
+	public void setStampList(ModuleModel[] stampList) {
 		this.stampList = stampList;
 	}
 
-	public Module[] getStampList() {
+	public ModuleModel[] getStampList() {
 		return stampList;
 	}
 }

@@ -1,18 +1,18 @@
 /*
  * Project.java
  * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2003,2004 Digital Globe, Inc. All rights reserved.
+ * Copyright (C) 2003-2005 Digital Globe, Inc. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *	
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *	
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -20,9 +20,12 @@
 package open.dolphin.project;
 
 import java.awt.*;
+import java.io.OutputStream;
+import java.util.prefs.Preferences;
 
 import open.dolphin.client.*;
-import open.dolphin.infomodel.*;
+import open.dolphin.infomodel.ID;
+import open.dolphin.infomodel.UserModel;
 
 /**
  * プロジェクト情報管理クラス。
@@ -31,15 +34,92 @@ import open.dolphin.infomodel.*;
  */
 public class Project  {
     
-    public static int KUMAMOTO = 0;
-    public static int MIYAZAKI = 1;
+    // Prpject Name
+    public static final String PROJECT_NAME		= "name";
+    
+    // USER
+    public static final String USER_TYPE		= "userType";
+    public static final String USER_ID 			= "userId";
+    public static final String FACILITY_ID 		= "facilityId";
+    
+    // SERVER
+    public static final String HOST_ADDRESS 		= "hostAddress";
+    public static final String HOST_PORT 		= "hostPort";
+    
+    // CLAIM
+    public static final String SEND_CLAIM 		= "sendClaim";
+    public static final String SEND_CLAIM_SAVE          = "sendClaimSave";
+    public static final String SEND_CLAIM_TMP 		= "sendClaimTmp";
+    public static final String SEND_CLAIM_MODIFY 	= "sendClaimModify";
+    public static final String SEND_DIAGNOSIS 		= "sendDiagnosis";
+    public static final String CLAIM_HOST_NAME          = "claimHostName";
+    public static final String CLAIM_VERSION 		= "claimVersion";
+    public static final String CLAIM_ENCODING 		= "claimEncoding";
+    public static final String CLAIM_ADDRESS 		= "claimAddress";
+    public static final String CLAIM_PORT 		= "claimPort";
+    public static final String USE_AS_PVT_SERVER 	= "useAsPVTServer";
+    
+    // Area Network
+    public static final String JOIN_AREA_NETWORK 	= "joinAreaNetwork";
+    public static final String AREA_NETWORK_NAME 	= "jareaNetworkName";
+    public static final String AREA_NETWORK_FACILITY_ID = "jareaNetworkFacilityId";
+    public static final String AREA_NETWORK_CREATOR_ID  = "jareaNetworkCreatorId";
+    
+    // MML
+    public static final String SEND_MML			= "mml.send";
+    public static final String MML_VERSION    		= "mml.version";
+    public static final String MML_ENCODING		= "mml.encoding";
+    public static final String SEND_MML_ADDRESS 	= "mml.address";
+    public static final String SEND_MML_DIRECTORY 	= "mml.directory";
+    public static final String SEND_MML_PROTOCOL 	= "mml.protocol";
+    
+    // ソフトウェア更新
+    public static final String USE_PROXY		= "useProxy";
+    public static final String PROXY_HOST		= "proxyHost";
+    public static final String PROXY_PORT		= "proxyPort";
+    public static final String LAST_MODIFIED  		= "lastModify";
+    
+    // インスペクタのメモ位置
+    public static final String INSPECTOR_MEMO_LOCATION  = "inspectorMemoLocation";
+    
+    // インスペクタの locationByPlatform 属性
+    public static final String LOCATION_BY_PLATFORM     = "locationByPlatform";
+    
+    // 文書履歴
+    public static final String DOC_HISTORY_ASCENDING 	= "docHistory.ascending";
+    public static final String DOC_HISTORY_SHOWMODIFIED = "docHistory.showModified";
+    public static final String DOC_HISTORY_FETCHCOUNT 	= "docHistory.fetchCount";
+    public static final String DOC_HISTORY_PERIOD 	= "docHistory.period";
+    public static final String KARTE_SCROLL_DIRECTION   = "karte.scroll.direction";
+    
+    // 病名
+    public static final String DIAGNOSIS_ASCENDING 	= "diagnosis.ascending";
+    public static final String DIAGNOSIS_PERIOD 	= "diagnosis.period";
+    public static final String OFFSET_OUTCOME_DATE 	= "diagnosis.offsetOutcomeDate";
+    
+    // 検体検査
+    public static final String LABOTEST_PERIOD 		= "laboTest.period";
+    
+    // 処方
+    public static final String RP_OUT			= "rp.out";
+        
+    // 確認ダイアログ
+    public static final String KARTE_SHOW_CONFIRM_AT_NEW = "karte.showConfirmAtNew";
+    public static final String KARTE_CREATE_MODE = "karte.createMode";
+    public static final String KARTE_PLACE_MODE = "karte.placeMode";
+    public static final String KARTE_SHOW_CONFIRM_AT_SAVE = "karte.showConfirmAtSave";
+    public static final String KARTE_PRINT_COUNT = "karte.printCount";
+    public static final String KARTE_SAVE_ACTION = "karte.saveAction";
+    
+    // ユーザの利用形式
+    public enum UserType {ASP_MEMBER, ASP_TESTER, ASP_DEV, FACILITY_USER, UNKNOWN, EXPIRED};
     
     private static ProjectStub stub;
-
+    
     /** Creates new Project */
     public Project() {
     }
-        
+    
     public static void setProjectStub(ProjectStub p) {
         stub = p;
     }
@@ -48,60 +128,46 @@ public class Project  {
         return stub;
     }
     
-    public static String getName() {
-        return stub.getName();
+    public static UserType getUserType() {
+        return stub.getUserType();
     }
     
-    public static int getLocalCode() {
-        
-        String name = stub.getName();
-        if (name.equals("kumamoto")) {
-            return KUMAMOTO;
-            
-        } else if (name.equals("miyazaki")) {
-            return MIYAZAKI;
-            
-        } else {
-            return -1;
-        }
-    }
-        
-    public static UserProfileEntry getUserProfileEntry() {
-        return stub.getUserProfileEntry();
+    public static boolean isValid() {
+        return stub.isValid();
     }
     
-    public static void setUserProfileEntry(UserProfileEntry profile) {
-        stub.setUserProfileEntry(profile);
+    public static Preferences getPreferences() {
+        return stub.getPreferences();
     }
     
-    public static String getCreatorId() {
-        return stub.getUserProfileEntry().getUserId();
+    public static DolphinPrincipal getDolphinPrincipal() {
+        return stub.getDolphinPrincipal();
     }
     
-    public static Creator getCreatorInfo() {
-        return stub.getCreatorInfo();
+    public static String getProviderURL() {
+        return stub.getProviderURL();
     }
     
-    // 2003-10-30 licenseCode による制御
-    // user の医療資格と lasmanager で判断する
+    public static UserModel getUserModel() {
+        return stub.getUserModel();
+    }
+    
+    public static void setUserModel(UserModel value) {
+        stub.setUserModel(value);
+    }
+    
     public static boolean isReadOnly() {
-        
-        String licenseCode = stub.getUserProfileEntry().getLicenseCode();
-        String userId = stub.getUserProfileEntry().getUserId();
-        
+        String licenseCode = stub.getUserModel().getLicenseModel().getLicense();
+        String userId = stub.getUserModel().getUserId();
         return ( licenseCode.equals("doctor") || userId.equals("lasmanager") ) ? false : true;
-    }
-    
-    public static String getAuthenticationDN() {
-        return stub.getAuthenticationDN();
     }
     
     public static String getUserId() {
         return stub.getUserId();
     }
     
-    public static String getPasswd() {
-        return stub.getPasswd();
+    public static String getFacilityId() {
+        return stub.getFacilityId();
     }
     
     public static String getHostAddress() {
@@ -112,32 +178,90 @@ public class Project  {
         return stub.getHostPort();
     }
     
-    // HOT
+    //
+    // CLAIM
+    //
+    
+    /**
+     * 診療行為の送信を行うかどうかを返す。
+     * @return 行うとき true
+     */
     public static boolean getSendClaim() {
         return stub.getSendClaim();
     }
     
+    /**
+     * 保存時に送信を行うかどうかを返す。
+     * @return 行うとき true
+     */
+    public static boolean getSendClaimSave() {
+        return stub.getSendClaimSave();
+    }
+    
+    /**
+     * 仮保存時に診療行為の送信を行うかどうかを返す。
+     * @return 行うとき true
+     */
+    public static boolean getSendClaimTmp() {
+        return stub.getSendClaimTmp();
+    }
+    
+    /**
+     * 修正時に診療行為の送信を行うかどうかを返す。
+     * @return 行うとき true
+     */
+    public static boolean getSendClaimModify() {
+        return stub.getSendClaimModify();
+    }
+    
+    /**
+     * 病名の送信を行うかどうかを返す。
+     * @return 行うとき true
+     */
     public static boolean getSendDiagnosis() {
         return stub.getSendDiagnosis();
     }
     
+    /**
+     * CLAIM のホスト名を返す。
+     * @return return CLAIM のホスト名
+     */
     public static String getClaimHostName() {
         return stub.getClaimHostName();
     }
-    // HOT
     
+    /**
+     * 受付情報を受信するかどうかを返す。
+     * @return 行うとき true
+     */
+    public static boolean getUseAsPVTServer() {
+        return stub.getUseAsPVTServer();
+    }
+    
+    /**
+     * CLAIM ホストの IP アドレスを返す。
+     * @return CLAIM ホストの IP アドレス
+     */
     public static String getClaimAddress() {
         return stub.getClaimAddress();
     }
     
+    /**
+     * CLAIM ホストの診療行為送信先ポート番号を返す。
+     * @return CLAIM ホスト名の診療行為送信先ポート番号
+     */
     public static int getClaimPort() {
         return stub.getClaimPort();
     }
     
+    /**
+     * CLAIM 送信時のXMLエンコーディングを返す。
+     * @return CLAIM エンコーディング
+     */
     public static String getClaimEncoding() {
         return stub.getClaimEncoding();
     }
-
+    
     public static String getProxyHost() {
         return stub.getProxyHost();
     }
@@ -154,44 +278,72 @@ public class Project  {
         stub.setLastModify(val);
     }
     
+    /**
+     * ProjectFactoryを返す。
+     * @return Project毎に異なる部分の情報を生成するためのFactory
+     */
     public static AbstractProjectFactory getProjectFactory() {
         return AbstractProjectFactory.getProjectFactory(stub.getName());
     }
     
-    public static String createUUID() {
-        return getProjectFactory().createUUID();
-    }    
+    /**
+     * 地域連携に参加するかどうかを返す。
+     * @return 参加する時 true
+     */
+    public static boolean getJoinAreaNetwork() {
+        return stub.getJoinAreaNetwork();
+    }
     
+    /**
+     * 地域連携用の施設IDを返す。
+     * @return 地域連携で使用する施設ID
+     */
+    public static String getAreaNetworkFacilityId() {
+        return stub.getAreaNetworkFacilityId();
+    }
+    
+    /**
+     * 地域連携用のCreatorIDを返す。
+     * @return 地域連携で使用するCreatorId
+     */
+    public static String getAreaNetworkCreatorId() {
+        return stub.getAreaNetworkCreatorId();
+    }
+        
+    /**
+     * 地域連携用の患者MasterIdを返す。
+     * @return 地域連携で使用する患者MasterId
+     */
     public static ID getMasterId(String pid) {
-        String fid = stub.getUserProfileEntry().getFacilityId();
+        String fid = stub.getAreaNetworkFacilityId();
         return getProjectFactory().createMasterId(pid, fid);
     }
     
+    /**
+     * CLAIM送信に使用する患者MasterIdを返す。
+     * 地域連携ルールと異なるため。
+     */
     public static ID getClaimMasterId(String pid) {
         return new ID(pid, "facility", "MML0024");
-    }
-    
-    public static DocInfo getDocInfo(SaveParams params, String gId) {
-        return getProjectFactory().createDocInfo(params, gId);
     }
     
     public static Object createSaveDialog(Frame parent, SaveParams params) {
         return getProjectFactory().createSaveDialog(parent, params);
     }
     
+    /**
+     * CSGW(Client Side Gate Way)へのパスを返す。
+     */
     public static String getCSGWPath() {
-        //String host = getHostAddress();
-        // 2003-08-18
         String uploader = getUploaderIPAddress();
         String share = getUploadShareDirectory();
-        String id = stub.getUserProfileEntry().getFacilityId();
+        String id = stub.getAreaNetworkFacilityId()!= null 
+                    ? stub.getAreaNetworkFacilityId() 
+                    : stub.getUserModel().getFacilityModel().getFacilityId();
         return getProjectFactory().createCSGWPath(uploader, share, id);
     }
     
     // HOT
-    /**
-     * センター送信をする場合は true
-     */
     public static boolean getSendMML() {
         return stub.getSendMML();
     }
@@ -204,10 +356,6 @@ public class Project  {
         return stub.getMMLEncoding();
     }
     
-    /*public static boolean getUseLocalPatientId() {
-        return stub.getUseLocalPatientId();
-    }*/
-    
     public static String getUploaderIPAddress() {
         return stub.getUploaderIPAddress();
     }
@@ -216,16 +364,11 @@ public class Project  {
         return stub.getUploadShareDirectory();
     }
     
-        
-    // MMLV3 OID
-    public static String getFacilityOID() {
-        String facilityId = getUserProfileEntry().getFacilityId();
-        return getProjectFactory().getFacilityOID(facilityId);
+    public static void exportSubtree(OutputStream os) {
+        stub.exportSubtree(os);
     }
     
-    public static DocInfo getClaimDocInfo(SaveParams params, String gId) {
-        return getProjectFactory().createClaimDocInfo(params, gId);
+    public static void clear() {
+        stub.clear();
     }
-    
-    // HOT
 }

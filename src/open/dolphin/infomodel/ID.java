@@ -19,11 +19,14 @@
 package open.dolphin.infomodel;
 
 /**
- *
+ * ID
+ * 
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
 public class ID extends InfoModel {
     
+    private static final long serialVersionUID = -5070888481802856042L;
+	
     String id;
     String idType;
     String idTypeTableId;

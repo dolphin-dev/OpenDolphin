@@ -21,8 +21,8 @@ package open.dolphin.order;
 import javax.swing.*;
 import javax.swing.event.*;
 
-import open.dolphin.dao.*;
-import open.dolphin.infomodel.RadiologyMethodEntry;
+import open.dolphin.delegater.MasterDelegater;
+import open.dolphin.infomodel.RadiologyMethodValue;
 
 import java.awt.*;
 import java.beans.*;
@@ -35,6 +35,8 @@ import java.util.*;
  */
 public final class RadiologyMethod extends JPanel {
     
+    private static final long serialVersionUID = 7002106454090449477L;
+	
     public static final String RADIOLOGY_MEYTHOD_PROP = "radiologyProp";
     private static final int METHOD_CELL_WIDTH   = 120;
     private static final int COMMENT_CELL_WIDTH    = 140;
@@ -50,13 +52,13 @@ public final class RadiologyMethod extends JPanel {
     public RadiologyMethod() {
                 
         boundSupport = new PropertyChangeSupport(this);
-        SqlDolphinMasterDao dao = (SqlDolphinMasterDao)SqlDaoFactory.create(this, "dao.master.dolphin");
+        MasterDelegater mdl = new MasterDelegater();
         
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
            
         // Method panel
         JPanel p1 = new JPanel(new BorderLayout());        
-        Object[] methods = dao.getRadiologyMethod();
+        Object[] methods = mdl.getRadiologyMethod();
         methodList = new JList(methods);
         methodList.setFixedCellWidth(METHOD_CELL_WIDTH);
         methodList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -65,11 +67,7 @@ public final class RadiologyMethod extends JPanel {
             public void valueChanged(ListSelectionEvent e) {
                 
                 if (e.getValueIsAdjusting() == false) {
-                    /*IdNamePair o = (IdNamePair)methodList.getSelectedValue();
-                    if ( o != null) {
-                        fetchComments(o); 
-                    } */
-                    RadiologyMethodEntry entry = (RadiologyMethodEntry)methodList.getSelectedValue();
+                	RadiologyMethodValue entry = (RadiologyMethodValue)methodList.getSelectedValue();
                     if (entry == null) {
                         return;
                     }
@@ -94,15 +92,12 @@ public final class RadiologyMethod extends JPanel {
             public void valueChanged(ListSelectionEvent e) {
                 
                 if (e.getValueIsAdjusting() == false) {
-                    /*IdNamePair info = (IdNamePair)commentList.getSelectedValue();
-                    if ( info != null) {
-                        notifyComment(info);
-                    }*/
-                    RadiologyMethodEntry entry = (RadiologyMethodEntry)commentList.getSelectedValue();
+                	
+                	RadiologyMethodValue entry = (RadiologyMethodValue)commentList.getSelectedValue();
                     if (entry == null) {
                         return;
                     }
-                    notifyComment(entry.getName());
+                    notifyComment(entry.getMethodName());
                 }
             }
         });
@@ -134,8 +129,8 @@ public final class RadiologyMethod extends JPanel {
         if (v2 != null) {
             v2.clear();
         }
-        SqlDolphinMasterDao dao = (SqlDolphinMasterDao)SqlDaoFactory.create(this, "dao.master.dolphin");
-        v2 = dao.getRadiologyComments(h1);        
+        MasterDelegater mdl = new MasterDelegater();
+        v2 = mdl.getRadiologyComments(h1);        
         commentList.setListData(v2);
     }
 }

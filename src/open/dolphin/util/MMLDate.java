@@ -28,9 +28,9 @@ import java.text.*;
  */
 public final class MMLDate extends Object {
     
-    private static final String MML_DATETIME_PATTERN = "yyyy-MM-dd'T'hh:mm:ss";
+    private static final String MML_DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
     private static final String MML_DATE_PATTERN = "yyyy-MM-dd";
-    private static final String MML_TIME_PATTERN = "hh:mm:ss";
+    private static final String MML_TIME_PATTERN = "HH:mm:ss";
 
     /** Creates new MMLDate */
     public MMLDate() {        

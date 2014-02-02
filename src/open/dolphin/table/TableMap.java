@@ -15,9 +15,14 @@ import javax.swing.table.*;
 import javax.swing.event.TableModelListener; 
 import javax.swing.event.TableModelEvent; 
 
+/**
+ * TableMap
+ *
+ */
 public class TableMap extends AbstractTableModel 
                       implements TableModelListener {
-    protected TableModel model; 
+    private static final long serialVersionUID = -7544954445280970228L;
+	protected TableModel model; 
 
     public TableModel getModel() {
         return model;
@@ -63,7 +68,8 @@ public class TableMap extends AbstractTableModel
         return model.getColumnName(aColumn); 
     }
 
-    public Class getColumnClass(int aColumn) {
+    @SuppressWarnings("unchecked")
+	public Class getColumnClass(int aColumn) {
         return model.getColumnClass(aColumn); 
     }
         

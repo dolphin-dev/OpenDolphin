@@ -23,12 +23,15 @@ import javax.swing.*;
 import java.awt.event.*;
 
 /**
- *
+ * IMECellEditor
+ * 
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
 public class IMECellEditor extends DefaultCellEditor {
     
-    /** Creates a new instance of DTableCellEditor */
+    private static final long serialVersionUID = 6940297554018543284L;
+
+	/** Creates a new instance of DTableCellEditor */
     public IMECellEditor(final JTextField tf, final int clickCount, final boolean on) {
         
         super(tf);
@@ -44,7 +47,8 @@ public class IMECellEditor extends DefaultCellEditor {
                     tf.getInputContext().setCharacterSubsets(new Character.Subset[] {InputSubset.KANJI});
                     //tf.getInputContext().setCharacterSubsets(null);
                 }
-                public void focusLosted(FocusEvent event) {
+                @SuppressWarnings("unused")
+				public void focusLosted(FocusEvent event) {
                    tf.getInputContext().setCharacterSubsets(null);
                 }
             });
@@ -56,7 +60,8 @@ public class IMECellEditor extends DefaultCellEditor {
                     //tf.getInputContext().setCharacterSubsets(new Character.Subset[] {InputSubset.KANJI});
                     tf.getInputContext().setCharacterSubsets(null);
                 }
-                public void focusLosted(FocusEvent event) {
+                @SuppressWarnings("unused")
+				public void focusLosted(FocusEvent event) {
                    tf.getInputContext().setCharacterSubsets(null);
                 }
             });

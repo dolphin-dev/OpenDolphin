@@ -29,8 +29,8 @@ import java.io.*;
 public final class StampTreeTransferable implements Transferable, ClipboardOwner {
 
     /** Data Flavor of this class */
-    public static DataFlavor stampTreeNodeFlavor = new DataFlavor(open.dolphin.client.StampTreeNode.class,
-                                                 "Stamp Tree Node");
+    public static DataFlavor stampTreeNodeFlavor 
+    	= new DataFlavor(open.dolphin.client.StampTreeNode.class, "Stamp Tree Node");
     
     public static final DataFlavor[] flavors = {StampTreeTransferable.stampTreeNodeFlavor};
     

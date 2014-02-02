@@ -37,7 +37,7 @@ public final class AgeCalculator {
      * @return age as String
      */
     public static String getAge(String mmlBirthday) {
-        
+    	        
         GregorianCalendar gc1 = getCalendar(mmlBirthday); 
         GregorianCalendar gc2 = new GregorianCalendar();  // Today
         int years = 0;

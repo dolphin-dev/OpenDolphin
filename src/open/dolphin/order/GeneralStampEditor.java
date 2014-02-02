@@ -24,6 +24,8 @@ import javax.swing.border.*;
 import open.dolphin.client.*;
 
 import java.awt.*;
+import java.util.EnumSet;
+import open.dolphin.client.GUIConst;
 
 /**
  * TreatmentStampEditor.
@@ -37,6 +39,8 @@ public final class GeneralStampEditor extends StampModelEditor  {
     //private static final String classCodeId         = "Claim007";   
     //private static final String subclassCodeId      = "Claim003";
             
+    private static final long serialVersionUID = -8582630871058554554L;
+	
     private ItemTablePanel testTable;
     private MasterTabPanel masterPanel;
     
@@ -44,39 +48,40 @@ public final class GeneralStampEditor extends StampModelEditor  {
      * Creates new InjectionStampEditor 
      */
     public GeneralStampEditor() {
+    }
+    
+    public void start() {
         
-        String[] spec = ClientContext.getStringArray("claim.order.general.spec");
-        String orderName = spec[0];
-        String serachClass = spec[1];
-        String claimClassCode = spec[2];
-        String claimClassCodeId = spec[3];
-        String subclassCodeId = spec[4];
-		String entityName = spec[5];
-              
-        setTitle(orderName);
+    	// 汎用のCLAIM 仕様を得る
+        ClaimConst.ClaimSpec spec = ClaimConst.ClaimSpec.GENERAL;
         
-        // Creates table
-        testTable = new ItemTablePanel();
-        testTable.setOrderName(orderName);
-        testTable.setFindClaimClassCode(true);
-        testTable.setClassCodeId(claimClassCodeId);
-        testTable.setSubClassCodeId(subclassCodeId);
-		testTable.setEntityName(entityName);
-		
-        Border b = BorderFactory.createEtchedBorder();
-        testTable.setBorder(BorderFactory.createTitledBorder(b, orderName));
+        // セットテーブルを生成し CLAIM パラメータを設定する
+        testTable = new ItemTablePanel(this);
+        testTable.setOrderName(spec.getName());
+        testTable.setFindClaimClassCode(true);         // 診療行為区分はマスタアイテムから
+        testTable.setClassCodeId(ClaimConst.CLASS_CODE_ID);
+        testTable.setSubClassCodeId(ClaimConst.SUBCLASS_CODE_ID);
         
-        // Start master
-        masterPanel = new MasterTabPanel();
-        masterPanel.setSearchClass(null);
+        // 汎用のマスタセットを生成する
+        EnumSet<ClaimConst.MasterSet> set = EnumSet.of(
+        		ClaimConst.MasterSet.TREATMENT,
+        		ClaimConst.MasterSet.MEDICAL_SUPPLY,
+        		ClaimConst.MasterSet.INJECTION_MEDICINE,
+        		ClaimConst.MasterSet.TOOL_MATERIAL);
+        // マスタパネルを生成し、診療行為の検索対象コード範囲を設定する
+        masterPanel = new MasterTabPanel(set);
+        masterPanel.setSearchClass(null); // なし
         masterPanel.startGeneral(testTable);
 
-        testTable.setParent(this);
+        // タイトルを設定しレイアウトする
+        setTitle(spec.getName());
+        Border b = BorderFactory.createEtchedBorder();
+        testTable.setBorder(BorderFactory.createTitledBorder(b, spec.getName()));
         
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(0, GUIConst.DEFAULT_CMP_V_SPACE));
         add(testTable, BorderLayout.NORTH);
         add(masterPanel, BorderLayout.CENTER);
-        setPreferredSize(new Dimension(920, 610));
+        setPreferredSize(GUIConst.DEFAULT_STAMP_EDITOR_SIZE);
     }
     
     public Object getValue() {

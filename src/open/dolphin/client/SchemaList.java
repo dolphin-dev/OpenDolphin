@@ -17,15 +17,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package open.dolphin.client;
-import open.dolphin.infomodel.Schema;
+import open.dolphin.infomodel.SchemaModel;
 
 /**
- *
+ * SchemaList
+ * 
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
 public class SchemaList implements java.io.Serializable {
     
-    Schema[] schemaList;
+    private static final long serialVersionUID = 5408868424299902180L;
+	
+    SchemaModel[] schemaList;
 
     /** Creates new ImageList */
     public SchemaList() {

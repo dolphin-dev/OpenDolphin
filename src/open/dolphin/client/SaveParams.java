@@ -19,8 +19,6 @@
  */
 package open.dolphin.client;
 
-import java.util.*;
-
 /**
  * Parametrs to save document.
  *
@@ -28,15 +26,35 @@ import java.util.*;
  */
 public class SaveParams {
     
+    /** MML送信するかどうかのフラグ 送信する時 true */
     private boolean sendMML;
-    private String title = "経過記録";
+    
+    /** 文書へつけるタイトル */
+    private String title;
+    
+    /** 診療科情報 */
     private String department;
+    
+    /** 印刷部数 */
     private int printCount = -1;
+    
+    /** 患者への参照を許可するかどうかのフラグ 許可するとき true*/
     private boolean allowPatientRef;
+    
+    /** 診療歴のある施設への参照許可フラグ 許可する時 true */
     private boolean allowClinicRef;
-    private ArrayList facilityList;
+    //private ArrayList facilityList;
+    
+    /** 仮保存の時 true */
+    private boolean tmpSave;
+    
+    /** CLAIM 送信フラグ */
+    private boolean sendClaim;
 
-    /** Creates new SaveParams */
+    
+    /** 
+     * Creates new SaveParams 
+     */
     public SaveParams() {
         super();
     }
@@ -94,11 +112,27 @@ public class SaveParams {
         allowClinicRef = b;
     }
     
-    public ArrayList getFacilityAccessList() {
-        return facilityList;
+//    public ArrayList getFacilityAccessList() {
+//        return facilityList;
+//    }
+//    
+//    public void setFacilityAccessList(ArrayList list) {
+//        facilityList = list;
+//    }
+
+    public boolean isTmpSave() {
+        return tmpSave;
+    }
+
+    public void setTmpSave(boolean tmpSave) {
+        this.tmpSave = tmpSave;
     }
     
-    public void setFacilityAccessList(ArrayList list) {
-        facilityList = list;
+    public boolean isSendClaim() {
+        return sendClaim;
+    }
+
+    public void setSendClaim(boolean sendClaim) {
+        this.sendClaim = sendClaim;
     }
 }

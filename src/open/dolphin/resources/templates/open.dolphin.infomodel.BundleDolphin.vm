@@ -1,10 +1,9 @@
 ##------------------------------------- start here
-#set ($top = $root.getRootElement())
-#set ($claimItems = $top.getChildren("claimItem"))
+##   Bundle Template
 ##------------------------------------- template here
-<HTML><BODY><TT><FONT SIZE="-1" COLOR="#000C9C">
-<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="5">
-	<TR BGCOLOR="#FFCED9">
+<HTML><BODY><TT><FONT SIZE="${hints.getFontSize()}" COLOR="${hints.getBackgroundAs16String()}">
+<TABLE BORDER="${hints.getBorder()}" CELLSPACING="${hints.getCellSpacing()}" CELLPADDING="${hints.getCellPadding()}">
+	<TR BGCOLOR="${hints.getLabelColorAs16String()}">
 #if ($stampName == "新規スタンプ" || $stampName == "エディタから発行..." || $stampName == "チェックシート")
 		<TD COLSPAN="3">${model.getOrderName()}</TD>
 #else

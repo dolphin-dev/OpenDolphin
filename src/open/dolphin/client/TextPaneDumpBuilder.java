@@ -1,6 +1,6 @@
 /*
  * TextPaneDumpBuilder.java
- * Copyright (C) 2003 Digital Globe, Inc. All rights reserved.
+ * Copyright (C) 2003-2005 Digital Globe, Inc. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,10 +32,11 @@ import javax.swing.text.*;
 public class TextPaneDumpBuilder {
     
     // Control flags to dump.
-    static final int TT_PARAGRAPH   = 0;
-    static final int TT_CONTENT     = 1;
-    static final int TT_ICON        = 2;
-    static final int TT_COMPONENT   = 3;
+	static final int TT_SECTION     = 0;
+    static final int TT_PARAGRAPH   = 1;
+    static final int TT_CONTENT     = 2;
+    static final int TT_ICON        = 3;
+    static final int TT_COMPONENT   = 4;
     
     /** Creates a new instance of TextPaneDumpBuilder */
     public TextPaneDumpBuilder() {
@@ -47,11 +48,9 @@ public class TextPaneDumpBuilder {
         BufferedWriter w = new BufferedWriter(sw);
         
         try {
-            w.write("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
-            w.write("<progressCourseModule>\n");
+            //w.write("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
             javax.swing.text.Element root = (javax.swing.text.Element)doc.getDefaultRootElement();
             writeElemnt(root, w);
-            w.write("</progressCourseModule>\n");
             
             w.flush();
             w.close();
@@ -63,29 +62,149 @@ public class TextPaneDumpBuilder {
         return sw.toString();
     }
     
+    String attsDump(AttributeSet atts) {
+		if(atts != null) {
+		    StringBuffer retBuffer = new StringBuffer();
+		    Enumeration names = atts.getAttributeNames();
+		    while(names.hasMoreElements()) {		
+				Object nextName = names.nextElement();
+				if(nextName != StyleConstants.ResolveAttribute) {
+					retBuffer.append(" ");
+				    retBuffer.append(nextName);
+				    retBuffer.append("=");
+				    Object attObject = atts.getAttribute(nextName);
+					retBuffer.append(addQuote(attObject.toString()));
+				}
+		    }
+		    return retBuffer.toString();
+		}
+		return null;
+    }
+    
+    void writeElemnt0(javax.swing.text.Element element, Writer writer) throws IOException, BadLocationException {
+    	
+    		// 開始及び終了のオフセット値
+    		int start = element.getStartOffset();
+    		int end = element.getEndOffset();
+    		
+    		// このエレメントの属性セット
+		AttributeSet atts = element.getAttributes().copyAttributes();
+		
+		// 属性値の文字列表現
+		String asString = "";
+
+		if(atts != null) {
+			
+		    StringBuffer retBuffer = new StringBuffer();
+		    
+		    // 全ての属性を列挙する
+		    Enumeration names = atts.getAttributeNames();
+
+		    while(names.hasMoreElements()) {
+		    		
+				Object nextName = names.nextElement();
+	
+				if(nextName != StyleConstants.ResolveAttribute) {
+					
+					// $enameは除外する
+					if (nextName.toString().startsWith("$")) {
+						continue;
+					}
+					
+					retBuffer.append(" ");
+				    retBuffer.append(nextName);
+				    retBuffer.append("=");
+				    
+				    // foreground 属性の場合は再構築の際に利用しやすい形に分解する
+				    if (nextName.toString().equals("foreground")) {
+		                Color c = (Color)atts.getAttribute(StyleConstants.Foreground);
+		                StringBuffer buf = new StringBuffer();
+		                buf.append(String.valueOf(c.getRed()));
+		                buf.append(",");
+		                buf.append(String.valueOf(c.getGreen()));
+		                buf.append(",");
+		                buf.append(String.valueOf(c.getBlue()));
+		                retBuffer.append(addQuote(buf.toString()));
+		                
+				    } else {
+					    Object attObject = atts.getAttribute(nextName);
+					    
+					    // スタンプ及びシェーマの判定をする
+					    if (attObject instanceof JLabel) {
+					    		String str = ((JLabel)attObject).getText();
+					    		retBuffer.append(addQuote(str));
+					    		
+					    } else {
+					    		// それ以外の属性についてはそのまま記録する
+					    		retBuffer.append(addQuote(attObject.toString()));
+					    }
+				    }
+				}
+		    }
+		    asString = retBuffer.toString();
+		}
+		
+		writer.write("<");
+		writer.write(element.getName());
+		writer.write(" start=");
+		writer.write(addQuote(start));
+		writer.write(" end=");
+		writer.write(addQuote(end));
+		writer.write(asString);
+		writer.write(">\n");
+		
+		// content要素の場合はテキストを抽出する
+		if (element.getName().equals("content")) {
+			writer.write("<text>");
+	        int len = end - start;
+	        String text = element.getDocument().getText(start, len).trim();
+	        
+	        text.replaceAll("<", "&lt;");
+	        text.replaceAll(">", "&gt;");
+	        text.replaceAll("&", "&amp;");
+	        
+	        writer.write(text);
+	        writer.write("</text>\n");	
+		}
+		
+		// 子要素について再帰する
+		int children = element.getElementCount();
+        	for (int i = 0; i < children; i++) {
+        		writeElemnt0(element.getElement(i), writer);
+        	}
+        	
+        	writer.write("</");
+        	writer.write(element.getName());
+        	writer.write(">\n");
+    }
+    
     void writeElemnt(javax.swing.text.Element e, Writer w) throws IOException, BadLocationException {
-        
-        String name = e.getName();
+    	       
+        String elementName = e.getName();
         int start = e.getStartOffset();
         int end = e.getEndOffset();
-        AttributeSet a = e.getAttributes();
+        AttributeSet atts = e.getAttributes();
         int elementType = -1;
         
-        if (name.equals(AbstractDocument.ParagraphElementName)) {
-            startParagraph(w, start, end, a);
+        if (elementName.equals(AbstractDocument.ParagraphElementName)) {
+            startParagraph(w, start, end, atts);
             elementType = TT_PARAGRAPH;
             
-        } else if (name.equals(AbstractDocument.ContentElementName)) {
-            startContent(w, start, end, e, a);
+        } else if (elementName.equals(AbstractDocument.ContentElementName)) {
+            startContent(w, start, end, e, atts);
             elementType = TT_CONTENT;
             
-        } else if (name.equals("icon")) {
+        } else if (elementName.equals("icon")) {
             elementType = TT_ICON;
-            startIcon(w, start, end, e, a);
+            startIcon(w, start, end, e, atts);
             
-        } else if (name.equals("component")) {
+        } else if (elementName.equals("component")) {
             elementType = TT_COMPONENT;
-            startComponent(w, start, end, e, a);
+            startComponent(w, start, end, e, atts);
+            
+        } else if (elementName.equals("section")) {
+            elementType = TT_SECTION;
+            startSection(w);
         }
                 
         int children = e.getElementCount();
@@ -111,13 +230,24 @@ public class TextPaneDumpBuilder {
             case TT_COMPONENT:
                 endComponent(w);
                 break;
+                
+            case TT_SECTION:
+                endSection(w);
+                break;    
         }
     }
+    void startSection(Writer w) throws IOException {
+        w.write("<section>\n");
+    }
     
-    void startParagraph(Writer w, int start, int end, AttributeSet a) throws IOException {
+    void endSection(Writer w) throws IOException {
+    		w.write("</section>\n");
+    } 
+    
+    void startParagraph(Writer w, int start, int end, AttributeSet atts) throws IOException {
         
         // 論理スタイル
-        String name = (String)a.getAttribute(StyleConstants.NameAttribute);
+        String name = (String)atts.getAttribute(StyleConstants.NameAttribute);
         
         indent(w, 1);
         w.write("<paragraph");
@@ -131,33 +261,23 @@ public class TextPaneDumpBuilder {
             w.write(addQuote(name));
         }
         
+		if(atts != null) {
+		    StringBuffer retBuffer = new StringBuffer();
+		    Enumeration names = atts.getAttributeNames();
+		    while(names.hasMoreElements()) {		
+				Object nextName = names.nextElement();
+				if(nextName != StyleConstants.ResolveAttribute) {
+					retBuffer.append(" ");
+				    retBuffer.append(nextName);
+				    retBuffer.append("=");
+				    Object attObject = atts.getAttribute(nextName);
+					retBuffer.append(addQuote(attObject.toString()));
+				}
+		    }
+		    w.write(retBuffer.toString());
+		}
+        
         w.write(">\n");
-        
-            
-        /*Enumeration enum = a.getAttributeNames();
-        
-        while (enum.hasMoreElements()) {
-            Object o = enum.nextElement();
-            String ename = o.toString();
-            String value = null;
-            
-            if (ename.equals("resolver")) {
-                Style s = (Style)a.getAttribute(o);
-                Color c = (Color)s.getAttribute(StyleConstants.Foreground);
-                value = c.toString();
-            } else {
-                value = a.getAttribute(ename).toString();
-            }
-            
-            indent(w, 2);
-            w.write("<");
-            w.write(ename);
-            w.write(">");
-            w.write(value);
-            w.write("</");
-            w.write(ename);
-            w.write(">\n");
-        }*/
     }
     
     void endParagraph(Writer w) throws IOException {
@@ -165,7 +285,7 @@ public class TextPaneDumpBuilder {
         w.write("</paragraph>\n");
     }
     
-    void startContent(Writer w, int start, int end, javax.swing.text.Element e, AttributeSet a) 
+    void startContent(Writer w, int start, int end, javax.swing.text.Element e, AttributeSet atts) 
     throws IOException, BadLocationException {
         
         indent(w, 2);
@@ -174,48 +294,35 @@ public class TextPaneDumpBuilder {
         w.write(addQuote(start));
         w.write(" end=");
         w.write(addQuote(end));
+        
+        if(atts != null) {
+		    StringBuffer retBuffer = new StringBuffer();
+		    Enumeration names = atts.getAttributeNames();
+		    while(names.hasMoreElements()) {		
+				Object nextName = names.nextElement();
+				if(nextName != StyleConstants.ResolveAttribute) {
+					retBuffer.append(" ");
+				    retBuffer.append(nextName);
+				    retBuffer.append("=");
+					if (nextName.toString().equals("foreground")) {
+						StringBuffer buf = new StringBuffer();
+						Color c = (Color)atts.getAttribute(StyleConstants.Foreground);
+						buf.append(String.valueOf(c.getRed()));
+						buf.append(",");
+						buf.append(String.valueOf(c.getGreen()));
+						buf.append(",");
+						buf.append(String.valueOf(c.getBlue()));
+						retBuffer.append(addQuote(buf.toString()));
+					} else {
+						Object attObject = atts.getAttribute(nextName);
+						retBuffer.append(addQuote(attObject.toString()));
+					}
+				}
+		    }
+		    w.write(retBuffer.toString());
+		}
         w.write(">\n");
-        
-        Enumeration enum = a.getAttributeNames();
-        
-        while (enum.hasMoreElements()) {
-            
-            Object o = enum.nextElement();
-            String ename = o.toString();
-            Object value = a.getAttribute(o);
-            
-            indent(w, 3);
-            w.write("<");
-            w.write(ename);
-            w.write(">");
-            
-            if (ename.equals("foreground")) {
-                Color c = (Color)a.getAttribute(StyleConstants.Foreground);
-                w.write(String.valueOf(c.getRed()));
-                w.write(",");
-                w.write(String.valueOf(c.getGreen()));
-                w.write(",");
-                w.write(String.valueOf(c.getBlue()));
-            
-            } else if (ename.equals("size")) {
-                w.write(value.toString());
                 
-            } else if (ename.equals("bold")) {
-                w.write(value.toString());
-            
-            } else if (ename.equals("italic")) {
-                w.write(value.toString());
-            
-            } else if (ename.equals("underline")) {
-                w.write(value.toString());
-            }
-            
-            //indent(w, 2);
-            w.write("</");
-            w.write(ename);
-            w.write(">\n");
-        }
-        
         indent(w, 3);
         w.write("<text>");
         int len = end - start;
@@ -236,7 +343,7 @@ public class TextPaneDumpBuilder {
         w.write("</content>\n");
     }
     
-    void startComponent(Writer w, int start, int end, javax.swing.text.Element e, AttributeSet a) throws IOException {
+    void startComponent(Writer w, int start, int end, javax.swing.text.Element e, AttributeSet atts) throws IOException {
         
         indent(w, 2);
         w.write("<component");
@@ -244,40 +351,31 @@ public class TextPaneDumpBuilder {
         w.write(addQuote(start));
         w.write(" end=");
         w.write(addQuote(end));
+        
+		if(atts != null) {
+		    StringBuffer retBuffer = new StringBuffer();
+		    Enumeration names = atts.getAttributeNames();
+		    while(names.hasMoreElements()) {		
+				Object nextName = names.nextElement();
+				if(nextName != StyleConstants.ResolveAttribute) {
+					if (nextName.toString().startsWith("$")) {
+						continue;
+					}
+					retBuffer.append(" ");
+				    retBuffer.append(nextName);
+				    retBuffer.append("=");
+				    if (nextName.toString().equals("component")) {
+	            			JLabel l = (JLabel)atts.getAttribute(nextName);
+	            			retBuffer.append(addQuote(l.getText()));
+				    } else {
+				    		Object attObject = atts.getAttribute(nextName);
+				    		retBuffer.append(addQuote(attObject.toString()));
+				    }
+				}
+		    }
+		    w.write(retBuffer.toString());
+		}
         w.write(">\n");
-        
-        Enumeration enum = a.getAttributeNames();
-        
-        while (enum.hasMoreElements()) {
-            
-            Object o = enum.nextElement();
-            String ename = o.toString();
-            String value = null;
-            
-            // $ename 
-            if (ename.startsWith("$")) {
-                continue;
-            } else if (ename.equals("component")) {
-            	JLabel l = (JLabel)a.getAttribute(o);
-            	value = l.getText();
-            	// 上記によって Stamp と schema の区別が可能
-            	// それぞれ別の ArrayList へ追加できる。
-            	// またここにリストアするための ID 等の情報を入れることができる
-                //value = a.getAttribute(o).getClass().getName();
-            } else {
-                value = a.getAttribute(o).toString();
-            }
-            
-            indent(w, 3);
-            w.write("<");
-            w.write(ename);
-            w.write(">");
-            w.write(value);
-            //indent(w, 2);
-            w.write("</");
-            w.write(ename);
-            w.write(">\n");
-        }
     }
     
     void endComponent(Writer w) throws IOException {
@@ -295,11 +393,11 @@ public class TextPaneDumpBuilder {
         w.write(addQuote(end));
         w.write(">\n");
         
-        Enumeration enum = a.getAttributeNames();
+        Enumeration enums = a.getAttributeNames();
         
-        while (enum.hasMoreElements()) {
+        while (enums.hasMoreElements()) {
             
-            Object o = enum.nextElement();
+            Object o = enums.nextElement();
             String ename = o.toString();
             String value = null;
             

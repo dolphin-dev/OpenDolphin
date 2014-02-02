@@ -18,25 +18,33 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package open.dolphin.client;
-import open.dolphin.infomodel.Module;
+import open.dolphin.infomodel.ModuleModel;
 
 /**
- *
- * @author  Kazushi Minagawa, Digital Globe, Inc.
+ * OrderList
+ * 
+ * @author  Kazushi Minagawa
  */
 public final class OrderList implements java.io.Serializable {
     
-    Module[] orderList;
+    private static final long serialVersionUID = -6049175115811888229L;
+	
+    ModuleModel[] orderList;
 
     /** Creates new OrderList */
     public OrderList() {
     }
     
-    public Module[] getOrderList() {
+    public OrderList(ModuleModel[] stamp) {
+    	this();
+    	setOrderStamp(stamp);
+    }
+    
+    public ModuleModel[] getOrderList() {
     	return orderList;
     }
     
-    public void setOrderStamp(Module[] stamp) {
+    public void setOrderStamp(ModuleModel[] stamp) {
     	orderList = stamp;
     }
 }

@@ -1,265 +1,684 @@
 /*
  * Project.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2003,2004 Digital Globe, Inc. All rights reserved.
+ * Copyright (C) 2005 Digital Globe, Inc. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *	
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *	
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package open.dolphin.project;
 
-import open.dolphin.infomodel.*;
-import open.dolphin.util.Enviroment;
+import java.io.OutputStream;
+import java.util.prefs.Preferences;
+import open.dolphin.client.ClientContext;
+import open.dolphin.infomodel.UserModel;
 
 /**
  * プロジェクト情報管理クラス。
  *
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
-public class ProjectStub extends Enviroment implements java.io.Serializable {
+public class ProjectStub implements java.io.Serializable {
+        
+    private Preferences prefs;
+        
+    private boolean valid;
     
-	//public class ProjectStub extends Enviroment implements java.io.Serializable {
+    private DolphinPrincipal principal;
+    private String providerURL;
+    private UserModel userModel;
     
-		private int mode = AbstractSettingPanel.TT_SET;
+    // Preferences のノード名
+    private final String NODE_NAME = "/open/dolphin/project";
     
-		private boolean valid;
+    // デフォルトのプロジェクト名
+    private final String DEFAULT_PROJECT_NAME           = "ASPOpenDolphin";
+    
+    // User ID
+    private final String DEFAULT_USER_ID		= null;
+    private final String DEFAULT_FACILITY_ID		= null;
+    
+    // Server
+    private final String DEFAULT_HOST_ADDRESS		= "localhost";
+    private final int JBOSS_J2EE_PORT 			= 1099;
+    private final String JBOSS_PROTOCOL           	= "jnp";
+    
+    // Claim
+    private final boolean DEFAULT_SEND_CLAIM 		= false;
+    private final boolean DEFAULT_SEND_CLAIM_SAVE 	= true;
+    private final boolean DEFAULT_SEND_CLAIM_TMP 	= false;
+    private final boolean DEFAULT_SEND_CLAIM_MODIFY 	= false;
+    private final boolean DEFAULT_SEND_DIAGNOSIS 	= true;
+    private final String DEFAULT_CLAIM_HOST_NAME	= "日医標準レセプト(ORCA)";
+    private final String DEFAULT_CLAIM_ADDRESS		= null;
+    private final int DEFAULT_CLAIM_PORT 		= 5001;
+    private final String DEFAULT_CLAIM_ENCODING         = "UTF-8";
+    private final boolean DEFAULT_USE_AS_PVTSERVER      = true;
+    
+    // MML
+    private final boolean DEFAULT_SEND_MML 		= false;
+    private final String DEFAULT_MML_VERSION 		= "2.3";
+    private final String DEFAULT_MML_ENCODING		= "UTF-8";
+    private final String DEFAULT_SEND_MML_ADDRESS	= null;
+    private final String DEFAULT_SEND_MML_DIRECTORY     = null;
+    
+    // Update
+    private final boolean DEFAULT_USE_PROXY		= false;
+    private final String DEFAULT_PROXY_HOST		= null;
+    private final int DEFAULT_PROXY_PORT		= 8080;
+    private final long DEFAULT_LAST_MODIFIED		= 0L;
+    
+    
+    /** ProjectStub を生成する。 */
+    public ProjectStub() {
+        prefs = Preferences.userRoot().node(NODE_NAME);
+    }
+    
+    /**
+     * Preferencesを返す。
+     */
+    public Preferences getPreferences() {
+        return prefs;
+    }
+    
+    /**
+     * 設定ファイルが有効かどうかを返す。
+     * @return 有効な時 true
+     */
+    public boolean isValid() {
+        
+        // UserTypeを判定する
+        if (getUserType().equals(Project.UserType.UNKNOWN)) {
+            return false;
+        }
+        
+        // UserIdとFacilityIdを確認する
+        if (getUserId() == null || getFacilityId() == null) {
+            return false;
+        }
+        
+        // Master 検索のため
+        // 2007-01-05 ASP StampBox のため上記条件は廃止
+        //        if ( getClaimAddress() == null ) {
+        //            return false;
+        //        }
+        
+        // MML送信を行う場合の確認をする
+        if ( getSendMML() && (getUploaderIPAddress()== null || getUploadShareDirectory()== null) ) {
+            return false;
+        }
+        
+        // ここまで来れば有効である
+        valid = true;
+        return valid;
+    }
+    
+    public DolphinPrincipal getDolphinPrincipal() {
+        return principal;
+    }
+    
+    public void setDolphinPrincipal(DolphinPrincipal principal) {
+        this.principal = principal;
+    }
+    
+    /**
+     * ProviderURLを返す。
+     * @return JNDI に使用する ProviderURL
+     */
+    public String getProviderURL() {
+        if (providerURL == null) {
+            String host = "localhost";
+            Project.UserType userType = getUserType();
+            switch (userType) {
+                case ASP_MEMBER:
+                    host = ClientContext.getString("addUser.aspMember.server.address");
+                    break;
+                    
+                case ASP_TESTER:
+                    host = ClientContext.getString("addUser.aspTester.server.address");
+                    break;
+                    
+                case ASP_DEV:
+                    host = ClientContext.getString("addUser.aspTester.server.address");
+                    break;
+                    
+                case FACILITY_USER:
+                    host = prefs.get(Project.HOST_ADDRESS,DEFAULT_HOST_ADDRESS);
+                    break;
+                    
+                case UNKNOWN:
+                    host = prefs.get(Project.HOST_ADDRESS,DEFAULT_HOST_ADDRESS);
+                    break;
+            }
+            StringBuilder buf = new StringBuilder();
+            buf.append(JBOSS_PROTOCOL);
+            buf.append("://");
+            buf.append(host);
+            buf.append(":");
+            buf.append(prefs.getInt(Project.HOST_PORT, JBOSS_J2EE_PORT));
+            String url = buf.toString();
+            System.out.println("Provider URL = " + url);
+            setProviderURL(url);
+        }
+        System.out.println("Provider URL = " + providerURL);
+        return providerURL;
+    }
+    
+    /**
+     * JNDIのProviderURLを設定する。
+     * @param providerURL JNDIのProviderURL
+     */
+    public void setProviderURL(String providerURL) {
+        this.providerURL = providerURL;
+    }
+    
+    /**
+     * プロジェクト名を返す。
+     * @return プロジェクト名 (Dolphin ASP, HOT, MAIKO, HANIWA ... etc)
+     */
+    public String getName() {
+        return prefs.get(Project.PROJECT_NAME, DEFAULT_PROJECT_NAME);
+    }
+    
+   /**
+     * プロジェクト名を返す。
+     * @return プロジェクト名 (Dolphin ASP, HOT, MAIKO, HANIWA ... etc)
+     */
+    public void setName(String projectName) {
+        prefs.put(Project.PROJECT_NAME, projectName);
+    }
+    
+    /**
+     * ログインユーザ情報を返す。
+     * @return Dolphinサーバに登録されているユーザ情報
+     */
+    public UserModel getUserModel() {
+        return userModel;
+    }
+    
+    /**
+     * ログインユーザ情報を設定する。
+     * @param userModel ログイン時にDolphinサーバから取得した情報
+     */
+    public void setUserModel(UserModel userModel) {
+        this.userModel = userModel;
+    }
+    
+    /**
+     * ログイン画面用のUserIDを返す。
+     * @return ログイン画面に表示するUserId
+     */
+    public String getUserId() {
+        return prefs.get(Project.USER_ID, DEFAULT_USER_ID);
+    }
+    
+    /**
+     * ログイン画面用のUserIDを設定する。
+     * @param ログイン画面に表示するUserId
+     */
+    public void setUserId(String val) {
+        prefs.put(Project.USER_ID, val);
+    }
+    
+    /**
+     * ログイン画面用のFacilityIDを返す。
+     * @return ログイン画面に表示するFacilityID
+     */
+    public String getFacilityId() {
+        return prefs.get(Project.FACILITY_ID, DEFAULT_FACILITY_ID);
+    }
+    
+    /**
+     * ログイン画面用のFacilityIDを設定する。
+     * @param ログイン画面に表示するFacilityID
+     */
+    public void setFacilityId(String val) {
+        prefs.put(Project.FACILITY_ID, val);
+    }
+    
+    //
+    // UserType
+    //
+    public Project.UserType getUserType() {
+        // Preference 情報がない場合は　UNKNOWN を返す
+        // これは Project.isValid() で必ずテストされる
+        String userType = prefs.get(Project.USER_TYPE, Project.UserType.UNKNOWN.toString());
+        return Project.UserType.valueOf(userType);
+    }
+    
+    public void setUserType(Project.UserType userType) {
+        prefs.put(Project.USER_TYPE, userType.toString());
+    }
+    
+    //
+    // サーバ情報
+    //
+    public String getHostAddress() {
+        return prefs.get(Project.HOST_ADDRESS, DEFAULT_HOST_ADDRESS);
+    }
+    
+    public void setHostAddress(String val) {
+        prefs.put(Project.HOST_ADDRESS, val);
+    }
+    
+    public int getHostPort() {
+        return prefs.getInt(Project.HOST_PORT, JBOSS_J2EE_PORT);
+    }
+    
+    public void setHostPort(int val) {
+        prefs.putInt(Project.HOST_PORT, val);
+    }
+    
+    
+    
+    public int getInspectorMemoLocation() {
+        return prefs.getInt(Project.INSPECTOR_MEMO_LOCATION, 1);
+    }
+    
+    public void setInspectorMemoLocation(int loc) {
+        prefs.putInt(Project.INSPECTOR_MEMO_LOCATION, loc);
+    }
+    
+    public boolean getLocateByPlatform() {
+        return prefs.getBoolean(Project.LOCATION_BY_PLATFORM, true);
+    }
+    
+    public void setLocateByPlatform(boolean b) {
+        prefs.putBoolean(Project.LOCATION_BY_PLATFORM, b);
+    }
+    
             
-		/** LDAP から取得したユーザ情報*/
-		private UserProfileEntry userProfile;
+    public int getFetchKarteCount() {
+        return prefs.getInt(Project.DOC_HISTORY_FETCHCOUNT, 1);
+    }
     
-		/** CreatorInfo */
-		private Creator creatorInfo;
+    public void setFetchKarteCount(int cnt) {
+        prefs.putInt(Project.DOC_HISTORY_FETCHCOUNT, cnt);
+    }
     
-		/** ログイン情報 */
-		private String authenticationDN;
-		private transient String passwd;
-        
-        
-		public boolean isValid() {
-			return valid;
-		}
+            
+    public boolean getScrollKarteV() {
+        return prefs.getBoolean(Project.KARTE_SCROLL_DIRECTION, true);
+    }
     
-		public void setValid(boolean b) {
-			valid = b;
-		}
-        
-		public void accept(SettingVisitor v) {
-			v.visit(this);
-		}
-        
-		public int getMode() {
-			return mode;
-		}
+    public void setScrollKarteV(boolean b) {
+        prefs.putBoolean(Project.KARTE_SCROLL_DIRECTION, b);
+    }
     
-		public void setMode(int val) {
-			mode = val;
-		}
-        
-		public String getName() {
-			return getString("name");
-		}
+            
+    public boolean getAscendingKarte() {
+        return prefs.getBoolean(Project.DOC_HISTORY_ASCENDING, false);
+    }
     
-		public void setName(String val) {
-			putString("name",val);
-		}
-        
-		public UserProfileEntry getUserProfileEntry() {
-			return userProfile;
-		}
+    public void setAscendingKarte(boolean b) {
+        prefs.getBoolean(Project.DOC_HISTORY_ASCENDING, b);
+    }
     
-		public void setUserProfileEntry(UserProfileEntry val) {
-			userProfile = val;
-		}
+            
+    public int getKarteExtractionPeriod() {
+        return prefs.getInt(Project.DOC_HISTORY_PERIOD, -12);
+    }
     
-		public Creator getCreatorInfo() {
-			return creatorInfo;
-		}
+    public void setKarteExtractionPeriod(int period) {
+        prefs.putInt(Project.DOC_HISTORY_PERIOD, period);
+    }
     
-		public void setCreatorInfo(Creator val) {
-			creatorInfo = val;
-		}
+            
+    public boolean getShowModifiedKarte() {
+        return prefs.getBoolean(Project.DOC_HISTORY_SHOWMODIFIED, false);
+    }
     
-		public String getAuthenticationDN() {
-			return authenticationDN;
-		}
+    public void setShowModifiedKarte(boolean b) {
+        prefs.putBoolean(Project.DOC_HISTORY_SHOWMODIFIED, b);
+    }
     
-		public void setAuthenticationDN(String dn) {
-			authenticationDN = dn;
-		}
+            
+    public boolean getAscendingDiagnosis() {
+        return prefs.getBoolean(Project.DIAGNOSIS_ASCENDING, false);
+    }
     
-		public String getUserId() {
-			return getString("userId");
-		}
+    public void setAscendingDiagnosis(boolean b) {
+        prefs.putBoolean(Project.DIAGNOSIS_ASCENDING, b);
+    }
     
-		public void setUserId(String val) {
-			putString("userId", val);
-		}
+            
+    public int getDiagnosisExtractionPeriod() {
+        return prefs.getInt(Project.DIAGNOSIS_PERIOD, 0);
+    }
     
-		public String getPasswd() {
-			return passwd;
-		}
+    public void setDiagnosisExtractionPeriod(int period) {
+        prefs.putInt(Project.DIAGNOSIS_PERIOD, period);
+    }
     
-		public void setPasswd(String val) {
-			passwd = val;
-		}
+            
+    public int getLabotestExtractionPeriod() {
+        return prefs.getInt(Project.LABOTEST_PERIOD, -6);
+    }
     
-		public String getHostAddress() {
-			return getString("hostAddress");
-		}
+    public void setLabotestExtractionPeriod(int period) {
+        prefs.putInt(Project.LABOTEST_PERIOD, period);
+    }
     
-		public void setHostAddress(String val) {
-			putString("hostAddress", val);
-		}
+            
+    public boolean getConfirmAtNew() {
+        return prefs.getBoolean(Project.KARTE_SHOW_CONFIRM_AT_NEW, true);
+    }
     
-		public int getHostPort() {
-			return getInt("hostPort", 389);
-		}
+    public void setConfirmAtNew(boolean b) {
+        prefs.putBoolean(Project.KARTE_SHOW_CONFIRM_AT_NEW, b);
+    }
     
-		public void setHostPort(int val) {
-			putInt("hostPort", val);
-		}
     
-		// HOT
-		public boolean getSendClaim() {
-			return getBoolean("sendClaim", false);
-		}
+    public int getCreateKarteMode() {
+        return prefs.getInt(Project.KARTE_CREATE_MODE, 0); // 0=emptyNew, 1=applyRp, 2=copyNew
+    }
     
-		public void setSendClaim(boolean b) {
-			putBoolean("sendClaim", b);
-		}
+    public void setCreateKarteMode(int mode) {
+        prefs.getInt(Project.KARTE_CREATE_MODE, mode);
+    }
     
-		public boolean getSendDiagnosis() {
-			return getBoolean("sendDiagnosis", false);
-		}
     
-		public void setSendDiagnosis(boolean b) {
-			putBoolean("sendDiagnosis", b);
-		}    
+    public boolean getPlaceKarteMode() {
+        return prefs.getBoolean(Project.KARTE_PLACE_MODE, true);
+    }
     
-		public String getClaimHostName() {
-			return getString("claimHostName");
-		}
+    public void setPlaceKarteMode(boolean mode) {
+        prefs.putBoolean(Project.KARTE_PLACE_MODE, mode);
+    }
+            
     
-		public void setClaimHostName(String b) {
-			putString("claimHostName", b);
-		}
+    public boolean getConfirmAtSave() {
+        return prefs.getBoolean(Project.KARTE_SHOW_CONFIRM_AT_SAVE, true);
+    }
     
-		public String getClaimEncoding() {
-			return getString("claimEncoding");
-		}
+    public void setConfirmAtSave(boolean b) {
+        prefs.putBoolean(Project.KARTE_SHOW_CONFIRM_AT_SAVE, b);
+    }
     
-		public void setClaimEncoding(String val) {
-			putString("claimEncoding", val);
-		}
-		// HOT
     
-		public String getClaimAddress() {
-			return getString("claimAddress");
-		}
+    public int getPrintKarteCount() {
+        return prefs.getInt(Project.KARTE_PRINT_COUNT, 0);
+    }
     
-		public void setClaimAddress(String val) {
-			putString("claimAddress", val);
-		}
+    public void setPrintKarteCount(int cnt) {
+        prefs.putInt(Project.KARTE_PRINT_COUNT, cnt);
+    }
     
-		public int getClaimPort() {
-			return getInt("claimPort", 5001);
-		}
     
-		public void setClaimPort(int val) {
-			putInt("claimPort", val);
-		}
+    public int getSaveKarteMode() {
+        return prefs.getInt(Project.KARTE_SAVE_ACTION, 0); // 0=save 1=saveTmp
+    }
     
-		// HOT
-		public boolean getSendMML() {
-			return getBoolean("sendMML", false);
-		}
+    public void setSaveKarteMode(int mode) {
+        prefs.putInt(Project.KARTE_SAVE_ACTION, mode); // 0=save 1=saveTmp
+    }
+            
+            
     
-		public void setSendMML(boolean b) {
-			putBoolean("sendMML", b);
-		}
+    //
+    // CLAIM関連情報
+    // 
+    /**
+     * CLAIM 送信全体への設定を返す。
+     * デフォルトが false になっているのは新規インストールの場合で ORCA 接続なしで
+     * 使えるようにするため。
+     * @param 送信する時 true
+     */
+    public boolean getSendClaim() {
+        return prefs.getBoolean(Project.SEND_CLAIM, DEFAULT_SEND_CLAIM);
+    }
     
-		public String getMMLVersion() {
-			return getString("mmlVersion");
-		}
+    public void setSendClaim(boolean b) {
+        prefs.putBoolean(Project.SEND_CLAIM, b);
+    }
     
-		public void setMMLVersion(String b) {
-			putString("mmlVersion", b);
-		}
+    /**
+     * 保存時に CLAIM 送信を行うかどうかを返す。
+     * @param 行う時 true
+     */
+    public boolean getSendClaimSave() {
+        return prefs.getBoolean(Project.SEND_CLAIM_SAVE, DEFAULT_SEND_CLAIM_SAVE);
+    }
     
-		public String getMMLEncoding() {
-			return getString("mmlEncoding");
-		}
+    public void setSendClaimSave(boolean b) {
+        prefs.putBoolean(Project.SEND_CLAIM_SAVE, b);
+    }
     
-		public void setMMLEncoding(String val) {
-			putString("mmlEncoding", val);
-		}
+    /**
+     * 仮保存時に CLAIM 送信を行うかどうかを返す。
+     * @param 行う時 true 
+     */
+    public boolean getSendClaimTmp() {
+        return prefs.getBoolean(Project.SEND_CLAIM_TMP, DEFAULT_SEND_CLAIM_TMP);
+    }
     
-		public boolean getMIMEEncoding() {
-			return getBoolean("mimeEncoding", false);
-		}
+    public void setSendClaimTmp(boolean b) {
+        prefs.putBoolean(Project.SEND_CLAIM_TMP, b);
+    }
     
-		public void setMIMEEncoding(boolean val) {
-			putBoolean("mimeEncoding", val);
-		}
-        
-		public String getUploaderIPAddress() {
-			return getString("uploaderIPAddress");
-		}
+    /**
+     * 修正時に CLAIM 送信を行うかどうかを返す。
+     * @param 行う時 true 
+     */
+    public boolean getSendClaimModify() {
+        return prefs.getBoolean(Project.SEND_CLAIM_MODIFY, DEFAULT_SEND_CLAIM_MODIFY);
+    }
     
-		public void setUploaderIPAddress(String val) {
-			putString("uploaderIPAddress" ,val);
-		}
+    public void setSendClaimModify(boolean b) {
+        prefs.putBoolean(Project.SEND_CLAIM_MODIFY, b);
+    }
     
-		public String getUploadShareDirectory() {
-			return getString("uploadShareDirectory");
-		}
+    /**
+     * 病名 CLAIM 送信を行うかどうかを返す。
+     * @param 行う時 true 
+     */
+    public boolean getSendDiagnosis() {
+        return prefs.getBoolean(Project.SEND_DIAGNOSIS, DEFAULT_SEND_DIAGNOSIS);
+    }
     
-		public void setUploadShareDirectory(String val) {
-			putString("uploadShareDirectory", val);
-		}
+    public void setSendDiagnosis(boolean b) {
+        prefs.putBoolean(Project.SEND_DIAGNOSIS, b);
+    }
     
-		// end HOT
-
-		public boolean getUseProxy() {
-			return getBoolean("useProxy", false);
-		}
     
-		public void setUseProxy(boolean b) {
-			putBoolean("useProxy", b);
-		}
     
-		public String getProxyHost() {
-			return getString("proxyHost");
-		}
     
-		public void setProxyHost(String val) {
-			putString("proxyHost", val);
-		}
     
-		public int getProxyPort() {
-			return getInt("proxyPort", 8080);
-		}
     
-		public void setProxyPort(int val) {
-			putInt("proxyPort", val);
-		}
     
-		public long getLastModify() {
-			return getLong("lastModify", 0L);
-		}
     
-		public void setLastModify(long val) {
-			putLong("lastModify", val);
-		}
+    
+    
+    
+    
+    
+    
+    public String getClaimHostName() {
+        return prefs.get(Project.CLAIM_HOST_NAME, DEFAULT_CLAIM_HOST_NAME);
+    }
+    
+    public void setClaimHostName(String b) {
+        prefs.put(Project.CLAIM_HOST_NAME, b);
+    }
+    
+    public String getClaimEncoding() {
+        return prefs.get(Project.CLAIM_ENCODING, DEFAULT_CLAIM_ENCODING);
+    }
+    
+    public void setClaimEncoding(String val) {
+        prefs.put(Project.CLAIM_ENCODING, val);
+    }
+    
+    public String getClaimAddress() {
+        return prefs.get(Project.CLAIM_ADDRESS, DEFAULT_CLAIM_ADDRESS);
+    }
+    
+    public void setClaimAddress(String val) {
+        prefs.put(Project.CLAIM_ADDRESS, val);
+    }
+    
+    public int getClaimPort() {
+        return prefs.getInt(Project.CLAIM_PORT, DEFAULT_CLAIM_PORT);
+    }
+    
+    public void setClaimPort(int val) {
+        prefs.putInt(Project.CLAIM_PORT, val);
+    }
+    
+    public void setUseAsPVTServer(boolean b) {
+        prefs.putBoolean(Project.USE_AS_PVT_SERVER, b);
+    }
+    
+    public boolean getUseAsPVTServer() {
+        return prefs.getBoolean(Project.USE_AS_PVT_SERVER, DEFAULT_USE_AS_PVTSERVER);
+    }
+    
+    // 
+    // AreaNetwork関連情報
+    // 
+    public boolean getJoinAreaNetwork() {
+        return prefs.getBoolean(Project.JOIN_AREA_NETWORK, false);		// 地域連携参加
+    }
+    
+    public void setJoinAreaNetwork(boolean b) {
+        prefs.putBoolean(Project.JOIN_AREA_NETWORK, b);				// 地域連携参加
+    }
+    
+    public String getAreaNetworkName() {
+        return prefs.get(Project.AREA_NETWORK_NAME, null);			// 地域連携名
+    }
+    
+    public void setAreaNetworkName(String name) {
+        prefs.put(Project.AREA_NETWORK_NAME, name);				// 地域連携名
+    }
+    
+    public String getAreaNetworkFacilityId() {
+        return prefs.get(Project.AREA_NETWORK_FACILITY_ID, null);		// 地域連携施設ID
+    }
+    
+    public void setAreaNetworkFacilityId(String id) {
+        prefs.put(Project.AREA_NETWORK_FACILITY_ID, id);			// 地域連携施設ID
+    }
+    
+    public String getAreaNetworkCreatorId() {
+        return prefs.get(Project.AREA_NETWORK_CREATOR_ID, null);		// 地域連携CreatorID
+    }
+    
+    public void setAreaNetworkCreatorId(String id) {
+        prefs.put(Project.AREA_NETWORK_CREATOR_ID, id);                         // 地域連携CreatorID
+    }
+    
+    
+    // 
+    // MML送信関連の情報
+    // 
+    public boolean getSendMML() {
+        return prefs.getBoolean(Project.SEND_MML, DEFAULT_SEND_MML);
+    }
+    
+    public void setSendMML(boolean b) {
+        prefs.putBoolean(Project.SEND_MML, b);
+    }
+    
+    public String getMMLVersion() {
+        return prefs.get(Project.MML_VERSION, DEFAULT_MML_VERSION);
+    }
+    
+    public void setMMLVersion(String b) {
+        prefs.put(Project.MML_VERSION, b);
+    }
+    
+    public String getMMLEncoding() {
+        return prefs.get(Project.MML_ENCODING, DEFAULT_MML_ENCODING);
+    }
+    
+    public void setMMLEncoding(String val) {
+        prefs.put(Project.MML_ENCODING, val);
+    }
+    
+    public boolean getMIMEEncoding() {
+        return prefs.getBoolean("mimeEncoding", false);
+    }
+    
+    public void setMIMEEncoding(boolean val) {
+        prefs.putBoolean("mimeEncoding", val);
+    }
+    
+    public String getUploaderIPAddress() {
+        return prefs.get(Project.SEND_MML_ADDRESS, DEFAULT_SEND_MML_ADDRESS);
+    }
+    
+    public void setUploaderIPAddress(String val) {
+        prefs.put(Project.SEND_MML_ADDRESS ,val);
+    }
+    
+    public String getUploadShareDirectory() {
+        return prefs.get(Project.SEND_MML_DIRECTORY, DEFAULT_SEND_MML_DIRECTORY);
+    }
+    
+    public void setUploadShareDirectory(String val) {
+        prefs.put(Project.SEND_MML_DIRECTORY, val);
+    }
+    
+    //
+    // Software Update 関連
+    // 
+    public boolean getUseProxy() {
+        return prefs.getBoolean(Project.USE_PROXY, DEFAULT_USE_PROXY);
+    }
+    
+    public void setUseProxy(boolean b) {
+        prefs.putBoolean(Project.USE_PROXY, b);
+    }
+    
+    public String getProxyHost() {
+        return prefs.get(Project.PROXY_HOST, DEFAULT_PROXY_HOST);
+    }
+    
+    public void setProxyHost(String val) {
+        prefs.put(Project.PROXY_HOST, val);
+    }
+    
+    public int getProxyPort() {
+        return prefs.getInt(Project.PROXY_PORT, DEFAULT_PROXY_PORT);
+    }
+    
+    public void setProxyPort(int val) {
+        prefs.putInt(Project.PROXY_PORT, val);
+    }
+    
+    public long getLastModify() {
+        return prefs.getLong(Project.LAST_MODIFIED, DEFAULT_LAST_MODIFIED);
+    }
+    
+    public void setLastModify(long val) {
+        prefs.putLong(Project.LAST_MODIFIED, val);
+    }
+    
+    ///////////////////////////////////////////////
+    public void exportSubtree(OutputStream os) {
+        try {
+            prefs.exportSubtree(os);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void clear() {
+        try {
+            prefs.clear();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

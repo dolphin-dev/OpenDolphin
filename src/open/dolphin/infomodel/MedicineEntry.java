@@ -19,50 +19,61 @@
 package open.dolphin.infomodel;
 
 /**
- *
+ * MedicineEntry
+ * 
  * @author  aniruddha
  */
 public final class MedicineEntry extends MasterEntry {
 
+    private static final long serialVersionUID = -1890098260519019476L;
+	
     private String unit;
     private String costFlag;
     private String cost;
     private String jncd;
-
+    private String ykzKbn;
+    
     /** Creates a new instance of MedicineEntry */
     public MedicineEntry() {
     }
-
+    
     public String getUnit() {
         return unit;
     }
-
+    
     public void setUnit(String val) {
         unit = val;
     }
-
+    
     public String getCostFlag() {
-	return costFlag;
+        return costFlag;
     }
-
+    
     public void setCostFlag(String val) {
-	costFlag = val;
+        costFlag = val;
     }
-
+    
     public String getCost() {
-	return cost;
-     }
-
+        return cost;
+    }
+    
     public void setCost(String val) {
-	cost = val;
+        cost = val;
     }
     
     public String getJNCD() {
-	return jncd;
+        return jncd;
+    }
+    
+    public void setJNCD(String val) {
+        jncd = val;
     }
 
-    public void setJNCD(String val) {
-	jncd = val;
-    }    
+    public String getYkzKbn() {
+        return ykzKbn;
+    }
 
+    public void setYkzKbn(String ykzKbn) {
+        this.ykzKbn = ykzKbn;
+    }
 }

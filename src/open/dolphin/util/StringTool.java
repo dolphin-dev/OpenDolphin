@@ -6,12 +6,12 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *	
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *	
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -24,59 +24,66 @@ import java.io.*;
 /**
  * Utilities to handel String.
  *
- * @author  Kazushi Minagawa, Digital Globe, Inc.
+ * @author Kazushi Minagawa, Digital Globe, Inc.
  */
 public final class StringTool {
-
-    private static final char[] komoji = {
-        'ぁ', 'ぃ','ぅ','ぇ','ぉ','っ','ゃ','ゅ','ょ','ゎ','ァ','ィ','ゥ','ェ','ォ','ッ','ャ','ュ','ョ','ヮ'
-    };
-    private static final char[] ohomoji = {
-        'あ', 'い','う','え','お','つ','や','ゆ','よ','わ','ア','イ','ウ','エ','オ','ツ','ヤ','ユ','ヨ','ワ'
-    };
-
+    
+    private static final char[] komoji = { 'ぁ', 'ぃ', 'ぅ', 'ぇ', 'ぉ', 'っ', 'ゃ',
+    'ゅ', 'ょ', 'ゎ', 'ァ', 'ィ', 'ゥ', 'ェ', 'ォ', 'ッ', 'ャ', 'ュ', 'ョ', 'ヮ' };
+    
+    private static final Character[] HIRAGANA = { new Character('あ'), new Character('ん') };
+    
+    private static final Character[] KATAKANA = { new Character('ア'), new Character('ン') };
+    
+    private static final Character[] ZENKAKU_UPPER = {new Character('Ａ'), new Character('Ｚ')};
+    
+    private static final Character[] ZENKAKU_LOWER = {new Character('ａ'), new Character('ｚ')};
+    
+    private static final Character[] HANKAKU_UPPER = {new Character('A'), new Character('Z')};
+    
+    private static final Character[] HANKAKU_LOWER = {new Character('a'), new Character('z')};
+    
     /** Creates new StringTool */
     public StringTool() {
     }
-
+    
     public static Object[] tokenToArray(String line, String delim) {
-
+        
         StringTokenizer st = new StringTokenizer(line, delim, true);
-        ArrayList list = new ArrayList(10);
+        ArrayList<String> list = new ArrayList<String>(10);
         int state = 0;
         String token;
-
+        
         while (st.hasMoreTokens()) {
-
+            
             token = st.nextToken();
             switch (state) {
                 case 0:
                     // VALUE_STATE
                     if (token.equals(",")) {
                         token = null;
-                    }
-                    else {
+                    } else {
                         state = 1;
                     }
                     list.add(token);
                     break;
-
+                    
                 case 1:
                     // DELIM_STATE
                     state = 0;
                     break;
             }
         }
-
+        
         return list.toArray();
     }
-
+    
     public static String trimSpace(String text) {
-
+        
         int start = 0;
         int len = text.length();
-
-        while( start < len) {
+        
+        while (start < len) {
             if (text.charAt(start) > 32) {
                 break;
             }
@@ -89,41 +96,43 @@ public final class StringTool {
             }
             end--;
         }
-
+        
         return end != 0 ? text.substring(start, end + 1) : null;
     }
     
-
     public static boolean startsWithKatakana(String s) {
         return isKatakana(s.charAt(0));
     }
-
+    
     public static boolean startsWithHiragana(String s) {
         return isHiragana(s.charAt(0));
     }
-
+    
     public static boolean isKatakana(char c) {
-        // ア  12449  12353 半角
-        // ン　12531
-        return ((int)c >= 12449) && ((int)c <= 12531) ? true : false;
+        // ア 12449 12353 半角
+        // ン 12531
+        // return ((int)c >= 12449) && ((int)c <= 12531) ? true : false;
+        Character test = new Character(c);
+        return (test.compareTo(KATAKANA[0]) >= 0 && test.compareTo(KATAKANA[1]) <= 0) ? true : false;
     }
-
+    
     public static boolean isHiragana(char c) {
-        // あ  12354
-        // ん　12435
-        return ((int)c >= 12354) && ((int)c <= 12435) ? true : false;
+        // あ 12354
+        // ん 12435
+        Character test = new Character(c);
+        return (test.compareTo(HIRAGANA[0]) >= 0 && test.compareTo(HIRAGANA[1]) <= 0) ? true : false;
     }
-
+    
     private static char toKatakana(char c) {
-        return isHiragana(c) ? (char)((int)c + 96) : c;
+        return isHiragana(c) ? (char) ((int) c + 96) : c;
     }
-
+    
     public static String hiraganaToKatakana(String s) {
-
+        
         int len = s.length();
         char[] src = new char[len];
         s.getChars(0, s.length(), src, 0);
-
+        
         char[] dst = new char[len];
         for (int i = 0; i < len; i++) {
             dst[i] = toKatakana(src[i]);
@@ -140,7 +149,7 @@ public final class StringTool {
             
             char c = str.charAt(i);
             
-            if (! Character.isDigit(c)) {
+            if (!Character.isDigit(c)) {
                 ret = false;
                 break;
             }
@@ -157,7 +166,7 @@ public final class StringTool {
             
             char c = str.charAt(i);
             
-            if ( isKatakana(c) || isHiragana(c) ) {
+            if (isKatakana(c) || isHiragana(c)) {
                 continue;
             } else {
                 ret = false;
@@ -165,58 +174,93 @@ public final class StringTool {
             }
         }
         return ret;
-    }    
+    }
     
     /**
      * Convert to Zenkaku
      */
     public static String toZenkaku(String s) {
-        int len = s.length();
-        char[] src = new char[len];
-        s.getChars(0, s.length(), src, 0);
-
-        char[] dst = new char[len];
-        String st;
-        for (int i = 0; i < len; i++) {
-            for (int k = 0; k < komoji.length; k++) {
-                if (komoji[k] == src[i]) {
-                    src[i] = ohomoji[k];
-                }
+        
+        if (s != null) {
+            for (int i = 0; i < komoji.length; i++) {
+                // s = s.replace(komoji[i], ohomoji[i]);
+                s = s.replace(komoji[i], '.');
             }
-            dst[i] = toKatakana(src[i]);
         }
-        return new String(dst);
+        
+        return s;
     }
-
+    
     public static String toKatakana(String text, boolean b) {
-
+        
         if (b) {
             text = toZenkaku(text);
         }
         return hiraganaToKatakana(text);
     }
-
+    
+    public static boolean isZenkakuUpper(char c) {
+        Character test = new Character(c);
+        return (test.compareTo(ZENKAKU_UPPER[0]) >= 0 && test.compareTo(ZENKAKU_UPPER[1]) <= 0) ? true : false;
+    }
+    
+    public static boolean isZenkakuLower(char c) {
+        Character test = new Character(c);
+        return (test.compareTo(ZENKAKU_LOWER[0]) >= 0 && test.compareTo(ZENKAKU_LOWER[1]) <= 0) ? true : false;
+    }
+    
+    public static boolean isHankakuUpper(char c) {
+        Character test = new Character(c);
+        return (test.compareTo(HANKAKU_UPPER[0]) >= 0 && test.compareTo(HANKAKU_UPPER[1]) <= 0) ? true : false;
+    }
+    
+    public static boolean isHanakuLower(char c) {
+        Character test = new Character(c);
+        return (test.compareTo(HANKAKU_LOWER[0]) >= 0 && test.compareTo(HANKAKU_LOWER[1]) <= 0) ? true : false;
+    }
+    
+    
+    public static String toZenkakuUpperLower(String s) {
+        int len = s.length();
+        char[] src = new char[len];
+        s.getChars(0, s.length(), src, 0);
+        
+        StringBuilder sb = new StringBuilder();
+        for (char c : src) {
+            if (isHankakuUpper(c) || isHanakuLower(c)) {
+                sb.append( (char)((int)c + 65248) );
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+    
     public static String unicodeToEuc(String s) {
         String ret = null;
         try {
             ret = new String(s.getBytes("8859_1"), "EUC_JP");
-        }
-        catch (UnsupportedEncodingException e) {
-			System.out.println(e);
-			e.printStackTrace();
-        }
-        return ret;
-    }
-
-    public static String eucToUnicode(String s) {
-        String ret = null;
-        try {
-            ret = new String(s.getBytes("EUC_JP"), "8859_1");
-        }
-        catch (UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException e) {
             System.out.println(e);
             e.printStackTrace();
         }
         return ret;
     }
+    
+    public static String eucToUnicode(String s) {
+        String ret = null;
+        try {
+            ret = new String(s.getBytes("EUC_JP"), "8859_1");
+        } catch (UnsupportedEncodingException e) {
+            System.out.println(e);
+            e.printStackTrace();
+        }
+        return ret;
+    }
+    
+        /*public static void main(String[] args) {
+                String test = "PL顆粒";
+                System.out.println(toZenkakuUpperLower(test));
+                System.exit(0);
+        }*/
 }

@@ -25,12 +25,15 @@ import javax.swing.*;
 import javax.swing.table.*;
 
 /**
+ * MasterRenderer
  *
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
 public class MasterRenderer extends DefaultTableCellRenderer {
     
-    protected Color beforStartColor;
+    private static final long serialVersionUID = 4397037194989155042L;
+
+	protected Color beforStartColor;
     
     protected Color afterEndColor;
     
@@ -38,8 +41,16 @@ public class MasterRenderer extends DefaultTableCellRenderer {
     
     protected String refDate;
     
+    protected static final Color DEFAULT_ODD_COLOR = Color.white;
+    protected static final Color DEFAULT_EVENN_COLOR = new Color(237,243,254);
+    protected Color oddColor;
+    protected Color evenColor;
+    
     /** Creates a new instance of MasterRenderer */
     public MasterRenderer() {
+    	setOpaque(true);
+		setOddColor(oddColor);
+		setEvenColor(evenColor);
         GregorianCalendar gc = new GregorianCalendar();
         SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd");
         refDate = f.format(gc.getTime()).toString();
@@ -49,6 +60,34 @@ public class MasterRenderer extends DefaultTableCellRenderer {
         super();
         this.refDate = refDate;
     }
+    
+	/**
+	 * @param oddColor The oddColor to set.
+	 */
+	public void setOddColor(Color oddColor) {
+		this.oddColor = oddColor;
+	}
+
+	/**
+	 * @return Returns the oddColor.
+	 */
+	public Color getOddColor() {
+		return oddColor;
+	}
+	
+	/**
+	 * @param evenColor The evenColor to set.
+	 */
+	public void setEvenColor(Color evenColor) {
+		this.evenColor = evenColor;
+	}
+
+	/**
+	 * @return Returns the evenColor.
+	 */
+	public Color getEvenColor() {
+		return evenColor;
+	}
     
     public Color getBeforStartColor() {
         return beforStartColor;

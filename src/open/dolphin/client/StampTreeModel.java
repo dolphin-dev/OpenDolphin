@@ -20,7 +20,7 @@ package open.dolphin.client;
 
 import javax.swing.tree.*;
 
-import open.dolphin.infomodel.ModuleInfo;
+import open.dolphin.infomodel.ModuleInfoBean;
 
 /**
  * スタンプツリーのモデルクラス。
@@ -29,7 +29,9 @@ import open.dolphin.infomodel.ModuleInfo;
  */
 public class StampTreeModel extends DefaultTreeModel {
     
-    /**
+    private static final long serialVersionUID = -2227174337081687786L;
+
+	/**
      * デフォルトコンストラクタ
      */
     public StampTreeModel(TreeNode node) {
@@ -42,7 +44,7 @@ public class StampTreeModel extends DefaultTreeModel {
     public void valueForPathChanged (TreePath path, Object newValue) {
         
         // 変更ノードを取得する
-        StampTreeNode node = (StampTreeNode)path.getLastPathComponent();
+        StampTreeNode node = (StampTreeNode) path.getLastPathComponent();
         
         // Debug
         //String oldString = node.toString ();
@@ -54,13 +56,10 @@ public class StampTreeModel extends DefaultTreeModel {
          * そうでない場合は新しい文字列を userObject に設定する
          */
         if (node.isLeaf()) {
-            
-            //System.out.println ("leaf");
-            ModuleInfo info = (ModuleInfo)node.getUserObject();
-            info.setName(newString);
-        }
-        else {
-            
+            ModuleInfoBean info = (ModuleInfoBean) node.getUserObject();
+            info.setStampName(newString);
+        
+        } else {
             node.setUserObject(newString);
         }
         

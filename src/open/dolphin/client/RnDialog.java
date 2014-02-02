@@ -28,7 +28,7 @@ public abstract class RnDialog extends JDialog {
         this.parent = parent;
         
         JPanel compo = createComponent();
-        compo.setBorder(BorderFactory.createEmptyBorder(12, 11, 12, 11));
+        compo.setBorder(BorderFactory.createEmptyBorder(12, 12, 11, 11));
         this.getContentPane().add(compo, BorderLayout.CENTER);
         
         this.addWindowListener(new WindowAdapter() {
@@ -64,6 +64,6 @@ public abstract class RnDialog extends JDialog {
     protected void start() {
         this.pack();
         centerFrame();
-        this.show();
+        this.setVisible(true);
     }   
 }

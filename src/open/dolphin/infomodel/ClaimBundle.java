@@ -27,6 +27,8 @@ package open.dolphin.infomodel;
  */
 public class ClaimBundle extends InfoModel {
           
+    private static final long serialVersionUID = -7332175271243905003L;
+	
     String className;           // 診療行為名
     String classCode;           // 診療行為コード
     String classCodeSystem;     // コード体系
@@ -37,14 +39,6 @@ public class ClaimBundle extends InfoModel {
     String bundleNumber;        // バンドル数
     ClaimItem[] claimItem;      // バンドル構成品目
     String memo;                // メモ
-    
-    //TableValue claimClass;     // 2003-12-15
-    //MasterValue administration; // 2003-12-15
-    
-    //String admMemo;         // IMP
-    //String bundleNumber;    // ? integer
-    //ClaimItem[] items;      // +
-    //String memo;
     
     /** Creates new ClaimBundle*/
     public ClaimBundle() {        
@@ -141,72 +135,5 @@ public class ClaimBundle extends InfoModel {
     
     public void setMemo(String val) {
         memo = val;
-    }         
-    
-   
-    
-    /*public TableValue getClaimClass() {
-        return claimClass;
     }
-    
-    public void setClaimClass(TableValue val) {
-        claimClass = val;
-    }    
-    
-    public MasterValue getAdministration() {
-        return administration;
-    }
-    
-    public void setAdministration(MasterValue val) {
-        administration = val;
-    }
-    
-    public String getAdmMemo() {
-        return admMemo;
-    }
-    
-    public void setAdmMemo(String val) {
-        admMemo = val;
-    }  
-    
-    public String getBundleNumber() {
-        return bundleNumber;
-    }
-    
-    public void setBundleNumber(String val) {
-        bundleNumber = val;
-    } 
-    
-    public ClaimItem[] getClaimItem() {
-        return items;
-    }
-    
-    public void setClaimItem(ClaimItem[] val) {
-        items = val;
-    }
-    
-    public void addClaimItem(ClaimItem val) {
-        if (items == null) {
-            items = new ClaimItem[1];
-            items[0] = val;
-            return;
-        }
-        int len = items.length;
-        ClaimItem[] dest = new ClaimItem[len + 1];
-        System.arraycopy(items,0,dest,0,len);
-        items = dest;
-        items[len] = val;
-    }  
-    
-    public String getMemo() {
-        return memo;
-    }
-    
-    public void setMemo(String val) {
-        memo = val;
-    }     
-        
-    public boolean isValidMML() {
-        return ((items != null) && (items.length > 0)) ? true : false;
-    }*/
 }

@@ -25,6 +25,8 @@ package open.dolphin.client;
  */
 public class CalendarEvent extends java.util.EventObject {
     
+    private static final long serialVersionUID = -9042706233806609258L;
+	
     private SimpleCalendarPanel c0;
     private SimpleCalendarPanel c1;
     private SimpleCalendarPanel c2;

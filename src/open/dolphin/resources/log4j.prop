@@ -1,0 +1,63 @@
+# Version 1.0
+
+# RootLogger
+log4j.rootCategory=INFO,bootAppender
+
+# Loggers
+log4j.logger.boot.logger=INFO,bootAppender
+log4j.logger.part11.logger=INFO,part11Appender
+log4j.logger.delegater.logger=WARN,delegaterAppender
+log4j.logger.pvt.logger=INFO,pvtAppender
+log4j.logger.laboTest.logger=INFO,laboTestAppender
+log4j.logger.claim.logger=INFO,claimAppender
+log4j.logger.mml.logger=INFO,mmlAppender
+
+# bootAppender
+log4j.appender.bootAppender=org.apache.log4j.ConsoleAppender
+#log4j.appender.bootAppender=org.apache.log4j.FileAppender
+#log4j.appender.bootAppender.Append=false
+#log4j.appender.bootAppender.File=./log/boot.log
+log4j.appender.bootAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.bootAppender.layout.ConversionPattern=%-4r [%t] %-5p %c - %m%n
+
+# claimAppender
+log4j.appender.claimAppender=org.apache.log4j.FileAppender
+log4j.appender.claimAppender.Append=false
+log4j.appender.claimAppender.File=./log/claim.log
+log4j.appender.claimAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.claimAppender.layout.ConversionPattern=%-4r [%t] %-5p %c - %m%n
+
+# mmlAppender
+log4j.appender.mmlAppender=org.apache.log4j.FileAppender
+log4j.appender.mmlAppender.Append=false
+log4j.appender.mmlAppender.File=./log/mml.log
+log4j.appender.mmlAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.mmlAppender.layout.ConversionPattern=%-4r [%t] %-5p %c - %m%n
+
+# part11Appender
+log4j.appender.part11Appender=org.apache.log4j.FileAppender
+log4j.appender.part11Appender.Append=false
+log4j.appender.part11Appender.File=./log/part11.log
+log4j.appender.part11Appender.layout=org.apache.log4j.PatternLayout
+log4j.appender.part11Appender.layout.ConversionPattern=%-4r [%t] %-5p %c - %m%n
+
+# delegaterAppender
+log4j.appender.delegaterAppender=org.apache.log4j.FileAppender
+log4j.appender.delegaterAppender.Append=false
+log4j.appender.delegaterAppender.File=./log/delegater.log
+log4j.appender.delegaterAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.delegaterAppender.layout.ConversionPattern=%-4r [%t] %-5p %c - %m%n
+
+# pvtAppender
+log4j.appender.pvtAppender=org.apache.log4j.FileAppender
+log4j.appender.pvtAppender.Append=false
+log4j.appender.pvtAppender.File=./log/pvt.log
+log4j.appender.pvtAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.pvtAppender.layout.ConversionPattern=%-4r [%t] %-5p %c - %m%n
+
+# laboTestAppender
+log4j.appender.laboTestAppender=org.apache.log4j.FileAppender
+log4j.appender.laboTestAppender.Append=false
+log4j.appender.laboTestAppender.File=./log/laboTest.log
+log4j.appender.laboTestAppender.layout=org.apache.log4j.PatternLayout
+log4j.appender.laboTestAppender.layout.ConversionPattern=%-4r [%t] %-5p %c - %m%n

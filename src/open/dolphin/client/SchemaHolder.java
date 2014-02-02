@@ -6,12 +6,12 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *	
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *	
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -21,18 +21,17 @@ package open.dolphin.client;
 import javax.swing.*;
 import javax.swing.text.*;
 
-import open.dolphin.infomodel.Schema;
-
+import open.dolphin.infomodel.SchemaModel;
 
 import java.beans.*;
 import java.awt.*;
-import java.awt.datatransfer.*;
-import java.awt.dnd.*;
-import java.io.*;
+
 import jp.ac.kumamoto_u.kuh.fc.jsato.swing_beans.*;
 
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 // Junzo SATO
+import java.awt.event.FocusEvent;
+import java.awt.event.MouseEvent;
 import java.awt.image.*;
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -41,49 +40,36 @@ import java.awt.image.*;
  *
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
-public final class SchemaHolder extends JLabel 
-implements IComponentHolder, DragGestureListener, DragSourceListener {
-
-    static final Color FOREGROUND = Color.blue;
-    static final Color BACKGROUND = Color.white;
-    static final Color SELECTED_BORDER = Color.magenta;
-    static final Color DESELECTED_BORDER = Color.white;
-        
-    Schema schema;
-        
+public final class SchemaHolder extends ComponentHolder implements IComponentHolder {
+    
+    private static final long serialVersionUID = 1777560751402251092L;
+    private static final Color SELECTED_BORDER = new Color(255, 0, 153);
+    
+    private SchemaModel schema;
+    
     //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     // Junzo SATO
-    // to restrict the size of the component, 
+    // to restrict the size of the component,
     // setBounds and setSize are overridden.
-    int fixedSize = 192;//160;/////////////////////////////////////////
-    int fixedWidth = fixedSize;
-    int fixedHeight = fixedSize;
+    private int fixedSize = 192;//160;/////////////////////////////////////////
+    private int fixedWidth = fixedSize;
+    private int fixedHeight = fixedSize;
     //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
-    boolean selected;
-
-    int id;
-
-    Position start;
-
-    Position end;
-
-    KartePane kartePane;
     
-    Color foreGround = FOREGROUND;
+    private boolean selected;
     
-    Color background = BACKGROUND;
+    private Position start;
     
-    Color selectedBorder = SELECTED_BORDER;
+    private Position end;
     
-    Color deSelectedBorder = DESELECTED_BORDER;
+    private KartePane kartePane;
     
-    DragSource dragSource;
-
-    public SchemaHolder(KartePane kartePane, int id, Schema schema) {
-
+    private Color selectedBorder = SELECTED_BORDER;
+    
+    
+    public SchemaHolder(KartePane kartePane, SchemaModel schema) {
+        
         this.kartePane = kartePane;
-        this.id = id;
         
         //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
         // Junzo SATO
@@ -96,89 +82,110 @@ implements IComponentHolder, DragGestureListener, DragSourceListener {
         this.setDoubleBuffered(false);
         this.setOpaque(true);
         this.setBackground(Color.white);
-        //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  
-     
-        this.schema = schema;
-        this.setImageIcon(schema.getIcon());        
-        this.setBorder(BorderFactory.createLineBorder(deSelectedBorder)); 
+        //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
         
-        dragSource = new DragSource();
-        dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_COPY_OR_MOVE, this);
+        this.schema = schema;
+        this.setImageIcon(schema.getIcon());
+        
     }
     
     public void setImageIcon(ImageIcon icon) {
         //schema.setIcon(icon);
         setIcon(adjustImageSize(icon, new Dimension(fixedWidth, fixedHeight)));
-    } 
-
+    }
+    
     public int getContentType() {
         return IComponentHolder.TT_IMAGE;
     }
     
-    public int getId() {
-        return id;
+    public KartePane getKartePane() {
+        return kartePane;
     }
     
-    public Schema getSchema() {
-    	return schema;
+    public SchemaModel getSchema() {
+        return schema;
     }
     
     public boolean isSelected() {
         return selected;
     }
     
-    public boolean toggleSelection() {
-    	
-    	// 2004-02-14 DnD ‚Ì‚½‚ßƒgƒOƒ‹‘I‘ð‚ðŽ~‚ß‚é
-		selected = selected ? true : true;
-		Color c = selected ? selectedBorder : kartePane.getBackground();
-		this.setBorder(BorderFactory.createLineBorder(c));
-
-		return selected;
-		
-        /*if (selected) {
-            this.setBorder(BorderFactory.createLineBorder(deSelectedBorder));
-            selected = false;
+    public void focusGained(FocusEvent e) {
+        //System.out.println("schema gained");
+        ChartMediator mediator = kartePane.getMediator();
+        mediator.setCurrentComponent(this);
+        mediator.setCurrentComponent(this);
+        mediator.getAction(GUIConst.ACTION_CUT).setEnabled(false);
+        mediator.getAction(GUIConst.ACTION_COPY).setEnabled(false);
+        mediator.getAction(GUIConst.ACTION_PASTE).setEnabled(false);
+        mediator.getAction(GUIConst.ACTION_UNDO).setEnabled(false);
+        mediator.getAction(GUIConst.ACTION_REDO).setEnabled(false);
+        mediator.getAction(GUIConst.ACTION_INSERT_TEXT).setEnabled(false);
+        mediator.getAction(GUIConst.ACTION_INSERT_SCHEMA).setEnabled(false);
+        mediator.getAction(GUIConst.ACTION_INSERT_STAMP).setEnabled(false);
+        mediator.enableMenus(new String[]{GUIConst.ACTION_COPY});
+        mediator.enableMenus(new String[]{GUIConst.ACTION_COPY});
+        if (kartePane.getTextPane().isEditable()) {
+            mediator.enableMenus(new String[]{GUIConst.ACTION_CUT});
+        } else {
+            mediator.disableMenus(new String[]{GUIConst.ACTION_CUT});
         }
-        else {
-            this.setBorder(BorderFactory.createLineBorder(selectedBorder));
-            selected = true;
-        }
-        return selected; */
+        mediator.disableMenus(new String[]{GUIConst.ACTION_PASTE});
+        setSelected(true);
     }
-
-    public void setSelected(boolean b) {
-        if (b) {
-            this.setBorder(BorderFactory.createLineBorder(selectedBorder));
-            selected = true;
-        }
-        else if (selected) {
-            this.setBorder(BorderFactory.createLineBorder(deSelectedBorder));
-            selected = false;
+    
+    public void focusLost(FocusEvent e) {
+        //System.out.println("schema lost");
+        //	ChartMediator mediator = kartePane.getMediator();
+        //	String[] menus = new String[]{"cut", "copy", "paste"};
+        //	mediator.disableMenus(menus);
+        setSelected(false);
+    }
+    
+    public void mabeShowPopup(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+            JPopupMenu popup = new JPopupMenu();
+            popup.setFocusable(false);
+            ChartMediator mediator = kartePane.getMediator();
+            popup.add(mediator.getAction(GUIConst.ACTION_CUT));
+            popup.add(mediator.getAction(GUIConst.ACTION_COPY));
+            popup.add(mediator.getAction(GUIConst.ACTION_PASTE));
+            popup.show(e.getComponent(), e.getX(), e.getY());
         }
     }
-
-    public void edit(boolean b) {
-
-        try {            
-            final SchemaEditorDialog dlg = new SchemaEditorDialog((Frame)null, true, schema, b);
+    
+    public void setSelected(boolean selected) {
+        boolean old = this.selected;
+        this.selected = selected;
+        if (old != this.selected) {
+            if (this.selected) {
+                this.setBorder(BorderFactory.createLineBorder(selectedBorder));
+            } else {
+                this.setBorder(BorderFactory.createLineBorder(kartePane.getTextPane().getBackground()));
+            }
+        }
+    }
+    
+    public void edit() {
+        
+        try {
+            final SchemaEditorDialog dlg = new SchemaEditorDialog((Frame)null, true, schema, kartePane.getTextPane().isEditable());
             dlg.addPropertyChangeListener(SchemaHolder.this);
             SwingUtilities.invokeLater(new Runnable() {
-
+                
                 public void run() {
                     dlg.run();
                 }
-           });
-        }
-        catch (Exception e) {
+            });
+        } catch (Exception e) {
             e.printStackTrace();
             System.out.println(e);
-        }                
+        }
     }
-
+    
     public void propertyChange(PropertyChangeEvent e) {
         
-        Schema newSchema = (Schema)e.getNewValue();
+        SchemaModel newSchema = (SchemaModel)e.getNewValue();
         if (newSchema ==  null) {
             return;
         }
@@ -186,7 +193,7 @@ implements IComponentHolder, DragGestureListener, DragSourceListener {
         schema = newSchema;
         setIcon(adjustImageSize(schema.getIcon(), new Dimension(fixedWidth, fixedHeight)));
     }
-
+    
     public void setEntry(Position start, Position end) {
         this.start = start;
         this.end = end;
@@ -214,34 +221,34 @@ implements IComponentHolder, DragGestureListener, DragSourceListener {
             int r = cm.getRed(rgb);
             int g = cm.getGreen(rgb);
             int b = cm.getBlue(rgb);
-
+            
             return (a << 24 | r << 16 | g << 8 | b);
         }
     }
-        
+    
     /*public void paint(Graphics g) {
         super.paint(g);
-
+     
         this.setForeground(Color.black);
         this.setBackground(Color.white);
-
+     
         Dimension d = this.getSize();
         g.setColor(Color.white);
         //g.fillRect(0,0,d.width,d.height);
         g.fillRect(1,1,d.width-2,d.height-2);// leave margin
-
+     
         // get current (latest) image
         ImageIcon icon = (ImageIcon)this.getIcon();
         if (icon == null) return;
-
+     
         Image smallImg = icon.getImage();
         if (smallImg == null) return;
-
+     
         int xx = 0, yy = 0, ww = 0, hh = 0;
         ww = smallImg.getWidth(this);
         hh = smallImg.getHeight(this);
         if (ww < 0 || hh < 0) return;
-
+     
         if (ww > hh) {
             if (fixedWidth < ww) {
                 hh = (int)(hh * ((float)fixedWidth / ww));
@@ -261,24 +268,24 @@ implements IComponentHolder, DragGestureListener, DragSourceListener {
                 yy = yy + (fixedHeight - hh)/2;
             }
         }
-
+     
         //----------------------------------------------------------------------
         // because jdk1.4 beta3 cannot print component with correct color of schema image,
         // I apply color filter here.
         // I know this is a cheap and dirty trick. But this works:-)
         Image src = smallImg;
-	ImageFilter colorfilter = new ColorFilter();
-	Image img = createImage(new FilteredImageSource(src.getSource(),colorfilter));
+        ImageFilter colorfilter = new ColorFilter();
+        Image img = createImage(new FilteredImageSource(src.getSource(),colorfilter));
         g.drawImage(img, xx+1, yy+1, ww-2, hh-2, this);// leave margin
     }*/
-                    
+    
     /**
      * LDAP Programming with Java.
      */
     protected ImageIcon adjustImageSize(ImageIcon icon, Dimension dim) {
         
         if ( (icon.getIconHeight() > dim.height) ||
-             (icon.getIconWidth() > dim.width) ) {
+                (icon.getIconWidth() > dim.width) ) {
             Image img = icon.getImage();
             float hRatio = (float)icon.getIconHeight() / dim.height;
             float wRatio = (float)icon.getIconWidth() / dim.width;
@@ -286,63 +293,14 @@ implements IComponentHolder, DragGestureListener, DragSourceListener {
             if (hRatio > wRatio) {
                 h = dim.height;
                 w = (int)(icon.getIconWidth() / hRatio);
-            }
-            else {
+            } else {
                 w = dim.width;
                 h = (int)(icon.getIconHeight() / wRatio);
             }
             img = img.getScaledInstance(w, h, Image.SCALE_SMOOTH);
             return new ImageIcon(img);
-        }
-        else {
+        } else {
             return icon;
         }
     }
-    
-    public void dragGestureRecognized(DragGestureEvent event) {
-        
-        Transferable tr = kartePane.getImageTrain();
-                
-        if (tr != null) {
-            try {
-                SchemaList list = (SchemaList)tr.getTransferData(SchemaListTransferable.schemaListFlavor);
-                if (list.schemaList.length == 1) {
-                    Cursor cursor = DragSource.DefaultMoveDrop; //DefaultCopyDrop;
-                    dragSource.startDrag(event, cursor, tr, this);
-                }
-                
-            } catch (UnsupportedFlavorException e) {
-                System.out.println("DEBUG UnsupportedException while getting the transfer data: " 
-                                    + e.toString());
-            } catch (IOException ie) {
-                System.out.println("IOException while getting the transfer data: " 
-                                    + ie.toString());
-            }
-        
-        } /* else {
-            
-            SchemaList list = new SchemaList();
-            Schema[] s = new Schema[1];
-            s[0] = schema;
-            list.schemaList = s;
-            tr = new SchemaListTransferable(list);
-            Cursor cursor = DragSource.DefaultMoveDrop; //DefaultCopyDrop;
-            dragSource.startDrag(event, cursor, tr, this);
-        }*/
-    }
-
-    public void dragDropEnd(DragSourceDropEvent event) { 
-    }
-
-    public void dragEnter(DragSourceDragEvent event) {
-    }
-
-    public void dragOver(DragSourceDragEvent event) {
-    }
-    
-    public void dragExit(DragSourceEvent event) {
-    }    
-
-    public void dropActionChanged ( DragSourceDragEvent event) {
-    }        
 }

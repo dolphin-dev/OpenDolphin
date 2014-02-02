@@ -22,7 +22,7 @@ package open.dolphin.client;
 import java.awt.datatransfer.*;
 import java.io.*;
 
-import open.dolphin.infomodel.Module;
+import open.dolphin.infomodel.ModuleModel;
   
 /**
  * Tranferable class of the Stamp.
@@ -32,23 +32,23 @@ import open.dolphin.infomodel.Module;
 public final class StampTransferable implements Transferable, ClipboardOwner {
 
     /** Data Flavor of this class */
-    public static DataFlavor stampFlavor = new DataFlavor(open.dolphin.infomodel.Module.class, "Stamp");
+    public static DataFlavor stampFlavor = new DataFlavor(open.dolphin.infomodel.ModuleModel.class, "Stamp");
   
     public static final DataFlavor[] flavors = {StampTransferable.stampFlavor};
       
-    private Module stamp;
+    private ModuleModel stamp;
 
     /** Creates new StampTransferable */
-    public StampTransferable(Module stamp) {
-        this.stamp = stamp;
+    public StampTransferable(ModuleModel stamp) {
+    		this.stamp = stamp;
     }
 
     public synchronized DataFlavor[] getTransferDataFlavors() {
-	return flavors;
+    		return flavors;
     }
      
     public boolean isDataFlavorSupported(DataFlavor flavor) {
-	return flavor.equals(stampFlavor) ? true : false;
+    		return flavor.equals(stampFlavor) ? true : false;
     }
 
     public synchronized Object getTransferData(DataFlavor flavor)

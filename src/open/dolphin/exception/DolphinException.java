@@ -19,11 +19,15 @@
 package open.dolphin.exception;
 
 /**
- * @author  Kazushi Minagawa, Digital Globe, Inc.
+ * DolphinException
+ * 
+ * @author  Kazushi Minagawa
  */
 public class DolphinException extends java.lang.Exception {
     
-    public DolphinException() {    
+    private static final long serialVersionUID = 5819686319960053569L;
+
+	public DolphinException() {    
     }
 
     public DolphinException(String msg) {        

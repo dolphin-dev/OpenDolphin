@@ -19,8 +19,6 @@
 package open.dolphin.client;
 
 import javax.swing.*;
-import java.awt.event.*;
-import java.util.*;
 
 /**
  * リソースデータから PopupMenu を生成するクラス。
@@ -29,49 +27,32 @@ import java.util.*;
  */
 public class PopupMenuFactory {
     
-    public PopupMenuFactory () {
-        
-        super ();
+    private PopupMenuFactory () {
     }
     
     /**
-     * リソース名と ActionListener から PopupMenu を生成して返す。
+     * リソースとターゲットオブジェクトから PopupMenu を生成して返す。
      * @param resource リソース名
-     * @target ActionListener
+     * @target メソッドを実行するオブジェクト
      */
-    public static JPopupMenu create (String resource, Object target) {
+    public static JPopupMenu create(String resource, Object target) {
         
         JPopupMenu popMenu = new JPopupMenu ();
         
-        String itemLine = ClientContext.getString(resource + "items");
-        String cmdLine = ClientContext.getString(resource + "actions");
+        String[] itemLine = ClientContext.getStringArray(resource + ".items");
+        String[] methodLine = ClientContext.getStringArray(resource + ".methods");
         
-        StringTokenizer itemSt = new StringTokenizer(itemLine, ",");
-        StringTokenizer cmdSt = new StringTokenizer(cmdLine , ",");
-        
-        String name;
-        String cmd;
-        ActionListener action;
-        JMenuItem item;
-        
-        while (itemSt.hasMoreElements()) {
+        for (int i = 0; i < itemLine.length; i++) {
             
-            name = itemSt.nextToken();
-            cmd = cmdSt.nextToken();
+            String name = itemLine[i];
+            String method = methodLine[i];
             
             if (name.equals("-")) {
-                
                 popMenu.addSeparator();
             }
             else {
-                
-                item = new JMenuItem(name);
-                action = (ActionListener) (GenericListener.create (
-                                    ActionListener.class,
-                                    "actionPerformed",
-                                    target,
-                                    cmd));
-                item.addActionListener(action);
+                ReflectAction action = new ReflectAction(name, target, method);
+                JMenuItem item = new JMenuItem(action);
                 popMenu.add(item);
             }
         }

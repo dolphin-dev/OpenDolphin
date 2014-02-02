@@ -1,0 +1,9 @@
+Main-Class: open.dolphin.client.Dolphin
+Class-Path: lib/commons-logging.jar lib/ejb3-persistence.jar lib/hiber
+ nate-annotations.jar lib/jboss-annotations-ejb3.jar lib/jboss-j2ee.ja
+ r lib/jboss-system-client.jar lib/jbossall-client.jar lib/log4j.jar l
+ ib/commons-lang.jar lib/jai_codec.jar lib/jai_core.jar lib/jdom.jar l
+ ib/jsato.jar lib/soap.jar lib/velocity-1.4.jar lib/velocity-dep-1.4.j
+ ar lib/mail.jar lib/jboss-aspect-jdk50-client.jar lib/jboss-aop-jdk50
+ -client.jar lib/jboss-ejb3-client.jar lib/hibernate-client.jar lib/po
+ stgresql-8.2-504.jdbc3.jar lib/scheduler-plugin.jar

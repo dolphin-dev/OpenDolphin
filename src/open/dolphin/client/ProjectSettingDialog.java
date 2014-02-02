@@ -1,1106 +1,438 @@
 /*
- * ServerSetting.java
- *
+ * LoginDialog.java
  * Copyright (C) 2002 Dolphin Project. All rights reserved.
+ * Copyright (C) 2003-2005 Digital Globe, Inc. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package open.dolphin.client;
 
-import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.event.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Frame;
+import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import open.dolphin.plugin.IPluginContext;
+import open.dolphin.plugin.PluginReference;
 
-import open.dolphin.project.*;
-import open.dolphin.util.*;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JToggleButton;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import open.dolphin.project.Project;
 
 /**
- * プロジェクト設定ダイアログ。
+ * 環境設定ダイアログ。
  *
  * @author Kazushi Minagawa, Digital Globe, Inc.
  */
-public final class ProjectSettingDialog {
+public final class ProjectSettingDialog implements PropertyChangeListener  {
     
-	// Project
-	private ProjectStub projectStub;
+    // PlugPoint
+    private static final String MY_PLUG_POINT = "mainWindow/setting";
     
-	private JTabbedPane tabbedPane;
-       
-	private JButton okButton;
-	private JButton cancelButton;
+    //
+    // GUI
+    //
+    private JDialog dialog;
+    private JPanel itemPanel;
+    private JPanel cardPanel;
+    private JPanel cmdPanel;
+    private CardLayout cardLayout;
+    private JButton okButton;
+    private JButton cancelButton;
     
-	private boolean okState;
-	private JDialog dialog;
+    //
+    // 全体のモデル
+    //
+    private HashMap<String, AbstractSettingPanel> settingMap;
+    private ArrayList<PluginReference> allSettings;
+    private ArrayList<JToggleButton> allBtns;
+    private String startSettingName;
+    private boolean loginState;
     
-	/** Creates new Login */
-	public ProjectSettingDialog() {
-		String title = ClientContext.getString("settingDialog.title");
-		dialog = new JDialog((Frame)null, title, true);
-		JPanel c = createComponent();
-		c.setBorder(BorderFactory.createEmptyBorder(12, 12, 11, 11));
-		dialog.getContentPane().add(c, BorderLayout.CENTER);
-		dialog.getRootPane().setDefaultButton(okButton);
-		dialog.pack();
-	}
+    private PropertyChangeSupport boundSupport;
+    private static final String SETTING_PROP = "SETTING_PROP";
     
-	public void start() {
-		Point loc = DesignFactory.getCenterLoc(dialog.getWidth(), dialog.getHeight());
-		dialog.setLocation(loc.x, loc.y);
-		dialog.show();
-	}
+    private boolean okState;
     
-	public void setProject(ProjectStub p) {
-        
-		projectStub = p;
-        
-		if (projectStub == null) {
-			return;
-		}
-      
-		projectStub.setMode(AbstractSettingPanel.TT_SET);
-        
-		int count = tabbedPane.getTabCount();
-		for (int i = 0; i < count; i++) {
-			AbstractSettingPanel setting = (AbstractSettingPanel)tabbedPane.getComponentAt(i);
-			projectStub.accept(setting);
-		}
-	}
+    private final int DEFAULT_WIDTH 	= 490;
+    private final int DEFAULT_HEIGHT 	= 590;
     
-	public ProjectStub getValue() {
-		return projectStub;
-	}
     
-	private JPanel createComponent() {
+    /**
+     * Creates new ProjectSettingDialog
+     */
+    public ProjectSettingDialog() {
+    }
+    
+    public void addPropertyChangeListener(String prop, PropertyChangeListener l) {
+        if (boundSupport == null) {
+            boundSupport = new PropertyChangeSupport(this);
+        }
+        boundSupport.addPropertyChangeListener(prop, l);
+    }
+    
+    public void removePropertyChangeListener(String prop, PropertyChangeListener l) {
+        if (boundSupport == null) {
+            boundSupport = new PropertyChangeSupport(this);
+        }
+        boundSupport.addPropertyChangeListener(prop, l);
+    }
+    
+    public boolean getLoginState() {
+        return loginState;
+    }
+    
+    public void setLoginState(boolean  b) {
+        loginState = b;
+    }
+    
+    public boolean getValue() {
+        return Project.getProjectStub().isValid();
+    }
+    
+    public void notifyResult() {
+        boolean valid = Project.getProjectStub().isValid() ? true : false;
+        boundSupport.firePropertyChange(SETTING_PROP, ! valid, valid);
+    }
+    
+    /**
+     * オープン時に表示する設定画面をセットする。
+     */
+    public void setProject(String startSettingName) {
+        this.startSettingName = startSettingName;
+    }
+    
+    /**
+     * 設定画面を開始する。
+     */
+    public void start() {
         
-		// Project Panel
-		AbstractSettingPanel projectPanel = new ProjectPanel();
-		((JPanel)projectPanel).setBorder(BorderFactory.createEmptyBorder(12,12,11,11));
-        
-		// Hospital Panel
-		//AbstractSettingPanel hospitalPanel = new HospitalPanel();
-		//((JPanel)hospitalPanel).setBorder(BorderFactory.createEmptyBorder(12,12,11,11));
-        
-		// Dolphin Server (Host) Panel
-		AbstractSettingPanel hostPanel = new HostPanel();
-		((JPanel)hostPanel).setBorder(BorderFactory.createEmptyBorder(12,12,11,11));
-        
-		// Claim Panel
-		AbstractSettingPanel claimPanel = new ClaimPanel();
-		((JPanel)claimPanel).setBorder(BorderFactory.createEmptyBorder(12,12,11,11));
-        
-		// MML Panel
-		AbstractSettingPanel mmlPanel = new MMLPanel(); //createMMLPanel();
-		((JPanel)mmlPanel).setBorder(BorderFactory.createEmptyBorder(12,12,11,11));
-                     
-		// Proxy Panel
-		AbstractSettingPanel autoUpdatePanel = new AutomaticUpdatePanel();
-		((JPanel)autoUpdatePanel).setBorder(BorderFactory.createEmptyBorder(12, 12, 11, 11));
-        
-		// Tab 構成
-		tabbedPane = new JTabbedPane();
-        
-		// Project 設定
-		String text = ClientContext.getString("settingDialog.tab.projectTab");
-		tabbedPane.add(text, projectPanel);
-        
-		// 病院情報設定
-		//text = ClientContext.getResourceString("settingDialog.tab.hospitalTab");
-		//tabbedPane.add(text, hospitalPanel);
-        
-		// Dolphin Server
-		text = ClientContext.getString("settingDialog.tab.serverTab");
-		tabbedPane.add(text, hostPanel);
-               
-		// Claim Server
-		text = ClientContext.getString("settingDialog.tab.claimTab");
-		tabbedPane.add(text, claimPanel);
-        
-		// Sending MML
-		text = ClientContext.getString("settingDialog.tab.mmlTab");
-		tabbedPane.add(text, mmlPanel);
-        
-		// 自動更新 設定
-		text = ClientContext.getString("settingDialog.tab.proxyTab");
-		tabbedPane.add(text, autoUpdatePanel);
-        
-		JPanel info = new JPanel(new BorderLayout(0, 9));
-		text = ClientContext.getString("settingDialog.instraction");
-		info.add(new JLabel(text), BorderLayout.NORTH);
-		info.add(new JLabel(ClientContext.getImageIcon("splash.jpg")), BorderLayout.CENTER);
-        
-		JPanel top = new JPanel();        
-		top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
-		top.add(info);
-		top.add(Box.createRigidArea(new Dimension(11, 0)));
-		top.add(tabbedPane);
-        
-		//JPanel panel = new JPanel(new BorderLayout(0, 17));
-		//panel.add(top, BorderLayout.CENTER);
-        
-		//JPanel p =  createButtonPanel();        
-		//panel.add(p, BorderLayout.SOUTH);
+        Runnable r = new Runnable () {
+            
+            public void run() {
+                       
+                //
+                // モデルを得る
+                // 全ての設定プラグイン(Reference)を得、リストに格納する
+                //
+                try {
+                    IPluginContext plCtx = ClientContext.getPluginContext();
+                    Collection<PluginReference> c = plCtx.listPluginReferences(MY_PLUG_POINT);
+                    allSettings = new ArrayList<PluginReference>(c);
 
-		JPanel panel = new JPanel();
-		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-		panel.add(top);
-		panel.add(Box.createVerticalGlue());
-		panel.add(Box.createVerticalStrut(17));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return;
+                }
 
-		JPanel p =  createButtonPanel();        
-		panel.add(p);        
-		return panel;  
-	}
-    
-	private JPanel createButtonPanel() {
-	   // Buttons
-		JPanel p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    
-		p.add(Box.createHorizontalGlue());
-        
-		// Save
-		String text = ClientContext.getString("settingDialog.saveButtonText");
-		okButton = new JButton(text);
-		okButton.addActionListener(new ActionListener() {
-            
-			public void actionPerformed(ActionEvent e) {
-				doOk();
-			}
-		});
-		okButton.setEnabled(false);
-		p.add(okButton);
-		p.add(Box.createRigidArea(new Dimension(5, 0)));
-        
-		// Cancel
-		text =  (String)UIManager.get("OptionPane.cancelButtonText") + "(C)";
-		cancelButton = new JButton(text);
-		cancelButton.addActionListener(new ActionListener() {
-            
-			public void actionPerformed(ActionEvent e) {
-				doCancel();
-			}
-		});
-		cancelButton.setMnemonic('C');
-		p.add(cancelButton);        
+                // 設定パネル(AbstractSettingPanel)を格納する Hashtableを生成する
+                // key=設定プラグインの名前 value=設定プラグイン
+                settingMap = new HashMap<String, AbstractSettingPanel>();
 
-		return p;
-	}
-    
-	private void checkButtons() {
-        
-		boolean newOk = true;
-		int count = tabbedPane.getTabCount();
-		for(int i = 0; i < count; i++) {
-			AbstractSettingPanel p = (AbstractSettingPanel)tabbedPane.getComponentAt(i);
-			if (!p.isOk()) {
-				newOk = false;
-				break;
-			}
-		}
-        
-		if (okState != newOk) {
-			okState = newOk;
-			okButton.setEnabled(okState);
-		}
-	}
-            
-	private void doOk() {
-        
-		if (projectStub == null) {
-			projectStub  = new ProjectStub();
-		}
-        
-		projectStub.setMode(AbstractSettingPanel.TT_GET);
-        
-		int count = tabbedPane.getTabCount();
-		for (int i = 0; i < count; i++) {
-			AbstractSettingPanel p = (AbstractSettingPanel)tabbedPane.getComponentAt(i);
-			projectStub.accept(p);
-		}
-        
-		// Save settings
-		projectStub.setValid(true);
-		ClientContext.storeProject(projectStub);
-        
-		dialog.setVisible(false);
-		dialog.dispose();
-	}
-    
-	private void doCancel() {
-		dialog.setVisible(false);
-		dialog.dispose();
-	}    
-    
-	/**
-	 * Project Information Panel
-	 */
-	class ProjectPanel extends AbstractSettingPanel {
-        
-		private JRadioButton kumamoto;
-		private JRadioButton miyazaki;
-    
-		public ProjectPanel() {
-            
-			String text = ClientContext.getString("settingDialog.project.kumamotoName");
-			kumamoto = new JRadioButton(text);
-			text = ClientContext.getString("settingDialog.project.miyazakiName");
-			miyazaki = new JRadioButton(text);
-			this.add (miyazaki);
-			this.add (kumamoto);
-			ButtonGroup bg = new ButtonGroup();
-			bg.add(miyazaki);
-			bg.add(kumamoto);
-			text = ClientContext.getString("settingDialog.project.borderTitle");
-			this.setBorder(BorderFactory.createTitledBorder(text));
-            
-			// Sets default
-			//miyazaki.setSelected(true);
-		}
-        
-		public void getValues(ProjectStub stub) {
-			String val = kumamoto.isSelected() ? "kumamoto" : "miyazaki";
-			stub.setName(val);
-		}
-        
-		public void setValues(ProjectStub stub) {
-			String val = stub.getName();
-			if (val != null && val.equals("kumamoto")) {
-				kumamoto.setSelected(true);
+                //
+                // GUI を構築しモデルをバインドする
+                //
+                initComponents();
+
+                //
+                // オープン時に表示する設定画面を決定する
+                //
+                int index = 0;
                 
-			} else {
-				miyazaki.setSelected(true);
-			}
-		}
-	}
-
-    
-	/**
-	 * Dolphin Server Information Panle
-	 */
-	class HostPanel extends AbstractSettingPanel {
-        
-		private JTextField hostAddressField;
-		private JTextField hostPortField;
-		private JTextField userIdField;
-        
-		public HostPanel() {
-            
-			// DocumentListener
-			DocumentListener dl = new DocumentListener() {
-          
-				public void changedUpdate(DocumentEvent e) {
-				}
-
-				public void insertUpdate(DocumentEvent e) {
-					checkButtons();
-				}
-
-				public void removeUpdate(DocumentEvent e) {
-					checkButtons();
-				}
-			};
-            
-			// FocusAdapter
-			FocusAdapter imeOff = new FocusAdapter() {
-				public void focusGained(FocusEvent event) {
-					JTextField tf = (JTextField)event.getSource();
-					tf.getInputContext().setCharacterSubsets(null);
-				}
-				
-				public void focusLosted(FocusEvent event) {
-					JTextField tf = (JTextField)event.getSource();
-					tf.getInputContext().setCharacterSubsets(null);
-				}
-			};
-			
-			// 生成
-			hostAddressField = createTextField(10, null, imeOff, dl);
-			hostPortField = createTextField(5, null, null, null);
-			hostPortField.setEnabled(false);
-			userIdField = createTextField(10, null, imeOff, dl);
-			
-			hostAddressField.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					userIdField.requestFocus();
-				}
-			});
-			
-			/*hostPortField.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					userIdField.requestFocus();
-				}
-			});*/
-			
-			userIdField.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {  
-					hostAddressField.requestFocus();
-				}
-			});
-			 
-			// レイアウト  
-			this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-            
-			// IP address
-			String text = ClientContext.getString("settingDialog.server.ipLabel");
-			this.add(createItemPanel(text, SwingConstants.RIGHT, hostAddressField));
-			this.add(Box.createVerticalStrut(11));
-
-			// Port number
-			text = ClientContext.getString("settingDialog.server.portLabel");
-			this.add(createItemPanel(text, SwingConstants.RIGHT, hostPortField));
-			this.add(Box.createVerticalStrut(11));
-
-			// User Id
-			text = ClientContext.getString("settingDialog.server.userIdLabel");
-			this.add(createItemPanel(text, SwingConstants.RIGHT, userIdField));
-			this.add(Box.createVerticalStrut(11));
-			
-			// Glue
-			this.add(Box.createVerticalGlue());
-			    
-		}
-        
-		public boolean isOk() {
-			boolean hostAddrEmpty = hostAddressField.getText().equals("") ? true : false;
-			boolean hostPortEmpty = hostPortField.getText().equals("") ? true : false;
-			boolean userIdEmpty = userIdField.getText().equals("") ? true : false;
-            
-			return (hostAddrEmpty || hostPortEmpty || userIdEmpty) ? false : true;
-		}
-        
-		protected void getValues(ProjectStub stub) {
-            
-			String val = hostAddressField.getText().trim();
-			stub.setHostAddress(val);
-            
-			val = hostPortField.getText().trim();
-			try {
-				int port = Integer.parseInt(val);
-				stub.setHostPort(port);
-                
-			} catch (NumberFormatException e) {
-				stub.setHostPort(389);
-			}
-            
-			val = userIdField.getText().trim();
-			stub.setUserId(val);
-		}
-        
-		protected void setValues(ProjectStub stub) {
-            
-			String val = stub.getHostAddress();
-			if (val != null) {
-				hostAddressField.setText(val);
-			}
-			val = String.valueOf(stub.getHostPort());
-			if (val != null) {
-				hostPortField.setText(val);
-			} //else {
-				//hostPortField.setText("389");
-			//}
-
-			val = stub.getUserId();
-			if (val != null) {
-				userIdField.setText(val);
-			}
-		}
-	}
-    
-	/**
-	 * Claim Server Information Panel
-	 */
-	class ClaimPanel extends AbstractSettingPanel {
-        
-		private JRadioButton sendClaim;
-		private JRadioButton sendNoClaim;
-		private JRadioButton sendDiagnosis;
-		private JRadioButton sendNoDiagnosis;
-		private String claimHostName;
-		private JComboBox claimHostCombo;
-		private JTextField claimAddressField;
-		private JTextField claimPortField;
-               
-		public ClaimPanel() {
-            
-			// DocumentListener
-			DocumentListener dl = new DocumentListener() {
-          
-				public void changedUpdate(DocumentEvent e) {
-				}
-
-				public void insertUpdate(DocumentEvent e) {
-					checkButtons();
-				}
-
-				public void removeUpdate(DocumentEvent e) {
-					checkButtons();
-				}
-			};
-            
-			// FocusAdapter
-			FocusAdapter imeOff = new FocusAdapter() {
-				public void focusGained(FocusEvent event) {
-					JTextField tf = (JTextField)event.getSource();
-					tf.getInputContext().setCharacterSubsets(null);
-				}
-				
-				public void focusLosted(FocusEvent event) {
-					JTextField tf = (JTextField)event.getSource();
-					tf.getInputContext().setCharacterSubsets(null);
-				}
-			};
-			
-			// CLAIM送信用ラジオボタンのアクションリスナ
-			ActionListener al = new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					controlClaim();
-				}
-			};
-			
-			ButtonGroup bg = new ButtonGroup();
-			
-			// 生成
-			sendClaim = createRadioButton("する", al, bg);
-			sendNoClaim = createRadioButton("しない", al, bg);
-			bg = new ButtonGroup();
-			sendDiagnosis = createRadioButton("する", null, bg);
-			sendNoDiagnosis = createRadioButton("しない", null, bg);
-			String[] hostNames = ClientContext.getStringArray("settingDialog.claim.hostNames"); //new String[]{"日医標準レセコン(ORCA)","富士通 SX"};
-			claimHostCombo = new JComboBox(hostNames);
-			claimAddressField = createTextField(10, null, imeOff, dl);
-			claimPortField = createTextField(5, null, imeOff, dl);
-			
-			// レイアウト
-			this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-            
-			// CLAIM 送信する / しない
-			this.add(createRadioPanel("CLAIM 送信", sendClaim, sendNoClaim));
-			this.add(Box.createVerticalStrut(11));
-            
-			// 病名 送信　する / しない
-			this.add(createRadioPanel("病名送信", sendDiagnosis, sendNoDiagnosis));
-			this.add(Box.createVerticalStrut(11));
-
-			// レセコン選択
-			String text = ClientContext.getString("settingDialog.claim.hostNameLabel");
-			this.add(createComboPanel(text, claimHostCombo));
-			this.add(Box.createVerticalStrut(11));
-
-			// CLAIM Server ip 
-			text = ClientContext.getString("settingDialog.server.ipLabel");
-			this.add(createItemPanel(text, SwingConstants.RIGHT, claimAddressField));
-			this.add(Box.createVerticalStrut(11));
-
-			// Claim Port
-			text = ClientContext.getString("settingDialog.server.portLabel");
-			this.add(createItemPanel(text, SwingConstants.RIGHT, claimPortField));
-			
-			this.add(Box.createVerticalGlue());
-			            
-			// Sets default
-			//sendClaim.setSelected(true);
-			//sendNoDiagnosis.setSelected(true);   
-		}
-        
-		private void controlClaim() {
-			boolean b = sendClaim.isSelected();
-			sendDiagnosis.setEnabled(b);
-			sendNoDiagnosis.setEnabled(b);
-			claimHostCombo.setEnabled(b);
-			claimAddressField.setEnabled(b);
-			claimPortField.setEnabled(b);
-		}
-        
-		public boolean isOk() {
-            
-			if (sendClaim.isSelected()) {
-				boolean claimAddrEmpty = claimAddressField.getText().equals("") ? true : false;
-				boolean claimPortEmpty = claimPortField.getText().equals("") ? true : false;
-				return (claimAddrEmpty || claimPortEmpty) ? false : true;
-			}
-            
-			return true;
-		}
-        
-		protected void getValues(ProjectStub stub) {
-            
-			stub.setSendClaim(sendClaim.isSelected());
-			stub.setSendDiagnosis(sendDiagnosis.isSelected());
-            
-			String val = (String)claimHostCombo.getSelectedItem();
-			stub.setClaimHostName(val);
-            
-			val = claimAddressField.getText().trim();
-			stub.setClaimAddress(val);
-        
-			val = claimPortField.getText().trim();
-			try {
-				int port = Integer.parseInt(val);
-				stub.setClaimPort(port);
-                
-			} catch (NumberFormatException e) {
-				stub.setClaimPort(5001);
-			}
-		}
-        
-		protected void setValues(ProjectStub stub) {
-        	
-			boolean sending = stub.getSendClaim();
-			if (sending) {
-				sendClaim.doClick();
-                
-			} else {
-				sendNoClaim.doClick();
-			}
-			
-			sendDiagnosis.setSelected(stub.getSendDiagnosis());        	
+                if (startSettingName != null) {
                     
-			String val = stub.getClaimAddress();
-			if (val != null) {
-				claimAddressField.setText(val);
-			}
-
-			val = String.valueOf(stub.getClaimPort());
-			if (val != null) {
-				claimPortField.setText(val);
-			} //else {
-				//claimPortField.setText("5001");
-			//}
-            
-			val = stub.getClaimHostName();
-			if (val != null) {
-				claimHostCombo.setSelectedItem(val);
-			}
-		}        
-	}
+                    for (PluginReference plRef : allSettings) {
+                        if (startSettingName.equals((String) plRef.getAddrContent(PluginReference.PLUGIN_NAME))) {
+                            break;
+                        }
+                        index++;
+                    }   
+                }
+                
+                //
+                // ボタンを押して表示する
+                //
+                allBtns.get(index).doClick();
+            }
+        };
+        
+        Thread t = new Thread(r);
+        t.setPriority(Thread.NORM_PRIORITY);
+        t.start();
+    }
     
-	/**
-	 * MML Version Setting Panel
-	 */
-	class MMLPanel extends AbstractSettingPanel {
+    /**
+     * GUI を構築する。
+     */
+    private void initComponents() {
         
-		 // HOT センター送信関係
-		private JRadioButton sendMML;
-		private JRadioButton sendNoMML;
-		private JRadioButton mml3;
-		private JRadioButton mml23;
+        itemPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        //itemPanel = new JPanel();
+        //itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.Y_AXIS));
         
-		// HigoMed 関係 2003-08-14
-		//private JRadioButton allPatient;
-		//private JRadioButton hasLocalIdPatient;
-		private JTextField uploaderServer;
-		private JTextField shareDirectory;
+        //
+        // 設定プラグインを起動するためのトグルボタンを生成し
+        // パネルへ加える
+        //
+        allBtns = new ArrayList<JToggleButton>();
+        ButtonGroup bg = new ButtonGroup();
+        for (PluginReference plRef : allSettings) {
+            String text = (String) plRef.getAddrContent(PluginReference.TITLE);
+            String iconStr = (String) plRef.getAddrContent(PluginReference.ICON);
+            ImageIcon icon = ClientContext.getImageIcon(iconStr);
+            JToggleButton tb = new JToggleButton(text, icon);
+            if (ClientContext.isWin()) {
+                tb.setMargin(new Insets(0,0,0,0));
+            }
+            tb.setHorizontalTextPosition(SwingConstants.CENTER);
+            tb.setVerticalTextPosition(SwingConstants.BOTTOM);
+            itemPanel.add(tb);
+            bg.add(tb);
+            tb.setActionCommand((String) plRef.getAddrContent(PluginReference.PLUGIN_NAME));
+            allBtns.add(tb);
+        }
         
-		public MMLPanel() {
-        	
-			// 生成
-			ActionListener al = new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					controlSendMml();
-				}
-			};
-			
-			// DocumentListener
-			 DocumentListener dl = new DocumentListener() {
-  
-				 public void changedUpdate(DocumentEvent e) {
-				 }
-
-				 public void insertUpdate(DocumentEvent e) {
-					 checkButtons();
-				 }
-
-				 public void removeUpdate(DocumentEvent e) {
-					 checkButtons();
-				 }
-			 }; 
-			 
-			// FocusAdapter
-			FocusAdapter imeOff = new FocusAdapter() {
-				public void focusGained(FocusEvent event) {
-					JTextField tf = (JTextField)event.getSource();
-					tf.getInputContext().setCharacterSubsets(null);
-				}
-				
-				public void focusLosted(FocusEvent event) {
-					JTextField tf = (JTextField)event.getSource();
-					tf.getInputContext().setCharacterSubsets(null);
-				}
-			};			 
+        //
+        // 設定パネルのコンテナとなるカードパネル
+        //
+        cardPanel = new JPanel();
+        cardLayout = new CardLayout();
+        cardPanel.setLayout(cardLayout);
         
-			ButtonGroup bg = new ButtonGroup();
-			sendMML = createRadioButton("する", al, bg);
-			sendNoMML = createRadioButton("しない", al, bg);
-
-			bg = new ButtonGroup();
-			mml3 = createRadioButton("3.0", null, bg);
-			mml23 = createRadioButton("2.3", null, bg);
-
-			uploaderServer = createTextField(10, null, imeOff, dl);
-			shareDirectory = createTextField(10, null, imeOff, dl);
-            
-			// レイアウト          
-			this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-            
-			this.add(createRadioPanel("センター送信", sendMML,sendNoMML));
-			this.add(Box.createVerticalStrut(11));
-            
-			this.add(createRadioPanel("MML バージョン", mml3,mml23));
-			this.add(Box.createVerticalStrut(11));
-
-			this.add(createItemPanel("アップローダアドレス", SwingConstants.RIGHT, uploaderServer));
-			this.add(Box.createVerticalStrut(11));
-            
-			this.add(createItemPanel("共有ディレクトリ", SwingConstants.RIGHT, shareDirectory));
-			this.add(Box.createVerticalGlue());
-            
-			// Sets default
-			//sendMML.setSelected(true);
-			//mml23.setSelected(true);
-		}
+        // コマンドボタン
+        String text = ClientContext.getString("settingDialog.saveButtonText");
+        okButton = GUIFactory.createButton(text, null, null);
+        okButton.setEnabled(false);
         
-		private void controlSendMml() {
-			boolean b = sendMML.isSelected();
-			mml3.setEnabled(b);
-			mml23.setEnabled(b);
-			uploaderServer.setEnabled(b);
-			shareDirectory.setEnabled(b);
-		}
+        // Cancel
+        text =  (String)UIManager.get("OptionPane.cancelButtonText");
+        cancelButton = GUIFactory.createButton(text, "C", null);
         
-		protected void setValues(ProjectStub stub) {
+        // 全体ダイアログのコンテントパネル
+        JPanel panel = new JPanel(new BorderLayout(11,0));
+        panel.add(itemPanel, BorderLayout.NORTH);
+        panel.add(cardPanel,BorderLayout.CENTER);
+        
+        //
+        // ダイアログを生成する
+        //
+        String title = ClientContext.getString("settingDialog.title");
+        Object[] options = new Object[]{okButton, cancelButton};
+        
+        JOptionPane jop = new JOptionPane(
+                panel,
+                JOptionPane.PLAIN_MESSAGE,
+                JOptionPane.DEFAULT_OPTION,
+                null,
+                options,
+                okButton);
+        
+        dialog = jop.createDialog((Frame) null, ClientContext.getFrameTitle(title));
+        dialog.setResizable(true);
+        dialog.setSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
+        Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+        int x = (size.width - DEFAULT_WIDTH) / 2;
+        int y = (size.height - DEFAULT_HEIGHT) / 3;
+        dialog.setLocation(x, y);
+        
+        //
+        // イベント接続を行う
+        //
+        connect();
+        
+    }
+    
+    /**
+     * GUI コンポーネントのイベント接続を行う。
+     */
+    private void connect() {
+        
+        //
+        // 設定項目ボタンに追加するアクションリスナを生成する
+        //
+        ActionListener al = new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+                PluginReference thePlRef = null;
+                String name = event.getActionCommand();
+                for (PluginReference plRef : allSettings) {
+                    String plName = (String) plRef.getAddrContent(PluginReference.PLUGIN_NAME);
+                    if (plName.equals(name)) {
+                        thePlRef = plRef;
+                        break;
+                    }
+                }
+                if (thePlRef != null) {
+                    startSetting(thePlRef);
+                }
+            }
+        };
+        
+        //
+        // 全てのボタンにリスナを追加する
+        //
+        for (JToggleButton btn : allBtns) {
+            btn.addActionListener(al);
+        }
+        
+        // Save
+        okButton.addActionListener(ProxyActionListener.create(this, "doOk"));
+        okButton.setEnabled(false);
+        
+        // Cancel
+        cancelButton.addActionListener(ProxyActionListener.create(this, "doCancel"));
+        
+        // Dialog
+        dialog.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                doCancel();
+            }
+        });
+    }
+    
+    /**
+     * 選択された項目(SettingPanel)の編集を開始する.
+     */
+    private void startSetting(final PluginReference plRef) {
+        
+        //
+        // プラグイン名を取得しHashtableを検索する
+        //
+        final String name = (String) plRef.getAddrContent(PluginReference.PLUGIN_NAME);
+        AbstractSettingPanel sp = settingMap.get(name);
+        
+        //
+        // 既に生成されている場合はそれを表示する
+        //
+        if (sp != null) {
+            adjustHeight(sp);
+            cardLayout.show(cardPanel, name);
+            return;
+        }
+        
+        Runnable r = new Runnable() {
             
-			boolean sending = stub.getSendMML();
-			//sendMML.setSelected(sending);
-			if (sending) {
-				sendMML.doClick();
-			} else {
-				sendNoMML.doClick();
-			}
+            public void run() {
+            
+                //
+                // まだ生成されていない場合は
+                // 選択された設定パネルを生成しカードに追加する
+                try {
+                    String jndiName = plRef.getJndiName();
+                    IPluginContext plCtx = ClientContext.getPluginContext();
+                    final AbstractSettingPanel settingPanel = (AbstractSettingPanel) plCtx.lookup(jndiName);
+                    settingMap.put(name, settingPanel);
+                    settingPanel.setContext(ProjectSettingDialog.this);
+                    settingPanel.setProjectStub(Project.getProjectStub());
+                    settingPanel.start();
                     
-			// V3 MML Version and Sending
-			String val = stub.getMMLVersion();
-			if (val != null && val.startsWith("2")) {
-				//mml23.setSelected(true);
-				mml23.doClick();
-                
-			} else {
-				// Default = MML 3
-				//mml3.setSelected(true);
-				mml3.doClick();
-			}
-            
-			// まだ設定されていない時のアップローダと送信ルールの設定
-			// はにわとヒゴメド
-			if (stub.getUploaderIPAddress() == null && 
-				stub.getUploadShareDirectory() == null) {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            cardPanel.add(settingPanel.getUI(), name);
+                            adjustHeight(settingPanel);
+                            cardLayout.show(cardPanel, name);
+                            
+                            if (!dialog.isVisible()) {
+                                dialog.setVisible(true);
+                            }
+                        }
+                    });
                     
-				// IP = Host , share = public    
-				val = stub.getHostAddress();
-				if (val != null && ! val.equals("")) {
-					uploaderServer.setText(val);
-					shareDirectory.setText("public");
-				}
-                
-				// 送信ルールの決定
-				/*val = stub.getName();
-				if (val != null) {
-					if (val.equals("kumamoto")) {
-						hasLocalIdPatient.doClick();            // 地域IDを有する患者のみ
-					} else if (val.equals("miyazaki")) {
-						allPatient.doClick();                   // 全患者
-					} else {
-						allPatient.doClick();                   // 全患者
-					}
-				}*/
-            
-			} else {
-            
-				/*boolean useLocalId = stub.getUseLocalPatientId();
-				if (useLocalId) {
-					hasLocalIdPatient.doClick();
-
-				} else {
-					allPatient.doClick();
-				}*/
-
-				// アップローダアドレス
-				val = stub.getUploaderIPAddress();
-				if (val != null && ! val.equals("")) {
-					uploaderServer.setText(val);
-				}
-
-				// 共有ディレクトリ
-				val = stub.getUploadShareDirectory();
-				if (val != null && ! val.equals("")) {
-					shareDirectory.setText(val);
-				}
-			}
-		}
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
         
-		protected void getValues(ProjectStub stub) {
-            
-			// センター送信
-			boolean b = sendMML.isSelected();
-			stub.setSendMML(b);
-            
-			// MML バージョン
-			String val = mml3.isSelected() ? "300" : "230";
-			stub.setMMLVersion(val);
-            
-			// 送信ルール
-			//b = hasLocalIdPatient.isSelected();
-			//stub.setUseLocalPatientId(b);
-            
-			// アップローダアドレス
-			val = uploaderServer.getText().trim();
-			if (! val.equals("")) {
-				stub.setUploaderIPAddress(val);
-			}
-            
-			// 共有ディレクトリ
-			val = shareDirectory.getText().trim();
-			if (! val.equals("")) {
-				stub.setUploadShareDirectory(val);
-			}
-		} 
-        
-		public boolean isOk() {
-			if (sendMML.isSelected()) {
-				boolean uploadAddrEmpty = uploaderServer.getText().trim().equals("") ? true : false;
-				boolean shareEmpty = shareDirectory.getText().trim().equals("") ? true : false;
-            
-				return (uploadAddrEmpty || shareEmpty) ? false : true;
-			} else {
-				return true;
-			}
-		}
-	}
+        Thread t = new Thread(r);
+        t.setPriority(Thread.NORM_PRIORITY);
+        t.start();
+    }
     
-	/**
-	 * Automatic Update Panel
-	 */
-	class AutomaticUpdatePanel extends AbstractSettingPanel {
+    private void adjustHeight(AbstractSettingPanel settingPanel) {
         
-		private JRadioButton noProxyBtn;
-		private JRadioButton useProxyBtn;
-		private JTextField proxyServerField;
-		private JTextField proxyPortField;
-        
-		public AutomaticUpdatePanel() {
-        	
-			// 生成
-			ActionListener al = new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					controlProxy();
-				}
-			};
-			
-			// DocumentListener
-			 DocumentListener dl = new DocumentListener() {
-  
-				 public void changedUpdate(DocumentEvent e) {
-				 }
-
-				 public void insertUpdate(DocumentEvent e) {
-					 checkButtons();
-				 }
-
-				 public void removeUpdate(DocumentEvent e) {
-					 checkButtons();
-				 }
-			 }; 
-			 
-			// FocusAdapter
-			FocusAdapter imeOff = new FocusAdapter() {
-				public void focusGained(FocusEvent event) {
-					JTextField tf = (JTextField)event.getSource();
-					tf.getInputContext().setCharacterSubsets(null);
-				}
-				
-				public void focusLosted(FocusEvent event) {
-					JTextField tf = (JTextField)event.getSource();
-					tf.getInputContext().setCharacterSubsets(null);
-				}
-			};				
+    }
     
-			ButtonGroup bg = new ButtonGroup();
-			String text = ClientContext.getString("settingDialog.proxy.noUseName");
-			noProxyBtn = createRadioButton(text, al, bg);
-            
-			text = ClientContext.getString("settingDialog.proxy.useName");
-			useProxyBtn = createRadioButton(text, al, bg);
-			
-			proxyServerField = createTextField(10, null, imeOff, dl);
-			proxyPortField = createTextField(5, null, imeOff, dl);
-			
-			// レイアウト
-			this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-			text = ClientContext.getString("settingDialog.proxy.borderTitle");
-			this.add(createRadioPanel(text, noProxyBtn, useProxyBtn));
-			this.add(Box.createVerticalStrut(11));
-						
-			text = ClientContext.getString("settingDialog.proxy.ipLabel");
-			this.add(createItemPanel(text, SwingConstants.RIGHT, proxyServerField));
-			this.add(Box.createVerticalStrut(11));
-			
-			text = ClientContext.getString("settingDialog.proxy.portLabel");
-			this.add(createItemPanel(text, SwingConstants.RIGHT, proxyPortField));
-			this.add(Box.createVerticalGlue());			
-
-			//noProxyBtn.doClick();
-		}
+    /**
+     * SettingPanel の state が変化した場合に通知を受け、
+     * 全てのカードをスキャンして OK ボタンをコントロールする。
+     */
+    public void propertyChange(PropertyChangeEvent e) {
         
-		private void controlProxy() {
-			boolean b = useProxyBtn.isSelected();
-			proxyServerField.setEditable(b);
-			proxyPortField.setEditable(b);
-			checkButtons();
-		}
+        String prop = e.getPropertyName();
+        if (!prop.equals(AbstractSettingPanel.STATE_PROP)) {
+            return;
+        }
         
-		protected void setValues(ProjectStub stub) {
-        	
-			if (stub.getUseProxy()) {
-				useProxyBtn.doClick();
-			} else {
-				noProxyBtn.doClick();
-			}
-             
-			String val = stub.getProxyHost();
-			val = (val == null || val.equals("")) ? "" : val;
-			proxyServerField.setText(val);
-            
-			int port = stub.getProxyPort();
-			if (port != 0) {
-				val = String.valueOf(stub.getProxyPort());
-				proxyPortField.setText(val);
-                
-			} //else {
-				//proxyPortField.setText("8080");
-			//}
-		}
+        //
+        // 全てのカードをスキャンして OK ボタンをコントロールする
+        //
+        boolean newOk = true;
+        Iterator<AbstractSettingPanel> iter = settingMap.values().iterator();
+        int cnt = 0;
+        while (iter.hasNext()) {
+            cnt++;
+            AbstractSettingPanel p = iter.next();
+            if (p.getState().equals(AbstractSettingPanel.State.INVALID_STATE)) {
+                newOk = false;
+                break;
+            }
+        }
         
-		protected void getValues(ProjectStub stub) {
-            
-			boolean use = useProxyBtn.isSelected();
-			stub.setUseProxy(use);
-            
-			if (use) {
-				String val = proxyServerField.getText().trim();
-				if (! val.equals("")) {
-					stub.setProxyHost(val);
-				}
-				val = proxyPortField.getText().trim();
-				if (! val.equals("")) {
-					stub.setProxyPort(Integer.parseInt(val));
-				}
-			}
-		}
-        
-		public boolean isOk() {
-        
-			boolean use = useProxyBtn.isSelected();
-			if (use) {
-				if ( !proxyServerField.getText().trim().equals("") && 
-					 !proxyPortField.getText().trim().equals("") ) {
-						 return true;
-				} else {
-					return false;
-				}
-			} else {
-            
-				return true;
-			}
-		}
-	}
-            
-	protected final class DepartmentTableModel extends AbstractTableModel {
-        
-		Object[][] departments;
-        
-		public DepartmentTableModel() {
-            
-			String[] depts = ClientContext.getStringArray("settingDialog.department.list");
-			int len = depts.length;
-			departments = new Object[len][2];
-            
-			for (int i = 0; i < len; i++) {
-				departments[i][0] = new Boolean(false);
-				departments[i][1] = depts[i];
-			}
-		}
-            
-		public boolean isCellEditable(int row, int col) {
-			return col == 0 ? true : false;
-		}
-
-		public int getColumnCount() {
-			return 2;
-		}
-
-		public int getRowCount() {
-			return departments.length;
-		}
-
-		public Object getValueAt(int row, int col) {
-			return departments[row][col];
-		}
-
-		public Class getColumnClass(int col) {
-			return col == 0 ? java.lang.Boolean.class : java.lang.String.class;
-		}
-
-		public void setValueAt(Object o, int row, int col) {
-			if (col != 0 || o == null) {
-				return;
-			}
-			departments[row][col] = o;
-			fireTableCellUpdated(row, col);
-			checkButtons();
-		}
-        
-		public void setSelected(ArrayList depts) {
-            
-			if (depts == null) {
-				return;
-			}
-            
-			int len = depts.size();
-			String val = null;
-			for (int i = 0; i < len; i++) {
-				val = (String)depts.get(i);
-				//System.out.println(val);
-                
-				for(int j = 0; j < departments.length; j++) {
-					if (val.equals((String)departments[j][1])) {
-						departments[j][0] = new Boolean(true);
-						fireTableCellUpdated(j, 0);
-						break;
-					}
-				}
-			}
-		}
-        
-		public boolean hasSelected() {
-            
-			int len = departments.length;
-			boolean ret = false;
-            
-			for (int i = 0; i < len; i++) {
-				boolean b = ((Boolean)departments[i][0]).booleanValue();
-				if (b) {
-					ret = true;
-					break;
-				}
-			}
-			return ret;
-		}
-        
-		public String getSelectedDepartment() {
-            
-			int len = departments.length;
-			StringBuffer buf = new StringBuffer();
-            
-			for (int i = 0; i < len; i++) {
-				boolean b = ((Boolean)departments[i][0]).booleanValue();
-				if (b) {
-					if (i != 0) {
-						buf.append(",");
-					}
-					buf.append((String)departments[i][1]);
-				}
-			}
-            
-			//System.out.println(buf.toString());
-            
-			return buf.length() > 0 ? buf.toString() : null;
-		}
-	}
+        if (okState != newOk) {
+            okState = newOk;
+            okButton.setEnabled(okState);
+        }
+    }
     
-	private JRadioButton createRadioButton(String text, ActionListener al, ButtonGroup bg) {
-    	
-		JRadioButton radio = new JRadioButton(text);
-    	
-		if (al != null) {
-			radio.addActionListener(al);
-		}
-    	
-		if (bg != null) {
-			bg.add(radio);
-		}
-    	
-		return radio;
-	}
+    public void doOk() {
+        
+        Iterator<AbstractSettingPanel> iter = settingMap.values().iterator();
+        while (iter.hasNext()) {
+            AbstractSettingPanel p = iter.next();
+            p.save();
+        }
+        
+        dialog.setVisible(false);
+        dialog.dispose();
+        notifyResult();
+    }
     
-	private JTextField createTextField(int val, Insets margin, FocusAdapter fa, DocumentListener dl) {
-		
-		if (val == 0) {
-			val = 30;
-		}
-		JTextField tf = new JTextField(val);
-		
-		if (margin != null) {
-			margin = new Insets(2,5,2,5);
-		}
-		tf.setMargin(margin);
-		
-		if (dl != null) {
-			tf.getDocument().addDocumentListener(dl);
-		}
-		
-		if (fa != null) {
-			tf.addFocusListener(fa);
-		}
-		
-		return tf;
-	}
-	
-	private JPanel createItemPanel(String label, int align, JTextField tf) {
-		JPanel p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-		p.add(new JLabel(label, align));
-		p.add(Box.createHorizontalStrut(7));
-		p.add(tf);
-		p.setMaximumSize(p.getPreferredSize());
-		
-		JPanel p2 = new JPanel();
-		p2.setLayout(new BoxLayout(p2, BoxLayout.X_AXIS));
-		p2.add(p);
-		p2.add(Box.createHorizontalGlue());
-		return p2;
-	}
-	
-	private JPanel createRadioPanel(String label, JRadioButton b1, JRadioButton b2) {
-		JPanel p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-		p.add(new JLabel(label, SwingConstants.RIGHT));
-		p.add(Box.createHorizontalStrut(7));
-		p.add(b1);
-		p.add(Box.createHorizontalStrut(5));
-		p.add(b2);
-		p.setMaximumSize(p.getPreferredSize());
-		
-		JPanel p2 = new JPanel();
-		p2.setLayout(new BoxLayout(p2, BoxLayout.X_AXIS));
-		p2.add(p);
-		p2.add(Box.createHorizontalGlue());
-		return p2;
-	}
-	
-	private JPanel createComboPanel(String label, JComboBox cmb) {
-		JPanel p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-		p.add(new JLabel(label, SwingConstants.RIGHT));
-		p.add(Box.createHorizontalStrut(7));
-		p.add(cmb);
-		p.setMaximumSize(p.getPreferredSize());
-		
-		JPanel p2 = new JPanel();
-		p2.setLayout(new BoxLayout(p2, BoxLayout.X_AXIS));
-		p2.add(p);
-		p2.add(Box.createHorizontalGlue());
-		return p2;
-	}    
+    public void doCancel() {
+        dialog.setVisible(false);
+        dialog.dispose();
+        notifyResult();
+    }
 }

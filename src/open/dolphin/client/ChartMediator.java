@@ -1,18 +1,18 @@
 /*
  * ChartMediator.java
  * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2004 Digital Globe, Inc. All rights reserved.
+ * Copyright (C) 2004-2005 Digital Globe, Inc. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *	
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *	
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -20,390 +20,517 @@
 package open.dolphin.client;
 
 import javax.swing.*;
-import javax.swing.text.*;
-import javax.swing.event.*;
-import javax.swing.undo.*;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
+
+import open.dolphin.infomodel.IInfoModel;
+import open.dolphin.plugin.helper.ChainAction;
+import open.dolphin.plugin.helper.MenuSupport;
+import open.dolphin.project.Project;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.lang.reflect.Method;
 import java.util.*;
-import java.awt.event.*;
+import open.dolphin.infomodel.PVTHealthInsuranceModel;
 
 /**
  * Mediator class to control Karte Window Menu.
  *
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
-public final class ChartMediator 
-implements CaretListener, UndoableEditListener, IRoutingTarget, ActionListener {
+public final class ChartMediator extends MenuSupport implements UndoableEditListener, ActionListener {
     
-    private ChartPlugin chartService;
+    protected enum CompState{NONE, SOA, SOA_TEXT, SCHEMA, P, P_TEXT, STAMP};
     
-    // Actions
-    public Action newKarteAction;
-    public Action copyNewKarteAction;
-    public Action newReferralAction;
-    public Action saveKarteAction;
-    public Action printerSetupAction;
-    public Action printAction;
-    public Action closeAction;
-
-    public Action modifyKarteAction;  // Modify
-    public Action undoAction;
-    public Action redoAction;
-    public Action cutAction;
-    public Action copyAction;
-    public Action pasteAction;
-    public Action deleteAction;
-    
-    public Action resetStyleAction;
-    public Action redAction;
-    public Action blueAction;
-    public Action greenAction;
-    public Action s10Action;
-    public Action s12Action;
-    public Action s14Action;
-    public Action s16Action;
-    public Action s18Action;
-    public Action s20Action;
-    public Action s24Action;
-    public Action boldAction;
-    public Action italicAction;
-    public Action underlineAction;
-    
-    public Action insertImageAction;
+    private Action undoAction;
+    private Action redoAction;
     
     // 選択が起こっている KartePane
     private KartePane curPane;
+    private JComponent curComp;
+    
+    // ChartPlugin
+    private IChart chart;
     
     // Undo Manager
     private UndoManager undoManager = new UndoManager();
     
-    /**
-     * Creates new M3C 
-     */
-    public ChartMediator(ChartPlugin s) {     
-        super();
-        this.chartService = s;
+    public ChartMediator(Object owner) {
+        super(owner);
+        chart = (IChart) owner;
     }
     
-    private void printNull(Action a, String n){
-        if (a == null) {
-            System.out.println(n + " is null");
+    public void registerActions(Hashtable<String, Action> map) {
+        
+        super.registerActions(map);
+        
+        undoAction = map.get(GUIConst.ACTION_UNDO);
+        redoAction = map.get(GUIConst.ACTION_REDO);
+        
+        // 昇順降順を Preference から取得し設定しておく
+        boolean asc = Project.getPreferences().getBoolean(Project.DOC_HISTORY_ASCENDING, false);
+        if (asc) {
+            Action a = map.get(GUIConst.ACTION_ASCENDING);
+            JRadioButtonMenuItem rdi = (JRadioButtonMenuItem) a.getValue("menuItem");
+            rdi.setSelected(true);
+        } else {
+            Action desc = map.get(GUIConst.ACTION_DESCENDING);
+            JRadioButtonMenuItem rdi = (JRadioButtonMenuItem) desc.getValue("menuItem");
+            rdi.setSelected(true);
         }
     }
     
-    public void registerActions(HashMap map) {
-        
-        newKarteAction = (Action)map.get("newKarteAction");
-        printNull(newKarteAction, "newKarteAction");
-        
-        copyNewKarteAction = (Action)map.get("copyNewKarteAction");
-        printNull(copyNewKarteAction, "copyNewKarteAction");
-        
-        newReferralAction = (Action)map.get("newReferralAction");
-        printNull(newReferralAction, "newReferralAction");
-        
-        saveKarteAction = (Action)map.get("saveKarteAction");
-        printNull(saveKarteAction, "saveKarteAction");
-        
-        printAction = (Action)map.get("printAction");
-        printNull(printAction, "printAction");
-        
-        printerSetupAction = (Action)map.get("printerSetupAction");
-        printNull(printerSetupAction, "printerSetupAction");
-        
-        closeAction = (Action)map.get("closeAction");
-        printNull(closeAction, "closeAction");
-
-        modifyKarteAction = (Action)map.get("modifyKarteAction");
-        printNull(modifyKarteAction, "modifyKarteAction");
-        
-        undoAction = (Action)map.get("undoAction");
-        printNull(undoAction, "undoAction");
-        
-        redoAction = (Action)map.get("redoAction");
-        printNull(redoAction, "redoAction");
-        
-        cutAction = (Action)map.get("cutAction");
-        printNull(cutAction, "cutAction");
-        
-        copyAction = (Action)map.get("copyAction");
-        printNull(copyAction, "copyAction");
-        
-        pasteAction = (Action)map.get("pasteAction");
-        printNull(pasteAction, "pasteAction");
-        
-        deleteAction = (Action)map.get("deleteAction");
-        printNull(deleteAction, "deleteAction");
-    
-        resetStyleAction = (DlAction)map.get("resetStyleAction");
-        printNull(resetStyleAction, "resetStyleAction");
-        
-        redAction = (Action)map.get("redAction");
-        printNull(redAction, "redAction");
-        
-        blueAction = (Action)map.get("blueAction");
-        printNull(blueAction, "blueAction");
-        
-        greenAction = (Action)map.get("greenAction");
-        printNull(greenAction, "greenAction");
-        
-        s10Action = (Action)map.get("s10Action");
-        printNull(s10Action, "s10Action");
-        
-        s12Action = (Action)map.get("s12Action");
-        printNull(s12Action, "s12Action");
-        
-        s14Action = (Action)map.get("s14Action");
-        printNull(s14Action, "s14Action");
-        
-        s16Action = (Action)map.get("s16Action");
-        printNull(s16Action, "size16Action");
-        
-        s18Action = (Action)map.get("s18Action");
-        printNull(s18Action, "size18Action");
-        
-        s20Action = (Action)map.get("s20Action");
-        printNull(s20Action, "size20Action");
-        
-        s24Action = (Action)map.get("s24Action");
-        printNull(s24Action, "size24Action");
-        
-        boldAction = (Action)map.get("boldAction");
-        printNull(boldAction, "boldAction");
-        
-        italicAction = (Action)map.get("italicAction");
-        printNull(italicAction, "italicAction");
-        
-        underlineAction = (Action)map.get("underlineAction");
-        printNull(underlineAction, "underlineAction");
-    
-        insertImageAction = (Action)map.get("insertImageAction");
-        printNull(insertImageAction, "insertImageAction");
-    }
-    
-    
-    public void actionRouted(Action source) {
-        
-        if (source == newKarteAction) {
-            chartService.newKarte();
-            return;
+    public void dispose() {
+        Hashtable<String , Action> actions = getActions();
+        Iterator<String> iter = actions.keySet().iterator();
+        while (iter.hasNext()) {
+            Action a = actions.get(iter.next());
+            if (a instanceof ChainAction) {
+                ((ChainAction)a).setTarget(null);
+            } else if (a instanceof ReflectAction) {
+                ((ReflectAction)a).setTarget(null);
+            }
         }
-        
-        if (source == copyNewKarteAction) {
-            chartService.copyNewKarte();
-            return;
-        } 
-        
-        if (source == saveKarteAction) {
-            chartService.save();
-            return;
-        }
-        
-        if (source == printerSetupAction) {
-            chartService.printerSetup();
-            return;
-        }
-        
-        if (source == printAction) {
-            chartService.print();
-            return;
-        }
-        
-        if (source == closeAction) {
-            chartService.processWindowClosing();
-            return;
-        }        
-        
-        if (source == modifyKarteAction) {
-            chartService.modifyKarte();
-            return;
-        } 
-        
-        if (source == undoAction) {
-            undo();
-            return;
-        }
-        
-        if (source == redoAction) {
-            redo();
-            return;
-        } 
-        
-        if (source == cutAction) {
-            cut();
-            return;
-        }
-        
-        if (source == copyAction) {
-            copy();
-            return;
-        } 
-        
-        if (source == pasteAction) {
-            paste();
-            return;
-        }
-        
-        if (source == deleteAction) {
-            delete();
-            return;
-        }
-        
-        if (source == resetStyleAction) {
-            resetStyle();
-            return;
-        }        
-
-        if (source == insertImageAction) {
-            chartService.insertImage();
-            return;
-        }       
+        actions.clear();
     }
     
     public void actionPerformed(ActionEvent e) {
-        
+    }
+    
+    public JComponent getCurrentComponent() {
+        return curComp;
     }
     
     /**
-     * KartePane から選択通知を受け、編集・スタイル・挿入メニューを制御する
-     * @aparam e 選択イベント
+     * Focusされた JTextPaneをセットする。
      */
-    public void selected(SelectionEvent e) {
-        //System.out.println("Selection changed");
-        KartePane newPane = (KartePane)e.getSource();
-        
-        // 相手ペインの選択を解除する
-        if ((curPane != null) && (newPane != curPane)) {
-            curPane.clearAllSelection();
-        }
-        
-        // 通知されたペインについて毎回メニューを制御する 
-        adjustEditMenu(newPane);
-        adjustStyleMenu(newPane);
-        adjustInsertMenu(newPane);
-        
-        // Current Pane に保存する
-        curPane = newPane;
+    public void setCurrentComponent(JComponent newCompo) {
+        curComp = newCompo;
     }
     
     /**
-     * KartePane から CaretEvent を受け、編集・スタイル・挿入メニューを制御する
-     * @aparam e CaretEvent 
+     * メニューリスナの実装。
+     * 挿入及びテキストメニューが選択された時の処理を行う。
      */
-    public void caretUpdate(CaretEvent e) {
+    public void menuSelected(MenuEvent e) {
         
-        KartePane newPane = (KartePane)e.getSource();
+        // 挿入とテキストメニューにリスナが登録されている
+        JMenu selectedMenu = (JMenu) e.getSource();
+        String cmd = selectedMenu.getActionCommand();
         
-        if (e.getDot() != e.getMark()) {
+        //
+        // 挿入メニューの時
+        // StampBox のツリーをメニューにする
+        //
+        if (cmd.equals(GUIConst.MENU_INSERT)) {
             
-            // テキスト選択が起こったのでスタンプとイメージ選択を解除する
-            newPane.diSelectStamp();
-        }
-        if ((curPane != null) && (newPane != curPane)) {
+            selectedMenu.removeAll();
             
-            // 相手ペインの選択を解除する
-            curPane.clearAllSelection();
+            // StampBox の全ツリーを取得する
+            List<StampTree> trees = getStampBox().getAllTrees();
+            
+            // ツリーをイテレートする
+            for (StampTree tree : trees) {
+                
+                // ツリーのエンティティを取得する
+                String entity = tree.getEntity();
+                
+                if (entity.equals(IInfoModel.ENTITY_DIAGNOSIS)) {
+                    // 傷病名の時、傷病名メニューを構築し追加する
+                    selectedMenu.add(createDiagnosisMenu(tree));
+                    selectedMenu.addSeparator();
+                    
+                } else if (entity.equals(IInfoModel.ENTITY_TEXT)) {
+                    // テキストの時、テキストメニューを構築し追加する
+                    selectedMenu.add(createTextMenu(tree));
+                    selectedMenu.addSeparator();
+                    
+                } else {
+                    // 通常のPオーダの時
+                    selectedMenu.add(createStampMenu(tree));
+                }
+            }
+        } 
+        
+        else if (cmd.equals(GUIConst.MENU_TEXT)) {
+            //
+            // テキストメニューの場合、スタイルを制御する
+            //
+            adjustStyleMenu();
+        }
+    }
+    
+    public void menuDeselected(MenuEvent e) {
+    }
+    
+    public void menuCanceled(MenuEvent e) {
+    }
+    
+    /**
+     * フォーマット関連メニューを調整する。
+     * @param kartePane
+     */
+    private void adjustStyleMenu() {
+        
+        boolean enabled = false;
+        KartePane kartePane = null;
+        if (getChain() instanceof KarteEditor) {
+            KarteEditor editor = (KarteEditor) getChain();
+            kartePane = editor.getSOAPane();
+            enabled = (kartePane.getTextPane().isEditable()) ? true : false;
         }
         
-        // 通知されたペインについて毎回メニューを制御する 
-        adjustEditMenu(newPane);
-        adjustStyleMenu(newPane);
-        adjustInsertMenu(newPane);
+        // サブメニューを制御する
+        getAction(GUIConst.ACTION_SIZE).setEnabled(enabled);
+        getAction(GUIConst.ACTION_STYLE).setEnabled(enabled);
+        getAction(GUIConst.ACTION_ALIGNMENT).setEnabled(enabled);
+        getAction(GUIConst.ACTION_COLOR).setEnabled(enabled);
         
-        // Current Pane に保存する
-        curPane = newPane;
+        // メニューアイテムを制御する
+        getAction(GUIConst.ACTION_RESET_STYLE).setEnabled(enabled);
+        
+        getAction(GUIConst.ACTION_RED).setEnabled(enabled);
+        getAction(GUIConst.ACTION_ORANGE).setEnabled(enabled);
+        getAction(GUIConst.ACTION_YELLOW).setEnabled(enabled);
+        getAction(GUIConst.ACTION_GREEN).setEnabled(enabled);
+        getAction(GUIConst.ACTION_BLUE).setEnabled(enabled);
+        getAction(GUIConst.ACTION_PURPLE).setEnabled(enabled);
+        getAction(GUIConst.ACTION_GRAY).setEnabled(enabled);
+        
+        getAction(GUIConst.ACTION_S9).setEnabled(enabled);
+        getAction(GUIConst.ACTION_S10).setEnabled(enabled);
+        getAction(GUIConst.ACTION_S12).setEnabled(enabled);
+        getAction(GUIConst.ACTION_S14).setEnabled(enabled);
+        getAction(GUIConst.ACTION_S18).setEnabled(enabled);
+        getAction(GUIConst.ACTION_S24).setEnabled(enabled);
+        getAction(GUIConst.ACTION_S36).setEnabled(enabled);
+        
+        getAction(GUIConst.ACTION_BOLD).setEnabled(enabled);
+        getAction(GUIConst.ACTION_ITALIC).setEnabled(enabled);
+        getAction(GUIConst.ACTION_UNDERLINE).setEnabled(enabled);
+        
+        getAction(GUIConst.ACTION_LEFT_ALIGN).setEnabled(enabled);
+        getAction(GUIConst.ACTION_CENTER_ALIGN).setEnabled(enabled);
+        getAction(GUIConst.ACTION_RIGHT_ALIGN).setEnabled(enabled);
     }
     
-    private void adjustEditMenu(KartePane kartePane) {
+    /**
+     * スタンプTreeから傷病名メニューを構築する。
+     * @param insertMenu テキストメニュー
+     */
+    private JMenu createDiagnosisMenu(StampTree stampTree) {
         
-        boolean editable = kartePane.isEditable();
-        boolean selected = kartePane.hasSelection() ? true : false;
-        copyAction.setEnabled(selected);
-
-        if (editable && selected) {
-            cutAction.setEnabled(true);
-            deleteAction.setEnabled(true);
+        //
+        // chainの先頭がDiagnosisDocumentの時のみ使用可能とする
+        //
+        JMenu myMenu = null;
+        DiagnosisDocument diagnosis = null;
+        boolean enabled = false;
+        Object obj = getChain();
+        if (obj instanceof DiagnosisDocument) {
+            diagnosis = (DiagnosisDocument) obj;
+            enabled = true;
         }
-        else {
-            cutAction.setEnabled(false);
-            deleteAction.setEnabled(false);
+        
+        if (!enabled) {
+            // cjainの先頭がDiagnosisでない場合はめにゅーをdisableにする
+            myMenu = new JMenu(stampTree.getTreeName());
+            myMenu.setEnabled(false);
+            
+        } else {
+            // 傷病名Tree、テーブル、ハンドラからメニューを構築する
+            JComponent comp = diagnosis.getDiagnosisTable();
+            TransferHandler handler = comp.getTransferHandler();
+            StmapTreeMenuBuilder builder = new StmapTreeMenuBuilder();
+            myMenu = builder.build(stampTree, comp, handler);
+        }
+        return myMenu;
+    }
+    
+    /**
+     * スタンプTreeからテキストメニューを構築する。
+     * @param insertMenu テキストメニュー
+     */
+    private JMenu createTextMenu(StampTree stampTree) {
+        
+        // chain の先頭が KarteEditor でかつ SOAane が編集可の場合のみメニューが使える
+        JMenu myMenu = null;
+        boolean enabled = false;
+        KartePane kartePane = null;
+        Object obj = getChain();
+        if (obj instanceof KarteEditor) {
+            KarteEditor editor = (KarteEditor) obj;
+            kartePane = editor.getSOAPane();
+            enabled = (kartePane.getTextPane().isEditable()) ? true : false;
         }
         
-        adjustPasteMenu(kartePane);
-    }
-    
-    private void adjustPasteMenu(KartePane kartePane) {
-     
-        if (! kartePane.isEditable()) {
-            pasteAction.setEnabled(false);
-            return;
+        if (!enabled) {
+            myMenu = new JMenu(stampTree.getTreeName());
+            myMenu.setEnabled(false);
+            
+        } else {
+            //
+            // TextTree、JTextPane、handler からメニューを構築する
+            // PPane にも落とさなければならない TODO
+            //JComponent comp = kartePane.getTextPane();
+            // TransferHandler handler = comp.getTransferHandler();
+            
+            // 2007-03-31
+            // 直近でフォーカスを得ているコンポーネント(JTextPan）へ挿入する
+            //
+            JComponent comp = getCurrentComponent();
+            if (comp == null) {
+                comp = kartePane.getTextPane();
+            }
+            TransferHandler handler = comp.getTransferHandler();
+            StmapTreeMenuBuilder builder = new StmapTreeMenuBuilder();
+            myMenu = builder.build(stampTree, comp, handler);
         }
-        boolean b = kartePane.canPaste();
-        pasteAction.setEnabled(b);
-    }
-    
-    private void adjustStyleMenu(KartePane kartePane) {
-    
-        boolean b = kartePane.isEditable() ? true : false;
-        //boolean b2 = kartePane.hasTextSelection() ? true : false;
-        //boolean b = ( b1 && b2 ) ? true : false;
         
-        resetStyleAction.setEnabled(b);
-        redAction.setEnabled(b);
-        blueAction.setEnabled(b);
-        greenAction.setEnabled(b);
-        s10Action.setEnabled(b);
-        s12Action.setEnabled(b);
-        s14Action.setEnabled(b);
-        s16Action.setEnabled(b);
-        s18Action.setEnabled(b);
-        s20Action.setEnabled(b);
-        s24Action.setEnabled(b);
-        boldAction.setEnabled(b);
-        italicAction.setEnabled(b);
-        underlineAction.setEnabled(b);
+        return myMenu;
     }
     
-    private void adjustInsertMenu(KartePane kartePane) {
-        boolean b = kartePane.isEditable() ? true : false;
-        insertImageAction.setEnabled(b);
+    /**
+     * スタンプメニューを構築する。
+     * @param insertMenu スタンプメニュー
+     */
+    private JMenu createStampMenu(StampTree stampTree) {
+        
+        // chain の先頭が KarteEditor でかつ Pane が編集可の場合のみメニューが使える
+        JMenu myMenu = null;
+        boolean enabled = false;
+        KartePane kartePane = null;
+        Object obj = getChain();
+        if (obj instanceof KarteEditor) {
+            KarteEditor editor = (KarteEditor) obj;
+            kartePane = editor.getPPane();
+            enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+        }
+        
+        if (!enabled) {
+            myMenu = new JMenu(stampTree.getTreeName());
+            myMenu.setEnabled(false);
+            
+        } else {
+            // StampTree、JTextPane、Handler からメニューを構築する
+            JComponent comp = kartePane.getTextPane();
+            TransferHandler handler = comp.getTransferHandler();
+            StmapTreeMenuBuilder builder = new StmapTreeMenuBuilder();
+            myMenu = builder.build(stampTree, comp, handler);
+        }
+        return myMenu;
     }
+    
+    ////////////////////////////////////////////////////////////////////////////
+    
+    /**
+     * 引数のポップアップメニューへ傷病名メニューを追加する。
+     * @param popup 傷病名メニューを追加するポップアップメニュー
+     */
+    public void addDiseaseMenu(JPopupMenu popup) {
+        
+        // Chainの先頭がDiagnosisDocumentの時のみ追加する
+        boolean enabled = false;
+        DiagnosisDocument diagnosis = null;
+        Object obj = getChain();
+        if (obj instanceof DiagnosisDocument) {
+            diagnosis = (DiagnosisDocument) obj;
+            enabled = true;
+        }
+        
+        StampTree stampTree = getStampBox().getStampTree(IInfoModel.ENTITY_DIAGNOSIS);
+        
+        if (stampTree != null) {
+        
+            if (!enabled) {
+                JMenu myMenu = new JMenu(stampTree.getTreeName());
+                myMenu.setEnabled(false);
+                popup.add(myMenu);
+                return;
+            } else {
+                JComponent comp = diagnosis.getDiagnosisTable();
+                TransferHandler handler = comp.getTransferHandler();
+                StmapTreePopupBuilder builder = new StmapTreePopupBuilder();
+                builder.build(stampTree, popup, comp, handler);
+            }
+        }
+    }
+    
+    /**
+     * 引数のポップアップメニューへテキストメニューを追加する。
+     * @param popup テキストメニューを追加するポップアップメニュー
+     */
+    public void addTextMenu(JPopupMenu popup) {
+        
+        boolean enabled = false;
+        KartePane kartePane = null;
+        Object obj = getChain();
+        if (obj instanceof KarteEditor) {
+            KarteEditor editor = (KarteEditor) obj;
+            kartePane = editor.getSOAPane();
+            enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+        }
+        
+        StampTree stampTree = getStampBox().getStampTree(IInfoModel.ENTITY_TEXT);
+        
+        // ASP スタンプボックスで entity に対応する Tree がない場合がある
+        if (stampTree != null) {
+        
+            if (!enabled) {
+                JMenu myMenu = new JMenu(stampTree.getTreeName());
+                myMenu.setEnabled(false);
+                popup.add(myMenu);
+                return;
+                
+            } else {
+                JComponent comp = getCurrentComponent();
+                if (comp == null) {
+                    comp = kartePane.getTextPane();
+                }
+                TransferHandler handler = comp.getTransferHandler();
+                StmapTreePopupBuilder builder = new StmapTreePopupBuilder();
+                builder.build(stampTree, popup, comp, handler);
+            }
+        }
+    }
+    
+    /**
+     * PPane のコンテキストメニューまたはツールバーの stampIcon へスタンプメニューを追加する。
+     * @param menu Ppane のコンテキストメニュー
+     * @param kartePane PPnae
+     */
+    public void addStampMenu(JPopupMenu menu, final KartePane kartePane) {
+        
+        // 引数のPaneがPかつ編集可の時のみ追加する
+        // コンテキストメニューなのでこれはOK
+        if (kartePane.getMyRole().equals(IInfoModel.ROLE_P) && kartePane.getTextPane().isEditable()) {
+            
+            StampBoxPlugin stampBox = getStampBox();
+            List<StampTree> trees = stampBox.getAllTrees();
+            
+            StmapTreeMenuBuilder builder = new StmapTreeMenuBuilder();
+            JComponent cmp = kartePane.getTextPane();
+            TransferHandler handler = cmp.getTransferHandler();
+            
+            // StampBox内の全Treeをイテレートする
+            for (StampTree stampTree : trees) {
+                
+                // 傷病名とテキストは別に作成するのでスキップする
+                String entity = stampTree.getEntity();
+                if (entity.equals(IInfoModel.ENTITY_DIAGNOSIS) || entity.equals(IInfoModel.ENTITY_TEXT)) {
+                    continue;
+                }
+                
+                JMenu subMenu = builder.build(stampTree, cmp, handler);
+                menu.add(subMenu);
+            }   
+        }
+    }
+    
+    /**
+     * 引数のポップアップメニューへスタンプメニューを追加する。
+     * このメソッドはツールバーの stamp icon の actionPerformed からコールされる。
+     * @param popup
+     */
+    public void addStampMenu(JPopupMenu popup) {
+        
+        boolean enabled = false;
+        KartePane kartePane = null;
+        Object obj = getChain();
+        if (obj instanceof KarteEditor) {
+            KarteEditor editor = (KarteEditor) obj;
+            kartePane = editor.getPPane();
+            enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+        }
+        
+        if (enabled) {
+            addStampMenu(popup, kartePane);
+        }
+    }
+    
+    public StampTree getStampTree(String entity) {
+        
+        StampTree stampTree = getStampBox().getStampTree(entity);
+        return stampTree;
+    }
+    
+    public StampBoxPlugin getStampBox() {
+        return (StampBoxPlugin)chart.getContext().getPlugin("mainWindow/stampBox");
+    }
+    
+    public boolean hasTree(String entity) {
+        StampBoxPlugin stBox = (StampBoxPlugin)chart.getContext().getPlugin("mainWindow/stampBox");
+        StampTree tree = stBox.getStampTree(entity);
+        return tree != null ? true : false;
+    }
+    
+    public void applyInsurance(PVTHealthInsuranceModel hm) {
+        
+        Object target = getChain();
+        if (target != null) {
+            try {
+                Method m = target.getClass().getMethod("applyInsurance", new Class[]{hm.getClass()});
+                m.invoke(target, new Object[]{hm});
+                
+            } catch (Exception e) {
+                //e.printStackTrace();
+            }
+        }
+    }
+ 
     
     ///////////////////////////////////////////////////////////////////////////
     
     public void cut() {
-        curPane.doCut();
+        JComponent focusOwner = getCurrentComponent();
+        if (focusOwner != null) {
+            Action a = focusOwner.getActionMap().get(TransferHandler.getCutAction().getValue(Action.NAME));
+            if (a != null) {
+                a.actionPerformed(new ActionEvent(focusOwner,
+                        ActionEvent.ACTION_PERFORMED,
+                        null));
+            }
+        }
     }
     
     public void copy() {
-         curPane.doCopy();
+        JComponent focusOwner = getCurrentComponent();
+        if (focusOwner != null) {
+            Action a = focusOwner.getActionMap().get(TransferHandler.getCopyAction().getValue(Action.NAME));
+            if (a != null) {
+                a.actionPerformed(new ActionEvent(focusOwner,
+                        ActionEvent.ACTION_PERFORMED,
+                        null));
+            }
+        }
     }
     
     public void paste() {
-         curPane.doPaste();
+        JComponent focusOwner = getCurrentComponent();
+        if (focusOwner != null) {
+            Action a = focusOwner.getActionMap().get(TransferHandler.getPasteAction().getValue(Action.NAME));
+            if (a != null) {
+                a.actionPerformed(new ActionEvent(focusOwner,
+                        ActionEvent.ACTION_PERFORMED,
+                        null));
+            }
+        }
     }
     
     public void delete() {
-         curPane.doDelete();
     }
     
     public void resetStyle() {
-        if (curPane != null) {
-            curPane.setCharacterAttributes(SimpleAttributeSet.EMPTY, true);
-        }
-    }
-        
-    ///////////////////////////////////////////////////////////////////////////
-    
-    public void setUndoManager(UndoManager undo) {
-        undoManager = undo;
-        
-        if (undoManager == null) {
-            undoAction.setEnabled(false);
-            redoAction.setEnabled(false);
-        }
-        else {
-            updateUndoAction();
-	    updateRedoAction();
+        JComponent focusOwner = getCurrentComponent();
+        if (focusOwner != null && focusOwner instanceof JTextPane) {
+            JTextPane pane = (JTextPane) focusOwner;
+            pane.setCharacterAttributes(SimpleAttributeSet.EMPTY, true);
         }
     }
     
@@ -416,10 +543,9 @@ implements CaretListener, UndoableEditListener, IRoutingTarget, ActionListener {
     public void undo() {
         try {
             undoManager.undo();
-	    
+            
         } catch (CannotUndoException ex) {
-             System.out.println("Unable to undo: " + ex);
-             //ex.printStackTrace();
+            ex.printStackTrace();
         }
         updateUndoAction();
         updateRedoAction();
@@ -429,30 +555,27 @@ implements CaretListener, UndoableEditListener, IRoutingTarget, ActionListener {
         try {
             undoManager.redo();
         } catch (CannotRedoException ex) {
-            System.out.println("Unable to redo: " + ex);
-            //ex.printStackTrace();
+            ex.printStackTrace();
         }
-	updateRedoAction();
+        updateRedoAction();
         updateUndoAction();
     }
     
     private void updateUndoAction() {
-
+        
         if(undoManager.canUndo()) {
             undoAction.setEnabled(true);
-        }
-	else {
+        } else {
             undoAction.setEnabled(false);
         }
     }
     
     private void updateRedoAction() {
-
+        
         if(undoManager.canRedo()) {
             redoAction.setEnabled(true);
-        }
-	else {
+        } else {
             redoAction.setEnabled(false);
         }
-    }    
+    }
 }

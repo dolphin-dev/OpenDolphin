@@ -22,9 +22,9 @@ import javax.swing.text.*;
 import java.beans.*;
 
 /**
- * Component dropped into KartePane must implemeents this interface.
+ * IComponentHolder
  *
- * @author  Kauzshi Minagawa, Digital Globe, Inc.
+ * @author  Kauzshi Minagawa
  */
 public interface IComponentHolder extends PropertyChangeListener {
     
@@ -34,15 +34,13 @@ public interface IComponentHolder extends PropertyChangeListener {
     
     public int getContentType();
     
-    public int getId();
+    public KartePane getKartePane();
     
     public boolean isSelected();
     
-    public boolean toggleSelection();
-    
     public void setSelected(boolean b);
     
-    public void edit(boolean b);
+    public void edit();
     
     public void propertyChange(PropertyChangeEvent e);
     

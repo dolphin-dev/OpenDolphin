@@ -27,6 +27,8 @@ package open.dolphin.infomodel;
  */
 public class ClaimItem extends InfoModel {
     
+    private static final long serialVersionUID = 3256217487799388468L;
+	
     String name;
     String code;
     String codeSystem;

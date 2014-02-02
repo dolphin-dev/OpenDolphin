@@ -20,6 +20,8 @@ package open.dolphin.client;
 
 import java.util.*;
 
+import open.dolphin.infomodel.AppointmentModel;
+
 /**
  *
  * @author  Kazushi Minagawa, Digital Globe, Inc.
@@ -34,7 +36,7 @@ public class MedicalEvent {
     private boolean today;
     private boolean outOfMonth;
     private String medicalCode;
-    private AppointEntry appo;
+    private AppointmentModel appo;
     
     /** Creates a new instance of MedicalEventEntry */
     public MedicalEvent() {
@@ -94,16 +96,16 @@ public class MedicalEvent {
         return me.before(gc);
     }
     
-    public AppointEntry getAppointEntry() {
+    public AppointmentModel getAppointEntry() {
         return appo;
     }
     
-    public void setAppointEntry(AppointEntry val) {
+    public void setAppointEntry(AppointmentModel val) {
         appo = val;
     }
     
     public String getAppointmentName() {
-        return appo == null ? null : appo.getAppointName();
+        return appo == null ? null : appo.getName();
     }
     
     public String toString() {

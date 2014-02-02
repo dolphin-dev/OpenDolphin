@@ -31,8 +31,15 @@ import javax.swing.JTable;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 
+/**
+ * TableSorter
+ *
+ */
 public class TableSorter extends TableMap {
-    int             indexes[];
+    
+	private static final long serialVersionUID = -6741510791689094269L;
+	
+	int             indexes[];
     Vector          sortingColumns = new Vector();
     boolean         ascending = true;
     int compares;
@@ -282,7 +289,8 @@ public class TableSorter extends TableMap {
         sortByColumn(column, true);
     }
 
-    public void sortByColumn(int column, boolean ascending) {
+    @SuppressWarnings("unchecked")
+	public void sortByColumn(int column, boolean ascending) {
         this.ascending = ascending;
         sortingColumns.removeAllElements();
         sortingColumns.addElement(new Integer(column));

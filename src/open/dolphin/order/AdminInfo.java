@@ -29,15 +29,15 @@ public final class AdminInfo extends Object {
     protected static final int TT_MEMO      = 2;
     protected int eventType;
     
-    public String class1Code;     // 大分類コード
-    public String admin;          // 1 + 2;
-    public String admin1;         // 大分類名(内服3回、頓用等)
-    public String admin2;         // 小分類名(毎食後　等)
-    public String adminCode;      // レセ用コード
-    public String classCode;      // 診療行為区分（点数集計先）
-    public String numberCode;     // 数量コード
-    public String adminMemo;      // メモ
-    public int showState = 2;
+    private String class1Code;     // 大分類コード
+    private String admin;          // 1 + 2;
+    private String admin1;         // 大分類名(内服3回、頓用等)
+    private String admin2;         // 小分類名(毎食後　等)
+    private String adminCode;      // レセ用コード
+    private String classCode;      // 診療行為区分（点数集計先）
+    private String numberCode;     // 数量コード
+    private String adminMemo;      // メモ
+    private int showState = 2;
 
     /** 
      * Creates new SimpleMedItem 
@@ -46,11 +46,52 @@ public final class AdminInfo extends Object {
     }
     
     public String toString() {
-        if (showState == 2) {
-            return admin2;
-        }
-        else {
-            return admin;
-        }
+        return getAdmin();
+//        if (showState == 2) {
+//            return admin2;
+//        }
+//        else {
+//            return admin;
+//        }
+    }
+
+    public String getAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(String admin) {
+        this.admin = admin;
+    }
+
+    public String getAdminCode() {
+        return adminCode;
+    }
+
+    public void setAdminCode(String adminCode) {
+        this.adminCode = adminCode;
+    }
+
+    public String getClassCode() {
+        return classCode;
+    }
+
+    public void setClassCode(String classCode) {
+        this.classCode = classCode;
+    }
+
+    public String getNumberCode() {
+        return numberCode;
+    }
+
+    public void setNumberCode(String numberCode) {
+        this.numberCode = numberCode;
+    }
+
+    public String getAdminMemo() {
+        return adminMemo;
+    }
+
+    public void setAdminMemo(String adminMemo) {
+        this.adminMemo = adminMemo;
     }
 }

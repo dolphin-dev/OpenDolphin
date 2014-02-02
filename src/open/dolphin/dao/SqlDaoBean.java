@@ -25,8 +25,9 @@ import open.dolphin.client.ClientContext;
 
 
 /**
+ * SqlDaoBean
  *
- * @author  Kazushi Minagawa, Digital Globe, Inc.
+ * @author  Kazushi Minagawa
  */
 public class SqlDaoBean extends DaoBean {
     
@@ -34,9 +35,11 @@ public class SqlDaoBean extends DaoBean {
 
     String driver;
     
-    boolean trace = true;
+    boolean trace = false;
     
-    /** Creates a new instance of SqlDaoBean */
+    /** 
+     * Creates a new instance of SqlDaoBean 
+     */
     public SqlDaoBean() {
     }
 
@@ -92,24 +95,24 @@ public class SqlDaoBean extends DaoBean {
 
         try {
             con = DriverManager.getConnection(getURL(), user, passwd);
-
-        } catch (SQLException e) {
-            //assert false : e;
+            System.out.println("Got connection");
+        } catch (Exception e) {
+            //e.printStackTrace();
+            System.out.println("Exception at connection");
+            System.out.println("Class Name=" + e.getClass().getName());
+            System.out.println("Cause = " + e.getCause());
+            System.out.println("Message = " + e.getMessage());
+            System.out.println("toString = " + e);
         }
         return con;
     }*/
     
-    public Connection getConnection() throws SQLException {
-
-        Connection con = null;
-
-        con = DriverManager.getConnection(getURL(), user, passwd);
-
-        return con;
+    public Connection getConnection() throws Exception {
+        return DriverManager.getConnection(getURL(), user, passwd);
     }
 
     public String addSingleQuote(String s) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append("'");
         buf.append(s);
         buf.append("'");
@@ -117,12 +120,10 @@ public class SqlDaoBean extends DaoBean {
     }
 
     /**
-     *
      * To make sql statement ('xxxx',)<br>
-     *
      */
     public String addSingleQuoteComa(String s) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append("'");
         buf.append(s);
         buf.append("',");
@@ -130,25 +131,23 @@ public class SqlDaoBean extends DaoBean {
     }
     
     public void closeStatement(Statement st) {
-
         if (st != null) {
             try {
                 st.close();
             }
             catch (SQLException e) {
-                System.out.println(e);
+            	e.printStackTrace();
             }
         }
     }
 
     public void closeConnection(Connection con) {
-
         if (con != null) {
             try {
                 con.close();
             }
             catch (SQLException e) {
-                System.out.println(e);
+                e.printStackTrace();
             }
         }
     }
@@ -170,7 +169,7 @@ public class SqlDaoBean extends DaoBean {
             try {
                 con.rollback();
             } catch (Exception e) {
-                System.out.println(e);
+                e.printStackTrace();
             }
         }
     }    

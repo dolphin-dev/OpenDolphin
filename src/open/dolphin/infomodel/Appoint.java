@@ -19,13 +19,16 @@
 package open.dolphin.infomodel;
 
 /**
- *
+ * Appoint
+ * 
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
 public class Appoint extends InfoModel {
     
-    String appName;
-    String memo;
+	private static final long serialVersionUID = 788700624384220582L;
+	
+	private String appName;
+    private String memo;
 
     /** Creates new Appoint */
     public Appoint() {

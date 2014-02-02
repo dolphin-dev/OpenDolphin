@@ -16,7 +16,9 @@ import javax.swing.event.*;
 
 public class FlexibleTable extends JTable {
 
-    /**
+    private static final long serialVersionUID = 4917194282653669152L;
+
+	/**
      * Constructor taking a table model as parameter
      *
      * @parameter model A table model
@@ -200,7 +202,7 @@ public class FlexibleTable extends JTable {
             return retValue;
         }
 
-        int rowSpacing = getIntercellSpacing().height;
+        //int rowSpacing = getIntercellSpacing().height;
         int rowCount = getRowCount();
         int rowHeight = 0;
         int row = -1;
@@ -348,7 +350,8 @@ public class FlexibleTable extends JTable {
         }
     }
 
-    private void tableRowsInserted(TableModelEvent e) {
+    @SuppressWarnings("unchecked")
+	private void tableRowsInserted(TableModelEvent e) {
         int start = e.getFirstRow();
         int end = e.getLastRow();
         if (start < 0)
@@ -398,7 +401,8 @@ public class FlexibleTable extends JTable {
      *
      * @param e the TableModelEvent encapsulating the deletion
      */
-    private void tableRowsDeleted(TableModelEvent e) {
+    @SuppressWarnings("unchecked")
+	private void tableRowsDeleted(TableModelEvent e) {
         int start = e.getFirstRow();
         int end = e.getLastRow();
         if (start < 0)
@@ -450,7 +454,8 @@ public class FlexibleTable extends JTable {
             ((Integer)o).intValue();
     }
              
-    public void setRowHeight( int row, int height ) {
+    @SuppressWarnings("unchecked")
+	public void setRowHeight( int row, int height ) {
         rowHeights.put( new Integer( row ),
                         new Integer( height ) );
         revalidate();
@@ -466,7 +471,7 @@ public class FlexibleTable extends JTable {
         revalidate();
     }
 
-    private void dumpCellSpans() {
+   /* private void dumpCellSpans() {
         FlexibleTableModel m = (FlexibleTableModel)getModel();
         CellAttribute cellAtt =
             (CellAttribute)m.getCellAttribute();
@@ -480,7 +485,7 @@ public class FlexibleTable extends JTable {
             }
             System.out.print( '\n' );
         }
-    }
+    }*/
 
     // Table of individual row heights
     private Hashtable rowHeights = new Hashtable();

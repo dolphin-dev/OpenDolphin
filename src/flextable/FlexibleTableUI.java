@@ -15,6 +15,8 @@ import javax.swing.plaf.basic.*;
 public class FlexibleTableUI extends BasicTableUI
                              implements Serializable {
 
+	private static final long serialVersionUID = -3785867489547375693L;
+
 	/**
 	 * Calculate size of table based on a given width
 	 *
@@ -117,14 +119,14 @@ public class FlexibleTableUI extends BasicTableUI
 			(FlexibleTableModel)table.getModel();
 		CellAttribute cellAtt =
 			(CellAttribute)tableModel.getCellAttribute();
-		int numColumns = table.getColumnCount();
+		//int numColumns = table.getColumnCount();
 
 		int column = 0;
 		Enumeration enumeration =
 			table.getColumnModel().getColumns();
 		while (enumeration.hasMoreElements()) {
-			TableColumn aColumn =
-				(TableColumn)enumeration.nextElement();
+			//TableColumn aColumn =
+				//(TableColumn)enumeration.nextElement();
 			Rectangle cellRect =
 				table.getCellRect(row,column,true);
 			if ( cellRect.intersects(rect) ) {
@@ -198,7 +200,7 @@ public class FlexibleTableUI extends BasicTableUI
 						   cellRect.height + spacingHeight);
 	}
 
-	private int lastVisibleRow(Rectangle clip) {
+	/*private int lastVisibleRow(Rectangle clip) {
 		int lastIndex =
 			table.rowAtPoint(
 				new Point(0, clip.y + clip.height - 1));
@@ -219,5 +221,5 @@ public class FlexibleTableUI extends BasicTableUI
 			}
 		}
 		return lastIndex;
-	}
+	}*/
 }

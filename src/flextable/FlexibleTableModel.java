@@ -15,7 +15,9 @@ import javax.swing.table.*;
 public class FlexibleTableModel extends DefaultTableModel
                                       implements Serializable {
 
-    /**
+    private static final long serialVersionUID = 622436455613930317L;
+
+	/**
      *  Constructs a default DefaultTableModel which is a table of
      *  zero columns and zero rows.
      */

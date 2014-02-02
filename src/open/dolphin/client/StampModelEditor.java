@@ -7,12 +7,12 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *	
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *	
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -25,23 +25,34 @@ import java.awt.*;
 import java.awt.event.*;
 
 /**
- *　個々の StampEditor の root クラス。　
+ *　個々の StampEditor の root クラス。
  *
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
-public abstract class StampModelEditor extends JPanel 
-    implements IStampModelEditor, ComponentListener {
-    	
-	PropertyChangeSupport boundSupport;
-	boolean isValidModel;
-	String title;	
-
+public abstract class StampModelEditor extends JPanel implements IStampModelEditor, ComponentListener {
+    
+    PropertyChangeSupport boundSupport;
+    boolean isValidModel;
+    String title;
+    IStampEditorDialog context;
+    
     /** Creates new StampModelEditor */
     public StampModelEditor() {
         boundSupport = new PropertyChangeSupport(this);
         addComponentListener(this);
     }
-        
+    
+    public IStampEditorDialog getContext() {
+        return context;
+    }
+    
+    public void setContext(IStampEditorDialog context) {
+        this.context = context;
+    }
+    
+    public void start() {
+    }
+    
     public void addPropertyChangeListener(String prop, PropertyChangeListener l) {
         boundSupport.addPropertyChangeListener(prop, l);
     }
@@ -50,9 +61,13 @@ public abstract class StampModelEditor extends JPanel
         boundSupport.removePropertyChangeListener(prop, l);
     }
     
+    public boolean isValidModel() {
+        return isValidModel;
+    }
+    
     public void setValidModel(boolean b) {
         boolean old = isValidModel;
-        isValidModel = b;        
+        isValidModel = b;
         boundSupport.firePropertyChange("validData", old, isValidModel);
     }
     
@@ -61,12 +76,11 @@ public abstract class StampModelEditor extends JPanel
     }
     
     public void setTitle(String val) {
-        
-        StringBuffer buf = new StringBuffer();
-        buf.append(ClientContext.getString("application.title"));
-        buf.append(ClientContext.getString("application.title.separator"));
+        StringBuilder buf = new StringBuilder();
         buf.append(val);
         buf.append(ClientContext.getString("application.title.editorText"));
+        buf.append(ClientContext.getString("application.title.separator"));
+        buf.append(ClientContext.getString("application.title"));
         this.title = buf.toString();
     }
     
@@ -75,19 +89,19 @@ public abstract class StampModelEditor extends JPanel
     
     public abstract Object getValue();
     
-    public abstract void setValue(Object value); 
+    public abstract void setValue(Object value);
     
     public void componentHidden(ComponentEvent e) {
     }
-
+    
     public void componentMoved(ComponentEvent e) {
     }
-
+    
     public void componentResized(ComponentEvent e) {
         Dimension dim = getSize();
-		System.out.println("width=" + dim.width + " , height=" + dim.height);
+        System.out.println("width=" + dim.width + " , height=" + dim.height);
     }
-
+    
     public void componentShown(ComponentEvent e) {
-    }    
+    }
 }

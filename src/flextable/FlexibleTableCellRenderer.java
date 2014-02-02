@@ -13,7 +13,9 @@ import javax.swing.table.*;
 public class
 FlexibleTableCellRenderer extends DefaultTableCellRenderer
                           implements TableCellRenderer {
-    /**
+    private static final long serialVersionUID = -3338014683012268156L;
+
+	/**
      * Default constructor*/
     public FlexibleTableCellRenderer() {
 		super();

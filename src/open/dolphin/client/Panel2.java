@@ -28,7 +28,11 @@ import java.awt.print.*;
  */
 public class Panel2 extends JPanel implements Printable {
     
+    private static final long serialVersionUID = 4460114605208150805L;
+	
     String patientName;
+    
+    //private int height;
     
     /** Creates a new instance of Panel2 */
     public Panel2() {
@@ -39,7 +43,7 @@ public class Panel2 extends JPanel implements Printable {
     public void printPanel(
         PageFormat pageFormat, 
         int numOfCopies,
-        boolean useDialog, String name ) {
+        boolean useDialog, String name) {
         
         /*if ( this.getRootPane() != null &&
              this.getRootPane().getParent() != null && 
@@ -48,6 +52,7 @@ public class Panel2 extends JPanel implements Printable {
             patientName = f.getTitle() + " 患者 カルテ";
         }*/
         patientName = name + " カルテ";
+        //this.height = height;
         
         boolean buffered = this.isDoubleBuffered();
         this.setDoubleBuffered(false);
@@ -93,6 +98,7 @@ public class Panel2 extends JPanel implements Printable {
         double pageWidth = pf.getImageableWidth();
         //
         double componentHeight = this.getSize().getHeight();
+        //double componentHeight = (double) height;
         double componentWidth = this.getSize().getWidth();
         
         //
@@ -115,7 +121,8 @@ public class Panel2 extends JPanel implements Printable {
         g2.drawString(
             footerString, 
             (int)pageWidth/2 - strW/2,
-            (int)(pageHeight + fontHeight - fontDescent)
+            //(int)(pageHeight + fontHeight - fontDescent)
+            (int)(pageHeight + fontHeight)
         );
 
         // page

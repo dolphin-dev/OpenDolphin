@@ -1,8 +1,0 @@
-MML0003,Telecommunication Equipment TypeiHL7table0202€‹’j
-PH,Telephone
-FX,Fax
-MD,Modem
-CP,Cellular Phone
-BP,Beeper/Pager
-Internet,Internet Address:  Use only if telecommunication use code is NET
-X.400,X.400 email address:  use only if telecommunication use code is NET

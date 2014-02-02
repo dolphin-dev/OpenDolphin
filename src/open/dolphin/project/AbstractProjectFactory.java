@@ -23,8 +23,7 @@ package open.dolphin.project;
 import java.awt.*;
 
 import open.dolphin.client.*;
-import open.dolphin.dao.*;
-import open.dolphin.infomodel.DocInfo;
+import open.dolphin.infomodel.DocInfoModel;
 import open.dolphin.infomodel.ID;
 
 /**
@@ -34,11 +33,7 @@ import open.dolphin.infomodel.ID;
  */
 public abstract class AbstractProjectFactory {
 
-    private static KumamotoFactory kumamoto;
-    private static MiyazakiFactory miyazaki;
-    
-    private static DebugFactory debug;
-    private static DemoFactory demo;
+    private static DolphinFactory dolphin;
     
     /** Creates new ProjectFactory */
     public AbstractProjectFactory() {
@@ -46,40 +41,11 @@ public abstract class AbstractProjectFactory {
     
     public static AbstractProjectFactory getProjectFactory(String proj) {
         
-        if (proj.equals("kumamoto")) {
-            if (kumamoto == null) {
-                kumamoto = new KumamotoFactory();
-            }
-            return kumamoto;
-            
-        } else if (proj.equals("miyazaki")) {
-            if (miyazaki == null) {
-                miyazaki = new MiyazakiFactory();
-            }
-            return miyazaki;
-            
-        } else if (proj.equals("debug")) {
-            if (debug == null) {
-                debug = new DebugFactory();
-            }
-            return debug;
-            
-        } else if (proj.equals("demo")) {
-            if (demo == null) {
-                demo = new DemoFactory();
-            }
-            return demo;
-            
-        } else {
-            //assert false : proj;
+        if (dolphin == null) {
+            dolphin = new DolphinFactory();
         }
-        
-        return null;
+        return dolphin;
     }
-    
-    public abstract AuthenticationDao createAuthentication(String host, int port, String userId, String passwd);
-    
-    public abstract String createUUID();
     
     public abstract String createCSGWPath(String uploaderAddress, String share, String facilityId);
     
@@ -88,11 +54,4 @@ public abstract class AbstractProjectFactory {
     public abstract ID createMasterId(String pid, String facilityId);
     
     public abstract Object createSaveDialog(Frame parent, SaveParams params);
-    
-    public abstract DocInfo createDocInfo(SaveParams params, String gId);
-    
-    // MML V3    
-    public abstract DocInfo createClaimDocInfo(SaveParams params, String gId);
-    
-    public abstract String getFacilityOID(String facilityId);
 }

@@ -22,8 +22,9 @@ package open.dolphin.infomodel;
  * @author Kazushi Minagawa, Digital Globe, Inc.
  *
  */
-public class HierarchyEntry {
+public class HierarchyEntry extends InfoModel{
 	
+	private static final long serialVersionUID = -5434694699379636176L;
 	private String hierarchyCode1;
 	private String hierarchyCode2;
 	private String hierarchyCode3;

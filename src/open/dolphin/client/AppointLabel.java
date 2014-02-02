@@ -20,16 +20,22 @@
 package open.dolphin.client;
 
 import javax.swing.*;
+
+import open.dolphin.infomodel.AppointmentModel;
+
 import java.awt.*;
 import java.awt.dnd.*;
 import java.awt.datatransfer.*;
 
 /**
- *
+ * AppointLabel
+ * 
  * @author  Kauzshi Minagawa, Digital Globe, Inc.
  */
 public class AppointLabel extends JLabel implements DragGestureListener,DragSourceListener {
     
+    private static final long serialVersionUID = 2843710174202998473L;
+	
     private DragSource dragSource;
     
     /** Creates a new instance of AppointLabel */
@@ -45,8 +51,8 @@ public class AppointLabel extends JLabel implements DragGestureListener,DragSour
     
     public void dragGestureRecognized(DragGestureEvent event) {
         
-        AppointEntry appo = new AppointEntry();
-        appo.setAppointName(this.getText());
+        AppointmentModel appo = new AppointmentModel();
+        appo.setName(this.getText());
         Transferable t = new AppointEntryTransferable(appo);
         Cursor cursor = DragSource.DefaultCopyDrop;
 

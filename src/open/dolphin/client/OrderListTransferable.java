@@ -35,6 +35,7 @@ public final class OrderListTransferable implements Transferable, ClipboardOwner
     public static final DataFlavor[] flavors = {OrderListTransferable.orderListFlavor};
       
     private OrderList list;
+    
 
     /** Creates new OrderListTransferable */
     public OrderListTransferable(OrderList list) {
@@ -42,11 +43,11 @@ public final class OrderListTransferable implements Transferable, ClipboardOwner
     }
 
     public synchronized DataFlavor[] getTransferDataFlavors() {
-	return flavors;
+    	return flavors;
     }
      
     public boolean isDataFlavorSupported( DataFlavor flavor ) {
-	return flavor.equals(orderListFlavor) ? true : false;
+    	return flavor.equals(orderListFlavor) ? true : false;
     }
 
     public synchronized Object getTransferData(DataFlavor flavor)
@@ -59,7 +60,7 @@ public final class OrderListTransferable implements Transferable, ClipboardOwner
         }
     }
 
-    public String toString() {
+	public String toString() {
         return "Order List Transferable";
     }
   

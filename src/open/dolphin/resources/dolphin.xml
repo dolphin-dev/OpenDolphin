@@ -1,344 +1,316 @@
 <?xml version="1.0" encoding="SHIFT_JIS"?> 
 <dolphin>
-	<mainWindow>
-		<plugin>
-			<name>watingList</name>
-			<title>受付リスト</title>
-			<icon>FolderWatingList32.gif</icon>
-			<selectedIcon>FolderWatingListS32.gif</selectedIcon>
-			<class>open.dolphin.client.WatingListService</class>
-			<startUp>true</startUp>
-			<visible>true</visible>
-		</plugin>
-		<plugin>
-			<name>stampBox</name>
-			<title>スタンプ箱</title>
-			<icon>FolderWeb32.gif</icon>
-			<selectedIcon>FolderWebS32.gif</selectedIcon>
-			<class>open.dolphin.client.StampBoxService</class>
-			<startUp>true</startUp>
-			<visible>true</visible>
-		</plugin>
-		<plugin>
-			<name>patientSearch</name>
-			<title>患者検索</title>
-			<icon>FolderPatientSearch32.gif</icon>
-			<selectedIcon>FolderPatientSearchS32.gif</selectedIcon>
-			<class>open.dolphin.client.PatientSearchService</class>
-			<visible>true</visible>
-		</plugin>
-		<plugin>
-			<name>SchemaLibrary</name>
-			<title>シェーマライブラリ</title>
-			<icon>FolderWeb32.gif</icon>
-			<selectedIcon>FolderWebS32.gif</selectedIcon>
-			<class>jp.ac.kumamoto_u.kuh.fc.jsato.swing_beans.SchemaStockFrame</class>
-			<visible>true</visible>
-		</plugin>
-		<plugin>
-			<name>sendClaim</name>
-			<title>CLAIM送信</title>
-			<icon>Folder32.gif</icon>
-			<selectedIcon>FolderS32.gif</selectedIcon>
-			<class>open.dolphin.client.SendClaimService</class>
-			<visible>true</visible>
-		</plugin>
-		<plugin>
-			<name>laboRecordList</name>
-			<title>ラボテスト一覧</title>
-			<icon>Folder32.gif</icon>
-			<selectedIcon>FolderS32.gif</selectedIcon>
-			<class>mirrorI.dolphin.client.LaboRecdListService</class>
-			<visible>true</visible>
-		</plugin>																	
-
-		<plugin>
-			<name>changePassword</name>
-			<title>パスワード変更</title>
-			<icon>Folder32.gif</icon>
-			<selectedIcon>FolderS32.gif</selectedIcon>
-			<class>open.dolphin.client.ChangePasswordService</class>
-		</plugin>		
-		<plugin>
-			<name>addUser</name>
-			<title>ユーザ登録</title>
-			<icon>Folder32.gif</icon>
-			<selectedIcon>FolderS32.gif</selectedIcon>
-			<class>open.dolphin.client.AddUserService</class>
-		</plugin>
-		<plugin>
-			<name>updateDolphin</name>
-			<title>ソフトウェア更新</title>
-			<icon>FolderWeb32.gif</icon>
-			<selectedIcon>FolderWebS32.gif</selectedIcon>
-			<class>open.dolphin.client.DolphinUpdater</class>
-		</plugin>			
-
-		<plugin>
-			<name>sendMml</name>
-			<title>MML送信</title>
-			<icon>FolderWeb32.gif</icon>
-			<selectedIcon>FolderWebS32.gif</selectedIcon>
-			<class>open.dolphin.client.SendMmlService</class>
-			<visible>true</visible>
-		</plugin>		
-		<plugin>
-			<name>localIdNumbering</name>
-			<title>地域ID発番</title>
-			<icon>FolderWeb32.gif</icon>
-			<selectedIcon>FolderWebS32.gif</selectedIcon>
-			<class>open.dolphin.client.LocalIdNumberingService</class>
-			<visible>true</visible>
-		</plugin>
-		<plugin>
-			<name>memberSearch</name>
-			<title>参加医療機関リスト</title>
-			<icon>FolderWeb32.gif</icon>
-			<selectedIcon>FolderWebS32.gif</selectedIcon>
-			<class>open.dolphin.client.MemberSearchService</class>
-		</plugin>			
-
-		<plugin>
-			<name>dataBackup</name>
-			<title>データバックアップ</title>
-			<icon>Folder32.gif</icon>
-			<selectedIcon>FolderS32.gif</selectedIcon>
-			<class>mirrorI.dolphin.client.DataBackupService</class>
-			<visible>true</visible>
-		</plugin>
-		<plugin>
-			<name>masterUpdate</name>
-			<title>マスタ更新</title>
-			<icon>Folder32.gif</icon>
-			<selectedIcon>FolderS32.gif</selectedIcon>
-			<class>mirrorI.dolphin.client.MasterDataUpdateService</class>
-			<visible>true</visible>
-		</plugin>
-		<plugin>
-			<name>masterSearch</name>
-			<title>マスタ検索</title>
-			<icon>Folder32.gif</icon>
-			<selectedIcon>FolderS32.gif</selectedIcon>
-			<class>open.dolphin.client.MasterMainteService</class>
-			<visible>true</visible>
-		</plugin>
-					
-	</mainWindow>
-		
-	<chart>
-		<plugin>
-			<name>karteBrowser</name>
-			<title>参 照</title>
-			<class>open.dolphin.client.KarteBrowser</class>
-		</plugin>
-		<plugin>
-			<name>careMapDoc</name>
-			<title>ケアマップ</title>
-			<class>open.dolphin.client.CareMapDocument</class>
-		</plugin>
-		<plugin>
-			<name>diagnosisDoc</name>
-			<title>傷病名</title>
-			<class>open.dolphin.client.DiagnosisDocument</class>
-		</plugin>
-		<plugin>
-			<name>patientInfoDoc</name>
-			<title>患者・保険</title>
-			<class>open.dolphin.client.PatientInfoDocument</class>
-		</plugin>						
-		<plugin>
-			<name>laboTestDoc</name>
-			<title>検歴参照</title>
-			<class>jp.ac.kumamoto_u.kuh.fc.jsato.LaboTestDocument</class>
-		</plugin>	
-	</chart>
-		
-	<karteEditor>
-		<plugin>
-			<name>stampCheck</name>
-			<title>スタンプチェック</title>
-			<class>open.dolphin.client.StampCheckService</class>
-		</plugin>
-		<plugin>
-			<name>intercatiobCheck</name>
-			<title>相互作用チェック</title>
-			<class>open.dolphin.client.InteractionCheckService</class>
-		</plugin>		
-	</karteEditor>
+    
+    <plugins>
+        <!-- start mainWindow plugins -->
 	
-	<stampBox>
-		<stampEditor>
-			<entity>diagnosis</entity>
-			<class>open.dolphin.order.DiagnosisEditor</class>
-		</stampEditor>
+        <plugin plugPoint="mainWindow">
+            <name>loginMgr</name>
+            <title>ログイン</title>
+            <class>open.dolphin.client.LoginDialog</class>
+        </plugin>
+        
+        <plugin plugPoint="mainWindow/comp" childNumber="1">
+            <name>watingList</name>
+            <title>受付リスト</title>
+            <class>open.dolphin.client.WatingListPlugin</class>
+        </plugin>
+        
+        <plugin plugPoint="mainWindow/comp" childNumber="2">
+            <name>patientSearch</name>
+            <title>患者検索</title>
+            <class>open.dolphin.client.PatientSearchPlugin</class>
+        </plugin>
+        
+        <plugin plugPoint="mainWindow/comp" childNumber="3">
+            <name>LaboTestImporter</name>
+            <title>ラボレシーバ</title>
+            <class>open.dolphin.client.LaboTestImporter</class>
+        </plugin>		
 		
-		<stampEditor>
-			<entity>baseClinic</entity>
-			<class>open.dolphin.client.BaseClinicStampEditor</class>
-		</stampEditor>	
+        <plugin plugPoint="mainWindow/menu/system">
+            <name>changePassword</name>
+            <title>パスワード変更</title>
+            <class>open.dolphin.client.ChangePasswordPlugin</class>
+        </plugin>
+        
+        <plugin plugPoint="mainWindow/menu/system">
+            <name>addUser</name>
+            <title>ユーザ登録</title>
+            <class>open.dolphin.client.AddUserPlugin</class>
+        </plugin>
+        
+        <plugin plugPoint="mainWindow/menu/system">
+            <name>updateDolphin</name>
+            <title>ソフトウェア更新</title>
+            <class>open.dolphin.client.DolphinUpdater</class>
+        </plugin>
+        
+        <plugin plugPoint="mainWindow/menu/system">
+            <name>stampPublish</name>
+            <title>スタンプ公開</title>
+            <class>open.dolphin.client.StampPublisher</class>
+        </plugin>
+        
+        <!-- end mainWindow plugins -->
+
+        <plugin plugPoint="mainWindow">
+            <name>stampBox</name>
+            <title>スタンプ箱</title>
+            <class>open.dolphin.client.StampBoxPlugin</class>
+        </plugin>
+        
+        <plugin plugPoint="mainWindow">
+            <name>schemaBox</name>
+            <title>シェーマボックス</title>
+            <class>open.dolphin.client.ImageBox</class>
+        </plugin>																	
+        
+        <!-- start chart plugins -->
+        <plugin plugPoint="mainWindow">
+            <name>chart</name>
+            <title>患者名</title>
+            <class>open.dolphin.client.ChartPlugin</class>
+        </plugin>
+        
+        <plugin plugPoint="chart/comp" childNumber="1">
+            <name>karteBrowser</name>
+            <title>参 照</title>
+            <class>open.dolphin.client.DocumentViewer</class>
+        </plugin>
+        
+        <plugin plugPoint="chart/comp"  childNumber="2">
+            <name>diagnosisDocument</name>
+            <title>傷病名</title>
+            <class>open.dolphin.client.DiagnosisDocument</class>
+        </plugin>
+        
+        <plugin plugPoint="chart/comp"  childNumber="3">
+            <name>patientInfoDocument</name>
+            <title>患者・保険</title>
+            <class>open.dolphin.client.PatientInfoDocument</class>
+        </plugin>
+        
+        <plugin plugPoint="chart/comp"  childNumber="4">
+            <name>laboTestDocument</name>
+            <title>ラボテスト</title>
+            <class>open.dolphin.client.LaboTestBean</class>
+        </plugin>
+        
+        <plugin plugPoint="chart/comp"  childNumber="5">
+            <name>careMapDocument</name>
+            <title>治療履歴</title>
+            <class>open.dolphin.client.CareMapDocument</class>
+        </plugin>
+        
+        <!-- start karteEditor plugins -->
 			
-		<stampEditor>
-			<entity>lifestyle</entity>
-			<class>open.dolphin.client.LifestyleStampEditor</class>
-		</stampEditor>
+        <plugin plugPoint="chart">
+            <name>karteEditor</name>
+            <title>記 入</title>
+            <class>open.dolphin.client.KarteEditor</class>
+        </plugin>
+        
+        <plugin plugPoint="karteEditor">
+            <name>sendClaim</name>
+            <class>open.dolphin.client.SendClaimPlugin</class>
+        </plugin>
+        
+        <plugin plugPoint="karteEditor">
+            <name>sendMml</name>
+            <class>open.dolphin.client.SendMmlPlugin</class>
+        </plugin>
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>diagnosis</name>
+            <class>open.dolphin.order.DiagnosisEditor</class>
+        </plugin>
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>baseClinic</name>
+            <class>open.dolphin.client.BaseClinicStampEditor</class>
+        </plugin>	
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>lifestyle</name>
+            <class>open.dolphin.client.LifestyleStampEditor</class>
+        </plugin>
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>firstClinic</name>
+            <class>open.dolphin.client.FirstClinicStampEditor</class>
+        </plugin>
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>physicalExam</name>
+            <class>open.dolphin.client.BaseClinicStampEditor</class>
+        </plugin>
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>medOrder</name>
+            <class>open.dolphin.order.MedStampEditor2</class>
+        </plugin>	
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>injectionOrder</name>
+            <class>open.dolphin.order.InjectionStampEditor</class>
+        </plugin>
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>testOrder</name>
+            <class>open.dolphin.order.TestStampEditor</class>
+        </plugin>
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>bacteriaOrder</name>
+            <class>open.dolphin.order.BacteriaStampEditor</class>
+        </plugin>
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>physiologyOrder</name>
+            <class>open.dolphin.order.PhysiologyStampEditor</class>
+        </plugin>
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>treatmentOrder</name>
+            <class>open.dolphin.order.TreatmentStampEditor</class>
+        </plugin>
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>radiologyOrder</name>
+            <class>open.dolphin.order.RadiologyStampEditor</class>
+        </plugin>	
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>baseChargeOrder</name>
+            <class>open.dolphin.order.BaseChargeStampEditor</class>
+        </plugin>
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>instractionChargeOrder</name>
+            <class>open.dolphin.order.InstractionChargeStampEditor</class>
+        </plugin>		
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>otherOrder</name>
+            <class>open.dolphin.order.OtherStampEditor</class>
+        </plugin>
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>generalOrder</name>
+            <class>open.dolphin.order.GeneralStampEditor</class>
+        </plugin>
+        
+        <plugin plugPoint="karteEditor/stampEditor">
+            <name>surgeryOrder</name>
+            <class>open.dolphin.order.SurgeryStampEditor</class>
+        </plugin>
+        <!-- end stampBox plugins -->
 	
-		<stampEditor>
-			<entity>firstClinic</entity>
-			<class>open.dolphin.client.FirstClinicStampEditor</class>
-		</stampEditor>
+        <!-- start setting plugin -->
+        <plugin plugPoint="mainWindow/setting"  childNumber="1">
+            <name>hostSetting</name>
+            <title>サーバ</title>
+            <icon>ntwrk_24.gif</icon>
+            <class>open.dolphin.client.HostSettingPanel</class>
+        </plugin>
+        
+        <plugin plugPoint="mainWindow/setting"  childNumber="2">
+            <name>claimSetting</name>
+            <title>レセコン</title>
+            <icon>calc_24.gif</icon>
+            <class>open.dolphin.client.ClaimSettingPanel</class>
+        </plugin>
+        
+        <plugin plugPoint="mainWindow/setting"  childNumber="3">
+            <name>areaNetwork</name>
+            <title>地域連携</title>
+            <icon>web_24.gif</icon>
+            <class>open.dolphin.client.AreaNetWorkSettingPanel</class>
+        </plugin>
+        
+        <plugin plugPoint="mainWindow/setting"  childNumber="4">
+            <name>mmlSetting</name>
+            <title>MML出力</title>
+            <icon>cd_24.gif</icon>
+            <class>open.dolphin.client.SendMmlSettingPanel</class>
+        </plugin>
+        
+        <plugin plugPoint="mainWindow/setting"  childNumber="5">
+            <name>karteSetting</name>
+            <title>カルテ</title>
+            <icon>hist_24.gif</icon>
+            <class>open.dolphin.client.KarteSettingPanel</class>
+        </plugin>
+        
+        <plugin plugPoint="mainWindow/setting"  childNumber="6">
+            <name>codeHelperSetting</name>
+            <title>コード</title>
+            <icon>help_24.gif</icon>
+            <class>open.dolphin.client.CodeHelperSettingPanel</class>
+        </plugin>
+        
+        <!-- end setting plugin -->
 	
-		<stampEditor>
-			<entity>physicalExam</entity>
-			<class>open.dolphin.client.BaseClinicStampEditor</class>
-		</stampEditor>
-		
-		<stampEditor>
-			<entity>medOrder</entity>
-			<class>open.dolphin.order.MedStampEditor2</class>
-		</stampEditor>	
+        <!-- helpers -->
+        <plugin plugPoint="helper" type="marker">
+            <name>menuBarBuilder</name>
+            <class>open.dolphin.plugin.helper.MenuBarBuilder</class>
+        </plugin>
+        
+        <plugin plugPoint="helper" type="marker">
+            <name>cmpMemor</name>
+            <class>open.dolphin.plugin.helper.ComponentMemory</class>
+        </plugin>	
+        
+        <!-- end helpers -->	
 	
-		<stampEditor>
-			<entity>injectionOrder</entity>
-			<class>open.dolphin.order.InjectionStampEditor</class>
-		</stampEditor>
-	
-		<stampEditor>
-			<entity>testOrder</entity>
-			<class>open.dolphin.order.TestStampEditor</class>
-		</stampEditor>
-	
-		<stampEditor>
-			<entity>bacteriaOrder</entity>
-			<class>open.dolphin.order.BacteriaStampEditor</class>
-		</stampEditor>
-	
-		<stampEditor>
-			<entity>physiologyOrder</entity>
-			<class>open.dolphin.order.PhysiologyStampEditor</class>
-		</stampEditor>
-	
-		<stampEditor>
-			<entity>treatmentOrder</entity>
-			<class>open.dolphin.order.TreatmentStampEditor</class>
-		</stampEditor>
-	
-		<stampEditor>
-			<entity>radiologyOrder</entity>
-			<class>open.dolphin.order.RadiologyStampEditor</class>
-		</stampEditor>	
-	
-		<stampEditor>
-			<entity>baseChargeOrder</entity>
-			<class>open.dolphin.order.BaseChargeStampEditor</class>
-		</stampEditor>
-		
-		<stampEditor>
-			<entity>instractionChargeOrder</entity>
-			<class>open.dolphin.order.InstractionChargeStampEditor</class>
-		</stampEditor>		
-	
-		<stampEditor>
-			<entity>otherOrder</entity>
-			<class>open.dolphin.order.OtherStampEditor</class>
-		</stampEditor>
-	
-		<stampEditor>
-			<entity>generalOrder</entity>
-			<class>open.dolphin.order.GeneralStampEditor</class>
-		</stampEditor>
-	
-		<stampEditor>
-			<entity>surgeryOrder</entity>
-			<class>open.dolphin.order.SurgeryStampEditor</class>
-		</stampEditor>
-	</stampBox>
-	
-	
-	<dataAccess>
-		<dao>
-			<name>dao</name>
-			<class>open.dolphin.dao.SqlDaoBean</class>
-		</dao>
-
-		<dao>
-			<name>stamp</name>
-			<class>open.dolphin.dao.SqlStampDao</class>
-		</dao>
-
-		<dao>
-			<name>pvt</name>
-			<class>open.dolphin.dao.SqlPvtDao</class>
-		</dao>
-		
-		<dao>
-			<name>patient</name>
-			<class>open.dolphin.dao.SqlPatientDao</class>
-		</dao>
-		
-		<dao>
-			<name>rdSaver</name>
-			<class>open.dolphin.dao.SqlRDSaverDao</class>
-		</dao>
-		
-		<dao>
-			<name>karte</name>
-			<class>open.dolphin.dao.SqlKarteDao</class>
-		</dao>
-		
-		<dao>
-			<name>karteSaver</name>
-			<class>open.dolphin.dao.SqlKarteSaverDao</class>
-		</dao>
-		
-		<dao>
-			<name>appointSaver</name>
-			<class>open.dolphin.dao.SqlAppointSaverDao</class>
-		</dao>
-		
-		<dao>
-			<name>master</name>
-			<class>open.dolphin.dao.SqlMasterDao</class>
-		</dao>
-		
-		<dao>
-			<name>stampChecker</name>
-			<class>open.dolphin.dao.SqlStampCheckDao</class>
-		</dao>
-
-		<dao>
-			<name>kumamoto</name>
-			<class>open.dolphin.dao.KumamotoDao</class>
-		</dao>
-		
-		<dao>
-			<name>authentication</name>
-			<class>open.dolphin.dao.AuthenticationDao</class>
-		</dao>
-		
-		<dao>
-			<name>userProfile</name>
-			<class>open.dolphin.dao.UserProfileDao</class>
-		</dao>
-		
-		<dao>
-			<name>aspStampModel</name>
-			<class>open.dolphin.dao.AspStampModelDao</class>
-		</dao>
-
-		<dao>
-			<name>aspStampTree</name>
-			<class>open.dolphin.dao.AspStampTreeDao</class>
-		</dao>		
-
-		<dao>
-			<name>member</name>
-			<class>open.dolphin.dao.MemberDao</class>
-		</dao>
-		
-		<dao>
-			<name>master.dolphin</name>
-			<class>open.dolphin.dao.SqlDolphinMasterDao</class>
-		</dao>			
-	</dataAccess>		
-
+        <plugin plugPoint="delegater" type="marker">
+            <name>appointment</name>
+            <class>open.dolphin.delegater.AppointmentDelegater</class>
+        </plugin>
+        
+        <plugin plugPoint="delegater" type="marker">
+            <name>document</name>
+            <class>open.dolphin.delegater.DocumentDelegater</class>
+        </plugin>
+        
+        <plugin plugPoint="delegater" type="marker">
+            <name>labo</name>
+            <class>open.dolphin.delegater.LaboDelegater</class>
+        </plugin>
+        
+        <plugin plugPoint="delegater" type="marker">
+            <name>master</name>
+            <class>open.dolphin.delegater.MasterDelegater</class>
+        </plugin>
+        
+        <plugin plugPoint="delegater" type="marker">
+            <name>patient</name>
+            <class>open.dolphin.delegater.PatientDelegater</class>
+        </plugin>
+        
+        <plugin plugPoint="delegater" type="marker">
+            <name>pvt</name>
+            <class>open.dolphin.delegater.PVTDelegater</class>
+        </plugin>
+        
+        <plugin plugPoint="delegater" type="marker">
+            <name>stamp</name>
+            <class>open.dolphin.delegater.StampDelegater</class>
+        </plugin>
+        
+        <plugin plugPoint="delegater" type="marker">
+            <name>user</name>
+            <class>open.dolphin.delegater.UserDelegater</class>
+        </plugin>
+        
+        <plugin plugPoint="dao" type="marker">
+            <name>master</name>
+            <class>open.dolphin.dao.SqlMasterDao</class>
+        </plugin>
+        
+        
+    </plugins>
+    
 </dolphin>	

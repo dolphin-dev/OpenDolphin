@@ -19,11 +19,14 @@
 package open.dolphin.infomodel;
 
 /**
- *
- * @author  kazm
+ * DiseaseEntry
+ * 
+ * @author  Minagawa, Kazushi
  */
 public final class DiseaseEntry extends MasterEntry {
 
+    private static final long serialVersionUID = 9088599523647351403L;
+	
     private String icdTen;
 
     /** Creates a new instance of DeseaseEntry */

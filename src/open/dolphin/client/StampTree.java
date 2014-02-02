@@ -1,18 +1,18 @@
 /*
  * StampTree.java
  * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2001,2003,2004 Digital Globe, Inc. All rights reserved.
+ * Copyright (C) 2001,2003,2004,2005 Digital Globe, Inc. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *	
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *	
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -23,124 +23,175 @@ import javax.swing.*;
 import javax.swing.tree.*;
 import javax.swing.event.*;
 
-import open.dolphin.dao.*;
-import open.dolphin.exception.DolphinException;
+import open.dolphin.delegater.StampDelegater;
 import open.dolphin.infomodel.IInfoModel;
-import open.dolphin.infomodel.Module;
-import open.dolphin.infomodel.ModuleInfo;
-import open.dolphin.infomodel.RegisteredDiagnosisModule;
-import open.dolphin.infomodel.TextStamp;
+import open.dolphin.infomodel.ModuleModel;
+import open.dolphin.infomodel.ModuleInfoBean;
+import open.dolphin.infomodel.RegisteredDiagnosisModel;
+import open.dolphin.infomodel.StampModel;
+import open.dolphin.infomodel.TextStampModel;
 import open.dolphin.project.*;
-import open.dolphin.util.*;
+import open.dolphin.util.GUIDGenerator;
 
-import java.awt.datatransfer.*;
-import java.awt.dnd.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.*;
+import java.beans.XMLEncoder;
 import java.io.*;
 import java.util.*;
-import java.rmi.server.*;
 
 /**
- * StampTree 
+ * StampTree
  *
- * @author  Kazushi Minagawa, Digital Globe, Inc.
+ * @author Kazushi Minagawa, Digital Globe, Inc.
  */
-public class StampTree extends JTree 
-implements TreeModelListener, DragGestureListener, DropTargetListener, DragSourceListener {
-                     
+public class StampTree extends JTree implements TreeModelListener {
+    
+    public static final String SELECTED_NODE_PROP = "selectedNodeProp";
+    
+    private static final long serialVersionUID = -4651151848166376384L;
     private static final int TOOLTIP_LENGTH = 35;
-    private static final ImageIcon ASP_ICON = new ImageIcon(open.dolphin.client.StampTree.class.getResource("/open/dolphin/resources/images/WebComponent16.gif"));
-    private static final ImageIcon LOCAL_ICON = new ImageIcon(open.dolphin.client.StampTree.class.getResource("/open/dolphin/resources/images/Bean16.gif"));
+    private static final ImageIcon ASP_ICON = ClientContext.getImageIcon("move2_16.gif");
+    private static final ImageIcon LOCAL_ICON = ClientContext.getImageIcon("move2_16.gif");
+    private static final String NEW_FOLDER_NAME = "新規フォルダ";
+    private static final String STAMP_SAVE_TASK_NAME = "スタンプ保存";
     
-    /** この Tree が編集可能かどうか */
-    private boolean editable;
-            
-    private DragSource dragSource;
+    /** ASP Tree かどうかのフラグ */
+    private boolean asp;
     
-    /** Reference to the StampBox */
-    private StampBoxService stampBox;
+    /** 個人用Treeかどうかのフラグ */
+    private boolean userTree;
     
-        
+    /** StampBox */
+    private StampBoxPlugin stampBox;
+    
+    /** DBから取得する時のTaskTimer */
+    private javax.swing.Timer taskTimer;
+    
     /**
-     * Tree model からこのクラスを生成する
+     * StampTreeオブジェクトを生成する。
+     *
+     * @param model TreeModel
      */
     public StampTree(TreeModel model) {
         
         super(model);
-
-        this.putClientProperty("JTree.lineStyle", "Angled");           // 水平及び垂直線を使用する
-        this.setEditable(false);                                       // ノード名を編集不可にする
-        this.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);  // Single Selection にする
-        this.setRootVisible(false);
         
-        // Replace the default CellRenderer
+        this.putClientProperty("JTree.lineStyle", "Angled"); // 水平及び垂直線を使用する
+        this.setEditable(false); // ノード名を編集不可にする
+        this.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION); // Single Selection// にする
+        
+        this.setRootVisible(false);
+        this.addMouseMotionListener(new MouseDragDetecter());
+        
+        //
+        // デフォルトのセルレンダラーを置き換える
+        //
         final TreeCellRenderer oldRenderer = this.getCellRenderer();
         TreeCellRenderer r = new TreeCellRenderer() {
             
             public Component getTreeCellRendererComponent(JTree tree,
-                Object value,
-                boolean selected,
-                boolean expanded,
-                boolean leaf,
-                int row,
-                boolean hasFocus) {
-                    
-                    Component c = oldRenderer.getTreeCellRendererComponent(tree,
-                        value,selected,expanded,leaf,row,hasFocus);
-                    if (leaf && c instanceof JLabel) {
-                        JLabel l = (JLabel)c;
-                        Object o = ((StampTreeNode)value).getUserObject();
-                        if (o instanceof ModuleInfo) {
-                            
-                            // 固有のアイコンを設定する              
-                            if ( ((ModuleInfo)o).isASP() ) {
-                                l.setIcon(ASP_ICON);
-                            }
-                            else {
-                                l.setIcon(LOCAL_ICON);
-                            }
-                            
-                            // ToolTips を設定する
-                            l.setToolTipText(((ModuleInfo)o).getMemo());
+                    Object value, boolean selected, boolean expanded,
+                    boolean leaf, int row, boolean hasFocus) {
+                
+                Component c = oldRenderer.getTreeCellRendererComponent(tree,
+                        value, selected, expanded, leaf, row, hasFocus);
+                if (leaf && c instanceof JLabel) {
+                    JLabel l = (JLabel) c;
+                    Object o = ((StampTreeNode) value).getUserObject();
+                    if (o instanceof ModuleInfoBean) {
+                        
+                        // 固有のアイコンを設定する
+                        if (isAsp()) {
+                            l.setIcon(ASP_ICON);
+                        } else {
+                            l.setIcon(LOCAL_ICON);
                         }
+                        // ToolTips を設定する
+                        l.setToolTipText(((ModuleInfoBean) o).getStampMemo());
                     }
-                    return c;
+                }
+                return c;
             }
         };
         this.setCellRenderer(r);
-            
+        
         // Listens TreeModelEvent
         model.addTreeModelListener(this);
         
         // Enable ToolTips
         enableToolTips(true);
         
-        // DragEnabled
-        dragSource = new DragSource();
-        dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_COPY_OR_MOVE, this);
-        
-        // Make tree dropTarget
-        new DropTarget(this, this);
     }
     
-    public boolean isEdiatble() {
-    	return editable;
+    /**
+     * このStampTreeのTreeInfoを返す。
+     * @return Tree情報
+     */
+    public TreeInfo getTreeInfo() {
+        StampTreeNode node = (StampTreeNode) this.getModel().getRoot();
+        TreeInfo info = (TreeInfo)node.getUserObject();
+        return info;
     }
     
-    public void setEdiatble(boolean b) {
-    	editable = b;
+    /**
+     * このStampTreeのエンティティを返す。
+     * @return エンティティ
+     */
+    public String getEntity() {
+        return getTreeInfo().getEntity();
+    }
+    
+    /**
+     * このStampTreeの名前を返す。
+     * @return 名前
+     */
+    public String getTreeName() {
+        return getTreeInfo().getName();
+    }
+    
+    /**
+     * UserTreeかどうかを返す。
+     * @return UserTreeの時true
+     */
+    public boolean isUserTree() {
+        return userTree;
+    }
+    
+    /**
+     * UserTreeかどうかを設定する。
+     * @param userTree UserTreeの時true
+     */
+    public void setUserTree(boolean userTree) {
+        this.userTree = userTree;
+    }
+    
+    /**
+     * ASP提供Treeかどうかを返す。
+     * @return ASP提供の時 true
+     */
+    public boolean isAsp() {
+        return asp;
+    }
+    
+    /**
+     * ASP提供Treeかどうかを設定する。
+     * @param asp ASP提供の時 true
+     */
+    public void setAsp(boolean asp) {
+        this.asp = asp;
     }
     
     /**
      * Enable or disable tooltip
      */
     public void enableToolTips(boolean state) {
-    
+        
         ToolTipManager mgr = ToolTipManager.sharedInstance();
         if (state) {
             // Enable tooltips
             mgr.registerComponent(this);
-        
+            
         } else {
             mgr.unregisterComponent(this);
         }
@@ -148,794 +199,854 @@ implements TreeModelListener, DragGestureListener, DropTargetListener, DragSourc
     
     /**
      * Set StampBox reference
-     */ 
-    public void setStampBox(StampBoxService ref) {
-        stampBox = ref;
+     */
+    public void setStampBox(StampBoxPlugin stampBox) {
+        this.stampBox = stampBox;
     }
     
     /**
-     * RootNode の名前を返す
+     * 選択されているノードを返す。
      */
-    public String getRootName() {
-        StampTreeNode node = (StampTreeNode)this.getModel().getRoot();
-        return node.toString();
+    public StampTreeNode getSelectedNode() {
+        return (StampTreeNode) this.getLastSelectedPathComponent();
     }
     
     /**
-     * 選択されているノードを返す
+     * 引数のポイント位置のノードを返す。
      */
-    protected StampTreeNode getSelectedNode() {
-        return (StampTreeNode) this.getLastSelectedPathComponent();   
-    }
-    
-    /**
-     * Drop 位置のノードを返す
-     */
-    protected StampTreeNode getNode(Point p) {
+    public StampTreeNode getNode(Point p) {
         TreePath path = this.getPathForLocation(p.x, p.y);
-        return (path != null) ? (StampTreeNode)path.getLastPathComponent() : null;
-    }
-    
-    //////////////   Drag Support //////////////////
-    
-    public void dragGestureRecognized(DragGestureEvent event) {
-        
-        StampTreeNode dragNode = getSelectedNode();
-        
-        if (dragNode == null) {
-            return;
-        }
-        
-		dragNode.setTreeId(getRootName());
-        
-        Transferable t = new StampTreeTransferable(dragNode);
-        Cursor cursor = DragSource.DefaultCopyDrop;
-
-        //begin the drag
-        dragSource.startDrag(event, cursor, t, this);
-    }
-
-    public void dragDropEnd(DragSourceDropEvent event) { 
-    }
-
-    public void dragEnter(DragSourceDragEvent event) {
-    }
-
-    public void dragOver(DragSourceDragEvent event) {
-    }
-    
-    public void dragExit(DragSourceEvent event) {
-    }    
-
-    public void dropActionChanged ( DragSourceDragEvent event) {
-    }   
-    
-    //////////// Drop Support ////////////////
-        
-    public void drop(DropTargetDropEvent e) {
-        
-        if (! isDropAcceptable(e)) {
-            e.rejectDrop();
-            setDropTargetBorder(false);
-            return;
-        }
-        
-        // Transferable を取得する
-        final Transferable tr = e.getTransferable();
-
-        // Drop 位置を得る
-        final Point loc = e.getLocation();
-        
-        // Force copy
-        e.acceptDrop(DnDConstants.ACTION_COPY);
-        e.getDropTargetContext().dropComplete(true);
-        setDropTargetBorder(false);
-            
-        boolean ok = doDrop(tr, loc);
-    }
-    
-    public boolean isDragAcceptable(DropTargetDragEvent evt) {
-    	if (!editable) {
-    		return false;
-    	}
-        return (evt.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) != 0;
-    }
-    
-    public boolean isDropAcceptable(DropTargetDropEvent evt) {
-		if (!editable) {
-			return false;
-		}
-        return (evt.getDropAction() & DnDConstants.ACTION_COPY_OR_MOVE) != 0;
-    }        
-
-    /** DropTaregetListener interface method */
-    public void dragEnter(DropTargetDragEvent e) {
-        if (! isDragAcceptable(e)) {
-            e.rejectDrag();
-        }
-    }
-
-    /** DropTaregetListener interface method */
-    public void dragExit(DropTargetEvent e) {
-        setDropTargetBorder(false);
-    }
-
-    /** DropTaregetListener interface method */
-    public void dragOver(DropTargetDragEvent e) { 
-        if (isDragAcceptable(e)) {
-            setDropTargetBorder(true);
-        }
-    }
-
-    /** DropTaregetListener interface method */
-    public void dropActionChanged(DropTargetDragEvent e) {
-        if (! isDragAcceptable(e)) {
-            e.rejectDrag();
-        }
-    }
-    
-    private void setDropTargetBorder(final boolean b) {
-        Color c = b ? DesignFactory.getDropOkColor() : this.getBackground();
-        this.setBorder(BorderFactory.createLineBorder(c, 2));
+        return (path != null)
+        ? (StampTreeNode) path.getLastPathComponent()
+        : null;
     }
     
     /**
-     * ノードを Drop する
+     * このStampTreeにenter()する。
      */
-    protected boolean doDrop(Transferable tr, Point loc) {
-                     
-        int state = -1;
-        
-        // StampTreeNode
-        if (tr.isDataFlavorSupported(StampTreeTransferable.stampTreeNodeFlavor)) {
-            state = 0;
-            
-        // OrderList    
-        } else if (tr.isDataFlavorSupported(OrderListTransferable.orderListFlavor)) {
-            state = 1;
-            
-        // Text    
-        } else if (tr.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-            state = 2;
-        
-        // InforModel    
-        } else if (tr.isDataFlavorSupported(InfoModelTransferable.infoModelFlavor)) {
-            state = 3;
-            
-        } else {
-            return false;
-        }
+    public void enter() {
+    }
+    
+    /**
+     * KartePaneから drop されたスタンプをツリーに加える。
+     */
+    public boolean addStamp(final ModuleModel droppedStamp, final StampTreeNode selected) {
         
         boolean ret = false;
-        
-        switch (state) {
-            
-            case 0:
-                // TreeNode dropped
-                try {
-                	StampTreeNode dropNode = (StampTreeNode)tr.getTransferData(StampTreeTransferable.stampTreeNodeFlavor);
-					if (dropNode.getTreeId().equals(getRootName())) {
-						ret = moveNode(dropNode, loc);
-					} else {
-						ModuleInfo info =(ModuleInfo)dropNode.getUserObject();
-						info.setEditable(true);
-						ret = addNode(dropNode, loc);
-					}
-                } catch (Exception ufe) {
-                	debug(ufe.toString());
-                }  
-                break;
-                
-            case 1:
-                // Stamp dropped
-                if (editable) {
-                    ret = addStamp(tr, loc);
-                
-                }
-                break;
-                
-            case 2:
-                // Text dropped
-                if (editable) {
-                    ret = addTextStamp(tr, loc);
-               
-                }
-                break;
-                
-            case 3:
-                // RegisteredDiagnosis
-                if (editable) {
-                	ret = addDiagnosis(tr, loc);
-                }
-                break;
+        if (droppedStamp == null) {
+            return ret;
         }
         
-        return ret;
-    }
-    
-    /**
-     * TreeNode の移動を行う。
-     */
-    protected boolean moveNode(StampTreeNode dropNode, Point loc) {  
-
-        // Drop 位置のノードを取得
-        StampTreeNode destinationNode = getNode(loc);
+        //
+        // Drop された Stamp の ModuleInfoを得る
+        //
+        ModuleInfoBean droppedInfo = droppedStamp.getModuleInfo();
         
-        if (destinationNode == null) {
-            //それがヌルの場合はリターン
-            return false;
+        //
+        // データベースへ droppedStamp のデータモデルを保存する
+        //
+        // Entityを生成する
+        //
+        StampModel stampModel = new StampModel();
+        String stampId = GUIDGenerator.generate(stampModel);    // stampId
+        stampModel.setId(stampId);
+        stampModel.setUserId(Project.getUserModel().getId());   // userId
+        stampModel.setEntity(droppedInfo.getEntity());          // entity
+        stampModel.setStampBytes(getXMLBytes(droppedStamp.getModel())); // XML
+        
+        // Delegator を生成する
+        final StampDelegater sdl = new StampDelegater();
+        
+        //
+        // Tree に加える新しい StampInfo を生成する
+        //
+        final ModuleInfoBean info = new ModuleInfoBean();
+        info.setStampName(droppedInfo.getStampName());      // オリジナル名
+        info.setEntity(droppedInfo.getEntity());            // Entity
+        info.setStampRole(droppedInfo.getStampRole());      // Role
+        info.setStampMemo(constractToolTip(droppedStamp));  // Tooltip
+        info.setStampId(stampId);                           // StampID
+        
+        // 保存タスクを生成する
+        int maxEstimation = ClientContext.getInt("task.default.maxEstimation");
+        int delay = ClientContext.getInt("task.default.delay");
+        int taskLength = maxEstimation/delay;
+        int decideToPopup = ClientContext.getInt("task.default.decideToPopup");
+        int milisToPopup = ClientContext.getInt("task.default.milisToPopup");
+        String saveMsg = ClientContext.getString("task.default.saveMessage");
+        final StampTask worker = new StampTask(stampModel, sdl, taskLength);
+        
+        // ProgressMonitor を生成する
+        final ProgressMonitor monitor = new ProgressMonitor(null, null, saveMsg, 0, taskLength);
+        monitor.setProgress(0);
+        monitor.setMillisToDecideToPopup(decideToPopup);
+        monitor.setMillisToPopup(milisToPopup);
+        
+        // タスクタイマーを起動する
+        taskTimer = new javax.swing.Timer(delay, new ActionListener() {
             
-        } else if (destinationNode == getSelectedNode()) {
-            // Drag Node に同じの場合はリターン
-            return false;
-        }
-        
-        boolean ret = false;
-        
-        // Drop(Drg)Node の 元（旧）の親
-        StampTreeNode orgNode = getSelectedNode();
-        StampTreeNode oldParent = (StampTreeNode)orgNode.getParent();
-
-        // Move Action の場合は旧の親からノードを切り離す
-        orgNode.removeFromParent();
-
-        /**
-         * Drop 位置がフォルダであれば dropNode をそのフォルダに add
-         * Drop 位置が葉ノードであれば dropNode をその親に insert
-         */
-        StampTreeNode newParent = null;
-
-        if (! destinationNode.isLeaf()) {
-            newParent = destinationNode;
-            newParent.add(dropNode);
-            
-        } else {
-            // 親を得る
-            newParent = (StampTreeNode)destinationNode.getParent();
-
-            // Drop 位置のインデックスを得る
-            int index = newParent.getIndex(destinationNode);
-
-            // そこへ挿入する
-            newParent.insert(dropNode, index);
-        }
-
-        //expand nodes appropriately - this probably isnt the best way...
-        DefaultTreeModel model = (DefaultTreeModel)this.getModel();
-        model.reload(oldParent);
-        model.reload(newParent);
-        TreePath parentPath = new TreePath(newParent.getPath());
-        this.expandPath(parentPath);
-        parentPath = new TreePath(oldParent.getPath());
-        this.expandPath(parentPath);
-
-        // ここまで来たら成功
-        ret = true;
-        
-        return ret;
-    }
-    
-    /**
-     * 他の StampTree から Drop された　TreeNode を自分に加える。
-     */
-	private boolean addNode(StampTreeNode dropNode, Point loc) {  
-
-		// Drop 位置のノードを取得
-		StampTreeNode destinationNode = getNode(loc);
-        
-		if (destinationNode == null) {
-			//それがヌルの場合は root 直下に追加する
-			destinationNode = (StampTreeNode)this.getModel().getRoot();
-		}
-        
-		boolean ret = false;
-        
-		/**
-		 * Drop 位置がフォルダであれば dropNode をそのフォルダに add
-		 * Drop 位置が葉ノードであれば dropNode をその親に insert
-		 */
-		StampTreeNode newParent = null;
-
-		if (! destinationNode.isLeaf()) {
-			newParent = destinationNode;
-			newParent.add(dropNode);
-            
-		} else {
-			// 親を得る
-			newParent = (StampTreeNode)destinationNode.getParent();
-
-			// Drop 位置のインデックスを得る
-			int index = newParent.getIndex(destinationNode);
-
-			// そこへ挿入する
-			newParent.insert(dropNode, index);
-		}
-
-		//expand nodes appropriately - this probably isnt the best way...
-		DefaultTreeModel model = (DefaultTreeModel)this.getModel();
-		model.reload(newParent);
-		TreePath parentPath = new TreePath(newParent.getPath());
-		this.expandPath(parentPath);
-
-		// ここまで来たら成功
-		ret = true;
-        
-		return ret;
-	}    
-    
-    /**
-     * KartePane から　Drag & Drop されたスタンプを永続化する
-     */
-    protected boolean addStamp(Transferable tr, Point loc) {
-        
-        boolean ret = false;
-        
-        try {
-            // スタンプは PTrainTrasnferable
-            OrderList list = (OrderList)tr.getTransferData(OrderListTransferable.orderListFlavor);
-            final Module stamp = list.orderList[0];
-            ModuleInfo org = stamp.getModuleInfo();
-            
-            // データベースへ Stamp のデータモデルを永続化する
-            String stampId = Project.createUUID();
-            String userId = Project.getUserId();
-            String category = org.getEntity();
-            
-            final SqlStampDao dao = (SqlStampDao)SqlDaoFactory.create(this, "dao.stamp");
-            
-            if (! dao.addStamp(userId, category, stampId, (IInfoModel)stamp.getModel())) {
+            public void actionPerformed(ActionEvent e) {
+                
+                monitor.setProgress(worker.getCurrent());
+                
+                if (worker.isDone()) {
+                    
+                    //
+                    // 終了処理を行う
+                    //
+                    taskTimer.stop();
+                    monitor.close();
+                    
+                    // 保存処理が成功しているかどうかをチェックする
+                    if (sdl.isNoError()) {
+                        //
+                        // 成功したら Tree に加える
+                        //
+                        addInfoToTree(info, selected);
                         
-                throw new DolphinException("Unable to save the stamp");
+                    } else {
+                        //
+                        // エラーメッセージを表示する
+                        //
+                        warning(sdl.getErrorMessage());
+                    }
+                    
+                } else if (worker.isTimeOver()) {
+                    taskTimer.stop();
+                    monitor.close();
+                    String title = ClientContext.getString("stamptree.title");
+                    new TimeoutWarning(null, title, null);
+                }
             }
+        });
+        worker.start();
+        taskTimer.start();
+        return true;
+    }
+    
+    /**
+     * StampTree に新しいノードを加える。
+     * @param info 追加するノードの情報
+     * @param selected カーソルの下にあるノード(Drop 位置のノード）
+     */
+    public void addInfoToTree(ModuleInfoBean info, StampTreeNode selected) {
+        
+        //
+        // StampInfo から新しい StampTreeNode を生成する
+        //
+        StampTreeNode node = new StampTreeNode(info);
+        
+        // 
+        // Drop 位置のノードによって追加する位置を決める
+        //
+        if (selected != null && selected.isLeaf()) {
+            //
+            // Drop位置のノードが葉の場合、その前に挿入する
+            //
+            StampTreeNode newParent = (StampTreeNode) selected.getParent();
+            int index = newParent.getIndex(selected);
+            DefaultTreeModel model = (DefaultTreeModel) this.getModel();
+            model.insertNodeInto(node, newParent, index);
+            //
+            // 追加したノードを選択する
+            //
+            TreeNode[] path = model.getPathToRoot(node);
+            ((JTree)this).setSelectionPath(new TreePath(path));
             
-            // 新しい StampInfo を生成する
-            ModuleInfo info = new ModuleInfo();
-            //info.setName(org.getName() + "-copy");        // オリジナル名-copy
-            info.setName(org.getName());                    // オリジナル名-copy
-            info.setEntity(org.getEntity());  				// Entity
-            info.setRole(org.getRole());                    // Role
-            info.setMemo(constractToolTip(stamp));          // Tooltip                        
-            info.setStampId(stampId);                       // Stamp ID
-                       
-            // StampInfo から新しい StampTreeNode を生成する
-            StampTreeNode node = new StampTreeNode(info);
+        } else if (selected != null && (!selected.isLeaf())) {
+            //
+            // Drop位置のノードが子を持つ時、最後の子として挿入する
+            //
+            DefaultTreeModel model = (DefaultTreeModel) this.getModel();
+            model.insertNodeInto(node, selected, selected.getChildCount());
+            //
+            // 追加したノードを選択する
+            //
+            TreeNode[] path = model.getPathToRoot(node);
+            ((JTree)this).setSelectionPath(new TreePath(path));
             
-            // それをターゲットの StampTreeに加える
-            // 格納する StampTree を取得する
-            final StampTree theTree = stampBox.getStampTree(category);
-            boolean notMe = (theTree != this) ? true : false;
-            DefaultTreeModel model = (DefaultTreeModel)theTree.getModel();
-            StampTreeNode root = (StampTreeNode)model.getRoot();
+        } else {
+            //  
+            // Drop 位置のノードが null でコールされるケースがある
+            // 1. このtreeのスタンプではない場合、該当するTreeのルートに加える
+            // 2. パス Tree など、まだノードを持たない初期状態の時
+            //
+            // Stamp ボックスから entity に対応する tree を得る
+            StampTree another = stampBox.getStampTree(info.getEntity());
+            boolean myTree = (another == this) ? true : false;
+            final String treeName = another.getTreeName();
+            DefaultTreeModel model = (DefaultTreeModel) another.getModel();
+            StampTreeNode root = (StampTreeNode) model.getRoot();
             root.add(node);
-            model.reload(root);            
+            model.reload(root);
+            //
+            // 追加したノードを選択する
+            //
+            TreeNode[] path = model.getPathToRoot(node);
+            ((JTree)this).setSelectionPath(new TreePath(path));
             
             // メッセージを表示する
-            if (notMe) {
+            if (!myTree) {
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
-                        StringBuffer buf = new StringBuffer();
-                        buf.append("スタンプは ");
-                        buf.append(theTree.getRootName());
-                        buf.append(" に格納しました。");
-                        JOptionPane.showMessageDialog(null,
-                                             buf.toString(),
-                                             "Dolphin: スタンプ登録",
-                                             JOptionPane.INFORMATION_MESSAGE);
+                        StringBuilder buf = new StringBuilder();
+                        buf.append("スタンプは個人用の ");
+                        buf.append(treeName);
+                        buf.append(" に保存しました。");
+                        JOptionPane.showMessageDialog(
+                                StampTree.this,
+                                buf.toString(),
+                                ClientContext.getFrameTitle(STAMP_SAVE_TASK_NAME),
+                                JOptionPane.INFORMATION_MESSAGE);
                     }
                 });
             }
-            
-            ret = true;
-            
-        } catch (IOException ie) {
-            //ClientContext.getLogger().warning("IOException at addStamp: " + ie.toString());
-			debug(ie.toString());
-        
-        } catch (UnsupportedFlavorException ue) {
-            //ClientContext.getLogger().warning("UnsupportedFlavorException at addStamp: " + ue.toString());
-			debug(ue.toString());
-        
-        } catch (DolphinException de) {
-            //ClientContext.getLogger().warning("DolphinException at addStamp: " + de.toString());
-			debug(de.toString());
         }
-        
-        return ret;
     }
     
     /**
-     * Diagnosis Table から　Drag & Drop されたRegisteredDiagnosisをスタンプ化する
+     * Diagnosis Table から Drag & Drop されたRegisteredDiagnosisをスタンプ化する。
      */
-    protected boolean addDiagnosis(Transferable tr, Point loc) {
+    public boolean addDiagnosis(RegisteredDiagnosisModel rd, final StampTreeNode selected) {
         
-        boolean ret = false;
+        if (rd == null) {
+            return false;
+        }
         
-        try {
-            // スタンプは InfoModelTrasnferable
-            RegisteredDiagnosisModule rd = (RegisteredDiagnosisModule)tr.getTransferData(InfoModelTransferable.infoModelFlavor);
+        // クリア
+        rd.setId(0L);
+        rd.setKarte(null);
+        rd.setCreator(null);
+        rd.setDiagnosisCategoryModel(null);
+        rd.setDiagnosisOutcomeModel(null);
+        rd.setFirstEncounterDate(null);
+        rd.setStartDate(null);
+        rd.setEndDate(null);
+        rd.setRelatedHealthInsurance(null);
+        rd.setFirstConfirmDate(null);
+        rd.setConfirmDate(null);
+        rd.setStatus(null);
+        rd.setPatientLiteModel(null);
+        rd.setUserLiteModel(null);
+        
+        RegisteredDiagnosisModel add = new RegisteredDiagnosisModel();
+        add.setDiagnosis(rd.getDiagnosis());
+        add.setDiagnosisCode(rd.getDiagnosisCode());
+        add.setDiagnosisCodeSystem(rd.getDiagnosisCodeSystem());
+        
+        ModuleModel stamp = new ModuleModel();
+        stamp.setModel(add);
+        
+        // データベースへ Stamp のデータモデルを永続化する
+        StampModel addStamp = new StampModel();
+        String stampId = GUIDGenerator.generate(addStamp);
+        addStamp.setId(stampId);
+        addStamp.setUserId(Project.getUserModel().getId());
+        addStamp.setEntity(IInfoModel.ENTITY_DIAGNOSIS);
+        addStamp.setStampBytes(getXMLBytes(stamp.getModel()));
+        final StampDelegater sdl = new StampDelegater();
+        
+        // Tree に加える 新しい StampInfo を生成する
+        final ModuleInfoBean info = new ModuleInfoBean();
+        info.setStampId(stampId);                       // Stamp ID
+        info.setStampName(add.getDiagnosis());          // 傷病名
+        info.setEntity(IInfoModel.ENTITY_DIAGNOSIS);    // カテゴリ
+        info.setStampRole(IInfoModel.ENTITY_DIAGNOSIS); // Role
+        
+        StringBuilder buf = new StringBuilder();
+        buf.append(add.getDiagnosis());
+        String cd = add.getDiagnosisCode();
+        if (cd != null) {
+            buf.append("(");
+            buf.append(cd);
+            buf.append(")"); // Tooltip
+        }
+        info.setStampMemo(buf.toString());
+        
+        // 保存タスクを生成し実行する
+        int maxEstimation = ClientContext.getInt("task.default.maxEstimation");
+        int delay = ClientContext.getInt("task.default.delay");
+        int taskLength = maxEstimation/delay;
+        int decideToPopup = ClientContext.getInt("task.default.decideToPopup");
+        int milisToPopup = ClientContext.getInt("task.default.milisToPopup");
+        String saveMsg = ClientContext.getString("task.default.saveMessage");
+        final StampTask worker = new StampTask(addStamp, sdl, taskLength);
+        
+        final ProgressMonitor monitor = new ProgressMonitor(null, null, saveMsg, 0, taskLength);
+        monitor.setProgress(0);
+        monitor.setMillisToDecideToPopup(decideToPopup);
+        monitor.setMillisToPopup(milisToPopup);
+        
+        taskTimer = new javax.swing.Timer(delay, new ActionListener() {
             
-            // 日付をクリア
+            public void actionPerformed(ActionEvent e) {
+                
+                monitor.setProgress(worker.getCurrent());
+                
+                if (worker.isDone()) {
+                    taskTimer.stop();
+                    monitor.close();
+                    
+                    if (sdl.isNoError()) {
+                        // 成功したら Tree に加える
+                        addInfoToTree(info, selected);
+                    } else {
+                        // エラーメッセージを表示する
+                        warning(sdl.getErrorMessage());
+                    }
+                    
+                } else if (worker.isTimeOver()) {
+                    taskTimer.stop();
+                    monitor.close();
+                    String title = ClientContext.getString("stamptree.title");
+                    new TimeoutWarning(null, title, null);
+                }
+            }
+        });
+        worker.start();
+        taskTimer.start();
+        
+        return true;
+    }
+    
+    /**
+     * エディタで生成した病名リストを登録する。
+     */
+    public void addDiagnosis(ArrayList<RegisteredDiagnosisModel> list) {
+        
+        if (list == null || list.size() == 0) {
+            return;
+        }
+        
+        final ArrayList<StampModel> stampList = new ArrayList<StampModel>();
+        final ArrayList<ModuleInfoBean> infoList = new ArrayList<ModuleInfoBean>();
+        
+        for (RegisteredDiagnosisModel rd : list) {
+            // クリア
+            rd.setId(0L);
+            rd.setKarte(null);
+            rd.setCreator(null);
+            rd.setDiagnosisCategoryModel(null);
+            rd.setDiagnosisOutcomeModel(null);
             rd.setFirstEncounterDate(null);
+            rd.setStartDate(null);
             rd.setEndDate(null);
+            rd.setRelatedHealthInsurance(null);
+            rd.setFirstConfirmDate(null);
+            rd.setConfirmDate(null);
+            rd.setStatus(null);
+            rd.setPatientLiteModel(null);
+            rd.setUserLiteModel(null);
+            RegisteredDiagnosisModel add = new RegisteredDiagnosisModel();
+            add.setDiagnosis(rd.getDiagnosis());
+            add.setDiagnosisCode(rd.getDiagnosisCode());
+            add.setDiagnosisCodeSystem(rd.getDiagnosisCodeSystem());
             
-            final Module stamp = new Module();
-            stamp.setModel(rd);
+            ModuleModel stamp = new ModuleModel();
+            stamp.setModel(add);
             
             // データベースへ Stamp のデータモデルを永続化する
-            String stampId = Project.createUUID();
-            String userId = Project.getUserId();
-            String category = "diagnosis";
+            StampModel addStamp = new StampModel();
+            String stampId = GUIDGenerator.generate(addStamp);
+            addStamp.setId(stampId);
+            addStamp.setUserId(Project.getUserModel().getId());
+            addStamp.setEntity(IInfoModel.ENTITY_DIAGNOSIS);
+            addStamp.setStampBytes(getXMLBytes(stamp.getModel()));
+            stampList.add(addStamp);
             
-            final SqlStampDao dao = (SqlStampDao)SqlDaoFactory.create(this, "dao.stamp");
+            // Tree に加える 新しい StampInfo を生成する
+            ModuleInfoBean info = new ModuleInfoBean();
+            info.setStampId(stampId);                       // Stamp ID
+            info.setStampName(add.getDiagnosis());          // 傷病名
+            info.setEntity(IInfoModel.ENTITY_DIAGNOSIS);    // カテゴリ
+            info.setStampRole(IInfoModel.ENTITY_DIAGNOSIS); // Role
             
-            if (! dao.addStamp(userId, category, stampId, (IInfoModel)stamp.getModel())) {
-                        
-                throw new DolphinException("Unable to save the stamp");
-            }
-            
-            // 新しい StampInfo を生成する
-            ModuleInfo info = new ModuleInfo();
-            info.setName(rd.getDiagnosis());                // 傷病名
-            info.setEntity(category);                		// カテゴリ
-            info.setRole("diagnosis");                      // Role
-            
-            StringBuffer buf = new StringBuffer();
-            buf.append(rd.getDiagnosis());
-            String cd = rd.getDiagnosisCode();
+            StringBuilder buf = new StringBuilder();
+            buf.append(add.getDiagnosis());
+            String cd = add.getDiagnosisCode();
             if (cd != null) {
                 buf.append("(");
                 buf.append(cd);
-                buf.append(")");   // Tooltip  
-            } 
-            info.setMemo(buf.toString());
-            info.setStampId(stampId);                       // Stamp ID
-                       
-            // StampInfo から新しい StampTreeNode を生成する
-            StampTreeNode node = new StampTreeNode(info);
-            
-            // それをターゲットの StampTreeに加える
-            // 格納する StampTree を取得する
-            final StampTree theTree = stampBox.getStampTree(category);
-            boolean notMe = (theTree != this) ? true : false;
-            DefaultTreeModel model = (DefaultTreeModel)theTree.getModel();
-            StampTreeNode root = (StampTreeNode)model.getRoot();
-            root.add(node);
-            model.reload(root);            
-            
-            // メッセージを表示する
-            if (notMe) {
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        StringBuffer buf = new StringBuffer();
-                        buf.append("スタンプは ");
-                        buf.append(theTree.getRootName());
-                        buf.append(" に格納しました。");
-                        JOptionPane.showMessageDialog(null,
-                                             buf.toString(),
-                                             "Dolphin: スタンプ登録",
-                                             JOptionPane.INFORMATION_MESSAGE);
-                    }
-                });
+                buf.append(")"); // Tooltip
             }
-            
-            ret = true;
-            
-        } catch (IOException ie) {
-            //ClientContext.getLogger().warning("IOException at addStamp: " + ie.toString());
-			debug(ie.toString());
-        
-        } catch (UnsupportedFlavorException ue) {
-            //ClientContext.getLogger().warning("UnsupportedFlavorException at addStamp: " + ue.toString());
-			debug(ue.toString());
-        
-        } catch (DolphinException de) {
-            //ClientContext.getLogger().warning("DolphinException at addStamp: " + de.toString());
-			debug(de.toString());
+            info.setStampMemo(buf.toString());
+            infoList.add(info);
         }
         
-        return ret;
-    }    
-    
-    /**
-     * テキストスタンプを登録
-     */
-    protected boolean addTextStamp(Transferable tr, Point loc) {
+        final StampDelegater sdl = new StampDelegater();
         
-        boolean ret = false;
+        // 保存タスクを生成し実行する
+        int maxEstimation = ClientContext.getInt("task.default.maxEstimation");
+        int delay = ClientContext.getInt("task.default.delay");
+        int taskLength = maxEstimation/delay;
+        int decideToPopup = ClientContext.getInt("task.default.decideToPopup");
+        int milisToPopup = ClientContext.getInt("task.default.milisToPopup");
+        String saveMsg = ClientContext.getString("task.default.saveMessage");
+        final StampTask worker = new StampTask(stampList, sdl, taskLength);
         
-        try {
-            // スタンプは PTrainTrasnferable
-            String text = (String)tr.getTransferData(DataFlavor.stringFlavor);
+        final ProgressMonitor monitor = new ProgressMonitor(null, null, saveMsg, 0, taskLength);
+        monitor.setProgress(0);
+        monitor.setMillisToDecideToPopup(decideToPopup);
+        monitor.setMillisToPopup(milisToPopup);
+        
+        taskTimer = new javax.swing.Timer(delay, new ActionListener() {
             
-            final TextStamp stamp = new TextStamp();
-            stamp.setText(text);
-            //DolphinContext.getLogger().warning(stamp.toString());
-            
-            // データベースへ Stamp のデータモデルを永続化する
-            String stampId = Project.createUUID();
-            String userId = Project.getUserId();
-            
-            final SqlStampDao dao = (SqlStampDao)SqlDaoFactory.create(this, "dao.stamp");
-            
-            if (! dao.addStamp(userId, "text", stampId, (IInfoModel)stamp)) {
-                throw new DolphinException("Unable to save the stamp");
-            }
-            
-            // 新しい StampInfo を生成する
-            ModuleInfo info = new ModuleInfo();
-            int len = text.length() > 16 ? 16 : text.length();
-            String name = text.substring(0, len);
-            len = name.indexOf("\n");
-            if (len > 0 ) {
-                name = name.substring(0, len);
-            }
-            info.setName(name);                             // 
-            info.setEntity("text");                  		// カテゴリ
-            info.setRole("text");                           // Role
-            info.setMemo(text);                             // Tooltip                        
-            info.setStampId(stampId);                       // Stamp ID
-                       
-            // StampInfo から新しい StampTreeNode を生成する
-            StampTreeNode node = new StampTreeNode(info);
-            
-            // それをターゲットの StampTreeに加える
-            // 格納する StampTree を取得する
-            String category = info.getEntity();
-            final StampTree theTree = stampBox.getStampTree(category);
-            boolean notMe = (theTree != this) ? true : false;
-            DefaultTreeModel model = (DefaultTreeModel)theTree.getModel();
-            StampTreeNode root = (StampTreeNode)model.getRoot();
-            root.add(node);
-            model.reload(root);            
-            
-            // メッセージを表示する
-            if (notMe) {
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        StringBuffer buf = new StringBuffer();
-                        buf.append("スタンプは ");
-                        buf.append(theTree.getRootName());
-                        buf.append(" に格納しました。");
-                        JOptionPane.showMessageDialog(null,
-                                             buf.toString(),
-                                             "Dolphin: スタンプ登録",
-                                             JOptionPane.INFORMATION_MESSAGE);
+            public void actionPerformed(ActionEvent e) {
+                
+                monitor.setProgress(worker.getCurrent());
+                
+                if (worker.isDone()) {
+                    taskTimer.stop();
+                    monitor.close();
+                    
+                    if (sdl.isNoError()) {
+                        // 成功したら Tree に加える
+                        for(ModuleInfoBean info : infoList) {
+                            addInfoToTree(info, null);
+                        }
+                    } else {
+                        // エラーメッセージを表示する
+                        warning(sdl.getErrorMessage());
                     }
-                });
-            }
-            
-            ret = true;
-            
-        } catch (IOException ie) {
-            //ClientContext.getLogger().warning("IOException at addStamp: " + ie.toString());
-			debug(ie.toString());
-        
-        } catch (UnsupportedFlavorException ue) {
-            //ClientContext.getLogger().warning("UnsupportedFlavorException at addStamp: " + ue.toString());
-			debug(ue.toString());
-        
-        } catch (DolphinException de) {
-            //ClientContext.getLogger().warning("DolphinException at addStamp: " + de.toString());
-			debug(de.toString());
-        }
-        return ret;
-    }    
-    
-    /**
-     * ASP Stamp として保存する。ASP_TOOLモードの時のみ動作する。
-     */
-    protected boolean addAspStamp(Transferable tr, Point loc) {
-        
-        boolean ret = false;
-        
-        try {
-            OrderList list = (OrderList)tr.getTransferData(OrderListTransferable.orderListFlavor);
-            final Module stamp = list.orderList[0];
-            ModuleInfo org = stamp.getModuleInfo();
-            
-            // データベースへ Stamp のデータモデルを永続化する
-            UID docId = new UID();
-            final String uid = docId.toString();            
-            final AspStampModelDao dao = (AspStampModelDao)StampDaoFactory.createAspDao(this, "dao.aspStampModel");
-            
-            Runnable r = new Runnable() {
-                public void run() {
-                    if (! dao.save(uid, (IInfoModel)stamp.getModel())) {
-                        //ClientContext.getLogger().warning("Failed to save the stamp");
-						debug("Failed to save the stamp");
-                    }
+                    
+                } else if (worker.isTimeOver()) {
+                    taskTimer.stop();
+                    monitor.close();
+                    String title = ClientContext.getString("stamptree.title");
+                    new TimeoutWarning(null, title, null);
                 }
-            };
-            Thread t = new Thread(r);
-            t.start();
-            
-            // 新しい StampInfo を生成する
-            ModuleInfo info = new ModuleInfo();
-            info.setName(org.getName() + "-asp");           // オリジナル名-copy
-            info.setEntity(org.getEntity());  // カテゴリ
-            info.setRole(org.getRole());                    // Role
-            info.setMemo(constractToolTip(stamp));          // Tooltip                        
-            info.setStampId(uid);                           // Stamp ID
-            info.setASP(true);                              // ASP stamp
-                       
-            // StampInfo から新しい StampTreeNode を生成する
-            StampTreeNode node = new StampTreeNode(info);
-            
-            DefaultTreeModel model = (DefaultTreeModel)this.getModel();
-            StampTreeNode root = (StampTreeNode)model.getRoot();
-            root.add(node);
-            model.reload(root);
-            
-            ret = true;
-            
-        } catch (IOException ie) {
-            //ClientContext.getLogger().warning("IOException at addStamp: " + ie.toString());
-			debug(ie.toString());
+            }
+        });
+        worker.start();
+        taskTimer.start();
+    }
+    
+    /**
+     * テキストスタンプを追加する。
+     */
+    public boolean addTextStamp(String text, final StampTreeNode selected) {
         
-        } catch (UnsupportedFlavorException ue) {
-            //ClientContext.getLogger().warning("UnsupportedFlavorException at addStamp: " + ue.toString());
-			debug(ue.toString());
+        if ( (text == null) || (text.length() == 0) || text.equals("") )  {
+            return false;
         }
         
-        return ret;
-    }    
+        TextStampModel stamp = new TextStampModel();
+        stamp.setText(text);
+        
+        //
+        // データベースへ Stamp のデータモデルを永続化する
+        //
+        StampModel addStamp = new StampModel();
+        String stampId = GUIDGenerator.generate(addStamp);
+        addStamp.setId(stampId);
+        addStamp.setUserId(Project.getUserModel().getId());
+        addStamp.setEntity(IInfoModel.ENTITY_TEXT);
+        addStamp.setStampBytes(getXMLBytes((IInfoModel) stamp));
+        
+        final StampDelegater sdl = new StampDelegater();
+        
+        //
+        // Tree へ加える 新しい StampInfo を生成する
+        //
+        final ModuleInfoBean info = new ModuleInfoBean();
+        int len = text.length() > 16 ? 16 : text.length();
+        String name = text.substring(0, len);
+        len = name.indexOf("\n");
+        if (len > 0) {
+            name = name.substring(0, len);
+        }
+        info.setStampName(name);                    //
+        info.setEntity(IInfoModel.ENTITY_TEXT);     // カテゴリ
+        info.setStampRole(IInfoModel.ENTITY_TEXT);  // Role
+        info.setStampMemo(text);                    // Tooltip
+        info.setStampId(stampId);                   // Stamp ID
+        
+        // 保存タスクを生成し実行する
+        int maxEstimation = ClientContext.getInt("task.default.maxEstimation");
+        int delay = ClientContext.getInt("task.default.delay");
+        int taskLength = maxEstimation/delay;
+        int decideToPopup = ClientContext.getInt("task.default.decideToPopup");
+        int milisToPopup = ClientContext.getInt("task.default.milisToPopup");
+        String saveMsg = ClientContext.getString("task.default.saveMessage");
+        
+        final StampTask worker = new StampTask(addStamp, sdl, taskLength);
+        
+        final ProgressMonitor monitor = new ProgressMonitor(null, null, saveMsg, 0, taskLength);
+        monitor.setProgress(0);
+        monitor.setMillisToDecideToPopup(decideToPopup);
+        monitor.setMillisToPopup(milisToPopup);
+        
+        taskTimer = new javax.swing.Timer(delay, new ActionListener() {
+            
+            public void actionPerformed(ActionEvent e) {
+                
+                monitor.setProgress(worker.getCurrent());
+                
+                if (worker.isDone()) {
+                    
+                    taskTimer.stop();
+                    monitor.close();
+                    
+                    if (sdl.isNoError()) {
+                        // 
+                        // 成功したら Tree に加える
+                        //
+                        addInfoToTree(info, selected);
+                        
+                    } else {
+                        //
+                        // エラーメッセージを表示する
+                        //
+                        warning(sdl.getErrorMessage());
+                    }
+                    
+                } else if (worker.isTimeOver()) {
+                    taskTimer.stop();
+                    monitor.close();
+                    String title = ClientContext.getString("stamptree.title");
+                    new TimeoutWarning(null, title, null);
+                }
+            }
+        });
+        worker.start();
+        taskTimer.start();
+        
+        return true;
+    }
     
-    protected String constractToolTip(Module stamp) {
+    /**
+     * スタンプの情報を表示するための文字列を生成する。
+     * @param stamp 情報を生成するスタンプ
+     * @return スタンプの情報文字列
+     */
+    protected String constractToolTip(ModuleModel stamp) {
         
         String ret = null;
         
         try {
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             BufferedReader reader = new BufferedReader(new StringReader(stamp.getModel().toString()));
-            String line;
-            while(true) {
-                line = reader.readLine();
-                
-                if (line == null) {
-                    break;
-                }
+            
+            String line = null;
+            while ( (line = reader.readLine()) != null ) {
                 
                 buf.append(line);
                 
                 if (buf.length() < TOOLTIP_LENGTH) {
                     buf.append(",");
-                }
-                else {
+                } else {
                     break;
                 }
             }
             reader.close();
-            if (buf.length() > TOOLTIP_LENGTH ) {
+            if (buf.length() > TOOLTIP_LENGTH) {
                 buf.setLength(TOOLTIP_LENGTH);
             }
             buf.append("...");
             ret = buf.toString();
-        
-        } catch(IOException e) {
-            //ClientContext.getLogger().warning(e.toString());
-			debug(e.toString());
+            
+        } catch (IOException e) {
+            e.toString();
         }
         
         return ret;
     }
-
-    //////////////  PopupMenu サポート //////////////
     
     /**
-     * ノードの名前を変更する
+     * スタンプタスク共通の warning ダイアログを表示する。
+     * @param title  ダイアログウインドウに表示するタイトル
+     * @param message　エラーメッセージ
      */
-    public void renameNode () {
-    	
-    	if (!editable) {
-    		return;
-    	}
-
+    private void warning(String message) {
+        String title = ClientContext.getString("stamptree.title");
+        JOptionPane.showMessageDialog(
+                StampTree.this,
+                message,
+                ClientContext.getFrameTitle(title),
+                JOptionPane.WARNING_MESSAGE);
+    }
+    
+    // //////////// PopupMenu サポート //////////////
+    
+    /**
+     * ノードの名前を変更する。
+     */
+    public void renameNode() {
+        
+        if (!isUserTree()) {
+            return;
+        }
+        
         // Root へのパスを取得する
         StampTreeNode node = getSelectedNode();
+        if (node == null) {
+            return;
+        }
         TreeNode[] nodes = node.getPath();
         TreePath path = new TreePath(nodes);
         
         // 編集を開始する
-        this.setEditable(true); 
+        this.setEditable(true);
         this.startEditingAtPath(path);
-        //this.setEditable (false); は TreeModelListener で行う
+        // this.setEditable (false); は TreeModelListener で行う
     }
     
+//    public void cut() {
+//        System.out.println("called cut");
+//        if (!isUserTree()) {
+//            return;
+//        }
+//        
+//        StampTreeNode theNode = getSelectedNode();
+//        if (theNode != null && theNode.isLeaf()) {
+//            Action a = this.getTransferHandler().getCutAction();
+//            if (a != null) {
+//                a.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
+//            }
+//        }
+//    }
+//    
+//    public void copy() {
+//        System.out.println("called copy");
+//        if (!isUserTree()) {
+//            return;
+//        }
+//        
+//        StampTreeNode theNode = getSelectedNode();
+//        if (theNode != null) {
+//            Action a = this.getTransferHandler().getCopyAction();
+//            if (a != null) {
+//                a.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
+//            }
+//        }
+//    }
+//    
+//    public void paste() {
+//        System.out.println("called paste");
+//        if (!isUserTree()) {
+//            return;
+//        }
+//        Action a = this.getTransferHandler().getPasteAction();
+//        if (a != null) {
+//            a.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
+//        }
+//    }
+    
     /**
-     * ノードを削除する
+     * ノードを削除する。
      */
-    public void deleteNode () {
-    	
-		if (!editable) {
-			return;
-		}
-       
-        // Gets the target node
-        StampTreeNode theNode = getSelectedNode();
+    public void deleteNode() {
         
-        // Removes template editors contained by the target node
+        //System.out.println("Called delete");
+        //Toolkit.getDefaultToolkit().beep();
+        
+        if (!isUserTree()) {
+            return;
+        }
+        
+        //
+        // 削除するノードを取得する
+        // 右クリックで選択されている
+        //
+        final StampTreeNode theNode = getSelectedNode();
+        if (theNode == null) {
+            return;
+        }
+        
+        //
+        // このノードをルートにするサブツリーを前順走査する列挙を生成して返します。
+        // 列挙の nextElement() メソッドによって返される最初のノードは、この削除するノードです。
+        //
         Enumeration e = theNode.preorderEnumeration();
         
-        while(e.hasMoreElements()) {
-            StampTreeNode node = (StampTreeNode)e.nextElement();
+        //
+        // このリストのなかに削除するノードとその子を含める
+        //
+        ArrayList<String> deleteList = new ArrayList<String>();
+        
+        // エディタから発行があるかどうかのフラグ
+        boolean hasEditor = false;
+        
+        // 列挙する
+        while (e.hasMoreElements()) {
+            //System.out.println("e.hasMore");
+            StampTreeNode node = (StampTreeNode) e.nextElement();
             if (node.isLeaf()) {
-            	
-                ModuleInfo info = (ModuleInfo)node.getUserObject();
-                
-                //String treeId = node.getTreeId();
-                //boolean myNode = (treeId != null && treeId.equals(this.getId())) ? true : false;
+                ModuleInfoBean info = (ModuleInfoBean) node.getUserObject();
                 String stampId = info.getStampId();
-                String category = info.getEntity();
-                String userId = Project.getUserId();
-                
-                // 永続化されているモデルを削除する
-                if (editable) {
-                    
-                    SqlStampDao dao = (SqlStampDao)SqlDaoFactory.create(this, "dao.stamp");
-                    
-                    boolean result = dao.removeStamp(userId, category, stampId);
+                //
+                // エディタから発行がある場合は中止する
+                //
+                if (info.getStampName().equals("エディタから発行...") && (! info.isSerialized()) ) {
+                    hasEditor = true;
+                    break;
                 }
-                //else if (mode == ASP_TOOL) {
-                    //AspStampModelDao dao = (AspStampModelDao)StampDaoFactory.createAspDao(this, "dao.aspStampModel");
-                    //dao.remove(stampId);
-                //}
+                
+                //
+                // IDが付いているもののみを加える
+                //
+                if (stampId != null) {
+                    deleteList.add(stampId);
+                }
             }
         }
-        // Removes from parent
-        StampTreeNode parent = (StampTreeNode) theNode.getParent();
-        parent.remove(theNode);
+        
+        //
+        // エディタから発行が有った場合はダイアログを表示し
+        // リターンする
+        //
+        if (hasEditor) {
+            String msg0 = "エディタから発行は消去できません。フォルダに含まれている";
+            String msg1 = "場合は Drag & Drop で移動後、再度実行してください。";
+            String taskTitle = ClientContext.getString("stamptree.title");
+            JOptionPane.showMessageDialog(
+                        (Component) null,
+                        new Object[]{msg0, msg1},
+                        ClientContext.getFrameTitle(taskTitle),
+                        JOptionPane.INFORMATION_MESSAGE
+                        );
+            return;
+        }
+        
+        //
+        // 削除するフォルダが空の場合は削除してリターンする
+        // リストのサイズがゼロかつ theNode が葉でない時
+        // 
+        if (deleteList.size() == 0 && (!theNode.isLeaf()) ) {
+            //System.out.println("Empty Folder");
+            DefaultTreeModel model = (DefaultTreeModel)(StampTree.this).getModel();
+            model.removeNodeFromParent(theNode);
+            return;
+        }
+        
+        // データベースのスタンプを削除するデリゲータを生成する
+        final StampDelegater sdl = new StampDelegater();
+        
+        // 削除タスクを生成する
+        int maxEstimation = ClientContext.getInt("task.default.maxEstimation");
+        int delay = ClientContext.getInt("task.default.delay");
+        int taskLength = maxEstimation/delay;
+        int decideToPopup = ClientContext.getInt("task.default.decideToPopup");
+        int milisToPopup = ClientContext.getInt("task.default.milisToPopup");
+        String deleteMessage = ClientContext.getString("task.default.deleteMessage");
+        final StampTask worker = new StampTask(deleteList, sdl, taskLength);
+        
+        // Progress Monitor を生成する
+        final ProgressMonitor monitor = new ProgressMonitor(null, null, deleteMessage, 0, taskLength);
+        monitor.setProgress(0);
+        monitor.setMillisToDecideToPopup(decideToPopup);
+        monitor.setMillisToPopup(milisToPopup);
+        
+        // タスクタイマーを生成する
+        taskTimer = new javax.swing.Timer(delay, new ActionListener() {
             
-        // Tells the model
-        DefaultTreeModel model = (DefaultTreeModel)getModel();
-        model.reload(parent);
+            public void actionPerformed(ActionEvent e) {
+                
+                // モニタを進める
+                monitor.setProgress(worker.getCurrent());
+                
+                // タスクが終了しているかどうかをチェックする
+                if (worker.isDone()) {
+                    
+                    //
+                    // 終了処理を行う
+                    //
+                    taskTimer.stop();
+                    monitor.close();
+                    
+                    // 
+                    // データベースの削除が成功しているかどうかをチェックする
+                    //
+                    if (sdl.isNoError()) {
+                        //
+                        // 成功している場合は Tree からノードを削除する
+                        // TODO エディタから発行も削除される
+                        //
+                        DefaultTreeModel model = (DefaultTreeModel)(StampTree.this).getModel();
+                        model.removeNodeFromParent(theNode);
+                        
+                    } else {
+                        //
+                        // エラーメッセージを表示する
+                        // warning(sdl.getErrorMessage());
+                        //
+                        // 強制削除をあるバージョンまで実行する
+                        // TODO エディタから発行も削除される
+                        //
+                        DefaultTreeModel model = (DefaultTreeModel)(StampTree.this).getModel();
+                        model.removeNodeFromParent(theNode); 
+                    }
+                    
+                } else if (worker.isTimeOver()) {
+                    taskTimer.stop();
+                    monitor.close();
+                    String title = ClientContext.getString("stamptree.title");
+                    new TimeoutWarning(null, title, null);
+                }
+            }
+        });
+        worker.start();
+        taskTimer.start();
     }
     
     /**
-     * 新規のフォルダノードを追加する
+     * 新規のフォルダを追加する
      */
-    public void createNewFolder () {
-    	
-		if (!editable) {
-			return;
-		}
-       
-        // 選択されたノードを得る
-        StampTreeNode node = getSelectedNode();
-        StampTreeNode parent = null;
-
-        // ノードが葉なら親へ追加し、フォルダなら自分へ追加する
-        parent = (node.isLeaf () == true) ? (StampTreeNode) node.getParent() : node;
-
-        // 新規ノードを生成し親へ追加する
-        StampTreeNode newChild = new StampTreeNode("新規フォルダ");
-        parent.add (newChild);
+    public void createNewFolder() {
         
-        // モデルへ通知する
-        DefaultTreeModel model = (DefaultTreeModel) getModel();
-        model.reload(parent);
+        if (!isUserTree()) {
+            return;
+        }
         
-        TreePath parentPath = new TreePath(parent.getPath());
-        expandPath(parentPath);
+        // フォルダノードを生成する
+        StampTreeNode folder = new StampTreeNode(NEW_FOLDER_NAME);
+        
+        //
+        // 生成位置となる選択されたノードを得る
+        //
+        StampTreeNode selected = getSelectedNode();
+        
+        if (selected != null && selected.isLeaf()) {
+            //
+            // 選択位置のノードが葉の場合、その前に挿入する
+            //
+            StampTreeNode newParent = (StampTreeNode) selected.getParent();
+            int index = newParent.getIndex(selected);
+            DefaultTreeModel model = (DefaultTreeModel) this.getModel();
+            model.insertNodeInto(folder, newParent, index);
+            
+        } else if (selected != null && (!selected.isLeaf())) {
+            //
+            // 選択位置のノードが子を持つ時、最後の子として挿入する
+            //
+            DefaultTreeModel model = (DefaultTreeModel) this.getModel();
+            model.insertNodeInto(folder, selected, selected.getChildCount());
+        }
+        
+        //TreePath parentPath = new TreePath(parent.getPath());
+        //this.expandPath(parentPath);
     }
     
-    ///////////// TreeModelListener ////////////////
+    // /////////// TreeModelListener ////////////////
     
-    public void treeNodesChanged(TreeModelEvent e) {        
+    public void treeNodesChanged(TreeModelEvent e) {
         this.setEditable(false);
     }
     
-    public void treeNodesInserted(TreeModelEvent e) {        
-    }
- 
-    public void treeNodesRemoved(TreeModelEvent e) {       
+    public void treeNodesInserted(TreeModelEvent e) {
     }
     
-    public void treeStructureChanged(TreeModelEvent e) {        
+    public void treeNodesRemoved(TreeModelEvent e) {
     }
     
-	private void debug(String msg) {
-		if (ClientContext.isDebug()) {
-			System.out.println(msg);
-		}
-	}
+    public void treeStructureChanged(TreeModelEvent e) {
+    }
+    
+    private byte[] getXMLBytes(Object bean) {
+        ByteArrayOutputStream bo = new ByteArrayOutputStream();
+        XMLEncoder e = new XMLEncoder(new BufferedOutputStream(bo));
+        e.writeObject(bean);
+        e.close();
+        return bo.toByteArray();
+    }
 }

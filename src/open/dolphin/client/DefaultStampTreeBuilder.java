@@ -7,12 +7,12 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *	
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *	
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -21,181 +21,280 @@ package open.dolphin.client;
 
 import java.util.*;
 
-import open.dolphin.infomodel.ModuleInfo;
+import org.apache.log4j.Logger;
+
+import open.dolphin.infomodel.IInfoModel;
+import open.dolphin.infomodel.ModuleInfoBean;
 
 /**
+ * StampTree Builder クラス。
  *
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
-public class DefaultStampTreeBuilder {
+public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
     
-	private String[] rootNames = {        
-		"汎 用","その他","処 置","手 術","放射線","検体検査","生体検査",
-		"細菌検査","注 射","処 方","初診・再診","指導・在宅"
-	};
-	private String[] entities = {        
-		"generalOrder","otherOrder","treatmentOrder","surgeryOrder","radiologyOrder","testOrder","physiologyOrder",
-		"bacteriaOrder","injectionOrder","medOrder","baseChargeOrder","instractionChargeOrder"
-	};
+    /** XML文書で置換が必要な文字 */
+    private static final String[] REPLACES = new String[] { "<", ">", "&", "'" ,"\""};
     
-	/** Control staffs */
-	private String rootName;
-	private boolean hasEditor;
-	private StampTreeNode rootNode;
-	private StampTreeNode node;
-	private ModuleInfo info;
-	private LinkedList linkedList;
-	private ArrayList products;
+    /** 置換文字 */
+    private static final String[] MATCHES = new String[] { "&lt;", "&gt;", "&amp;", "&apos;", "&quot;" };
     
-	/** Debug */
-	private ITrace trace;
-
-	/** Creates new DefaultStampTreeBuilder */
-	public DefaultStampTreeBuilder() {
-	}
+    /** エディタから発行のスタンプ名 */
+    private static final String FROM_EDITOR = "エディタから発行...";
     
-	public void setTrace(ITrace trace) {
-		this.trace = trace;
-	}
+    /** rootノードの名前 */
+    private String rootName;
     
-	/**
-	 * Returns the product of this builder
-	 * @return vector that contains StampTree instances
-	 */
-	public ArrayList getProduct() {
-		return products;
-	}
+    /** エディタから発行があったかどうかのフラグ */
+    private boolean hasEditor;
     
-	public void buildStart() {
-		products = new ArrayList();
-		if (trace != null) {
-			trace.debug("Build start");
-		}
-	}
+    /** StampTree のルートノード*/
+    private StampTreeNode rootNode;
     
-	public void buildRoot(String name) {        
-		// New root
-		if (trace != null) {
-			trace.debug("Root=" + name);
-		}
-		linkedList = new LinkedList();
-		rootNode = new StampTreeNode(name);
+    /** StampTree のノード*/
+    private StampTreeNode node;
+    
+    /** ノードの UserObject になる StampInfo */
+    private ModuleInfoBean info;
+    
+    /** 制御用のリスト */
+    private LinkedList<StampTreeNode> linkedList;
+    
+    /** 生成物 */
+    private List<StampTree> products;
+    
+    /** Logger */
+    private Logger logger = ClientContext.getLogger("boot");
+    
+    /** 
+     * Creates new DefaultStampTreeBuilder 
+     */
+    public DefaultStampTreeBuilder() {
+    }
+    
+    /**
+     * Returns the product of this builder
+     * @return vector that contains StampTree instances
+     */
+    public List<StampTree> getProduct() {
+        return products;
+    }
+    
+    /**
+     * build を開始する。
+     */
+    public void buildStart() {
+        products = new ArrayList<StampTree>();
+        if (logger != null) {
+            logger.debug("Build StampTree start");
+        }
+    }
+    
+    /**
+     * Root を生成する。
+     * @param name root名
+     * @param Stamptree の Entity
+     */
+    public void buildRoot(String name, String entity) {
         
-		hasEditor = false;
-		rootName = name;
-		linkedList.addFirst(rootNode);
-	}
+        if (logger != null) {
+            logger.debug("Root=" + name);
+        }
+        linkedList = new LinkedList<StampTreeNode>();
+        
+        //
+        // TreeInfo を 生成し rootNode に保存する
+        //
+        TreeInfo treeInfo = new TreeInfo();
+        treeInfo.setName(name);
+        treeInfo.setEntity(entity);
+        rootNode = new StampTreeNode(treeInfo);
+        
+        hasEditor = false;
+        rootName = name;
+        linkedList.addFirst(rootNode);
+    }
     
-	public void buildNode(String name) {
-		// New node
-		if (trace != null) {
-			trace.debug("Node=" + name);
-		}
+    /**
+     * ノードを生成する。
+     * @param name ノード名
+     */
+    public void buildNode(String name) {
         
-		node = new StampTreeNode(name);
-		getCurrentNode().add(node);
+        if (logger != null) {
+            logger.debug("Node=" + name);
+        }
         
-		// Add the new node to be current node
-		linkedList.addFirst(node);
-	}
+        //
+        // Node を生成し現在のノードに加える
+        //
+        node = new StampTreeNode(toXmlText(name));
+        getCurrentNode().add(node);
+        
+        //
+        // このノードを first に加える
+        //
+        linkedList.addFirst(node);
+    }
     
-	public void buildStampInfo(String name,
-							   String role,
-							   String entity,
-							   String editable,
-							   String memo,
-							   String id,
-							   String asp,
-							   String gcpVisit) {
+    /**
+     * StampInfo を UserObject にするノードを生成する。
+     * @param name ノード名
+     * @param entity エンティティ
+     * @param editable 編集可能かどうかのフラグ
+     * @param memo メモ
+     * @param id DB key
+     */
+    public void buildStampInfo(String name,
+            String role,
+            String entity,
+            String editable,
+            String memo,
+            String id) {
         
-		if (trace != null) {
-			trace.debug(name + "," + role + "," + entity + "," + memo);
-		}
+        if (logger != null) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(name);
+            sb.append(",");
+            sb.append(role);
+            sb.append(",");
+            sb.append(entity);
+            sb.append(",");
+            sb.append(editable);
+            sb.append(",");
+            sb.append(memo);
+            sb.append(",");
+            sb.append(id);
+            logger.debug(sb.toString());
+        }
         
-		info = new ModuleInfo();
-		info.setName(name);
-		info.setRole(role);
-		info.setEntity(entity);
-		if (editable != null) {
-			info.setEditable(Boolean.valueOf(editable).booleanValue());
-		}
-		if (memo != null) {
-			info.setMemo(memo);
-		}
-		if ( id != null ) {
-			info.setStampId(id);
-		}
-		if (asp != null && Boolean.valueOf(asp).booleanValue() ) {
-			info.setASP(true);
-		}
-		//if (gcpVisit != null ) {
-			//info.setGcpVisit(gcpVisit);
-		//}
-
-		// StampInfo から TreeNode を生成し現在のノードへ追加する
-		node = new StampTreeNode(info);
-		getCurrentNode().add(node);
+        //
+        // StampInfo を生成する
+        //
+        info = new ModuleInfoBean();
+        info.setStampName(toXmlText(name));
+        info.setStampRole(role);
+        info.setEntity(entity);
+        if (editable != null) {
+            info.setEditable(Boolean.valueOf(editable).booleanValue());
+        }
+        if (memo != null) {
+            info.setStampMemo(toXmlText(memo));
+        }
+        if ( id != null ) {
+            info.setStampId(id);
+        }
         
-		// エディタから発行を持っているか
-		if (info.getName().equals("エディタから発行...") && (! info.isSerialized()) ) {
-			hasEditor = true;
-		}
-	}
+        //
+        // StampInfo から TreeNode を生成し現在のノードへ追加する
+        //
+        node = new StampTreeNode(info);
+        getCurrentNode().add(node);
+        
+        //
+        // エディタから発行を持っているか
+        //
+        if (info.getStampName().equals(FROM_EDITOR) && (! info.isSerialized()) ) {
+            hasEditor = true;
+            info.setEditable(false);
+        }
+    }
     
-	public void buildNodeEnd() {
-		if (trace != null) {
-			trace.debug("End node");
-		}
-		linkedList.removeFirst();
-	}
+    /**
+     * Node の生成を終了する。
+     */
+    public void buildNodeEnd() {
+        if (logger != null) {
+            logger.debug("End node");
+        }
+        linkedList.removeFirst();
+    }
     
-	public void buildRootEnd() {
+    /**
+     * Root Node の生成を終了する。 
+     */
+    public void buildRootEnd() {
         
-		if (! hasEditor && (getEntity(rootName) != null) ) {
+        //
+        // エディタから発行...を削除された場合に追加する処置
+        //
+        if ( (!hasEditor) && (getEntity(rootName) != null) ) {
             
-			// エディタから発行...を削除された場合に追加
-			ModuleInfo si = new ModuleInfo();
-			si.setName("エディタから発行...");
-			si.setRole("p");
-			si.setEntity(getEntity(rootName));            
-			StampTreeNode sn = new StampTreeNode(si);
-			rootNode.add(sn);
-		}
+            if	( getEntity(rootName).equals(IInfoModel.ENTITY_TEXT) || getEntity(rootName).equals(IInfoModel.ENTITY_PATH)) {
+                //
+                // テキストスタンプとパススタンプにはエディタから発行...はなし
+                //
+            } else {
+                ModuleInfoBean si = new ModuleInfoBean();
+                si.setStampName(FROM_EDITOR);
+                si.setStampRole(IInfoModel.ROLE_P);
+                si.setEntity(getEntity(rootName));
+                si.setEditable(false);
+                StampTreeNode sn = new StampTreeNode(si);
+                rootNode.add(sn);
+            }
+        }
         
-		StampTree tree = new StampTree(new StampTreeModel(rootNode));
-		products.add(tree);
+        //
+        // StampTree を生成しプロダクトリストへ加える
+        //
+        StampTree tree = new StampTree(new StampTreeModel(rootNode));
+        products.add(tree);
         
-		if (trace != null) {
-			int pCount = products.size();
-			trace.debug("End root " + "count=" + pCount);
-		}
-	}
+        if (logger != null) {
+            int pCount = products.size();
+            logger.debug("End root " + "count=" + pCount);
+        }
+    }
     
-	public void buildEnd() {
-		if (trace != null) {
-			trace.debug("Build end");
-		}
-	}
+    /**
+     * build を終了する。
+     */
+    public void buildEnd() {
+        
+        if (logger != null) {
+            logger.debug("Build end");
+        }
+        
+        //
+        // ORCAセットを加える
+        //
+        boolean hasOrca = false;
+        for (StampTree st : products) {
+            String entity = st.getTreeInfo().getEntity();
+            if (entity.equals(IInfoModel.ENTITY_ORCA)) {
+                hasOrca = true;
+            }
+        }
+        
+        if (!hasOrca) {
+            TreeInfo treeInfo = new TreeInfo();
+            treeInfo.setName(IInfoModel.TABNAME_ORCA);
+            treeInfo.setEntity(IInfoModel.ENTITY_ORCA);
+            rootNode = new StampTreeNode(treeInfo);
+            OrcaTree tree = new OrcaTree(new StampTreeModel(rootNode));
+            products.add(IInfoModel.TAB_INDEX_ORCA, tree);
+            if (logger != null) {
+                logger.debug("ORCAセットを加えました");
+            }
+        }
+    }
     
-	private StampTreeNode getCurrentNode() {
-		return (StampTreeNode)linkedList.getFirst();
-	}
+    /**
+     * リストから先頭の StampTreeNode を取り出す。
+     */
+    private StampTreeNode getCurrentNode() {
+        return (StampTreeNode) linkedList.getFirst();
+    }
     
-	private String getEntity(String rn) {
         
-		String ret = null;
-        
-		if (rn == null) {
-			return ret;
-		}
-        
-		for (int i = 0; i < entities.length; i++) {
-			if (rootNames[i].equals(rn)) {
-				ret = entities[i];
-				break;
-			}
-		}
-        
-		return ret;
-	}
+    /**
+     * 特殊文字を変換する。
+     */
+    private String toXmlText(String text) {
+        for (int i = 0; i < REPLACES.length; i++) {
+            text = text.replaceAll(MATCHES[i], REPLACES[i]);
+        }
+        return text;
+    }
 }

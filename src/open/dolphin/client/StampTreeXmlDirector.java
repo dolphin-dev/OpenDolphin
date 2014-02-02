@@ -7,12 +7,12 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *	
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *	
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -31,81 +31,60 @@ import javax.swing.tree.*;
  */
 public class StampTreeXmlDirector {
     
-	private DefaultStampTreeXmlBuilder builder;
-
-	/** Creates new StampTreeXmlDirector */
-	public StampTreeXmlDirector(DefaultStampTreeXmlBuilder builder) {
-		super();
-        
-		this.builder = builder;
-	}
+    private DefaultStampTreeXmlBuilder builder;
     
-	/*public ArrayList build(ArrayList allTree) {
-    	
-		ArrayList product = null;
+    /** 
+     * Creates new StampTreeXmlDirector 
+     */
+    public StampTreeXmlDirector(DefaultStampTreeXmlBuilder builder) {
         
-		try {
-			int size = allTree.size();
-			product = new ArrayList(size);
-			StampTree tree = null;
-			StampTreeEntry entry = null;
-			
-			for (int i = 0; i < size; i++) {
-				
-				tree = (StampTree)allTree.get(i);
-				entry = new StampTreeEntry();
-				//entry.setUserId(tree.getUserId());
-				//entry.setId(tree.getId());
-				//entry.setUse(tree.isUse());
-				//entry.setNumber(tree.getNumber());
-				
-				builder.buildStart();
-				lbuild(tree);
-				builder.buildEnd();
-				entry.setTreeXml(builder.getProduct());
-				
-				product.add(entry);
-			}
-		}
-		catch (Exception e) {
-			System.out.println("Exception while building the StampTree XML data:" + e.toString());
-			e.printStackTrace();
-		}
-        
-		return product;
-	}*/
-	
-	public String build(ArrayList allTree) {
-        
-		try {
-			builder.buildStart();
-			int size = allTree.size();
-			for (int i = 0; i < size; i++) {
-				lbuild((StampTree)allTree.get(i));
-			}
-			builder.buildEnd();
-		}
-		catch (Exception e) {
-			System.out.println("Exception while building the StampTree XML data:" + e.toString());
-			e.printStackTrace();
-		}
-        
-		return builder.getProduct();
-	}	
+        super();
+        this.builder = builder;
+    }
     
-	private void lbuild(StampTree tree) throws IOException {
+    /**
+     * スタンプツリー全体をXMLにエンコードする。
+     * @param allTrees StampTreeのリスト
+     * @return XML
+     */
+    public String build(ArrayList<StampTree> allTrees) {
         
-		DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode)tree.getModel().getRoot();
-		Enumeration e = rootNode.preorderEnumeration();
-		StampTreeNode node = (StampTreeNode)e.nextElement();
-        
-		builder.buildRoot(node);
-        
-		while (e.hasMoreElements()) {
+        try {
+            builder.buildStart();
+            for (StampTree tree : allTrees) {
+                lbuild(tree);
+            }
             
-			builder.buildNode((StampTreeNode)e.nextElement());
-		}
+            builder.buildEnd();
+            return builder.getProduct();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         
-		builder.buildRootEnd();
-	}
+        return null;
+    }
+    
+    /**
+     * 一つのツリーをXMLにエンコードする
+     * @param tree StampTree
+     * @throws IOException
+     */
+    private void lbuild(StampTree tree) throws IOException {
+        
+        // ルートノードを取得しチャイルドのEnumerationを得る
+        DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) tree.getModel().getRoot();
+        Enumeration e = rootNode.preorderEnumeration();
+        StampTreeNode node = (StampTreeNode) e.nextElement();
+        
+        // ルートノードを書き出す
+        builder.buildRoot(node);
+        
+        // 子を書き出す
+        while (e.hasMoreElements()) {
+            builder.buildNode((StampTreeNode) e.nextElement());
+        }
+        
+        builder.buildRootEnd();
+    }
 }

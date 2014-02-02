@@ -21,23 +21,25 @@ package open.dolphin.client;
 
 import java.awt.datatransfer.*;
 import java.io.*;
+
+import open.dolphin.infomodel.AppointmentModel;
      
 /**
- * Tranferable class of the Stamp.
+ * AppointEntryTransferable
  *
- * @author  Kazushi Minagawa, Digital Globe, Inc.
+ * @author  Kazushi Minagawa
  */ 
 public final class AppointEntryTransferable implements Transferable, ClipboardOwner {
 
     /** Data Flavor of this class */
-    public static DataFlavor appointFlavor = new DataFlavor(open.dolphin.client.AppointEntry.class, "AppointEntry");
+    public static DataFlavor appointFlavor = new DataFlavor(open.dolphin.infomodel.AppointmentModel.class, "AppointEntry");
   
     public static final DataFlavor[] flavors = {AppointEntryTransferable.appointFlavor};
       
-    private AppointEntry appoint;
+    private AppointmentModel appoint;
 
     /** Creates new StampTransferable */
-    public AppointEntryTransferable(AppointEntry appoint) {
+    public AppointEntryTransferable(AppointmentModel appoint) {
         this.appoint = appoint;
     }
 
