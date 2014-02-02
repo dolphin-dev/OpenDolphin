@@ -49,6 +49,14 @@ public class ClaimHelper {
     /** ClaimBundle ”z—ñ */
     private ClaimBundle[] claimBundle;
     
+    private String deptName;
+    private String deptCode;
+    private String doctorName;
+    private String doctorId;
+    private String jmariCode;
+    private String facilityName;
+    
+    
     public void setConfirmDate(String confirmDate) {
         this.confirmDate = confirmDate;
     }
@@ -164,5 +172,53 @@ public class ClaimHelper {
 
     public void setCreatorDeptDesc(String creatorDeptDesc) {
         this.creatorDeptDesc = creatorDeptDesc;
+    }
+
+    public String getDeptName() {
+        return deptName;
+    }
+
+    public void setDeptName(String deptName) {
+        this.deptName = deptName;
+    }
+
+    public String getDeptCode() {
+        return deptCode;
+    }
+
+    public void setDeptCode(String deptCode) {
+        this.deptCode = deptCode;
+    }
+
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+
+    public String getDoctorId() {
+        return doctorId;
+    }
+
+    public void setDoctorId(String doctorId) {
+        this.doctorId = doctorId;
+    }
+
+    public String getJmariCode() {
+        return jmariCode;
+    }
+
+    public void setJmariCode(String jmariCode) {
+        this.jmariCode = jmariCode;
+    }
+
+    public String getFacilityName() {
+        return facilityName;
+    }
+
+    public void setFacilityName(String facilityName) {
+        this.facilityName = facilityName;
     }
 }

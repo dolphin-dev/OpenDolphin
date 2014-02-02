@@ -29,6 +29,7 @@ import open.dolphin.infomodel.AppointmentModel;
 import open.dolphin.infomodel.DocInfoModel;
 import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.infomodel.KarteBean;
+import open.dolphin.infomodel.LetterModel;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.ObservationModel;
@@ -705,4 +706,61 @@ public class RemoteKarteServiceImpl extends DolphinService implements RemoteKart
         
         return ret;
     }
+    
+    /**
+     * 紹介状を保存または更新する。
+     */
+    public long saveOrUpdateLetter(LetterModel model) {
+        LetterModel saveOrUpdate = em.merge(model);
+        return saveOrUpdate.getId();
+    }
+    
+    /**
+     * 紹介状のリストを取得する。
+     */
+    public List<LetterModel> getLetterList(long karteId, String docType) {
+        if (docType.equals("TOUTOU")) {
+            List<LetterModel> ret = (List<LetterModel>)
+                        em.createQuery("from TouTouLetter f where f.karte.id = :karteId")
+                        .setParameter("karteId", karteId)
+                        .getResultList();
+            return ret;   
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 紹介状を取得する。
+     */
+    public LetterModel getLetter(long letterPk) {
+        
+        LetterModel ret = (LetterModel)
+                        em.createQuery("from TouTouLetter t where t.id = :id")
+                        .setParameter("id", letterPk)
+                        .getSingleResult();
+        return ret;
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,58 +1,39 @@
-/*
- * Panel2.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *	
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *	
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.print.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 /**
  *
  * @author  Junzo SATO
  */
 public class Panel2 extends JPanel implements Printable {
-    
-    private static final long serialVersionUID = 4460114605208150805L;
 	
     String patientName;
     
-    //private int height;
+    private int height;
     
     /** Creates a new instance of Panel2 */
     public Panel2() {
     }
     
-    //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     // Junzo SATO
     public void printPanel(
+            
         PageFormat pageFormat, 
         int numOfCopies,
-        boolean useDialog, String name) {
+        boolean useDialog, String name, int height) {
         
-        /*if ( this.getRootPane() != null &&
-             this.getRootPane().getParent() != null && 
-             this.getRootPane().getParent().getClass().getName().equals("open.dolphin.client.ChartService") ) {
-            JFrame f = (JFrame)this.getRootPane().getParent();
-            patientName = f.getTitle() + " 患者 カルテ";
-        }*/
         patientName = name + " カルテ";
-        //this.height = height;
+        this.height = height;
         
         boolean buffered = this.isDoubleBuffered();
         this.setDoubleBuffered(false);
@@ -84,7 +65,8 @@ public class Panel2 extends JPanel implements Printable {
     }
     
     public int print(Graphics g, PageFormat pf, int pi) throws PrinterException {
-        Graphics2D g2 = (Graphics2D)g;
+        
+        Graphics2D g2 = (Graphics2D) g;
         Font f = new Font("Courier", Font.ITALIC, 9);
         g2.setFont(f);
         g2.setPaint(Color.black);
@@ -97,8 +79,7 @@ public class Panel2 extends JPanel implements Printable {
         double pageHeight = pf.getImageableHeight() - footerHeight;
         double pageWidth = pf.getImageableWidth();
         //
-        double componentHeight = this.getSize().getHeight();
-        //double componentHeight = (double) height;
+        double componentHeight = height == 0 ? this.getSize().getHeight() : (double) height;
         double componentWidth = this.getSize().getWidth();
         
         //
@@ -121,8 +102,8 @@ public class Panel2 extends JPanel implements Printable {
         g2.drawString(
             footerString, 
             (int)pageWidth/2 - strW/2,
-            //(int)(pageHeight + fontHeight - fontDescent)
-            (int)(pageHeight + fontHeight)
+            (int)(pageHeight + fontHeight - fontDescent)
+            //(int)(pageHeight + fontHeight)
         );
 
         // page
@@ -150,7 +131,5 @@ public class Panel2 extends JPanel implements Printable {
         setDoubleBuffered(wasBuffered);
 
         return Printable.PAGE_EXISTS;
-    }
-    //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX    
-    
+    }    
 }

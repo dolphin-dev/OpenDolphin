@@ -1,21 +1,3 @@
-/*
- * ImageEntry.java
- * Copyright (C) 2004 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *	
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *	
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
 import java.io.Serializable;
@@ -29,9 +11,7 @@ import javax.swing.*;
  */
 public class ImageEntry implements Serializable {
     
-    private static final long serialVersionUID = 9128295991392062419L;
-
-	private String confirmDate;
+    private String confirmDate;
     
     private String title;
     
@@ -44,6 +24,17 @@ public class ImageEntry implements Serializable {
     private long id;
     
     private String url;
+    
+    private String fileName;
+    
+    private String path;
+    
+    private int numImages = 1;
+    
+    private int width;
+    
+    private int height;
+    
     
     /** Creates a new instance of ImageEntry */
     public ImageEntry() {
@@ -79,7 +70,7 @@ public class ImageEntry implements Serializable {
     
     public void setContentType(String val) {
         contentType = val;
-    }    
+    }
     
     public ImageIcon getImageIcon() {
         return imageIcon;
@@ -87,7 +78,7 @@ public class ImageEntry implements Serializable {
     
     public void setImageIcon(ImageIcon val) {
         imageIcon = val;
-    }   
+    }
     
     public long getId() {
         return id;
@@ -96,18 +87,58 @@ public class ImageEntry implements Serializable {
     public void setId(long val) {
         id = val;
     }
+    
+    /**
+     * @param url The url to set.
+     */
+    public void setUrl(String url) {
+        this.url = url;
+    }
+    
+    /**
+     * @return Returns the url.
+     */
+    public String getUrl() {
+        return url;
+    }
 
-	/**
-	 * @param url The url to set.
-	 */
-	public void setUrl(String url) {
-		this.url = url;
-	}
+    public String getFileName() {
+        return fileName;
+    }
 
-	/**
-	 * @return Returns the url.
-	 */
-	public String getUrl() {
-		return url;
-	}    
+    public String getPath() {
+        return path;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public int getNumImages() {
+        return numImages;
+    }
+
+    public void setNumImages(int numImages) {
+        this.numImages = numImages;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
 }

@@ -4,12 +4,12 @@
 log4j.rootCategory=INFO,bootAppender
 
 # LOGGER
-log4j.logger.boot.logger=INFO
+log4j.logger.boot.logger=DEBUG
 log4j.logger.part11.logger=INFO,part11Appender
-log4j.logger.delegater.logger=WARN,delegaterAppender
-log4j.logger.pvt.logger=INFO,pvtAppender
-log4j.logger.laboTest.logger=INFO,laboTestAppender
-log4j.logger.claim.logger=INFO,claimAppender
+log4j.logger.delegater.logger=INFO,delegaterAppender
+log4j.logger.pvt.logger=DEBUG,pvtAppender
+log4j.logger.laboTest.logger=DEBUG,laboTestAppender
+log4j.logger.claim.logger=DEBUG,claimAppender
 log4j.logger.mml.logger=INFO,mmlAppender
 
 # boot

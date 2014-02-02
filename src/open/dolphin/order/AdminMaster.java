@@ -1,36 +1,13 @@
-/*
- * AdminMaster.java
- * Copyright (C) 2007 Dolphin Project. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.order;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.StringTokenizer;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -46,14 +23,18 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
+import open.dolphin.client.AutoRomanListener;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.MasterRenderer;
-import open.dolphin.client.TimeoutWarning;
+import open.dolphin.client.TaskTimerMonitor;
 import open.dolphin.dao.SqlDaoFactory;
 import open.dolphin.dao.SqlMasterDao;
 import open.dolphin.infomodel.AdminEntry;
 import open.dolphin.table.ObjectTableModel;
-import open.dolphin.util.ReflectMonitor;
+import org.jdesktop.application.Application;
+import org.jdesktop.application.ApplicationContext;
+import org.jdesktop.application.Task;
+import org.jdesktop.application.TaskMonitor;
 
 /**
  * 用法マスタ検索クラス。
@@ -119,7 +100,7 @@ public class AdminMaster extends MasterPanel {
             
             private static final long serialVersionUID = 8084360322119845887L;
             
-            @SuppressWarnings("unchecked")
+            @Override
             public Class getColumnClass(int col) {
                 return AdminEntry.class;
             }
@@ -146,16 +127,25 @@ public class AdminMaster extends MasterPanel {
                     
                     int row = table.getSelectedRow();
                     AdminEntry o = (AdminEntry) tableModel.getObject(row);
-                    
                     if (o != null) {
-                        AdminInfo info = new AdminInfo();
-                        String code = o.getCode();
-                        String name = o.getName();
-                        info.setAdminCode(code);
-                        info.setAdmin(name);
-                        info.eventType = AdminInfo.TT_ADMIN;
-                        boundSupport.firePropertyChange(SELECTED_ITEM_PROP, null, info);
+                        MasterItem item = new MasterItem();
+                        item.setClassCode(3);
+                        item.setCode(o.getCode());
+                        item.setName(o.getName());
+                        boundSupport.firePropertyChange(SELECTED_ITEM_PROP, null, item);
                     }
+                    
+//                    AdminEntry o = (AdminEntry) tableModel.getObject(row);
+//                    
+//                    if (o != null) {
+//                        AdminInfo info = new AdminInfo();
+//                        String code = o.getCode();
+//                        String name = o.getName();
+//                        info.setAdminCode(code);
+//                        info.setAdmin(name);
+//                        info.eventType = AdminInfo.TT_ADMIN;
+//                        boundSupport.firePropertyChange(SELECTED_ITEM_PROP, null, info);
+//                    }
                 }
             }
         });
@@ -212,12 +202,7 @@ public class AdminMaster extends MasterPanel {
                 }
             }
         });
-        customCode.addFocusListener(new FocusAdapter() {
-            public void focusGained(FocusEvent event) {
-                JTextField tf = (JTextField) event.getSource();
-                tf.getInputContext().setCharacterSubsets(null);
-            }
-        });
+        customCode.addFocusListener(AutoRomanListener.getInstance());
         JPanel customP = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
         customP.add(new JLabel("自院コード: 001"));
         customP.add(customCode);
@@ -241,31 +226,13 @@ public class AdminMaster extends MasterPanel {
         this.add(scroller, BorderLayout.CENTER);
     }
     
-//    /**
-//     * 用法からレセ電算コードと数量コードを返す。
-//     * @param code 用法コード
-//     * @param name 用法名
-//     * @return レセ電算コードと数量コード配列
-//     */
-//    private String[] getClassNumberCode(String code, String name) {
-//        
-//        if (name.startsWith("１日１回") || name.startsWith("１日２回") || name.startsWith("１日３回")) {
-//            //
-//            return new String[]{ClaimConst.RECEIPT_CODE_NAIYO, ClaimConst.YAKUZAI_TOYORYO_1NICHI};
-//            
-//        } else if (code.compareTo(TONYO_RANGE[0]) >=0 && code.compareTo(TONYO_RANGE[1]) <=0) {
-//            //
-//            return new String[]{ClaimConst.RECEIPT_CODE_GAIYO, ClaimConst.YAKUZAI_TOYORYO_1KAI};
-//        }
-//        
-//        return new String[]{ClaimConst.RECEIPT_CODE_GAIYO, ClaimConst.YAKUZAI_TOYORYO};
-//    }
-    
-    
     /**
      * 選択されたカテゴリに対応する用法を検索する。
      */
-    private void fetchAdministration(String category) {
+    private void fetchAdministration(final String category) {
+        
+        logger.debug("master = " + master);
+        logger.debug("category = " + category);
         
         if (category == null) {
             return;
@@ -273,132 +240,49 @@ public class AdminMaster extends MasterPanel {
 
         final SqlMasterDao dao = (SqlMasterDao) SqlDaoFactory.create(this, "dao.master");
         
-        // ReflectMonitor を生成する
-        final ReflectMonitor rm = new ReflectMonitor();
-        rm.setReflection(dao, 
-                         "getAdminByCategory", 
-                         new Class[]{String.class},
-                         new Object[]{category});
-        rm.setMonitor(SwingUtilities.getWindowAncestor(this), "用法検索", category + " を検索しています...  ", 200, 30*1000);
+        ApplicationContext appCtx = ClientContext.getApplicationContext();
+        Application app = appCtx.getApplication();
         
-        // 結果状態のリスナを生成する
-        PropertyChangeListener pl = new PropertyChangeListener() {
-           
-            public void propertyChange(PropertyChangeEvent e) {
-                
-                int state = ((Integer) e.getNewValue()).intValue();
-                
-                switch (state) {
-                    
-                    case ReflectMonitor.DONE:
-                        processResult(dao.isNoError(), rm.getResult(), dao.getErrorMessage());
-                        break;
-                        
-                    case ReflectMonitor.TIME_OVER:
-                        Window parent = SwingUtilities.getWindowAncestor(AdminMaster.this);
-                        String title = ClientContext.getString(getMaster());
-                        new TimeoutWarning(parent, title, null).start();
-                        break;
-                        
-                    case ReflectMonitor.CANCELED:
-                        break;
-                }
-                
-                //
-                // Block を解除する
-                //
-                setBusy(false);
+        Task task = new Task<Object, Void>(app) {
+
+            @Override
+            protected Object doInBackground() throws Exception {
+                Object result = dao.getAdminByCategory(category);
+                return result;
+            }
+            
+            @Override
+            protected void succeeded(Object result) {
+                logger.debug("Task succeeded");
+                processResult(dao.isNoError(), result, dao.getErrorMessage());
+            }
+            
+            @Override
+            protected void cancelled() {
+                logger.debug("Task cancelled");
+            }
+            
+            @Override
+            protected void failed(java.lang.Throwable cause) {
+                logger.warn(cause.getMessage());
+            }
+            
+            @Override
+            protected void interrupted(java.lang.InterruptedException e) {
+                logger.warn(e.getMessage());
             }
         };
-        rm.addPropertyChangeListener(pl);
         
-        //
-        // Block し、メソッドの実行を開始する
-        //
-        setBusy(true);
-        rm.start();
+        TaskMonitor taskMonitor = appCtx.getTaskMonitor();
+        String message = "用法検索";
+        String note = category + "を検索しています...";
+        Component c = SwingUtilities.getWindowAncestor(this);
+        TaskTimerMonitor w = new TaskTimerMonitor(task, taskMonitor, c, message, note, 200, 60*1000);
+        taskMonitor.addPropertyChangeListener(w);
         
+        appCtx.getTaskService().execute(task);
     }
     
-//    /**
-//     * 選択されたカテゴリに対応する用法を検索する。
-//     */
-//    private void fetchAdministration(String category) {
-//        
-//        if (category == null) {
-//            return;
-//        }
-//
-//        final SqlMasterDao dao = (SqlMasterDao) SqlDaoFactory.create(this, "dao.master");
-//        
-//        // Worker を生成する
-//        int maxEstimation = ClientContext.getInt("task.masterSearch.maxEstimation");
-//        int delay = ClientContext.getInt("task.masterSearch.delay");
-//        final AdminTask worker = new AdminTask(category, dao, maxEstimation/delay);
-//        
-//        // タスクタイマーを生成する
-//        taskTimer = new javax.swing.Timer(TIMER_DELAY, new ActionListener() {
-//            
-//            public void actionPerformed(ActionEvent e) {
-//                
-//                worker.getCurrent();
-//                
-//                if (worker.isDone()) {
-//                    
-//                    taskTimer.stop();
-//                    setBusy(false);
-//                    
-//                    if (dao.isNoError()) {
-//                        List result = worker.getResult();
-//                        tableModel.setObjectList(result);
-//                        setItemCount(tableModel.getObjectCount());
-//                        
-//                    } else {
-//                        Window parent = SwingUtilities.getWindowAncestor(AdminMaster.this);
-//                        String message = dao.getErrorMessage();
-//                        String title = ClientContext.getFrameTitle(getMaster());
-//                        JOptionPane.showMessageDialog(parent, message, title, JOptionPane.WARNING_MESSAGE);
-//                    }
-//                    
-//                } else if (worker.isTimeOver()) {
-//                    taskTimer.stop();
-//                    setBusy(false);
-//                    Window parent = SwingUtilities.getWindowAncestor(AdminMaster.this);
-//                    String title = ClientContext.getString(getMaster());
-//                    new TimeoutWarning(parent, title, null).start();
-//                }
-//            }
-//        });
-//        setBusy(true);
-//        worker.start();
-//        taskTimer.start();
-//    }
-    
-//    /**
-//     * 検索タスククラス。
-//     */
-//    protected class AdminTask extends AbstractInfiniteTask {
-//        
-//        private String category;
-//        private SqlMasterDao dao;
-//        private List result;
-//        
-//        public AdminTask(String category, SqlMasterDao dao, int taskLength) {
-//            this.category = category;
-//            this.dao = dao;
-//            setTaskLength(taskLength);
-//        }
-//        
-//        protected List getResult() {
-//            return result;
-//        }
-//        
-//        protected void doTask() {
-//            result = dao.getAdminByCategory(category);
-//            setDone(true);
-//        }
-//    }
-        
     /**
      * 用法マスタ Table のレンダラークラス。
      */
@@ -412,6 +296,7 @@ public class AdminMaster extends MasterPanel {
         public AdminMasterRenderer() {
         }
         
+        @Override
         public Component getTableCellRendererComponent(
                 JTable table,
                 Object value,
@@ -424,37 +309,38 @@ public class AdminMaster extends MasterPanel {
                     isSelected,
                     isFocused,
                     row, col);
-            if (row % 2 == 0) {
-                setBackground(getEvenColor());
-            } else {
-                setBackground(getOddColor());
-            }
             
             if (isSelected) {
                 setBackground(table.getSelectionBackground());
                 setForeground(table.getSelectionForeground());
+            } else {
+
+                setForeground(table.getForeground());
+                setBackground(table.getBackground());
             }
-            JLabel label = (JLabel)c;
             
+            JLabel label = (JLabel)c;
+
             if (value != null && value instanceof AdminEntry) {
-                
+
                 AdminEntry entry = (AdminEntry) value;
 
                 switch(col) {
-                    
+
                     case CODE_COLUMN:
                         label.setText(entry.getCode());
                         break;
-                        
+
                     case NAME_COLUMN:
                         label.setText(entry.getName());
                         break;
                 }
-                
+
             } else {
                 label.setBackground(Color.white);
                 label.setText(value == null ? "" : value.toString());
             }
+
             return c;
         }
     }

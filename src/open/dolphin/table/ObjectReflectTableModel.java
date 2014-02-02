@@ -74,6 +74,7 @@ public class ObjectReflectTableModel extends AbstractTableModel {
      * カラム名を返す。
      * @param index カラムインデックス
      */
+    @Override
     public String getColumnName(int index) {
         return (columnNames != null && index < columnNames.length)
         ? columnNames[index]
@@ -102,7 +103,7 @@ public class ObjectReflectTableModel extends AbstractTableModel {
      * カラムのクラス型を返す。
      * @param カラムインデックス
      */
-    @SuppressWarnings("unchecked")
+    @Override
     public Class getColumnClass(int index) {
         return (columnClasses != null && index < columnClasses.length) ? columnClasses[index]
                 : String.class;
@@ -141,6 +142,10 @@ public class ObjectReflectTableModel extends AbstractTableModel {
         }
         this.objectList = objectList; // 参照しているのみ
         this.fireTableDataChanged();
+    }
+    
+    public String getMethodName(int index) {
+        return methodNames[index];
     }
     
     /**

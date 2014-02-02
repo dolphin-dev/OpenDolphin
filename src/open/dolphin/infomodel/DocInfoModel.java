@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
+import java.util.StringTokenizer;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.Transient;
@@ -305,8 +306,7 @@ public class DocInfoModel extends InfoModel implements Comparable {
     /**
      * êfó√â»Çê›íËÇ∑ÇÈÅB
      *
-     * @param department
-     *            êfó√â»
+     * @param department êfó√â»
      */
     public void setDepartment(String department) {
         this.department = department;
@@ -324,8 +324,7 @@ public class DocInfoModel extends InfoModel implements Comparable {
     /**
      * êfó√â»ê‡ñæÇê›íËÇ∑ÇÈÅB
      *
-     * @param departmentDesc
-     *            êfó√â»ê‡ñæ
+     * @param departmentDesc êfó√â»ê‡ñæ
      */
     public void setDepartmentDesc(String departmentDesc) {
         this.departmentDesc = departmentDesc;
@@ -339,6 +338,60 @@ public class DocInfoModel extends InfoModel implements Comparable {
     public String getDepartmentDesc() {
         return departmentDesc;
     }
+    
+    /********************************************/
+    public String getDepartmentName() {
+        String[] tokens = tokenizeDept(departmentDesc);
+        return tokens[0];
+    }
+    
+    public String getDepartmentCode() {
+        String[] tokens = tokenizeDept(departmentDesc);
+        if (tokens[1] != null) {
+            return tokens[1];
+        }
+        return department;
+    }
+    
+    public String getAssignedDoctorName() {
+        String[] tokens = tokenizeDept(departmentDesc);
+        return tokens[2];
+    }
+    
+    public String getAssignedDoctorId() {
+        String[] tokens = tokenizeDept(departmentDesc);
+        return tokens[3];
+    }
+    
+    public String getJMARICode() {
+        String[] tokens = tokenizeDept(departmentDesc);
+        return tokens[4];
+    }
+    
+    private String[] tokenizeDept(String dept) {
+        
+        // êfó√â»ñºÅAÉRÅ[ÉhÅAíSìñà„ñºÅAíSìñà„ÉRÅ[ÉhÅAJMARI ÉRÅ[Éh
+        // Çäiî[Ç∑ÇÈîzóÒÇê∂ê¨Ç∑ÇÈ
+        String[] ret = new String[5];
+        for (int i = 0; i < ret.length; i++) {
+            ret[i] = null;
+        }
+        
+        if (dept != null) {
+            int index = 0; 
+            try {
+                StringTokenizer st = new StringTokenizer(dept, ",");
+                while (st.hasMoreTokens()) {
+                    ret[index++] = st.nextToken();
+                }
+            } catch (Exception e) { 
+                e.printStackTrace();
+            }
+        }
+        
+        return ret;
+    }
+    /********************************************/
     
     /**
      * êfó√â»ëÃånÇê›íËÇ∑ÇÈÅB

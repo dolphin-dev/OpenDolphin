@@ -1,9 +1,3 @@
-/*
- * Created on 2005/09/13
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
 package open.dolphin.client;
 
 import java.awt.BorderLayout;
@@ -41,8 +35,6 @@ import javax.swing.table.TableColumn;
  * @author Minagawa,Kazushi
  */
 public class ImagePalette extends JPanel implements DragSourceListener, DragGestureListener {
-    
-    private static final long serialVersionUID = -3156381268784747382L;
     
     private static final int DEFAULT_COLUMN_COUNT 	=   3;
     private static final int DEFAULT_IMAGE_WIDTH 	= 120;
@@ -105,7 +97,6 @@ public class ImagePalette extends JPanel implements DragSourceListener, DragGest
         }
     }
     
-    @SuppressWarnings("unchecked")
     public void refresh() {
         
         if ( (! imageDirectory.exists()) || (! imageDirectory.isDirectory()) ) {
@@ -155,9 +146,9 @@ public class ImagePalette extends JPanel implements DragSourceListener, DragGest
         if (showHeader) {
             this.add(new JScrollPane(imageTable));
         } else {
-            JPanel ui = new JPanel(new BorderLayout());
-            ui.add(imageTable);
-            this.add(new JScrollPane(ui));
+            JPanel panel = new JPanel(new BorderLayout());
+            panel.add(imageTable);
+            this.add(new JScrollPane(panel));
         }
     }
     
@@ -252,6 +243,7 @@ public class ImagePalette extends JPanel implements DragSourceListener, DragGest
             setHorizontalTextPosition(JLabel.CENTER);
         }
         
+        @Override
         public Component getTableCellRendererComponent(JTable table,
                 Object value,
                 boolean isSelected,

@@ -1,16 +1,9 @@
-/*
- * Created on 2005/06/01
- *
- */
 package open.dolphin.client;
 
-import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -18,6 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentListener;
+import open.dolphin.helper.GridBagBuilder;
 
 import open.dolphin.project.ProjectStub;
 
@@ -28,6 +22,10 @@ import open.dolphin.project.ProjectStub;
  *
  */
 public class AreaNetWorkSettingPanel extends AbstractSettingPanel {
+    
+    private static final String ID = "areaNetwork";
+    private static final String TITLE = "地域連携";
+    private static final String ICON = "web_24.gif";
     
     // 地域連携用コンポーネント
     private JRadioButton joinAreaNetwork;
@@ -42,6 +40,9 @@ public class AreaNetWorkSettingPanel extends AbstractSettingPanel {
     private StateMgr stateMgr;
     
     public AreaNetWorkSettingPanel() {
+        setId(ID);
+        this.setTitle(TITLE);
+        this.setIcon(ICON);
     }
     
     /**

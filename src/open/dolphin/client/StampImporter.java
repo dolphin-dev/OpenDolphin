@@ -7,8 +7,6 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Point;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
@@ -26,9 +24,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.ProgressMonitor;
 import javax.swing.SwingConstants;
-import javax.swing.Timer;
 import javax.swing.WindowConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 
@@ -36,8 +32,13 @@ import open.dolphin.delegater.StampDelegater;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.PublishedTreeModel;
 import open.dolphin.infomodel.SubscribedTreeModel;
-import open.dolphin.plugin.helper.ComponentMemory;
+import open.dolphin.helper.ComponentMemory;
 import open.dolphin.project.Project;
+import org.apache.log4j.Logger;
+import org.jdesktop.application.Application;
+import org.jdesktop.application.ApplicationContext;
+import org.jdesktop.application.Task;
+import org.jdesktop.application.TaskMonitor;
 
 /**
  * StampImporter
@@ -80,15 +81,16 @@ public class StampImporter {
     private StampBoxPlugin stampBox;
     private List<Long> importedTreeList;
     private StampDelegater sdl;
-    private Timer timer;
-    private BrowseTask browseWorker;
-    private  SubscribeTask subscribeWorker;
-    private UnsubscribeTask unsubscribeTask;
-    private ProgressMonitor progressMonitor;
+    private ApplicationContext appCtx;
+    private Application app;
+    private Logger logger;
     
     public StampImporter(StampBoxPlugin stampBox) {
         this.stampBox = stampBox;
         importedTreeList = stampBox.getImportedTreeList();
+        appCtx = ClientContext.getApplicationContext();
+        app = appCtx.getApplication();
+        logger = ClientContext.getBootLogger();
     }
     
     /**
@@ -101,59 +103,64 @@ public class StampImporter {
         int delay = 200;
         int maxEstimation = 60*1000;
         String mmsg = "公開スタンプを取得しています...";
-        int decideToPopup = ClientContext.getInt("task.default.decideToPopup");
-        int milisToPopup = ClientContext.getInt("task.default.milisToPopup");
-        progressMonitor = new ProgressMonitor(frame, null, mmsg, 0, maxEstimation/delay);
         
-        browseWorker = new BrowseTask(sdl, maxEstimation/delay);
-        
-        timer = new javax.swing.Timer(delay, new ActionListener() {
+        Task task =  new Task<List<PublishedTreeModel>, Void>(app) {
+
+            @Override
+            protected List<PublishedTreeModel> doInBackground() {
+                List<PublishedTreeModel> result = sdl.getPublishedTrees();
+                return result;
+            }
             
-            @SuppressWarnings("unchecked")
-            public void actionPerformed(ActionEvent e) {
-                
-                progressMonitor.setProgress(browseWorker.getCurrent());
-                
-                if (browseWorker.isDone()) {
-                    
-                    timer.stop();
-                    progressMonitor.close();
-                    
-                    if (sdl.isNoError()) {
-                        // DBから取得が成功したらGUIコンポーネントを生成する
-                        initComponent();
-                        List list = browseWorker.getResult();
-                        if (importedTreeList != null && importedTreeList.size() > 0) {
-                            for (Iterator iter = list.iterator(); iter.hasNext(); ) {
-                                PublishedTreeModel model = (PublishedTreeModel) iter.next();
-                                for (Long id : importedTreeList) {
-                                    if (id.longValue() == model.getId()) {
-                                        model.setImported(true);
-                                        break;
-                                    }
+            @Override
+            protected void succeeded(List<PublishedTreeModel> result) {
+                logger.debug("Task succeeded");
+                if (sdl.isNoError() && result != null) {
+                    // DBから取得が成功したらGUIコンポーネントを生成する
+                    initComponent();
+                    if (importedTreeList != null && importedTreeList.size() > 0) {
+                        for (Iterator iter = result.iterator(); iter.hasNext();) {
+                            PublishedTreeModel model = (PublishedTreeModel) iter.next();
+                            for (Long id : importedTreeList) {
+                                if (id.longValue() == model.getId()) {
+                                    model.setImported(true);
+                                    break;
                                 }
                             }
                         }
-                        browseTable.setObjectList(list);
-                    } else {
-                        JOptionPane.showMessageDialog(frame,
-                                sdl.getErrorMessage(),
-                                ClientContext.getFrameTitle(title),
-                                JOptionPane.WARNING_MESSAGE);
                     }
-                    
-                } else if (browseWorker.isTimeOver()) {
-                    timer.stop();
-                    progressMonitor.close();
-                    new TimeoutWarning(frame, title, null).start();
+                    browseTable.setObjectList((List) result);
+                } else {
+                    JOptionPane.showMessageDialog(frame,
+                            sdl.getErrorMessage(),
+                            ClientContext.getFrameTitle(title),
+                            JOptionPane.WARNING_MESSAGE);
                 }
             }
-        });
-        progressMonitor.setProgress(0);
-        progressMonitor.setMillisToDecideToPopup(milisToPopup);
-        progressMonitor.setMillisToPopup(decideToPopup);
-        browseWorker.start();
-        timer.start();
+            
+            @Override
+            protected void cancelled() {
+                logger.debug("Task cancelled");
+            }
+            
+            @Override
+            protected void failed(java.lang.Throwable cause) {
+                logger.warn(cause.getMessage());
+            }
+            
+            @Override
+            protected void interrupted(java.lang.InterruptedException e) {
+                logger.warn(e.getMessage());
+            }
+        };
+        
+        TaskMonitor taskMonitor = appCtx.getTaskMonitor();
+        String message = "スタンプ取り込み";
+        Component c = null;
+        TaskTimerMonitor w = new TaskTimerMonitor(task, taskMonitor, c, message, mmsg, delay, maxEstimation);
+        taskMonitor.addPropertyChangeListener(w);
+        
+        appCtx.getTaskService().execute(task);
     }
     
     /**
@@ -163,6 +170,7 @@ public class StampImporter {
         frame = new JFrame(ClientContext.getFrameTitle(title));
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowClosing(WindowEvent e) {
                 stop();
             }
@@ -263,7 +271,7 @@ public class StampImporter {
     /**
      * ブラウザテーブルで選択した公開Treeをインポートする。
      */
-    public  void importPublishedTree() {
+    public void importPublishedTree() {
         
         Object[] objects = (Object[]) browseTable.getSelectedObject();
         if (objects == null || objects.length == 0) {
@@ -282,7 +290,7 @@ public class StampImporter {
         SubscribedTreeModel sm = new SubscribedTreeModel();
         sm.setUser(Project.getUserModel());
         sm.setTreeId(importTree.getId());
-        List<SubscribedTreeModel> subscribeList = new ArrayList<SubscribedTreeModel>(1);
+        final List<SubscribedTreeModel> subscribeList = new ArrayList<SubscribedTreeModel>(1);
         subscribeList.add(sm);
         
         // デリゲータを生成する
@@ -292,49 +300,55 @@ public class StampImporter {
         int delay = 200;
         int maxEstimation = 60*1000;
         String mmsg = "公開スタンプをインポートしています...";
-        int decideToPopup = ClientContext.getInt("task.default.decideToPopup");
-        int milisToPopup = ClientContext.getInt("task.default.milisToPopup");
-        progressMonitor = new ProgressMonitor(frame, null, mmsg, 0, maxEstimation/delay);
         
-        subscribeWorker = new SubscribeTask(subscribeList, sdl, maxEstimation/delay);
-        
-        timer = new javax.swing.Timer(delay, new ActionListener() {
+        Task task = new Task<Boolean, Void>(app) {
+
+            @Override
+            protected Boolean doInBackground() {
+                sdl.subscribeTrees(subscribeList);
+                return new Boolean(sdl.isNoError());
+            }
             
-            public void actionPerformed(ActionEvent e) {
-                
-                progressMonitor.setProgress(subscribeWorker.getCurrent());
-                
-                if (subscribeWorker.isDone()) {
-                    
-                    timer.stop();
-                    progressMonitor.close();
-                    
-                    if (sdl.isNoError()) {
-                        // スタンプボックスへインポートする
-                        stampBox.importPublishedTree(importTree);
-                        // Browser表示をインポート済みにする
-                        importTree.setImported(true);
-                        browseTable.getTableModel().fireTableDataChanged();
-                        
-                    } else {
-                        JOptionPane.showMessageDialog(frame,
-                                sdl.getErrorMessage(),
-                                ClientContext.getFrameTitle(title),
-                                JOptionPane.WARNING_MESSAGE);
-                    }
-                    
-                } else if (subscribeWorker.isTimeOver()) {
-                    timer.stop();
-                    progressMonitor.close();
-                    new TimeoutWarning(frame, title, null).start();
+            @Override
+            protected void succeeded(Boolean result) {
+                if (result.booleanValue()) {
+                    // スタンプボックスへインポートする
+                    stampBox.importPublishedTree(importTree);
+                    // Browser表示をインポート済みにする
+                    importTree.setImported(true);
+                    browseTable.getTableModel().fireTableDataChanged();
+
+                } else {
+                    JOptionPane.showMessageDialog(frame,
+                            sdl.getErrorMessage(),
+                            ClientContext.getFrameTitle(title),
+                            JOptionPane.WARNING_MESSAGE);
                 }
             }
-        });
-        progressMonitor.setProgress(0);
-        progressMonitor.setMillisToDecideToPopup(milisToPopup);
-        progressMonitor.setMillisToPopup(decideToPopup);
-        subscribeWorker.start();
-        timer.start();
+            
+            @Override
+            protected void cancelled() {
+                logger.debug("Task cancelled");
+            }
+            
+            @Override
+            protected void failed(java.lang.Throwable cause) {
+                logger.warn(cause.getMessage());
+            }
+            
+            @Override
+            protected void interrupted(java.lang.InterruptedException e) {
+                logger.warn(e.getMessage());
+            }
+        };
+        
+        TaskMonitor taskMonitor = appCtx.getTaskMonitor();
+        String message = "スタンプ取り込み";
+        Component c = frame;
+        TaskTimerMonitor w = new TaskTimerMonitor(task, taskMonitor, c, message, mmsg, delay, maxEstimation);
+        taskMonitor.addPropertyChangeListener(w);
+        
+        appCtx.getTaskService().execute(task);
     }
     
     /**
@@ -352,7 +366,7 @@ public class StampImporter {
         SubscribedTreeModel sm = new SubscribedTreeModel();
         sm.setTreeId(removeTree.getId());
         sm.setUser(Project.getUserModel());
-        List<SubscribedTreeModel> list = new ArrayList<SubscribedTreeModel>(1);
+        final List<SubscribedTreeModel> list = new ArrayList<SubscribedTreeModel>(1);
         list.add(sm);
         
         // DeleteTaskを実行する
@@ -362,117 +376,57 @@ public class StampImporter {
         int delay = 200;
         int maxEstimation = 60*1000;
         String mmsg = "インポート済みスタンプを削除しています...";
-        int decideToPopup = ClientContext.getInt("task.default.decideToPopup");
-        int milisToPopup = ClientContext.getInt("task.default.milisToPopup");
-        progressMonitor = new ProgressMonitor(frame, null, mmsg, 0, maxEstimation/delay);
         
-        unsubscribeTask = new UnsubscribeTask(list, sdl, maxEstimation/delay);
-        
-        timer = new javax.swing.Timer(delay, new ActionListener() {
+        Task task = new Task<Boolean, Void>(app) {
+  
+            protected Boolean doInBackground() throws Exception {
+                sdl.unsubscribeTrees(list);
+                return new Boolean(sdl.isNoError());
+            }
             
-            public void actionPerformed(ActionEvent e) {
-                
-                progressMonitor.setProgress(unsubscribeTask.getCurrent());
-                
-                if (unsubscribeTask.isDone()) {
-                    
-                    timer.stop();
-                    progressMonitor.close();
-                    
-                    if (sdl.isNoError()) {
-                        // スタンプボックスから削除する
-                        stampBox.removeImportedTree(removeTree.getId());
-                        // ブラウザ表示を変更する
-                        removeTree.setImported(false);
-                        browseTable.getTableModel().fireTableDataChanged();
-                        
-                    } else {
-                        JOptionPane.showMessageDialog(frame,
-                                sdl.getErrorMessage(),
-                                ClientContext.getFrameTitle(title),
-                                JOptionPane.WARNING_MESSAGE);
-                    }
-                    
-                } else if (subscribeWorker.isTimeOver()) {
-                    timer.stop();
-                    progressMonitor.close();
-                    new TimeoutWarning(frame, title, null).start();
+            @Override
+            protected void succeeded(Boolean result) {
+                if (result.booleanValue()) {
+                    // スタンプボックスから削除する
+                    stampBox.removeImportedTree(removeTree.getId());
+                    // ブラウザ表示を変更する
+                    removeTree.setImported(false);
+                    browseTable.getTableModel().fireTableDataChanged();
+
+                } else {
+                    JOptionPane.showMessageDialog(frame,
+                            sdl.getErrorMessage(),
+                            ClientContext.getFrameTitle(title),
+                            JOptionPane.WARNING_MESSAGE);
                 }
             }
-        });
-        progressMonitor.setProgress(0);
-        progressMonitor.setMillisToDecideToPopup(milisToPopup);
-        progressMonitor.setMillisToPopup(decideToPopup);
-        unsubscribeTask.start();
-        timer.start();
+            
+            @Override
+            protected void cancelled() {
+                logger.debug("Task cancelled");
+            }
+            
+            @Override
+            protected void failed(java.lang.Throwable cause) {
+                logger.warn(cause.getMessage());
+            }
+            
+            @Override
+            protected void interrupted(java.lang.InterruptedException e) {
+                logger.warn(e.getMessage());
+            }
+        };
+        
+        TaskMonitor taskMonitor = appCtx.getTaskMonitor();
+        String message = "スタンプ取り込み";
+        Component c = frame;
+        TaskTimerMonitor w = new TaskTimerMonitor(task, taskMonitor, c, message, mmsg, delay, maxEstimation);
+        taskMonitor.addPropertyChangeListener(w);
+        
+        appCtx.getTaskService().execute(task);
     }
-    
-    /**
-     * 公開されているTreeのリストを取得するタスク。
-     */
-    class BrowseTask extends AbstractInfiniteTask {
         
-        private StampDelegater mySdl;
-        private List<PublishedTreeModel> result;
-        
-        public BrowseTask(StampDelegater mySdl, int taskLength) {
-            this.mySdl = mySdl;
-            setTaskLength(taskLength);
-        }
-        
-        public List<PublishedTreeModel> getResult() {
-            return result;
-        }
-        
-        protected void doTask() {
-            result = mySdl.getPublishedTrees();
-            setDone(true);
-        }
-    }
-    
-    /**
-     * サブスクライブタスク。
-     */
-    class SubscribeTask extends AbstractInfiniteTask {
-        
-        private StampDelegater mySdl;
-        private List<SubscribedTreeModel> subscribeList;
-        
-        public SubscribeTask(List<SubscribedTreeModel> subscribeList, StampDelegater mySdl, int taskLength) {
-            this.subscribeList = subscribeList;
-            this.mySdl = mySdl;
-            setTaskLength(taskLength);
-        }
-        
-        protected void doTask() {
-            mySdl.subscribeTrees(subscribeList);
-            setDone(true);
-        }
-    }
-    
-    /**
-     * アンサブスクライブタスク。
-     */
-    class UnsubscribeTask extends AbstractInfiniteTask {
-        
-        private StampDelegater mySdl;
-        private List<SubscribedTreeModel> subscribeList;
-        
-        public UnsubscribeTask(List<SubscribedTreeModel> subscribeList, StampDelegater mySdl, int taskLength) {
-            this.subscribeList = subscribeList;
-            this.mySdl = mySdl;
-            setTaskLength(taskLength);
-        }
-        
-        protected void doTask() {
-            mySdl.unsubscribeTrees(subscribeList);
-            setDone(true);
-        }
-    }
-    
-    protected class PublishTypeRenderer extends DefaultTableCellRenderer {
-        
-        private static final long serialVersionUID = 7134379493874260895L;
+    class PublishTypeRenderer extends DefaultTableCellRenderer {
         
         /** Creates new IconRenderer */
         public PublishTypeRenderer() {
@@ -481,25 +435,23 @@ public class StampImporter {
             setHorizontalAlignment(JLabel.CENTER);
         }
         
+        @Override
         public Component getTableCellRendererComponent(JTable table,
                 Object value,
                 boolean isSelected,
                 boolean isFocused,
                 int row, int col) {
-            Component c = super.getTableCellRendererComponent(table,
-                    value,
-                    isSelected,
-                    isFocused, row, col);
-            
-            if (row % 2 == 0) {
-                setBackground(EVEN_COLOR);
-            } else {
-                setBackground(ODD_COLOR);
-            }
             
             if (isSelected) {
                 setBackground(table.getSelectionBackground());
                 setForeground(table.getSelectionForeground());
+            } else {
+                setForeground(table.getForeground());
+                if (row % 2 == 0) {
+                    setBackground(EVEN_COLOR);
+                } else {
+                    setBackground(ODD_COLOR);
+                }
             }
             
             if (value != null && value instanceof String) {
@@ -511,18 +463,17 @@ public class StampImporter {
                 } else {
                     setIcon(HOME_ICON);
                 } 
-                ((JLabel) c).setText("");
+                this.setText("");
+                
             } else {
                 setIcon(null);
-                ((JLabel) c).setText(value == null ? "" : value.toString());
+                this.setText(value == null ? "" : value.toString());
             }
-            return c;
+            return this;
         }
     }
     
-    protected class ImportedRenderer extends DefaultTableCellRenderer {
-        
-        private static final long serialVersionUID = 7134379493874260895L;
+    class ImportedRenderer extends DefaultTableCellRenderer {
         
         /** Creates new IconRenderer */
         public ImportedRenderer() {
@@ -531,25 +482,23 @@ public class StampImporter {
             setHorizontalAlignment(JLabel.CENTER);
         }
         
+        @Override
         public Component getTableCellRendererComponent(JTable table,
                 Object value,
                 boolean isSelected,
                 boolean isFocused,
-                int row, int col) {
-            Component c = super.getTableCellRendererComponent(table,
-                    value,
-                    isSelected,
-                    isFocused, row, col);
-            
-            if (row % 2 == 0) {
-                setBackground(EVEN_COLOR);
-            } else {
-                setBackground(ODD_COLOR);
-            }
+                int row, int col) {           
             
             if (isSelected) {
                 setBackground(table.getSelectionBackground());
                 setForeground(table.getSelectionForeground());
+            } else {
+                setForeground(table.getForeground());
+                if (row % 2 == 0) {
+                    setBackground(EVEN_COLOR);
+                } else {
+                    setBackground(ODD_COLOR);
+                }
             }
             
             if (value != null && value instanceof Boolean) {
@@ -557,16 +506,17 @@ public class StampImporter {
                 Boolean imported = (Boolean) value;
                 
                 if (imported.booleanValue()) {
-                    setIcon(FLAG_ICON);
+                    this.setIcon(FLAG_ICON);
                 } else {
-                    setIcon(null);
+                    this.setIcon(null);
                 }
-                ((JLabel) c).setText("");
+                this.setText("");
+                
             } else {
                 setIcon(null);
-                ((JLabel) c).setText(value == null ? "" : value.toString());
+                this.setText(value == null ? "" : value.toString());
             }
-            return c;
+            return this;
         }
     }
 }

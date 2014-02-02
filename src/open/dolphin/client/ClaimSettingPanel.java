@@ -1,29 +1,8 @@
-/*
- * ClaimSettingPanel.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2003,2004 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionListener;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -32,6 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentListener;
+import open.dolphin.helper.GridBagBuilder;
 
 import open.dolphin.project.ProjectStub;
 
@@ -43,10 +23,18 @@ import open.dolphin.project.ProjectStub;
  */
 public class ClaimSettingPanel extends AbstractSettingPanel {
     
+    private static final String ID = "claimSetting";
+    private static final String TITLE = "レセコン";
+    private static final String ICON = "calc_24.gif";
+    
     // GUI staff
     private JRadioButton sendClaimYes;
     private JRadioButton sendClaimNo;
     private JComboBox claimHostCombo;
+    private JCheckBox claim01;
+    private JRadioButton v34;
+    private JRadioButton v40;
+    private JTextField jmariField;
     private JTextField claimAddressField;
     private JTextField claimPortField;
     private JCheckBox useAsPVTServer;
@@ -58,6 +46,9 @@ public class ClaimSettingPanel extends AbstractSettingPanel {
     
     
     public ClaimSettingPanel() {
+        this.setId(ID);
+        this.setTitle(TITLE);
+        this.setIcon(ICON);
     }
     
     /**
@@ -95,30 +86,32 @@ public class ClaimSettingPanel extends AbstractSettingPanel {
      */
     private void initComponents() {
         
-        //
         // 診療行為送信ボタン
-        //
         ButtonGroup bg1 = new ButtonGroup();
         sendClaimYes = GUIFactory.createRadioButton("送信する", null, bg1);
         sendClaimNo = GUIFactory.createRadioButton("送信しない", null, bg1);
         
-        //
-        // ホスト名、アドレス、ポート番号
-        //
+        // バージョン
+        ButtonGroup bg2 = new ButtonGroup();
+        v34 = GUIFactory.createRadioButton("3.4", null, bg2);
+        v40 = GUIFactory.createRadioButton("4.0", null, bg2);
+        
+        // 01 小児科等
+        claim01 = new JCheckBox("デフォルト01を使用");
+        
+        // JMARI、ホスト名、アドレス、ポート番号
         String[] hostNames = ClientContext.getStringArray("settingDialog.claim.hostNames");
         claimHostCombo = new JComboBox(hostNames);
+        jmariField = GUIFactory.createTextField(10, null, null, null);
+        jmariField.setToolTipText("医療機関コードの数字部分のみ12桁を入力してください。");
         claimAddressField = GUIFactory.createTextField(10, null, null, null);
         claimPortField = GUIFactory.createTextField(5, null, null, null);
         
-        //
         // 受付受信ボタン
-        //
         useAsPVTServer = GUIFactory.createCheckBox("このマシンでORCAからの受付情報を受信する", null);
         useAsPVTServer.setToolTipText("このマシンでORCAからの受付情報を受信する場合はチェックしてください");
         
-        //
         // CLAIM（請求）送信情報
-        //
         GridBagBuilder gbl = new GridBagBuilder("CLAIM（請求データ）送信");
         int row = 0;
         JLabel label = new JLabel("診療行為送信:");
@@ -133,6 +126,22 @@ public class ClaimSettingPanel extends AbstractSettingPanel {
         label = new JLabel("機種:");
         gbl.add(label,          0, row, GridBagConstraints.EAST);
         gbl.add(claimHostCombo, 1, row, GridBagConstraints.WEST);
+        
+        row++;
+        label = new JLabel("バージョン:");
+        JPanel vPanel = GUIFactory.createRadioPanel(new JRadioButton[]{v34,v40});
+        gbl.add(label,  0, row, GridBagConstraints.EAST);
+        gbl.add(vPanel, 1, row, GridBagConstraints.WEST);
+        
+        row++;
+        label = new JLabel("CLAIM診療科コード:");
+        gbl.add(label,  0, row, GridBagConstraints.EAST);
+        gbl.add(claim01,1, row, GridBagConstraints.WEST);
+        
+        row++;
+        label = new JLabel("医療機関ID:  JPN");
+        gbl.add(label,      0, row, GridBagConstraints.EAST);
+        gbl.add(jmariField, 1, row, GridBagConstraints.WEST);
         
         row++;
         label = new JLabel("IPアドレス:");
@@ -169,20 +178,34 @@ public class ClaimSettingPanel extends AbstractSettingPanel {
         stateMgr = new StateMgr();
         
         // DocumentListener
-        DocumentListener dl = ProxyDocumentListener.create(stateMgr, "checkState");
-        claimAddressField.getDocument().addDocumentListener(dl);
-        claimPortField.getDocument().addDocumentListener(dl);
+        DocumentListener dl = ProxyDocumentListener.create(stateMgr, "checkState");  
+        String jmariPattern = "[0-9]*";
+        RegexConstrainedDocument jmariDoc = new RegexConstrainedDocument(jmariPattern);
+        jmariField.setDocument(jmariDoc);
+        jmariField.getDocument().addDocumentListener(dl);
+        jmariField.addFocusListener(AutoRomanListener.getInstance());
         
-        //
-        // IME OFF FocusAdapter
-        //
-        claimAddressField.addFocusListener(AutoRomanListener.getInstance());
+        String portPattern = "[0-9]*";
+        RegexConstrainedDocument portDoc = new RegexConstrainedDocument(portPattern);
+        claimPortField.setDocument(portDoc);
+        claimPortField.getDocument().addDocumentListener(dl);
         claimPortField.addFocusListener(AutoRomanListener.getInstance());
+        
+        String ipPattern = "[A-Za-z0-9.]*";
+        RegexConstrainedDocument ipDoc = new RegexConstrainedDocument(ipPattern);
+        claimAddressField.setDocument(ipDoc);
+        claimAddressField.getDocument().addDocumentListener(dl);
+        claimAddressField.addFocusListener(AutoRomanListener.getInstance());
         
         // アクションリスナ
         ActionListener al = ProxyActionListener.create(stateMgr, "controlClaim");
         sendClaimYes.addActionListener(al);
         sendClaimNo.addActionListener(al);
+        
+        // バージョン制御
+        ActionListener al2 = ProxyActionListener.create(stateMgr, "controlVersion");
+        v34.addActionListener(al2);
+        v40.addActionListener(al2);
     }
     
     /**
@@ -197,31 +220,43 @@ public class ClaimSettingPanel extends AbstractSettingPanel {
         sendClaimNo.setSelected(!sending);
         claimPortField.setEnabled(sending);
         
-        //
+        // バージョン 選択
+        String ver = model.getVersion();
+        if (ver.startsWith("4")) {
+            v40.setSelected(true);
+        } else {
+            v34.setSelected(true);
+        }
+        
+        // JMARICode
+        String jmari = model.getJmariCode();
+        jmari = jmari != null ? jmari : "";
+        if (!jmari.equals("") && jmari.startsWith("JPN")) {
+            jmari = jmari.substring(3);
+            jmariField.setText(jmari);
+        }
+        
         // CLAIM ホストのIPアドレスを設定する
-        //
         String val = model.getClaimAddress();
         val = val != null ? val : "";
         claimAddressField.setText(val);
         
-        //
         // CLAIM ホストのポート番号を設定する
-        //
         val = String.valueOf(model.getClaimPort());
         val = val != null ? val : "";
         claimPortField.setText(val);
         
-        //
         // ホスト名
-        //
         val = model.getClaimHostName();
         val = val != null ? val : "";
         claimHostCombo.setSelectedItem(val);
         
-        //
         // 受付受信
-        //
         useAsPVTServer.setSelected(model.isUseAsPVTServer());
+        
+        // 01 小児科
+        claim01.setSelected(model.isClaim01());
+        
     }
     
     /**
@@ -234,21 +269,30 @@ public class ClaimSettingPanel extends AbstractSettingPanel {
         //
         model.setSendClaim(sendClaimYes.isSelected());
         
-        //
+        // バージョン
+        if (v40.isSelected()) {
+            model.setVersion("40");
+        } else {
+            model.setVersion("34");
+        }
+        
+        // JMARI
+        String jmari = jmariField.getText().trim();
+        if (!jmari.equals("")) {
+            model.setJmariCode("JPN"+jmari);
+        } else {
+            model.setJmariCode(null);
+        }
+        
         // ホスト名を保存する
-        //
         String val = (String)claimHostCombo.getSelectedItem();
         model.setClaimHostName(val);
         
-        //
         // IPアドレスを保存する
-        //
         val = claimAddressField.getText().trim();
         model.setClaimAddress(val);
         
-        //
         // ポート番号を保存する
-        //
         val = claimPortField.getText().trim();
         try {
             int port = Integer.parseInt(val);
@@ -258,10 +302,11 @@ public class ClaimSettingPanel extends AbstractSettingPanel {
             model.setClaimPort(5001);
         }
         
-        //
         // 受付受信を保存する
-        //
         model.setUseAsPVTServer(useAsPVTServer.isSelected());
+        
+        // 01 小児科
+        model.setClaim01(claim01.isSelected());
     }
     
     /**
@@ -271,14 +316,23 @@ public class ClaimSettingPanel extends AbstractSettingPanel {
         
         private boolean sendClaim;
         private String claimHostName;
+        private String version;
+        private String jmariCode;
         private String claimAddress;
         private int claimPort;
         private boolean useAsPvtServer;
+        private boolean claim01;
         
         public void populate(ProjectStub stub) {
             
             // 診療行為送信
             setSendClaim(stub.getSendClaim());
+            
+            // バージョン
+            setVersion(stub.getOrcaVersion());
+            
+            // JMARI code
+            setJmariCode(stub.getJMARICode());
             
             // CLAIM ホストのIPアドレス
             setClaimAddress(stub.getClaimAddress());
@@ -291,12 +345,23 @@ public class ClaimSettingPanel extends AbstractSettingPanel {
             
             // 受付受信
             setUseAsPVTServer(stub.getUseAsPVTServer());
+            
+            // 01 小児科等
+            setClaim01(stub.isClaim01());
         }
         
         public void restore(ProjectStub stub) {
             
             // 診療行為送信
             stub.setSendClaim(isSendClaim());
+            
+            // バージョン
+            stub.setOrcaVersion(getVersion());
+            //System.out.println(stub.getOrcaVersion());
+            
+            // JMARI
+            stub.setJMARICode(getJmariCode());
+            //System.out.println(stub.getJMARICode());
             
             // CLAIM ホストのIPアドレス
             stub.setClaimAddress(getClaimAddress());
@@ -309,6 +374,9 @@ public class ClaimSettingPanel extends AbstractSettingPanel {
             
             // 受付受信
             stub.setUseAsPVTServer(isUseAsPVTServer());
+            
+            // 01 小児科
+            stub.setClaim01(isClaim01());
         }
         
         public boolean isSendClaim() {
@@ -350,6 +418,30 @@ public class ClaimSettingPanel extends AbstractSettingPanel {
         public void setClaimPort(int claimPort) {
             this.claimPort = claimPort;
         }
+
+        public String getVersion() {
+            return version;
+        }
+
+        public void setVersion(String version) {
+            this.version = version;
+        }
+
+        public String getJmariCode() {
+            return jmariCode;
+        }
+
+        public void setJmariCode(String jmariCode) {
+            this.jmariCode = jmariCode;
+        }
+        
+        public boolean isClaim01() {
+            return claim01;
+        }
+        
+        public void setClaim01(boolean b) {
+            this.claim01 = b;
+        }
     }
     
     class StateMgr {
@@ -372,24 +464,43 @@ public class ClaimSettingPanel extends AbstractSettingPanel {
             //
             boolean b = sendClaimYes.isSelected();
             
-            claimHostCombo.setEnabled(b);
+            //claimHostCombo.setEnabled(b);
             claimPortField.setEnabled(b);
             
             this.checkState();
         }
         
+        public void controlVersion() {
+            
+            boolean b = v40.isSelected();
+            jmariField.setEnabled(b);
+            this.checkState();
+        }
+        
         private boolean isValid() {
             
-            //
-            // 診療行為の送信を行う場合はアドレスとポートの値が必要である
-            //
-            if (sendClaimYes.isSelected()) {
-                boolean claimAddrOk = (claimAddressField.getText().trim().equals("") == false) ? true : false;
-                boolean claimPortOk = (claimPortField.getText().trim().equals("") == false) ? true : false;
-                return (claimAddrOk && claimPortOk) ? true : false;
+            boolean jmariOk = false;
+            boolean claimAddrOk = false;
+            boolean claimPortOk = false;
+            
+            if (v40.isSelected()) {
+                String code = jmariField.getText().trim();
+                if (!code.equals("") && code.length() == 12) {
+                    jmariOk = true;
+                }
+            } else {
+                jmariOk = true;
             }
             
-            return true;
+            if (sendClaimYes.isSelected()) {
+                claimAddrOk = (claimAddressField.getText().trim().equals("")) ? false : true;
+                claimPortOk = (claimPortField.getText().trim().equals("")) ? false : true;
+            } else {
+                claimAddrOk = true;
+                claimPortOk = true;
+            }
+            
+            return (jmariOk && claimAddrOk && claimPortOk) ? true : false;
         }
     }
 }

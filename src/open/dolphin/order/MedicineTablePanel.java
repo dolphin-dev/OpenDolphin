@@ -1,43 +1,53 @@
-/*
- * MedicineTable.java
- * Copyright (C) 2007 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.order;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.Iterator;
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
+import java.util.List;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import open.dolphin.table.OddEvenRowRenderer;
 
-import open.dolphin.client.*;
+import open.dolphin.table.ObjectReflectTableModel;
+
+
+import javax.swing.DefaultCellEditor;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.TransferHandler;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableColumn;
+import open.dolphin.client.AutoKanjiListener;
+import open.dolphin.client.AutoRomanListener;
+import open.dolphin.client.ClientContext;
 import open.dolphin.client.GUIConst;
+import open.dolphin.client.StampModelEditor;
 import open.dolphin.infomodel.BundleMed;
 import open.dolphin.infomodel.ClaimItem;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.project.Project;
-import open.dolphin.table.ObjectReflectTableModel;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.beans.*;
-import java.text.NumberFormat;
-import java.awt.im.InputSubset;
+import open.dolphin.util.ZenkakuUtils;
 
 
 /**
@@ -52,87 +62,76 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
     protected static final String DEFAULT_STAMP_NAME = "新規スタンプ";
     private static final String FROM_EDITOR_STAMP_NAME = "エディタから";
     
-    private static final String[] COLUMN_NAMES = {"コード", "薬 剤", "一日(回)量","単位"};
-    private static final String[] METHOD_NAMES = {"getCode", "getName", "getNumber", "getUnit"};
-    private static final int[] COLUMN_WIDTH = {50, 200, 40, 40};
-    private static final String TOOLTIP_DELETE = "選択したアイテムを削除します";
-    private static final String TOOLTIP_CLEAR = "セット内容をクリアします";
-    private static final String TOOLTIP_DND = "ドラッグ & ドロップで順番を入れ替えることができます";
-    private static final String TOOLTIP_ADMIN = "用法をマスタから選んでください";
-    private static final String TOOLTIP_ADMIN_COMMENT = "用法コメントをマスタから選んでください";
+    private static final String[] COLUMN_NAMES = {"コード", "診療内容", "数量","単位", " ", "回数"};
+    private static final String[] METHOD_NAMES = {"getCode", "getName", "getNumber", "getUnit", "getDummy", "getBundleNumber"};
+    private static final int[] COLUMN_WIDTH = {50, 210, 20, 20, 10, 20};
+    private static final String TOOLTIP_DELETE = "選択したアイテムを削除します。";
+    private static final String TOOLTIP_CLEAR = "セット内容をクリアします。";
+    private static final String TOOLTIP_DND = "ドラッグ & ドロップで順番を入れ替えることができます。";
     private static final String RESOURCE_BASE       = "/open/dolphin/resources/images/";
     private static final String REMOVE_BUTTON_IMAGE = "del_16.gif";
     private static final String CLEAR_BUTTON_IMAGE  = "remov_16.gif";
+    private static final String INFO_BUTTON_IMAGE   = "about_16.gif";
     private static final String LABEL_TEXT_IN_MED = "院内";
     private static final String LABEL_TEXT_OUT_MED = "院外";
     private static final String IN_MEDICINE     = "院内処方";
     private static final String EXT_MEDICINE    = "院外処方";
-    private static final String LABEL_TEXT_ADMIN = "用法";
-    private static final String LABEL_TEXT_MEMO = "メモ";
-    private static final String LABEL_TEXT_QUONTITY = "日(回)数";
     private static final String LABEL_TEXT_STAMP_NAME = "スタンプ名";
+    private static final String ADMIN_MARK = "[用法] ";
+    private static final String REG_ADMIN_MARK = "\\[用法\\] ";
     
-    /** Table の行数 */
+    // Table の行数
     private static final int ROWS               = 9;
     
-    /** 数量カラム番号 */
+    // 数量カラム番号 
     private static final int ONEDAY_COLUMN      = 2;
     
-    //
-    // GUI コンポーネント
-    //
-    /** セットテーブルの TableModel */
+    // 回数絡む
+    private static final int BUNDLE_COLUMN      = 5;
+    
+    // セットテーブルの TableModel
     private ObjectReflectTableModel medTableModel;
     
-    /** セットテーブルの JTable */
+    // セットテーブルの JTable
     private JTable medTable;
     
-    /** 用法フィールド */
-    private JTextField adminField;
-    
-    /** スタンプ名フィールド */
+    // スタンプ名フィールド
     private JTextField stampNameField;
     
-    /** 用法メモフィールド */
-    //private JTextField adminMemo;
-    
-    /** 院内処方 */
+    // 院内処方 
     private JRadioButton inMed;
     
-    /** 院外処方 */
+    // 院外処方 
     private JRadioButton extMed;
     
-    /** 数量コンボボックス */
-    private JComboBox numberCombo;
+    // State Label
+    private JLabel stateLabel;
     
-    /** 削除ボタン */
+    // 削除ボタン 
     private JButton removeButton;
     
-    /** クリアボタン */
+    // クリアボタン 
     private JButton clearButton;
     
-    /** StampModelEditor */
+    // StampModelEditor 
     private StampModelEditor parent;
     
-    /** 有効モデルフラグ */
+    // 有効モデルフラグ 
     private boolean validModel;
     
-    /** State Manager */
+    // State Manager 
     private MedTableStateMgr stateMgr;
     
-    /** このエディタの Entity */
+    // このエディタの Entity 
     private String entity;
     
-    /** 用法 */
-    private AdminInfo adminInfo;
-    
-    /** 再編集の場合に保存しておくレセ電算コード */
+    // 再編集の場合に保存しておくレセ電算コード 
     private String saveReceiptCode;
     
-    /** 再編集の場合に保存しておく数量コード */
-    private String saveNumberCode;
-    
-    
+    // デフォルト数
+    private String defaultBundleNumber = "1";
+    private String defaultNumber = "1";
+   
     /**
      * Creates new MedicineTable
      */
@@ -145,22 +144,26 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
         // 薬剤セットテーブルを生成する
         medTableModel = new ObjectReflectTableModel(COLUMN_NAMES, ROWS, METHOD_NAMES, null) {
             
-            private static final long serialVersionUID = 2532058728387931882L;
-            
-            // 一日（一回）数量のみ編集可能
+            // 数量と回数のみ編集可能
+            @Override
             public boolean isCellEditable(int row, int col) {
-                return col == ONEDAY_COLUMN ? true : false;
+                return (col == ONEDAY_COLUMN || col == BUNDLE_COLUMN) ? true : false;
             }
             
+            @Override
             public void setValueAt(Object o, int row, int col) {
+                
                 if (o == null || ((String)o).trim().equals("")) {
                     return;
                 }
                 
                 MasterItem mItem = (MasterItem) getObject(row);
                 
-                if (col == ONEDAY_COLUMN && mItem != null) {
+                if ( col == ONEDAY_COLUMN && mItem != null) {
                     mItem.setNumber((String) o);
+                    stateMgr.checkState();
+                } else if ( col == BUNDLE_COLUMN && mItem != null) {
+                    mItem.setBundleNumber((String) o);
                     stateMgr.checkState();
                 }
             }
@@ -168,11 +171,6 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
         
         // Tableを生成する
         medTable = new JTable(medTableModel);
-        medTable.setToolTipText(TOOLTIP_DND);
-        
-        //
-        // Table に MasterItemTrasferHandler を設定する
-        //
         medTable.setTransferHandler(new MasterItemTransferHandler());
         medTable.addMouseMotionListener(new MouseMotionListener() {
             public void mouseDragged(MouseEvent e) {
@@ -187,12 +185,6 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
         });
         medTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         medTable.setRowSelectionAllowed(true);
-        medTable.setSurrendersFocusOnKeystroke(true);         //JDK 1.4
-        medTable.setDefaultRenderer(Object.class, new OddEvenRowRenderer());
-        
-        //
-        // 行が選択された時、削除ボタンを制御する
-        //
         ListSelectionModel m = medTable.getSelectionModel();
         m.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
@@ -201,23 +193,25 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
                 }
             }
         });
+        medTable.setDefaultRenderer(Object.class, new OddEvenRowRenderer());
+        medTable.setToolTipText(TOOLTIP_DND);
         
-        //
-        // 数量カラムにエディタを設定する
-        // IME を OFF にする
-        //
-        NumberFormat numFormat = NumberFormat.getNumberInstance();
-        numFormat.setMinimumFractionDigits(2);
-        JFormattedTextField tf = new JFormattedTextField(numFormat);
-        tf.addFocusListener(new FocusAdapter() {
-            public void focusGained(FocusEvent event) {
-                JFormattedTextField tf = (JFormattedTextField) event.getSource();
-                tf.getInputContext().setCharacterSubsets(null);
-            }
-        });
-        
+        // 数量カラム
+        JTextField tf = new JTextField();
+        tf.addFocusListener(AutoRomanListener.getInstance());
         TableColumn column = medTable.getColumnModel().getColumn(ONEDAY_COLUMN);
-        column.setCellEditor(new DefaultCellEditor(tf));
+        DefaultCellEditor dce = new DefaultCellEditor(tf);
+        int ccts = Project.getPreferences().getInt("order.table.clickCountToStart", 1);
+        dce.setClickCountToStart(ccts);
+        column.setCellEditor(dce);
+        
+        // 回数カラム
+        JTextField tf2 = new JTextField();
+        tf2.addFocusListener(AutoRomanListener.getInstance());
+        TableColumn column2 = medTable.getColumnModel().getColumn(BUNDLE_COLUMN);
+        DefaultCellEditor dce2 = new DefaultCellEditor(tf2);
+        dce2.setClickCountToStart(ccts);
+        column2.setCellEditor(dce2);
         
         // 列幅を設定する
         int len = COLUMN_NAMES.length;
@@ -226,23 +220,11 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
             column.setPreferredWidth(COLUMN_WIDTH[i]);
         }
         
-        // 用法フィールドを生成する
-        adminField = new JTextField(10);
-        adminField.setEditable(false);
-        adminField.setToolTipText(TOOLTIP_ADMIN);
-        
-        // メモフィールドを生成する
-        //adminMemo = new JTextField(8);
-        //adminMemo.setToolTipText(TOOLTIP_ADMIN_COMMENT);
-        
-        // バンドルナンバー Comboを生成する
-        String[] numberList = ClientContext.getStringArray("rp.number.list");
-        numberCombo = new JComboBox(numberList);
-        numberCombo.setMaximumSize(numberCombo.getPreferredSize());
-        //
-        // 数量が手入力できるようにする
-        //
-        numberCombo.setEditable(true);
+        // StampNameフィールドを生成する
+        stampNameField = new JTextField(12);
+        stampNameField.setOpaque(true);
+        stampNameField.setBackground(new Color(251,239,128));
+        stampNameField.addFocusListener(AutoKanjiListener.getInstance());
         
         // 院内・院外処方ラジオボタンを生成する
         inMed = new JRadioButton(LABEL_TEXT_IN_MED);
@@ -266,15 +248,9 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
         inMed.addActionListener(al);
         extMed.addActionListener(al);
         
-        // StampNameフィールドを生成する
-        stampNameField = new JTextField(8);
-        stampNameField.setOpaque(true);
-        stampNameField.setBackground(new Color(251,239,128));
-        stampNameField.addFocusListener(new FocusAdapter() {
-            public void focusGained(FocusEvent event) {
-                stampNameField.getInputContext().setCharacterSubsets(new Character.Subset[] {InputSubset.KANJI});
-            }
-        });
+        // Info Icon
+        JLabel infoIcon = new JLabel(ClientContext.getImageIcon(INFO_BUTTON_IMAGE));
+        stateLabel = new JLabel();
         
         // Remove buttonを生成する
         removeButton = new JButton(createImageIcon(REMOVE_BUTTON_IMAGE));
@@ -296,20 +272,14 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
             }
         });
         
-        
         // スタンプ名、数量、用法、メモ、院内院外パネルを生成する
         JPanel infoP = new JPanel(new FlowLayout(FlowLayout.LEFT));
         infoP.add(new JLabel(LABEL_TEXT_STAMP_NAME));
         infoP.add(stampNameField);
-        infoP.add(new JLabel(LABEL_TEXT_QUONTITY));
-        infoP.add(numberCombo);
-        infoP.add(new JLabel(LABEL_TEXT_ADMIN));
-        infoP.add(adminField);
-        //infoP.add(Box.createHorizontalGlue());
-        //infoP.add(new JLabel(LABEL_TEXT_MEMO));
-        //infoP.add(adminMemo);
         infoP.add(inMed);
         infoP.add(extMed);
+        infoP.add(infoIcon);
+        infoP.add(stateLabel);
         
         // ボタンパネルを生成する
         JPanel bp = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -323,13 +293,7 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
         JPanel southP = new JPanel();
         southP.setLayout(new BoxLayout(southP, BoxLayout.X_AXIS));
         southP.add(infoP);
-        //southP.add(Box.createHorizontalGlue());
         southP.add(bp);
-        
-        // セットテーブル用のパネルを生成する
-        //JPanel setP = new JPanel(new BorderLayout());
-        //setP.add(medTable.getTableHeader(), BorderLayout.NORTH);
-        //setP.add(medTable, BorderLayout.CENTER);
         
         // 全体をレイアウトする
         JScrollPane scroller = new JScrollPane(medTable);
@@ -339,15 +303,8 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
         this.add(southP, BorderLayout.SOUTH);
         this.setPreferredSize(new Dimension(GUIConst.DEFAULT_EDITOR_WIDTH, GUIConst.DEFAULT_EDITOR_HEIGHT+50));
         
-        // 数量デフォルト
-        setDefaultBundleNumber();
-        
         // StateMgrを生成する
-        stateMgr = new MedTableStateMgr(this, medTable, removeButton, clearButton, stampNameField, adminField);
-    }
-    
-    private void setDefaultBundleNumber() {
-        numberCombo.setSelectedIndex(2);
+        stateMgr = new MedTableStateMgr(this, medTable, removeButton, clearButton, stampNameField, stateLabel);
     }
     
     public StampModelEditor getMyParent() {
@@ -380,49 +337,63 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
      * @param e PropertyChangeEvent
      */
     public void propertyChange(PropertyChangeEvent e) {
-        
-        String prop = e.getPropertyName();
             
         Object newValue = e.getNewValue();
 
         if (newValue != null && (newValue instanceof MasterItem)) {
 
             MasterItem item = (MasterItem) newValue;
-
-            //if (medTableModel.getObjectCount() < ROWS) {
-
+            
+            if (item.getClassCode() == ClaimConst.YAKUZAI) {
+                String inputNum = defaultNumber;
+                if (item.getUnit()!= null) {
+                    String unit = item.getUnit();
+                    if (unit.equals("錠")) {
+                        inputNum = Project.getPreferences().get("defaultZyozaiNum", "3");
+                    } else if (unit.equals("ｇ")) {
+                        inputNum = Project.getPreferences().get("defaultSanyakuNum", "1.0");
+                    } else if (unit.equals("ｍＬ")) {
+                        inputNum = Project.getPreferences().get("defaultMizuyakuNum", "1");
+                    }
+                } 
+                item.setNumber(inputNum);
                 medTableModel.addRow(item);
-
                 String name = stampNameField.getText().trim();
                 if (name.equals("") || name.equals(DEFAULT_STAMP_NAME)) {
                     stampNameField.setText(item.getName());
                 }
-                stateMgr.checkState();
-            //}
-
-        } else if (newValue != null && (newValue instanceof AdminInfo)) {
-
-            AdminInfo info = (AdminInfo) newValue;
-
-            switch(info.eventType) {
-
-                case AdminInfo.TT_ADMIN:
-                    adminInfo = info;
-                    adminField.setText(info.getAdmin());
-                    stateMgr.checkState();
-                    break;
-
-                case AdminInfo.TT_MEMO:
-                    //adminMemo.setText(info.getAdminMemo());
-                    break;
-            }   
-        }   
+                
+            } else if (item.getClassCode() == ClaimConst.ZAIRYO) {
+                item.setNumber(defaultNumber);
+                medTableModel.addRow(item);
+                String name = stampNameField.getText().trim();
+                if (name.equals("") || name.equals(DEFAULT_STAMP_NAME)) {
+                    stampNameField.setText(item.getName());
+                }
+                
+            } else if (item.getClassCode() == ClaimConst.SYUGI) {
+                medTableModel.addRow(item);
+                String name = stampNameField.getText().trim();
+                if (name.equals("") || name.equals(DEFAULT_STAMP_NAME)) {
+                    stampNameField.setText(item.getName());
+                }
+                
+            } else if (item.getClassCode() == ClaimConst.ADMIN) {
+                item.setName(ADMIN_MARK + item.getName());
+                item.setDummy("X");
+                item.setBundleNumber(Project.getPreferences().get("defaultRpNum", defaultNumber));
+                medTableModel.addRow(item);
+            }
+            
+            stateMgr.checkState();
+        }
     }
     
     private void notifySelectedRow() {
         int index = medTable.getSelectedRow();
         boolean b = medTableModel.getObject(index) != null ? true : false;
         removeButton.setEnabled(b);
+        //stateMgr.checkState();
     }
     
     private void clear() {
@@ -447,29 +418,18 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
         stateMgr.checkState();
     }
     
-    /**
-     * エディタで編集したスタンプを返す。
-     * @return エディタで編集したスタンプ
-     */
-    public Object getValue() {
+    private ModuleModel createModuleModel() {
         
-        //
-        // 常に新規のオブジェクトとして返す
-        //
         ModuleModel retModel = new ModuleModel();
         BundleMed med = new BundleMed();
         retModel.setModel(med);
         
-        //
         // StampInfoを設定する
-        //
         ModuleInfoBean moduleInfo = retModel.getModuleInfo();
         moduleInfo.setEntity(getEntity());
         moduleInfo.setStampRole(IInfoModel.ROLE_P);
         
-        //
         //　スタンプ名を設定する
-        //
         String stampName = stampNameField.getText().trim();
         if (!stampName.equals("")) {
             moduleInfo.setStampName(stampName);
@@ -477,125 +437,121 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
             moduleInfo.setStampName(DEFAULT_STAMP_NAME);
         }
         
-        //
-        // Data List をイテレートする
-        //
-        java.util.List list = medTableModel.getObjectList();
-        String receiptCode = null;
+        return retModel;
+    }
+    
+    private ClaimItem createClaimItem(MasterItem mItem) {
+        ClaimItem item = new ClaimItem();
+        item.setClassCode(String.valueOf(mItem.getClassCode()));
+        item.setClassCodeSystem(ClaimConst.SUBCLASS_CODE_ID);
+        item.setCode(mItem.getCode());
+        item.setName(mItem.getName());
+        return item;
+    }
+    
+    private List<ModuleModel> getBundles() {
         
-        for (Iterator iter = list.iterator(); iter.hasNext(); ) {
+        List<ModuleModel> retList = new ArrayList<ModuleModel>();
+        
+        List items = medTableModel.getObjectList();
+        ModuleModel module = createModuleModel();
+        BundleMed bundle = (BundleMed) module.getModel();
+        
+        for (Iterator iter = items.iterator(); iter.hasNext(); ) {
             
             MasterItem mItem = (MasterItem) iter.next();
             
-            if (mItem != null) {
+            if (mItem == null) {
+                break;
+            }
+            
+            String number = mItem.getNumber();
+            if (number != null && (!number.trim().equals(""))) {
+                number = ZenkakuUtils.toHankuNumber(number.trim());
+                mItem.setNumber(number);
+            } else {
+                number = null;
+            }
+            
+            switch(mItem.getClassCode()) {
                 
-                //
-                // ClaimItem を生成する
-                //
-                ClaimItem item = new ClaimItem();
-                item.setClassCode(String.valueOf(mItem.getClassCode()));
-                item.setClassCodeSystem(ClaimConst.SUBCLASS_CODE_ID);
-                item.setCode(mItem.getCode());
-                item.setName(mItem.getName());
-                
-                //
-                // 薬剤の場合
-                //
-                if (mItem.getClassCode() == ClaimConst.YAKUZAI) {
-                
+                case ClaimConst.SYUGI:
+                    ClaimItem sItem = createClaimItem(mItem);
+                    bundle.addClaimItem(sItem);
+                    break;
+                    
+                case ClaimConst.YAKUZAI:
+                    ClaimItem yItem = createClaimItem(mItem);
+                    bundle.addClaimItem(yItem);
+                    if (number != null) {
+                        yItem.setNumber(number);
+                        yItem.setUnit(mItem.getUnit());
+                        //
+                        // 数量コード 10/11/12 2007-05 現在のORCAの実装では採用していない
+                        //
+                        yItem.setNumberCode(ClaimConst.YAKUZAI_TOYORYO);
+                        yItem.setNumberCodeSystem(ClaimConst.NUMBER_CODE_ID);
+                    }
                     //
-                    // レセ電算コードを設定する
-                    // 薬剤区分が 1=内用(210) 6=外用(230)
-                    // 最初の薬剤のみを使用する
-                    //
-                    if (receiptCode == null) {
-                        
+                    if (bundle.getClassCode() == null) {
+                        String rCode = null;
                         if (mItem.getYkzKbn() != null) {
-                            
-                            receiptCode = mItem.getYkzKbn().equals(ClaimConst.YKZ_KBN_NAIYO)
+                            rCode = mItem.getYkzKbn().equals(ClaimConst.YKZ_KBN_NAIYO)
                                         ? ClaimConst.RECEIPT_CODE_NAIYO 
                                         : ClaimConst.RECEIPT_CODE_GAIYO;
                             
                         } else if (saveReceiptCode != null) {
-                            
-                            receiptCode = saveReceiptCode;
+                            rCode = saveReceiptCode;
                             
                         } else {
-                            
-                            receiptCode = ClaimConst.RECEIPT_CODE_NAIYO;
+                            rCode = ClaimConst.RECEIPT_CODE_NAIYO;
                         }
-                        
-                        med.setClassCode(receiptCode);
-                        med.setClassCodeSystem(ClaimConst.CLASS_CODE_ID);
-                        med.setClassName(MMLTable.getClaimClassCodeName(receiptCode));
+                        bundle.setClassCode(rCode);
+                        bundle.setClassCodeSystem(ClaimConst.CLASS_CODE_ID);
+                        bundle.setClassName(MMLTable.getClaimClassCodeName(rCode));
                     }
+                    break;
                     
-                    //
-                    // 数量と数量コードを設定する
-                    //
-                    String number = mItem.getNumber();
-                    if (number != null && (! number.trim().equals("")) ) {
-                        item.setNumber(number.trim());
-                        item.setUnit(mItem.getUnit());
-                        //
-                        // 数量コード 10/11/12 2007-05 現在のORCAの実装では採用していない
-                        //
-                        item.setNumberCode(ClaimConst.YAKUZAI_TOYORYO);
-                        item.setNumberCodeSystem(ClaimConst.NUMBER_CODE_ID);
+                case ClaimConst.ZAIRYO:
+                    ClaimItem zItem = createClaimItem(mItem);
+                    bundle.addClaimItem(zItem);
+                    if (number != null) {
+                        zItem.setNumber(number);
+                        zItem.setUnit(mItem.getUnit());
+                        zItem.setNumberCode(ClaimConst.ZAIRYO_KOSU);
+                        zItem.setNumberCodeSystem(ClaimConst.NUMBER_CODE_ID);
                     }
+                    break;
                     
-                    med.addClaimItem(item);
-                
-                } else if (mItem.getClassCode() == ClaimConst.ZAIRYO) {
-                    //
-                    // 材料の場合
-                    //
-                    String number = mItem.getNumber();
-                    if (number != null && (! number.trim().equals("")) ) {
-                        item.setNumber(number.trim());
-                        item.setUnit(mItem.getUnit());
-                        item.setNumberCode(ClaimConst.ZAIRYO_KOSU);
-                        item.setNumberCodeSystem(ClaimConst.NUMBER_CODE_ID);
+                case ClaimConst.ADMIN:
+                    String ommit = mItem.getName().replaceAll(REG_ADMIN_MARK, "");
+                    bundle.setAdmin(ommit);
+                    bundle.setAdminCode(mItem.getCode());
+                    String bNum = mItem.getBundleNumber();
+                    if (bNum != null && (!bNum.trim().equals(""))) {
+                        bNum = ZenkakuUtils.toHankuNumber(bNum.trim());
+                        bundle.setBundleNumber(mItem.getBundleNumber());
                     }
+                    String memo = inMed.isSelected() ? IN_MEDICINE : EXT_MEDICINE;
+                    bundle.setMemo(memo);
                     
-                    med.addClaimItem(item);
-                    
-                } else if (mItem.getClassCode() == ClaimConst.SYUGI) {
-                    //
-                    // 手技の場合
-                    //
-                    med.addClaimItem(item);
-                }
+                    retList.add(module);
+                    module = createModuleModel();
+                    bundle =(BundleMed) module.getModel();
+                    break;  
             }
         }
         
-        //
-        // 用法を設定する
-        //
-        if ( adminInfo != null && (!adminField.getText().trim().equals("")) ) {
-            med.setAdmin(adminInfo.getAdmin());
-            med.setAdminCode(adminInfo.getAdminCode());
-        }
-        
-//        // Admin Memo
-//        String memo = adminMemo.getText();
-//        if (! memo.equals("")) {
-//            med.setAdminMemo(memo);
-//        }
-        
-        // FIXME Memo
-        String memo = null;
-        if (inMed.isSelected()) {
-           memo = IN_MEDICINE;
-        } else {
-            memo = EXT_MEDICINE;
-        }
-        med.setMemo(memo);
-        
-        // BundleNumber
-        med.setBundleNumber((String) numberCombo.getSelectedItem());
-        
-        return (Object) retModel;
+        return retList;
+    }
+    
+    /**
+     * エディタで編集したスタンプを返す。
+     * @return エディタで編集したスタンプ
+     */
+    public Object getValue() {
+        List<ModuleModel> list = getBundles();
+        return (Object) list.get(0);
     }
     
     /**
@@ -604,10 +560,8 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
      */
     public void setValue(Object theStamp) {
         
-        
         // 連続して編集される場合があるのでテーブル内容等をクリアする
         clear();
-        
         
         if (theStamp == null) {
             // Stateを変更する
@@ -644,8 +598,7 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
         }
         
         ClaimItem[] items = med.getClaimItem();
-        String saveNumberCode = null;
-        
+
         for (ClaimItem item : items) {
             
             MasterItem mItem = new MasterItem();
@@ -655,27 +608,27 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
             mItem.setName(item.getName());
             mItem.setCode(item.getCode());
             
-            // 器材または医薬品
-            if (mItem.getClassCode() != ClaimConst.SYUGI) {
-                mItem.setNumber(item.getNumber());
+            String number = item.getNumber();
+            if (number != null && (!number.equals(""))) {
+                number = ZenkakuUtils.toHankuNumber(number.trim());
+                mItem.setNumber(number);
                 mItem.setUnit(item.getUnit());
-                
-                if (mItem.getNumber() != null) {
-                    if (mItem.getClassCode() == ClaimConst.YAKUZAI) {
-                        // 医薬品の場合は数量コードを保存しておく
-                        saveNumberCode = item.getNumberCode();
-                    }
-                }
             }
+                
             medTableModel.addRow(mItem);
         }
         
         // Save Administration
         if (med.getAdmin() != null) {
-            adminInfo = new AdminInfo();
-            adminInfo.setAdmin(med.getAdmin());
-            adminInfo.setAdminCode(med.getAdminCode());
-            adminField.setText(adminInfo.getAdmin());
+            MasterItem item = new MasterItem();
+            item.setClassCode(3);
+            item.setCode(med.getAdminCode());
+            item.setName(ADMIN_MARK + med.getAdmin());
+            item.setDummy("X");
+            String bNumber = med.getBundleNumber();
+            bNumber = ZenkakuUtils.toHankuNumber(bNumber);
+            item.setBundleNumber(bNumber);
+            medTableModel.addRow(item);
         }
         
         // Memo
@@ -685,9 +638,6 @@ public final class MedicineTablePanel extends JPanel implements PropertyChangeLi
         } else {
             extMed.setSelected(true);
         }
-        
-        // Bundle number
-        numberCombo.setSelectedItem(med.getBundleNumber());
         
         // Notify
         stateMgr.checkState();

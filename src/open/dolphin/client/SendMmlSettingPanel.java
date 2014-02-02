@@ -1,10 +1,5 @@
-/*
- * Created on 2005/06/01
- *
- */
 package open.dolphin.client;
 
-import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionListener;
 import javax.swing.ButtonGroup;
@@ -15,6 +10,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.event.DocumentListener;
+import open.dolphin.helper.GridBagBuilder;
 
 import open.dolphin.project.ProjectStub;
 
@@ -23,6 +19,10 @@ import open.dolphin.project.ProjectStub;
  *
  */
 public class SendMmlSettingPanel extends AbstractSettingPanel {
+    
+    private static final String ID = "mmlSetting";
+    private static final String TITLE = "MML出力";
+    private static final String ICON = "cd_24.gif";
     
     // MML送信関係コンポーネント
     private JRadioButton sendMML;
@@ -38,6 +38,9 @@ public class SendMmlSettingPanel extends AbstractSettingPanel {
     private StateMgr stateMgr;
     
     public SendMmlSettingPanel() {
+        this.setId(ID);
+        this.setTitle(TITLE);
+        this.setIcon(ICON);
     }
     
     /**

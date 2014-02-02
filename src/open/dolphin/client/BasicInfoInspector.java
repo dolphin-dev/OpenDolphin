@@ -1,12 +1,3 @@
-/*
- * BasicInfoInspector.java
- *
- * Created on 2007/01/18, 16:48
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
 package open.dolphin.client;
 
 import java.awt.BorderLayout;
@@ -33,13 +24,13 @@ public class BasicInfoInspector {
     private Color unknownColor;
     
     // Context このインスペクタの親コンテキスト
-    private ChartPlugin context;
+    private ChartImpl context;
 
 
     /**
      * BasicInfoInspectorオブジェクトを生成する。
      */
-    public BasicInfoInspector(ChartPlugin context) {
+    public BasicInfoInspector(ChartImpl context) {
         this.context = context;
         initComponent();
         update();

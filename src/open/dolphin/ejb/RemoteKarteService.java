@@ -11,6 +11,7 @@ import open.dolphin.dto.ModuleSearchSpec;
 import open.dolphin.dto.ObservationSearchSpec;
 import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.infomodel.KarteBean;
+import open.dolphin.infomodel.LetterModel;
 import open.dolphin.infomodel.ObservationModel;
 import open.dolphin.infomodel.PatientMemoModel;
 import open.dolphin.infomodel.RegisteredDiagnosisModel;
@@ -162,5 +163,12 @@ public interface RemoteKarteService {
      * @return —\–ñ‚Ì Collection
      */
     public List<List> getAppointmentList(ModuleSearchSpec spec);
+    
+    
+    public long saveOrUpdateLetter(LetterModel model);
+    
+    public List<LetterModel> getLetterList(long karteId, String docType);
+    
+    public LetterModel getLetter(long letterPk);
     
 }

@@ -1,22 +1,3 @@
-/*
- * NewKarteDialog.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2003,2004 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
 import java.beans.EventHandler;
@@ -28,26 +9,25 @@ import open.dolphin.infomodel.PVTHealthInsuranceModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.prefs.Preferences;
+import open.dolphin.project.Project;
 
 
 /**
- * Dialog to select Health Insurance for new Karte.
+ * 新規カルテ作成のダイアログ。
  *
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
 public final class NewKarteDialog {
     
-    private static final long serialVersionUID = -3463826098185685559L;
-    
-    private static final String OPEN_ANOTHER 		= "別ウィンドウで編集";
-    private static final String ADD_TO_TAB 		= "タブパネルへ追加";
-    private static final String EMPTY_NEW 		= "空白の新規カルテ";
-    private static final String APPLY_RP 		= "前回処方を適用";
-    private static final String ALL_COPY 		= "全てコピー";
-    private static final String DEPARTMENT 		=  "診療科:";
-    private static final String SELECT_INS 		=  "保険選択";
-    private static final String LAST_CREATE_MODE 	= "newKarteDialog.lastCreateMode";
-    private static final String FRAME_MEMORY 		= "newKarteDialog.openFrame";
+    private static final String OPEN_ANOTHER        = "別ウィンドウで編集";
+    private static final String ADD_TO_TAB          = "タブパネルへ追加";
+    private static final String EMPTY_NEW           = "空白の新規カルテ";
+    private static final String APPLY_RP            = "前回処方を適用";
+    private static final String ALL_COPY            = "全てコピー";
+    private static final String DEPARTMENT          =  "診療科:";
+    private static final String SELECT_INS          =  "保険選択";
+    private static final String LAST_CREATE_MODE    = "newKarteDialog.lastCreateMode";
+    private static final String FRAME_MEMORY        = "newKarteDialog.openFrame";
     
     private NewKarteParams params;
     
@@ -55,14 +35,14 @@ public final class NewKarteDialog {
     private JButton okButton;
     private JButton cancelButton;
     private JRadioButton emptyNew;
-    private JRadioButton applyRp;			// 前回処方を適用
-    private JRadioButton allCopy;			// 全てコピー
+    private JRadioButton applyRp;       // 前回処方を適用
+    private JRadioButton allCopy;	// 全てコピー
     private JList insuranceList;
     private JLabel departmentLabel;
-    private JRadioButton addToTab;			// タブパネルへ追加
-    private JRadioButton openAnother;		// 別 Window へ表示
+    private JRadioButton addToTab;	// タブパネルへ追加
+    private JRadioButton openAnother;	// 別 Window へ表示
     
-    private Preferences prefs = Preferences.userNodeForPackage(this.getClass());
+    private Preferences prefs;
     
     private Frame parentFrame;
     private String title;
@@ -75,6 +55,7 @@ public final class NewKarteDialog {
      * Creates new OpenKarteDialog 
      */
     public NewKarteDialog(Frame parentFrame, String title) {
+        prefs = Preferences.userNodeForPackage(this.getClass());
         this.parentFrame = parentFrame;
         this.title = title;
         content = createComponent();
@@ -176,6 +157,7 @@ public final class NewKarteDialog {
         
         dialog = jop.createDialog(parentFrame, title);
         dialog.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowOpened(WindowEvent e) {
                 insuranceList.requestFocusInWindow();
             }
@@ -189,7 +171,8 @@ public final class NewKarteDialog {
     
     private void setDepartment(String dept) {
         if (dept != null) {
-            departmentLabel.setText(dept);
+            String[] depts = dept.split("\\s*,\\s*");
+            departmentLabel.setText(depts[0]);
         }
     }
     
@@ -208,15 +191,15 @@ public final class NewKarteDialog {
         }
     }
     
-    private IChart.NewKarteMode getCreateMode() {
+    private Chart.NewKarteMode getCreateMode() {
         if (emptyNew.isSelected()) {
-            return IChart.NewKarteMode.EMPTY_NEW;
+            return Chart.NewKarteMode.EMPTY_NEW;
         } else if (applyRp.isSelected()) {
-            return IChart.NewKarteMode.APPLY_RP;
+            return Chart.NewKarteMode.APPLY_RP;
         } else if (allCopy.isSelected()) {
-            return IChart.NewKarteMode.ALL_COPY;
+            return Chart.NewKarteMode.ALL_COPY;
         }
-        return IChart.NewKarteMode.EMPTY_NEW;
+        return Chart.NewKarteMode.EMPTY_NEW;
     }
     
     private void selectCreateMode(int mode) {
@@ -236,10 +219,8 @@ public final class NewKarteDialog {
         
         // 診療科情報ラベル
         departmentLabel = new JLabel();
-        JPanel dp = new JPanel();
-        dp.setLayout(new BoxLayout(dp, BoxLayout.X_AXIS));
+        JPanel dp = new JPanel(new FlowLayout(FlowLayout.CENTER, 11, 0));
         dp.add(new JLabel(DEPARTMENT));
-        dp.add(Box.createHorizontalStrut(11));
         dp.add(departmentLabel);
         
         // 保険選択リスト
@@ -284,7 +265,7 @@ public final class NewKarteDialog {
         openPanel.add(Box.createHorizontalGlue());
         
         // ok
-        String buttonText =  (String)UIManager.get("OptionPane.okButtonText");
+        String buttonText =  (String) UIManager.get("OptionPane.okButtonText");
         okButton = new JButton(buttonText);
         okButton.addActionListener((ActionListener) EventHandler.create(ActionListener.class, this, "doOk"));
         okButton.setEnabled(false);
@@ -292,7 +273,6 @@ public final class NewKarteDialog {
         // Cancel Button
         buttonText =  (String)UIManager.get("OptionPane.cancelButtonText");
         cancelButton = new JButton(buttonText);
-        //cancelButton.setMnemonic(KeyEvent.VK_C);
         cancelButton.addActionListener((ActionListener) EventHandler.create(ActionListener.class, this, "doCancel"));
                 
         // 全体を配置
@@ -348,6 +328,8 @@ public final class NewKarteDialog {
     public void memoryFrame() {
         boolean openFrame = openAnother.isSelected();
         prefs.putBoolean(FRAME_MEMORY,openFrame);
+        Preferences gpref = Project.getPreferences();
+        gpref.putBoolean(Project.KARTE_PLACE_MODE, openFrame);
     }
     
     /**
@@ -355,7 +337,7 @@ public final class NewKarteDialog {
      */
     public void doOk() {
         params.setDepartment(departmentLabel.getText());
-        params.setPVTHealthInsurance((PVTHealthInsuranceModel)insuranceList.getSelectedValue());
+        params.setPVTHealthInsurance((PVTHealthInsuranceModel) insuranceList.getSelectedValue());
         params.setCreateMode(getCreateMode());
         params.setOpenFrame(openAnother.isSelected());
         value = (Object) params;
@@ -370,13 +352,5 @@ public final class NewKarteDialog {
         value = null;
         dialog.setVisible(false);
         dialog.dispose();
-    }
-    
-    private JPanel createCmdPanel(JButton[] btns) {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT,5, 0));
-        for (JButton btn : btns) {
-            panel.add(btn);
-        }
-        return panel;
     }
 }

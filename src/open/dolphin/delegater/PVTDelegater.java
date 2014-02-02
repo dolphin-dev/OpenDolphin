@@ -41,6 +41,7 @@ import open.dolphin.util.BeanUtils;
 public class PVTDelegater extends BusinessDelegater {
     
     private Logger logger;
+
     
     public void setLogger(Logger l) {
         logger = l;
@@ -58,11 +59,15 @@ public class PVTDelegater extends BusinessDelegater {
         
         try {
             retCode = getService().addPvt(pvtModel);
-            logger.info("受付情報を保存しました");
+            if (logger != null && logger.isDebugEnabled()) {
+                logger.info("受付情報を保存しました。");
+            }
             
         } catch (Exception e) {
-            logger.info("受付情報の保存に失敗しました");
-            logger.warn(e.toString());
+            if (logger != null && logger.isDebugEnabled()) {
+                logger.warn("受付情報の保存に失敗しました");
+                logger.warn(e.toString());
+            }
             e.printStackTrace();
             processError(e);
         }

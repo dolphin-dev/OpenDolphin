@@ -13,25 +13,24 @@ import open.dolphin.table.ObjectReflectTableModel;
  *
  */
 public abstract class AbstractSetTableState {
-	
-	protected JTable setTable;
-	protected JButton deleteBtn;
-	protected JButton clearBtn;
-	protected JTextField stampNameField;
-	
-	public AbstractSetTableState(JTable setTable, JButton deleteBtn, JButton clearBtn, JTextField stampNameField) {
-		this.setTable = setTable;
-		this.deleteBtn = deleteBtn;
-		this.clearBtn = clearBtn;
-		this.stampNameField = stampNameField;
-	}
-	
-	public ObjectReflectTableModel getTableModel() {
-		return (ObjectReflectTableModel) setTable.getModel();
-	}
-	
-	public abstract void enter();
-	
-	public abstract boolean isValidModel();
 
+    protected JTable setTable;
+    protected JButton deleteBtn;
+    protected JButton clearBtn;
+    protected JTextField stampNameField;
+
+    public AbstractSetTableState(JTable setTable, JButton deleteBtn, JButton clearBtn, JTextField stampNameField) {
+        this.setTable = setTable;
+        this.deleteBtn = deleteBtn;
+        this.clearBtn = clearBtn;
+        this.stampNameField = stampNameField;
+    }
+
+    public ObjectReflectTableModel getTableModel() {
+        return (ObjectReflectTableModel) setTable.getModel();
+    }
+
+    public abstract void enter();
+
+    public abstract boolean isValidModel();
 }

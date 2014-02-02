@@ -19,7 +19,6 @@
 package open.dolphin.infomodel;
 
 import java.util.ArrayList;
-import java.util.List;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 /**
@@ -174,7 +173,6 @@ public class OrcaInputCd extends InfoModel {
     }
     
     public ModuleInfoBean getStampInfo() {
-        
         ModuleInfoBean ret = new ModuleInfoBean();
         ret.setStampName(getDspName());
         ret.setStampRole(ROLE_ORCA_SET);

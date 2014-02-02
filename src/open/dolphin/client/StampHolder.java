@@ -1,35 +1,27 @@
-/*
- * StampHolder2.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2004-2005 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
-import javax.swing.*;
-import javax.swing.text.*;
-import java.beans.*;
-import java.io.*;
-import java.awt.*;
-import java.awt.event.FocusEvent;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
+import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
+import javax.swing.JPopupMenu;
+import javax.swing.text.Position;
 
+import open.dolphin.infomodel.BundleDolphin;
+import open.dolphin.infomodel.ClaimItem;
 import open.dolphin.infomodel.IInfoModel;
+import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.ModuleModel;
 
+import open.dolphin.project.Project;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.VelocityContext;
 
@@ -38,9 +30,7 @@ import org.apache.velocity.VelocityContext;
  *
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
-public final class StampHolder extends ComponentHolder implements IComponentHolder{
-    
-    private static final long serialVersionUID = -115789645956065719L;
+public final class StampHolder extends AbstractComponentHolder implements ComponentHolder{
     
     private static final char[] MATCHIES = {'０','１','２','３','４','５','６','７','８','９','　','ｍ','ｇ'};
     private static final char[] REPLACES = {'0','1','2','3','4','5','6','7','8','9',' ','m','g'};
@@ -73,36 +63,25 @@ public final class StampHolder extends ComponentHolder implements IComponentHold
     /**
      * Focusされた場合のメニュー制御とボーダーを表示する。
      */
-    public void focusGained(FocusEvent e) {
-        //System.out.println("stamp gained");
-        ChartMediator mediator = kartePane.getMediator();
-        mediator.setCurrentComponent(this);
-        mediator.getAction(GUIConst.ACTION_CUT).setEnabled(false);
-        mediator.getAction(GUIConst.ACTION_COPY).setEnabled(false);
-        mediator.getAction(GUIConst.ACTION_PASTE).setEnabled(false);
-        mediator.getAction(GUIConst.ACTION_UNDO).setEnabled(false);
-        mediator.getAction(GUIConst.ACTION_REDO).setEnabled(false);
-        mediator.getAction(GUIConst.ACTION_INSERT_TEXT).setEnabled(false);
-        mediator.getAction(GUIConst.ACTION_INSERT_SCHEMA).setEnabled(false);
-        mediator.getAction(GUIConst.ACTION_INSERT_STAMP).setEnabled(false);
-        mediator.enableMenus(new String[]{GUIConst.ACTION_COPY});
+    public void enter(ActionMap map) {
+        
+        map.get(GUIConst.ACTION_COPY).setEnabled(true);
+        
         if (kartePane.getTextPane().isEditable()) {
-            mediator.enableMenus(new String[]{GUIConst.ACTION_CUT});
+            map.get(GUIConst.ACTION_CUT).setEnabled(true);
         } else {
-            mediator.disableMenus(new String[]{GUIConst.ACTION_CUT});
+            map.get(GUIConst.ACTION_CUT).setEnabled(false);
         }
-        mediator.disableMenus(new String[]{GUIConst.ACTION_PASTE});
+        
+        map.get(GUIConst.ACTION_PASTE).setEnabled(false);
+        
         setSelected(true);
     }
     
     /**
      * Focusがはずれた場合のメニュー制御とボーダーの非表示を行う。
      */
-    public void focusLost(FocusEvent e) {
-        //System.out.println("stamp lost");
-        //ChartMediator mediator = kartePane.getMediator();
-        //String[] menus = new String[]{"cut", "copy", "paste"};
-        //mediator.disableMenus(menus);
+    public void exit(ActionMap map) {
         setSelected(false);
     }
     
@@ -112,14 +91,16 @@ public final class StampHolder extends ComponentHolder implements IComponentHold
     public void mabeShowPopup(MouseEvent e) {
         if (e.isPopupTrigger()) {
             JPopupMenu popup = new JPopupMenu();
-            // popup時にStampHolderがFocusLostになるため
-            popup.setFocusable(false);
             ChartMediator mediator = kartePane.getMediator();
             popup.add(mediator.getAction(GUIConst.ACTION_CUT));
             popup.add(mediator.getAction(GUIConst.ACTION_COPY));
             popup.add(mediator.getAction(GUIConst.ACTION_PASTE));
             popup.show(e.getComponent(), e.getX(), e.getY());
         }
+    }
+    
+    public Component getComponent() {
+        return this;
     }
     
     /**
@@ -133,7 +114,7 @@ public final class StampHolder extends ComponentHolder implements IComponentHold
      * スタンプホルダのコンテントタイプを返す。
      */
     public int getContentType() {
-        return IComponentHolder.TT_STAMP;
+        return ComponentHolder.TT_STAMP;
     }
     
     /**
@@ -222,6 +203,7 @@ public final class StampHolder extends ComponentHolder implements IComponentHold
      */
     public void importStamp(ModuleModel newStamp) {
         setStamp(newStamp);
+        kartePane.setDirty(true);
         kartePane.getTextPane().validate();
         kartePane.getTextPane().repaint();
     }
@@ -260,8 +242,14 @@ public final class StampHolder extends ComponentHolder implements IComponentHold
             context.put("hints", getHints());
             context.put("stampName", getStamp().getModuleInfo().getStampName());
             
-            // このスタンプのテンプレートファイルを得る
             String templateFile = getStamp().getModel().getClass().getName() + ".vm";
+            
+            // このスタンプのテンプレートファイルを得る
+            if (getStamp().getModuleInfo().getEntity().equals(IInfoModel.ENTITY_LABO_TEST)) {
+                if (Project.getPreferences().getBoolean("laboFold", true)) {
+                    templateFile = "labo.vm";
+                }  
+            } 
             
             // Merge する
             StringWriter sw = new StringWriter();
@@ -288,3 +276,15 @@ public final class StampHolder extends ComponentHolder implements IComponentHold
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+

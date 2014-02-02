@@ -1,12 +1,3 @@
-/*
- * UnsavedDocument.java
- *
- * Created on 2007/01/15, 20:38
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
 package open.dolphin.client;
 
 import javax.swing.JCheckBox;
@@ -16,19 +7,16 @@ import javax.swing.JCheckBox;
  * @author Minagawa, Kazushi
  */
 public class UnsavedDocument {
-    
+
     private int index;
-    
-    private IChartDocument doc;
-    
+    private ChartDocument doc;
     private JCheckBox checkBox;
-    
-    
+
     /** Creates a new instance of UnsavedDocument */
     public UnsavedDocument() {
     }
-    
-    public UnsavedDocument(int index, IChartDocument doc) {
+
+    public UnsavedDocument(int index, ChartDocument doc) {
         this();
         this.setIndex(index);
         this.setDoc(doc);
@@ -44,22 +32,23 @@ public class UnsavedDocument {
         this.index = index;
     }
 
-    public IChartDocument getDoc() {
+    public ChartDocument getDoc() {
         return doc;
     }
 
-    public void setDoc(IChartDocument doc) {
+    public void setDoc(ChartDocument doc) {
         this.doc = doc;
     }
-    
+
     public boolean isNeedSave() {
         return checkBox.isSelected();
     }
-    
+
     public JCheckBox getCheckBox() {
         return checkBox;
     }
-    
+
+    @Override
     public String toString() {
         return doc.getTitle();
     }

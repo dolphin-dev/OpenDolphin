@@ -17,6 +17,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import open.dolphin.helper.GridBagBuilder;
 
 import open.dolphin.infomodel.DepartmentModel;
 import open.dolphin.infomodel.FacilityModel;
@@ -166,6 +167,7 @@ public class AccountInfoPanel extends JPanel {
     private void initialize() {
         
         FocusAdapter imeOn = new FocusAdapter() {
+            @Override
             public void focusGained(FocusEvent event) {
                 JTextField tf = (JTextField)event.getSource();
                 tf.getInputContext().setCharacterSubsets(new Character.Subset[] {InputSubset.KANJI});
@@ -173,6 +175,7 @@ public class AccountInfoPanel extends JPanel {
         };
         
         FocusAdapter imeOff = new FocusAdapter() {
+            @Override
             public void focusGained(FocusEvent event) {
                 JTextField tf = (JTextField)event.getSource();
                 tf.getInputContext().setCharacterSubsets(null);

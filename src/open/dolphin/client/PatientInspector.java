@@ -1,10 +1,7 @@
 package open.dolphin.client;
 
-
 import java.awt.Dimension;
-import java.util.prefs.Preferences;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -41,14 +38,19 @@ public class PatientInspector {
     private JPanel container;
     
     // Context このインスペクタの親コンテキスト
-    private ChartPlugin context;
+    private ChartImpl context;
+    
+    private boolean bMemo;
+    private boolean bAllergy;
+    private boolean bPhysical;
+    private boolean bCalendar;  
     
     /**
      * 患者インスペクタクラスを生成する。
      *
      * @param context インスペクタの親コンテキスト
      */
-    public PatientInspector(ChartPlugin context) {
+    public PatientInspector(ChartImpl context) {
         
         // このインスペクタが格納される Chart Object
         setContext(context);
@@ -67,14 +69,14 @@ public class PatientInspector {
     /**
      * コンテキストを返す。
      */
-    public ChartPlugin getContext() {
+    public ChartImpl getContext() {
         return context;
     }
     
     /**
      * コンテキストを設定する。
      */
-    public void setContext(ChartPlugin context) {
+    public void setContext(ChartImpl context) {
         this.context = context;
     }
     
@@ -134,13 +136,9 @@ public class PatientInspector {
         return container;
     }
     
-    /**
-     * GUI コンポーネントを初期化する。
-     *
-     */
+    
     private void initComponents() {
         
-        // タブ及びボーダタイトル名を取得する
         // 来院歴
         String pvtTitle = ClientContext.getString("patientInspector.pvt.title");
         
@@ -156,6 +154,11 @@ public class PatientInspector {
         // メモ
         String memoTitle = ClientContext.getString("patientInspector.memo.title");
         
+        String topInspector = Project.getPreferences().get("topInspector", "メモ");
+        String secondInspector = Project.getPreferences().get("secondInspector", "カレンダ");
+        String thirdInspector = Project.getPreferences().get("thirdInspector", "文書履歴");
+        String forthInspector = Project.getPreferences().get("forthInspector", "アレルギ");
+        
         // 各インスペクタを生成する
         basicInfoInspector = new BasicInfoInspector(context);
         patientVisitInspector = new PatientVisitInspector(context);
@@ -164,52 +167,104 @@ public class PatientInspector {
         allergyInspector = new AllergyInspector(context);
         physicalInspector = new PhysicalInspector(context);
         
-        // 来院歴とメモは常に見えるように配置する
-        JPanel patientVisitPanel = patientVisitInspector.getPanel();
-        patientVisitPanel.setBorder(BorderFactory.createTitledBorder(pvtTitle));
-        JPanel memoPanel = memoInspector.getPanel();
-        memoPanel.setBorder(BorderFactory.createTitledBorder(memoTitle));
-        
         // タブパネルへ格納する(文書履歴、健康保険、アレルギ、身長体重はタブパネルで切り替え表示する)
         tabbedPane = new JTabbedPane();
         tabbedPane.addTab(docHistoryTitle, docHistory.getPanel());
-        tabbedPane.addTab(allergyTitle, allergyInspector.getPanel());
-        tabbedPane.addTab(physicalTitle, physicalInspector.getPanel());
         
-        // 全体を配置する
-        Preferences pref = Project.getPreferences();
+        int prefW = 260;
+        int prefW2 = 260;
+        if (ClientContext.isMac()) {
+            prefW2 += 20;
+        }
+        basicInfoInspector.getPanel().setPreferredSize(new Dimension(prefW2, 40));
+        basicInfoInspector.getPanel().setMaximumSize(new Dimension(prefW2, 40));
+        basicInfoInspector.getPanel().setMinimumSize(new Dimension(prefW2, 40));
+        memoInspector.getPanel().setPreferredSize(new Dimension(prefW, 70));
+        allergyInspector.getPanel().setPreferredSize(new Dimension(prefW, 100));
+        docHistory.getPanel().setPreferredSize(new Dimension(prefW, 280));
+        physicalInspector.getPanel().setPreferredSize(new Dimension(prefW, 110));
+        //int prefH = patientVisitInspector.getPanel().getPreferredSize().height;
+        //patientVisitInspector.getPanel().setPreferredSize(new Dimension(prefW, prefH));
+        
         container = new JPanel();
         container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
-        int memoLoc = pref.getInt(Project.INSPECTOR_MEMO_LOCATION, 0);
         
-        switch (memoLoc) {
-            
-            case 0:
-                // カレンダ、文書履歴、メモ （デフォルト）
-                container.add(patientVisitPanel);
-                container.add(Box.createRigidArea(new Dimension(0,7)));
-                container.add(tabbedPane);
-                container.add(Box.createRigidArea(new Dimension(0,7)));
-                container.add(memoPanel);
-                break;
-                
-            case 1:
-                // メモ、カレンダ、文書履歴
-                container.add(memoPanel);
-                container.add(Box.createRigidArea(new Dimension(0,7)));
-                container.add(patientVisitPanel);
-                container.add(Box.createRigidArea(new Dimension(0,7)));
-                container.add(tabbedPane);
-                break;
-                
-            case 2:
-                // メモ、文書履歴カレンダ
-                container.add(memoPanel);
-                container.add(Box.createRigidArea(new Dimension(0,7)));
-                container.add(tabbedPane);
-                container.add(Box.createRigidArea(new Dimension(0,7)));
-                container.add(patientVisitPanel);
-                break;
+        // 左側のレイアウトを行う
+        layoutRow(container, topInspector);
+        layoutRow(container, secondInspector);
+        layoutRow(container, thirdInspector);
+        layoutRow(container, forthInspector);
+        
+        // 左側にレイアウトされなかったものをタブに格納する
+        if (!bMemo) {
+            tabbedPane.addTab(memoTitle, memoInspector.getPanel());
+        }
+        
+        if (!bCalendar) {
+            tabbedPane.addTab(pvtTitle, patientVisitInspector.getPanel());
+        }
+        
+        if (!bAllergy) {
+            tabbedPane.addTab(allergyTitle, allergyInspector.getPanel());
+        }
+        
+        if (!bPhysical) {
+            tabbedPane.addTab(physicalTitle, physicalInspector.getPanel());
+        }
+    }
+    
+    private void layoutRow(JPanel content, String itype) {
+        
+        if (itype.equals("メモ")) {
+           memoInspector.getPanel().setBorder(BorderFactory.createTitledBorder("メモ"));
+           content.add(memoInspector.getPanel());
+           bMemo = true;
+        
+        } else if (itype.equals("カレンダ")) {
+            patientVisitInspector.getPanel().setBorder(BorderFactory.createTitledBorder("来院歴"));
+            content.add(patientVisitInspector.getPanel());
+            bCalendar = true;
+        
+        } else if (itype.equals("文書履歴")) {
+            content.add(tabbedPane);
+        
+        } else if (itype.equals("アレルギ")) {
+            allergyInspector.getPanel().setBorder(BorderFactory.createTitledBorder("アレルギ"));
+            content.add(allergyInspector.getPanel());
+            bAllergy = true;
+        
+        } else if (itype.equals("身長体重")) {
+            physicalInspector.getPanel().setBorder(BorderFactory.createTitledBorder("身長体重"));
+            content.add(physicalInspector.getPanel());
+            bPhysical = true;
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

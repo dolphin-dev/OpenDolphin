@@ -210,4 +210,25 @@ public class ModelUtils implements IInfoModel {
         return true;
     }
     
+    public static String[] splitDiagnosis(String diagnosis) {
+        if (diagnosis == null) {
+            return null;
+        }
+        String[] ret = null;
+        try {
+            ret = diagnosis.split("\\s*,\\s*");
+        } catch (Exception e) {
+        }
+        return ret;
+    }
+    
+    public static String getDiagnosisName(String hasAlias) {
+        String[] splits = splitDiagnosis(hasAlias);
+        return (splits != null && splits.length == 2 && splits[0] != null) ? splits[0] : hasAlias;
+    }
+    
+    public static String getDiagnosisAlias(String hasAlias) {
+        String[] splits = splitDiagnosis(hasAlias);
+        return (splits != null && splits.length == 2 && splits[1] != null) ? splits[1] : null;
+    }
 }

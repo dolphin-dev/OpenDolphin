@@ -1,21 +1,3 @@
-/*
- * MedicalSuppliesMaster.java
- * Copyright (C) 2007 Dolphin Project. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.order;
 
 import java.awt.BorderLayout;
@@ -39,7 +21,6 @@ import javax.swing.table.TableColumn;
 
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.MasterRenderer;
-import open.dolphin.client.UltraSonicProgressLabel;
 import open.dolphin.infomodel.MedicineEntry;
 import open.dolphin.table.ObjectTableModel;
 
@@ -47,8 +28,6 @@ import open.dolphin.table.ObjectTableModel;
  * 医薬品マスタ検索パネル。
  */
 public class MedicalSuppliesMaster extends MasterPanel {
-    
-    private static final long serialVersionUID = 6704116953416892445L;
     
     private static final String[] medicineColumns = ClientContext.getStringArray("masterSearch.medicine.columnNames");
     private static final String[] costFlags = ClientContext.getStringArray("masterSearch.medicine.costFlags");
@@ -92,9 +71,7 @@ public class MedicalSuppliesMaster extends MasterPanel {
         //
         tableModel = new ObjectTableModel(medicineColumns, START_NUM_ROWS) {
             
-            private static final long serialVersionUID = -4727257460306879348L;
-            
-            @SuppressWarnings("unchecked")
+            @Override
             public Class getColumnClass(int col) {
                 return MedicineEntry.class;
             }
@@ -213,6 +190,7 @@ public class MedicalSuppliesMaster extends MasterPanel {
             costFlags = val;
         }
         
+        @Override
         public Component getTableCellRendererComponent(
                 JTable table,
                 Object value,
@@ -225,15 +203,13 @@ public class MedicalSuppliesMaster extends MasterPanel {
                     isSelected,
                     isFocused,
                     row, col);
-            if (row % 2 == 0) {
-                setBackground(getEvenColor());
-            } else {
-                setBackground(getOddColor());
-            }
-            
             if (isSelected) {
                 setBackground(table.getSelectionBackground());
                 setForeground(table.getSelectionForeground());
+            } else {
+
+                setForeground(table.getForeground());
+                setBackground(table.getBackground());
             }
             JLabel label = (JLabel)c;
             
@@ -244,7 +220,7 @@ public class MedicalSuppliesMaster extends MasterPanel {
                 String startDate = entry.getStartDate();
                 String endDate = entry.getEndDate();
                 
-                setColor(label,startDate, endDate);
+                setColor(label, startDate, endDate);
                 
                 switch(col) {
                     

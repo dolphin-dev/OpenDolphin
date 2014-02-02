@@ -24,8 +24,6 @@ import javax.swing.JComponent;
  */
 public class ColorChooserComp extends JComponent implements MouseListener, MouseMotionListener {
     
-    private static final long serialVersionUID = -7642593282566833954L;
-    
     public static final String SELECTED_COLOR = "selectedColor";
     
     private Color[] colors;
@@ -70,10 +68,12 @@ public class ColorChooserComp extends JComponent implements MouseListener, Mouse
         this.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
     }
     
+    @Override
     public void addPropertyChangeListener(String prop, PropertyChangeListener l) {
         boundSupport.addPropertyChangeListener(prop, l);
     }
     
+    @Override
     public void removePropertyChangeListener(String prop, PropertyChangeListener l) {
         boundSupport.removePropertyChangeListener(prop, l);
     }
@@ -130,6 +130,7 @@ public class ColorChooserComp extends JComponent implements MouseListener, Mouse
         }
     }
     
+    @Override
     public void paintComponent(Graphics g) {
         
         Graphics2D g2 = (Graphics2D) g;

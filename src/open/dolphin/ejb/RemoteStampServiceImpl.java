@@ -43,23 +43,9 @@ public class RemoteStampServiceImpl extends DolphinService implements RemoteStam
      * @return id
      */
     public long putTree(StampTreeModel model) {
-                
-        try {
-            long userPk = model.getUser().getId();
-            StampTreeModel personal = (StampTreeModel) em.createQuery("from StampTreeModel s where s.user.id=:userPk")
-                                                        .setParameter("userPk", userPk)
-                                                        .getSingleResult();
-            if (personal != null) {
-                //System.out.println("tree exist");
-                em.merge(model);
-            }
-            
-        } catch (NoResultException e) {
-            //System.out.println("tree not exist");
-            em.persist(model);
-        }
         
-        return model.getId();
+        StampTreeModel saveOrUpdate = em.merge(model);
+        return saveOrUpdate.getId();
     }
     
     /**
@@ -419,15 +405,9 @@ public class RemoteStampServiceImpl extends DolphinService implements RemoteStam
      * @return çÌèúåèêî
      */
     public int removeStamp(String stampId) {
-        
-        try {
-            StampModel exist = (StampModel) em.find(StampModel.class, stampId);
-            em.remove(exist);
-            return 1;
-            
-        } catch (NoResultException e) {
-        }
-        return 0;
+        StampModel exist = (StampModel) em.find(StampModel.class, stampId);
+        em.remove(exist);
+        return 1;
     }
     
     /**
@@ -435,20 +415,13 @@ public class RemoteStampServiceImpl extends DolphinService implements RemoteStam
      * @param stampId çÌèúÇ∑ÇÈ StampModel ÇÃ id List
      * @return çÌèúåèêî
      */
-    public int removeStamp(List<String> ids) {
-        
+    public int removeStamp(List<String> ids) {   
         int cnt =0;
-        
-        try {
-            for (String stampId : ids) {
-                StampModel exist = (StampModel) em.find(StampModel.class, stampId);
-                em.remove(exist);
-                cnt++;
-            }
-            
-        } catch (NoResultException e) {
+        for (String stampId : ids) {
+            StampModel exist = (StampModel) em.find(StampModel.class, stampId);
+            em.remove(exist);
+            cnt++;
         }
-        
         return cnt;
     }
 }

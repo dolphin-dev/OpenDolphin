@@ -1,12 +1,3 @@
-/*
- * AutoRomanListener.java
- *
- * Created on 2007/09/21, 20:10
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
 package open.dolphin.client;
 
 import java.awt.event.FocusEvent;
@@ -30,11 +21,15 @@ public class AutoRomanListener implements FocusListener {
     }
 
     public void focusGained(FocusEvent e) {
-        JTextComponent tc = (JTextComponent) e.getSource();
-        tc.getInputContext().setCharacterSubsets(null);
+        Object source = e.getSource();
+        if (source != null && source instanceof JTextComponent) {
+            JTextComponent tc = (JTextComponent) source;
+            if (tc.getInputContext() != null) {
+                tc.getInputContext().setCharacterSubsets(null);
+            }
+        }
     }
 
-    public void focusLost(FocusEvent focusEvent) {
+    public void focusLost(FocusEvent e) {
     }
-    
 }

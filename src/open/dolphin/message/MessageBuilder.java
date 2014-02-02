@@ -1,21 +1,3 @@
-/*
- * ClaimMessageBuilder.java
- * Copyright (C) 2003,2004 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.message;
 
 import java.io.BufferedReader;
@@ -28,6 +10,8 @@ import java.io.StringWriter;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.IMessageBuilder;
 
+import open.dolphin.project.Project;
+import org.apache.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.jdom.Document;
@@ -48,6 +32,13 @@ public class MessageBuilder implements IMessageBuilder {
     
     /** テンプレートファイルのエンコーディング */
     private String encoding = ENCODING;
+    
+    private Logger logger;
+    
+    public MessageBuilder() {
+        logger = ClientContext.getBootLogger();
+        logger.debug("MessageBuilder constracted");
+    }
     
     public String getTemplateFile() {
         return templateFile;
@@ -96,6 +87,8 @@ public class MessageBuilder implements IMessageBuilder {
     
     public String build(Object helper) {
         
+        logger.debug("MessageBuilder build");
+        
         String ret = null;
         String name = helper.getClass().getName();
         int index = name.lastIndexOf('.');
@@ -106,18 +99,26 @@ public class MessageBuilder implements IMessageBuilder {
         name = sb.toString();
         
         try {
+            logger.debug("MessageBuilder try");
             VelocityContext context = ClientContext.getVelocityContext();
             context.put(name, helper);
             
             // このスタンプのテンプレートファイルを得る
-            String templateFile = name + ".vm";
+            String tFile = null;
+            if (Project.isClaim01()) {
+                tFile = name + "_01.vm";
+            } else {
+                tFile = name + ".vm";
+            }
+            logger.debug("template file = " + tFile);
             
             // Merge する
             StringWriter sw = new StringWriter();
             BufferedWriter bw = new BufferedWriter(sw);
-            InputStream instream = ClientContext.getTemplateAsStream(templateFile);
+            InputStream instream = ClientContext.getTemplateAsStream(tFile);
             BufferedReader reader = new BufferedReader(new InputStreamReader(instream, "SHIFT_JIS"));
             Velocity.evaluate(context, bw, name, reader);
+            logger.debug("Velocity.evaluated");
             bw.flush();
             bw.close();
             reader.close();
@@ -125,7 +126,7 @@ public class MessageBuilder implements IMessageBuilder {
             ret = sw.toString();
             
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn(e);
         }
         
         return ret;

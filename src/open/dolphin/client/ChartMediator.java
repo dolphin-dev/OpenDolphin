@@ -1,25 +1,8 @@
-/*
- * ChartMediator.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2004-2005 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
-import javax.swing.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
@@ -29,15 +12,27 @@ import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 
 import open.dolphin.infomodel.IInfoModel;
-import open.dolphin.plugin.helper.ChainAction;
-import open.dolphin.plugin.helper.MenuSupport;
+import open.dolphin.helper.MenuSupport;
 import open.dolphin.project.Project;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.List;
+import javax.swing.Action;
+import javax.swing.ActionMap;
+import javax.swing.JComponent;
+import javax.swing.JMenu;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JTextPane;
+import javax.swing.TransferHandler;
+import javax.swing.text.StyledEditorKit;
+
 import open.dolphin.infomodel.PVTHealthInsuranceModel;
+import org.apache.log4j.Logger;
 
 /**
  * Mediator class to control Karte Window Menu.
@@ -48,25 +43,101 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
     
     protected enum CompState{NONE, SOA, SOA_TEXT, SCHEMA, P, P_TEXT, STAMP};
     
-    private Action undoAction;
-    private Action redoAction;
+    private static final int[] FONT_SIZE = {10, 12, 14, 16, 18, 24, 36};
     
-    // 選択が起こっている KartePane
-    private KartePane curPane;
-    private JComponent curComp;
+    private int curSize = 1;
     
     // ChartPlugin
-    private IChart chart;
+    private Chart chart;
+    
+    // current KarteComposit
+    private KarteComposite curKarteComposit;
     
     // Undo Manager
-    private UndoManager undoManager = new UndoManager();
+    private UndoManager undoManager;
+    private Action undoAction;
+    private Action redoAction;
+    private Logger logger;
+    private FocusPropertyChangeListener fpcl;
     
-    public ChartMediator(Object owner) {
-        super(owner);
-        chart = (IChart) owner;
+    class FocusPropertyChangeListener implements PropertyChangeListener {
+
+        public void propertyChange(PropertyChangeEvent e) {
+            String prop = e.getPropertyName();
+            logger.debug("focusManager propertyChange :" + prop);
+            if ("focusOwner".equals(prop)) {
+                Component comp = (Component) e.getNewValue();
+                if (comp instanceof JTextPane) {
+                    Object obj = ((JTextPane) comp).getClientProperty("kartePane");
+                    if (obj != null && obj instanceof KartePane) {
+                        setCurKarteComposit((KarteComposite) obj);
+                    }
+                } else if (comp instanceof KarteComposite) {
+                    setCurKarteComposit((KarteComposite) comp);
+                }
+            }
+        }
     }
     
-    public void registerActions(Hashtable<String, Action> map) {
+    public ChartMediator(Object owner) {
+        
+        super(owner);
+        logger = ClientContext.getBootLogger();
+        chart = (Chart) owner;
+        logger.debug("ChartMediator constractor");
+        
+        fpcl = new FocusPropertyChangeListener();
+        KeyboardFocusManager focusManager =
+                KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        focusManager.addPropertyChangeListener(fpcl);
+        
+        undoManager = new UndoManager();
+    }
+    
+    public void setCurKarteComposit(KarteComposite newComposit) {
+        logger.debug("ChartMediator setCurKarteComposit");
+        KarteComposite old = this.curKarteComposit;
+        this.curKarteComposit = newComposit;
+        if (old != curKarteComposit) {
+            logger.debug("ChartMediator old != curKarteComposit");
+            if (old != null) {
+                old.exit(getActions());
+            }
+            enabledAction(GUIConst.ACTION_CUT, false);
+            enabledAction(GUIConst.ACTION_COPY, false);
+            enabledAction(GUIConst.ACTION_PASTE, false);
+            enabledAction(GUIConst.ACTION_UNDO, false);
+            enabledAction(GUIConst.ACTION_REDO, false);
+            enabledAction(GUIConst.ACTION_INSERT_TEXT, false);
+            enabledAction(GUIConst.ACTION_INSERT_SCHEMA, false);
+            enabledAction(GUIConst.ACTION_INSERT_STAMP, false);
+            if (curKarteComposit != null) {
+                logger.debug("ChartMediator curKarteComposit != null");
+                curKarteComposit.enter(getActions());
+            }
+        }
+    }
+    
+//    private void printActions(ActionMap map) {
+//        
+//        if (map != null) {
+//            Object[] keys = map.allKeys();
+//            if (keys != null) {
+//                for (Object o : keys) {
+//                    System.err.println(o.toString());
+//                }
+//            } else {
+//                System.err.println("keys are null");
+//            }
+//        } else {
+//            System.err.println("ActionMap is null");
+//        }
+//    }
+    
+    @Override
+    public void registerActions(ActionMap map) {
+        
+        //printActions(map);
         
         super.registerActions(map);
         
@@ -87,37 +158,36 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
     }
     
     public void dispose() {
-        Hashtable<String , Action> actions = getActions();
-        Iterator<String> iter = actions.keySet().iterator();
-        while (iter.hasNext()) {
-            Action a = actions.get(iter.next());
-            if (a instanceof ChainAction) {
-                ((ChainAction)a).setTarget(null);
-            } else if (a instanceof ReflectAction) {
-                ((ReflectAction)a).setTarget(null);
-            }
-        }
-        actions.clear();
+        logger.debug("ChartMediator dispose");
+        KeyboardFocusManager focusManager =
+                KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        focusManager.removePropertyChangeListener(fpcl);
+//        ActionMap actions = getActions();
+//        Object[] keys = actions.keys();
+//        for ( Object o : keys) {
+//            Action a = actions.get(o);
+//            if (a instanceof ReflectAction) {
+//                ((ReflectAction)a).setTarget(null);
+//            }
+//        }
+//        actions.clear();
     }
     
     public void actionPerformed(ActionEvent e) {
     }
     
     public JComponent getCurrentComponent() {
-        return curComp;
-    }
-    
-    /**
-     * Focusされた JTextPaneをセットする。
-     */
-    public void setCurrentComponent(JComponent newCompo) {
-        curComp = newCompo;
+        if (curKarteComposit != null) {
+            return (JComponent) curKarteComposit.getComponent();
+        }
+        return null;
     }
     
     /**
      * メニューリスナの実装。
      * 挿入及びテキストメニューが選択された時の処理を行う。
      */
+    @Override
     public void menuSelected(MenuEvent e) {
         
         // 挿入とテキストメニューにリスナが登録されている
@@ -156,6 +226,8 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
                     selectedMenu.add(createStampMenu(tree));
                 }
             }
+            
+            // 
         } 
         
         else if (cmd.equals(GUIConst.MENU_TEXT)) {
@@ -166,9 +238,11 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
         }
     }
     
+    @Override
     public void menuDeselected(MenuEvent e) {
     }
     
+    @Override
     public void menuCanceled(MenuEvent e) {
     }
     
@@ -187,37 +261,33 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
         }
         
         // サブメニューを制御する
-        getAction(GUIConst.ACTION_SIZE).setEnabled(enabled);
-        getAction(GUIConst.ACTION_STYLE).setEnabled(enabled);
-        getAction(GUIConst.ACTION_ALIGNMENT).setEnabled(enabled);
-        getAction(GUIConst.ACTION_COLOR).setEnabled(enabled);
+        getAction("size").setEnabled(enabled);
+        getAction("style").setEnabled(enabled);
+        getAction("justify").setEnabled(enabled);
+        getAction("color").setEnabled(enabled);
         
         // メニューアイテムを制御する
-        getAction(GUIConst.ACTION_RESET_STYLE).setEnabled(enabled);
+        //getAction(GUIConst.ACTION_RESET_STYLE).setEnabled(enabled);
         
-        getAction(GUIConst.ACTION_RED).setEnabled(enabled);
-        getAction(GUIConst.ACTION_ORANGE).setEnabled(enabled);
-        getAction(GUIConst.ACTION_YELLOW).setEnabled(enabled);
-        getAction(GUIConst.ACTION_GREEN).setEnabled(enabled);
-        getAction(GUIConst.ACTION_BLUE).setEnabled(enabled);
-        getAction(GUIConst.ACTION_PURPLE).setEnabled(enabled);
-        getAction(GUIConst.ACTION_GRAY).setEnabled(enabled);
+        getAction("fontRed").setEnabled(enabled);
+        getAction("fontOrange").setEnabled(enabled);
+        getAction("fontYellow").setEnabled(enabled);
+        getAction("fontGreen").setEnabled(enabled);
+        getAction("fontBlue").setEnabled(enabled);
+        getAction("fontPurple").setEnabled(enabled);
+        getAction("fontGray").setEnabled(enabled);
         
-        getAction(GUIConst.ACTION_S9).setEnabled(enabled);
-        getAction(GUIConst.ACTION_S10).setEnabled(enabled);
-        getAction(GUIConst.ACTION_S12).setEnabled(enabled);
-        getAction(GUIConst.ACTION_S14).setEnabled(enabled);
-        getAction(GUIConst.ACTION_S18).setEnabled(enabled);
-        getAction(GUIConst.ACTION_S24).setEnabled(enabled);
-        getAction(GUIConst.ACTION_S36).setEnabled(enabled);
+        getAction("fontLarger").setEnabled(enabled);
+        getAction("fontSmaller").setEnabled(enabled);
+        getAction("fontStandard").setEnabled(enabled);
         
-        getAction(GUIConst.ACTION_BOLD).setEnabled(enabled);
-        getAction(GUIConst.ACTION_ITALIC).setEnabled(enabled);
-        getAction(GUIConst.ACTION_UNDERLINE).setEnabled(enabled);
+        getAction("fontBold").setEnabled(enabled);
+        getAction("fontItalic").setEnabled(enabled);
+        getAction("fontUnderline").setEnabled(enabled);
         
-        getAction(GUIConst.ACTION_LEFT_ALIGN).setEnabled(enabled);
-        getAction(GUIConst.ACTION_CENTER_ALIGN).setEnabled(enabled);
-        getAction(GUIConst.ACTION_RIGHT_ALIGN).setEnabled(enabled);
+        getAction("leftJustify").setEnabled(enabled);
+        getAction("centerJustify").setEnabled(enabled);
+        getAction("rightJustify").setEnabled(enabled);
     }
     
     /**
@@ -267,7 +337,9 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
         if (obj instanceof KarteEditor) {
             KarteEditor editor = (KarteEditor) obj;
             kartePane = editor.getSOAPane();
-            enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+            if (kartePane != null) {
+                enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+            }
         }
         
         if (!enabled) {
@@ -310,7 +382,9 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
         if (obj instanceof KarteEditor) {
             KarteEditor editor = (KarteEditor) obj;
             kartePane = editor.getPPane();
-            enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+            if (kartePane != null) {
+                enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+            }
         }
         
         if (!enabled) {
@@ -374,7 +448,9 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
         if (obj instanceof KarteEditor) {
             KarteEditor editor = (KarteEditor) obj;
             kartePane = editor.getSOAPane();
-            enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+            if (kartePane != null) {
+                enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+            }
         }
         
         StampTree stampTree = getStampBox().getStampTree(IInfoModel.ENTITY_TEXT);
@@ -409,9 +485,10 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
         
         // 引数のPaneがPかつ編集可の時のみ追加する
         // コンテキストメニューなのでこれはOK
-        if (kartePane.getMyRole().equals(IInfoModel.ROLE_P) && kartePane.getTextPane().isEditable()) {
+        if (kartePane != null && kartePane.getMyRole().equals(IInfoModel.ROLE_P) && kartePane.getTextPane().isEditable()) {
             
             StampBoxPlugin stampBox = getStampBox();
+
             List<StampTree> trees = stampBox.getAllTrees();
             
             StmapTreeMenuBuilder builder = new StmapTreeMenuBuilder();
@@ -446,7 +523,9 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
         if (obj instanceof KarteEditor) {
             KarteEditor editor = (KarteEditor) obj;
             kartePane = editor.getPPane();
-            enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+            if (kartePane != null) {
+                enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+            }
         }
         
         if (enabled) {
@@ -461,11 +540,11 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
     }
     
     public StampBoxPlugin getStampBox() {
-        return (StampBoxPlugin)chart.getContext().getPlugin("mainWindow/stampBox");
+        return (StampBoxPlugin) chart.getContext().getPlugin("stampBox");
     }
     
     public boolean hasTree(String entity) {
-        StampBoxPlugin stBox = (StampBoxPlugin)chart.getContext().getPlugin("mainWindow/stampBox");
+        StampBoxPlugin stBox = (StampBoxPlugin)chart.getContext().getPlugin("stampBox");
         StampTree tree = stBox.getStampTree(entity);
         return tree != null ? true : false;
     }
@@ -487,18 +566,23 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
     
     ///////////////////////////////////////////////////////////////////////////
     
+    @Override
     public void cut() {
-        JComponent focusOwner = getCurrentComponent();
-        if (focusOwner != null) {
-            Action a = focusOwner.getActionMap().get(TransferHandler.getCutAction().getValue(Action.NAME));
-            if (a != null) {
-                a.actionPerformed(new ActionEvent(focusOwner,
-                        ActionEvent.ACTION_PERFORMED,
-                        null));
+        if (curKarteComposit != null) {
+            JComponent focusOwner = getCurrentComponent();
+            if (focusOwner != null) {
+                Action a = focusOwner.getActionMap().get(TransferHandler.getCutAction().getValue(Action.NAME));
+                if (a != null) {
+                    a.actionPerformed(new ActionEvent(focusOwner,
+                            ActionEvent.ACTION_PERFORMED,
+                            null));
+                    setCurKarteComposit(null);
+                }
             }
         }
     }
     
+    @Override
     public void copy() {
         JComponent focusOwner = getCurrentComponent();
         if (focusOwner != null) {
@@ -511,6 +595,7 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
         }
     }
     
+    @Override
     public void paste() {
         JComponent focusOwner = getCurrentComponent();
         if (focusOwner != null) {
@@ -578,4 +663,198 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
             redoAction.setEnabled(false);
         }
     }
+    
+    public void fontLarger() {
+        JComponent focusOwner = getCurrentComponent();
+        if (focusOwner != null) {
+            if (curSize < 6) {
+                curSize++;
+            }
+            int size = FONT_SIZE[curSize];
+            Action a = focusOwner.getActionMap().get("font-size-" + size);
+            if (a != null) {
+                a.actionPerformed(new ActionEvent(focusOwner,
+                        ActionEvent.ACTION_PERFORMED,
+                        null));
+            }
+            if (curSize == 6) {
+                enabledAction("fontLarger", false);
+            }
+        }
+    }
+    
+    public void fontSmaller() {
+        JComponent focusOwner = getCurrentComponent();
+        if (focusOwner != null) {
+            if (curSize > 0) {
+                curSize--;
+            }
+            int size = FONT_SIZE[curSize];
+            Action a = focusOwner.getActionMap().get("font-size-" + size);
+            if (a != null) {
+                a.actionPerformed(new ActionEvent(focusOwner,
+                        ActionEvent.ACTION_PERFORMED,
+                        null));
+            }
+            if (curSize == 0) {
+                enabledAction("fontSmaller", false);
+            }
+        }
+    }
+    
+    public void fontStandard() {
+        JComponent focusOwner = getCurrentComponent();
+        if (focusOwner != null) {
+            curSize = 1;
+            int size = FONT_SIZE[curSize];
+            Action a = focusOwner.getActionMap().get("font-size-" + size);
+            if (a != null) {
+                a.actionPerformed(new ActionEvent(focusOwner,
+                        ActionEvent.ACTION_PERFORMED,
+                        null));
+            }
+            enabledAction("fontSmaller", true);
+            enabledAction("fontLarger", true);
+        }
+    }
+    
+    public void fontBold() {
+        JComponent focusOwner = getCurrentComponent();
+        if (focusOwner != null) {
+            Action a = focusOwner.getActionMap().get("font-bold");
+            if (a != null) {
+                a.actionPerformed(new ActionEvent(focusOwner,
+                        ActionEvent.ACTION_PERFORMED,
+                        null));
+            }
+        }
+    }
+
+    public void fontItalic() {
+        JComponent focusOwner = getCurrentComponent();
+        if (focusOwner != null) {
+            Action a = focusOwner.getActionMap().get("font-italic");
+            if (a != null) {
+                a.actionPerformed(new ActionEvent(focusOwner,
+                        ActionEvent.ACTION_PERFORMED,
+                        null));
+            }
+        }
+    }
+    
+
+    public void fontUnderline() {
+        JComponent focusOwner = getCurrentComponent();
+        if (focusOwner != null) {
+            Action a = focusOwner.getActionMap().get("font-underline");
+            if (a != null) {
+                a.actionPerformed(new ActionEvent(focusOwner,
+                        ActionEvent.ACTION_PERFORMED,
+                        null));
+            }
+        }
+    }
+
+    public void leftJustify() {
+        JComponent focusOwner = getCurrentComponent();
+        if (focusOwner != null) {
+            Action a = focusOwner.getActionMap().get("left-justify");
+            if (a != null) {
+                a.actionPerformed(new ActionEvent(focusOwner,
+                        ActionEvent.ACTION_PERFORMED,
+                        null));
+            }
+        }
+    }
+    
+    public void centerJustify() {
+        JComponent focusOwner = getCurrentComponent();
+        if (focusOwner != null) {
+            Action a = focusOwner.getActionMap().get("center-justify");
+            if (a != null) {
+                a.actionPerformed(new ActionEvent(focusOwner,
+                        ActionEvent.ACTION_PERFORMED,
+                        null));
+            }
+        }        
+    }
+    
+    public void rightJustify() {
+        JComponent focusOwner = getCurrentComponent();
+        if (focusOwner != null) {
+            Action a = focusOwner.getActionMap().get("right-justify");
+            if (a != null) {
+                a.actionPerformed(new ActionEvent(focusOwner,
+                        ActionEvent.ACTION_PERFORMED,
+                        null));
+            }
+        }         
+    }
+        
+    private void colorAction(Color color) {
+        JComponent focusOwner = getCurrentComponent();
+        if (focusOwner != null) {
+            Action a = new StyledEditorKit.ForegroundAction("color", color);
+            if (a != null) {
+                a.actionPerformed(new ActionEvent(focusOwner,
+                        ActionEvent.ACTION_PERFORMED,
+                        "foreground"));
+            }
+        }  
+    }
+    
+    public void fontRed() {
+        colorAction(ClientContext.getColor("color.set.default.red"));
+    }
+    
+    public void fontOrange() {
+       colorAction(ClientContext.getColor("color.set.default.orange"));
+    }
+    
+    public void fontYellow() {
+        colorAction(ClientContext.getColor("color.set.default.yellow"));
+    }
+    
+    public void fontGreen() {
+        colorAction(ClientContext.getColor("color.set.default.green"));
+    }
+    
+    public void fontBlue() {
+        colorAction(ClientContext.getColor("color.set.default.blue"));
+    }
+    
+    public void fontPurple() {
+        colorAction(ClientContext.getColor("color.set.default.purpule"));
+    }
+    
+    public void fontGray() {
+        colorAction(ClientContext.getColor("color.set.default.gray"));
+    }
+    
+    public void fontBlack() {
+        colorAction(Color.BLACK);
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

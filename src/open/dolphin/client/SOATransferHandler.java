@@ -1,9 +1,3 @@
-/*
- * Created on 2005/09/23
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
 package open.dolphin.client;
 
 import java.io.*;
@@ -48,6 +42,7 @@ public class SOATransferHandler extends TransferHandler {
     /**
      * DropされたFlavorをインポートする。
      */
+    @Override
     public boolean importData(JComponent c, Transferable tr) {
         
         JTextPane tc = (JTextPane) c;
@@ -92,6 +87,7 @@ public class SOATransferHandler extends TransferHandler {
     
     // Create a Transferable implementation that contains the
     // selected text.
+    @Override
     protected Transferable createTransferable(JComponent c) {
         source = (JTextPane) c;
         int start = source.getSelectionStart();
@@ -109,6 +105,7 @@ public class SOATransferHandler extends TransferHandler {
         return new StringSelection(data);
     }
     
+    @Override
     public int getSourceActions(JComponent c) {
         return COPY_OR_MOVE;
     }
@@ -116,6 +113,7 @@ public class SOATransferHandler extends TransferHandler {
     // Remove the old text if the action is a MOVE.
     // However, we do not allow dropping on top of the selected text,
     // so in that case do nothing.
+    @Override
     protected void exportDone(JComponent c, Transferable data, int action) {
         JTextComponent tc = (JTextComponent) c;
         if (tc.isEditable() && (shouldRemove == true) && (action == MOVE)) {
@@ -135,6 +133,7 @@ public class SOATransferHandler extends TransferHandler {
     /**
      * インポート可能かどうかを返す。
      */
+    @Override
     public boolean canImport(JComponent c, DataFlavor[] flavors) {
         JTextPane tc = (JTextPane) c;
         if (tc.isEditable() && hasFlavor(flavors)) {
@@ -254,9 +253,7 @@ public class SOATransferHandler extends TransferHandler {
         try {
             // Imageを取得する
             ImageEntry entry = (ImageEntry) tr.getTransferData(ImageEntryTransferable.imageEntryFlavor);
-            URL url = new URL(entry.getUrl());
-            ImageIcon icon = new ImageIcon(url);
-            soaPane.myInsertImage(icon.getImage());
+            soaPane.imageEntryDropped(entry);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -267,6 +264,7 @@ public class SOATransferHandler extends TransferHandler {
     /**
      * クリップボードへデータを転送する。
      */
+    @Override
     public void exportToClipboard(JComponent comp, Clipboard clip, int action) {
         super.exportToClipboard(comp, clip, action);
         // cut の時 ...?

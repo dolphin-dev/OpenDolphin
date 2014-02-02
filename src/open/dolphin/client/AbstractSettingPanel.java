@@ -1,22 +1,3 @@
-/*
- * SettingPanel.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2003,2005 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
 import java.beans.PropertyChangeListener;
@@ -24,6 +5,7 @@ import java.beans.PropertyChangeSupport;
 import javax.swing.JPanel;
 
 import open.dolphin.project.ProjectStub;
+import org.apache.log4j.Logger;
 
 /**
  * AbstractSettingPanel
@@ -41,12 +23,42 @@ public abstract class AbstractSettingPanel {
     protected AbstractSettingPanel.State state = AbstractSettingPanel.State.NONE_STATE;
     private JPanel ui;
     private boolean loginState;
+    private String title;
+    private String icon;
+    private String id;
+    
+    Logger logger;
     
     /** 
      * Creates a new instance of SettingPanel 
      */
     public AbstractSettingPanel() {
         setUI(new JPanel());
+        logger = ClientContext.getBootLogger();
+    }
+    
+    public String getId() {
+        return id;
+    }
+    
+    public void setId(String id) {
+        this.id = id;
+    }
+    
+    public String getTitle() {
+        return title;
+    }
+    
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    
+    public String getIcon() {
+        return icon;
+    }
+    
+    public void setIcon(String icon) {
+        this.icon = icon;
     }
     
     public ProjectSettingDialog getContext() {

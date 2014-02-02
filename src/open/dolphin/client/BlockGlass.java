@@ -9,19 +9,17 @@ import javax.swing.JComponent;
 
 public class BlockGlass extends JComponent implements MouseListener {
     
-    private static final long serialVersionUID = -8073675105800821246L;
-    
     public BlockGlass() {
     }
     
     public void block() {
-        addMouseListener(this);
-        setVisible(true);
+        this.addMouseListener(this);
+        this.setVisible(true);
     }
     
     public void unblock() {
-        removeMouseListener(this);
-        setVisible(false);
+        this.removeMouseListener(this);
+        this.setVisible(false);
     }
     
     private void beep() {
@@ -33,18 +31,14 @@ public class BlockGlass extends JComponent implements MouseListener {
     }
     
     public void mousePressed(MouseEvent e) {
-        //beep();
     }
     
     public void mouseReleased(MouseEvent e) {
-        //beep();
     }
     
     public void mouseEntered(MouseEvent e) {
-        //beep();
     }
     
     public void mouseExited(MouseEvent e) {
-        //beep();
     }
 }

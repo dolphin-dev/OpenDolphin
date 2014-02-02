@@ -1,39 +1,25 @@
-/*
- * DolphinContext.java
- *
- * Copyright 2002 Dolphin Project. All rights resrerved.
- * Copyright 2004 Digital Globe, Inc. All rights resrerved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
-import java.io.*;
-import java.net.*;
-import java.awt.*;
-
-import javax.swing.*;
-
+import java.awt.Color;
+import java.awt.Dimension;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import javax.swing.ActionMap;
+import javax.swing.ImageIcon;
 import open.dolphin.infomodel.DepartmentModel;
 import open.dolphin.infomodel.DiagnosisCategoryModel;
 import open.dolphin.infomodel.DiagnosisOutcomeModel;
 import open.dolphin.infomodel.LicenseModel;
-import open.dolphin.plugin.IPluginContext;
 
 import org.apache.log4j.Logger;
 import org.apache.velocity.VelocityContext;
+import org.jdesktop.application.ApplicationContext;
+import org.jdesktop.application.LocalStorage;
+import org.jdesktop.application.ResourceMap;
+import org.jdesktop.application.SessionStorage;
 
 /**
  *
@@ -43,7 +29,6 @@ public class ClientContext {
     
     private static ClientContextStub stub;
     
-    
     public static void setClientContextStub(ClientContextStub s) {
         stub = s;
     }
@@ -52,7 +37,38 @@ public class ClientContext {
         return stub;
     }
     
-    ///////////////////////////////////////////////////////////////////////////
+    public static ApplicationContext getApplicationContext() {
+        return stub.getApplicationContext();
+    }
+    
+    public static void setApplicationContext(ApplicationContext ctx) {
+        stub.setApplicationContext(ctx);
+    }
+    
+    public static ResourceMap getResourceMap(Class clazz) {
+        return stub.getResourceMap(clazz);
+    }
+    
+    public static ActionMap getActionMap(Object obj) {
+        return stub.getActionMap(obj);
+    }
+    
+    public static SessionStorage getSessionStorage() {
+        return stub.getSessionStorage();
+    }
+    
+    public static LocalStorage getLocalStorage() {
+        return stub.getLocalStorage();
+    }
+    
+    public static URLClassLoader getPluginClassLoader() {
+        return stub.getPluginClassLoader();
+    }
+    
+    public static LinkedHashMap<String, String> getToolProviders() {
+        return stub.getToolProviders();
+    }
+
     
     public static VelocityContext getVelocityContext() {
         return stub.getVelocityContext();
@@ -61,9 +77,33 @@ public class ClientContext {
     public static Logger getLogger(String category) {
         return stub.getLogger(category);
     }
+        
+    public static Logger getBootLogger() {
+        return stub.getBootLogger();
+    }
     
-    public static boolean isDebug() {
-        return stub.isDebug();
+    public static Logger getPart11Logger() {
+        return stub.getPart11Logger();
+    }
+    
+    public static Logger getClaimLogger() {
+        return stub.getClaimLogger();
+    }
+    
+    public static Logger getMmlLogger() {
+        return stub.getMmlLogger();
+    }
+    
+    public static Logger getPvtLogger() {
+        return stub.getPvtLogger();
+    }
+    
+    public static Logger getDelegaterLogger() {
+        return stub.getDelegaterLogger();
+    }
+    
+    public static Logger getLaboTestLogger() {
+        return stub.getLaboTestLogger();
     }
     
     public static boolean isMac() {
@@ -80,18 +120,6 @@ public class ClientContext {
     
     //////////////////////////////////////////////////////////
     
-    public static IPluginContext getPluginContext() {
-        return stub.getPluginContext();
-    }
-    
-    public static Object lookup(String name) {
-        return stub.lookup(name);
-    }
-    
-    public static String lookupString(String name) {
-        return stub.getString(name);
-    }
-    
     public static String getVersion() {
         return stub.getVersion();
     }
@@ -102,6 +130,38 @@ public class ClientContext {
     
     public static String getLocation(String loc) {
         return stub.getLocation(loc);
+    }
+    
+    public static String getBaseDirectory() {
+        return stub.getBaseDirectory();
+    }
+    
+    public static String getPluginsDirectory() {
+        return stub.getPluginsDirectory();
+    }
+    
+    public static String getSettingDirectory() {
+        return stub.getSettingDirectory();
+    }
+    
+    public static String getSecurityDirectory() {
+        return stub.getSecurityDirectory();
+    }
+    
+    public static String getLogDirectory() {
+        return stub.getLogDirectory();
+    }
+    
+    public static String getLibDirectory() {
+        return stub.getLibDirectory();
+    }
+    
+    public static String getPDFDirectory() {
+        return stub.getPDFDirectory();
+    }
+    
+    public static String getDolphinJarDirectory() {
+        return stub.getDolphinJarDirectory();
     }
     
     public static String getUpdateURL() {
@@ -182,6 +242,10 @@ public class ClientContext {
     
     public static Class[] getClassArray(String name) {
         return stub.getClassArray(name);
+    }
+    
+    public static HashMap<String, Color> getEventColorTable() {
+        return stub.getEventColorTable();
     }
     
     ////////////////////////////////////////////////////

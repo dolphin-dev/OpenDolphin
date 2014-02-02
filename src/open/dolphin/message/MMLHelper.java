@@ -1,12 +1,3 @@
-/*
- * MMLBuilder.java
- *
- * Created on 2007/01/04, 11:20
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
 package open.dolphin.message;
 
 import java.io.BufferedReader;

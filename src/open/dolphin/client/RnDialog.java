@@ -1,9 +1,3 @@
-/*
- * RnDialog.java
- *
- * Created on 2002/04/03, 11:13
- */
-
 package open.dolphin.client;
 
 import javax.swing.*;
@@ -32,6 +26,7 @@ public abstract class RnDialog extends JDialog {
         this.getContentPane().add(compo, BorderLayout.CENTER);
         
         this.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowClosing(WindowEvent e) {
                 value = null;
             }

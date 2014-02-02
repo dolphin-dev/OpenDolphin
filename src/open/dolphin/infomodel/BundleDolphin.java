@@ -42,6 +42,20 @@ public class BundleDolphin extends ClaimBundle {
         return orderName;
     }
     
+    public String getItemNames() {
+        if (claimItem != null && claimItem.length > 0) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(claimItem[0].getName());
+            for (int i = 1; i < claimItem.length; i++) {
+                sb.append(",");
+                sb.append(claimItem[i].getName());
+            }
+            return sb.toString();
+        }
+        return null;
+    }
+    
+    @Override
     public String toString() {
         
         StringBuilder buf = new StringBuilder();

@@ -40,18 +40,6 @@ public class DolphinMasterMaker {
     // SystemService to use
     private RemoteSystemService service;
     
-    public void deleteExpiredAccount() {
-        
-        try {
-
-            //service.deleteExpiredAccount();
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-    }
-    
     /**
      * DolphinMasterMakerObject を生成する。
      */
@@ -153,7 +141,7 @@ public class DolphinMasterMaker {
             System.out.println("Admin マスタを登録しました");
             
         } catch (Exception e) {
-            e.printStackTrace();;
+            e.printStackTrace();
         }
     }
     

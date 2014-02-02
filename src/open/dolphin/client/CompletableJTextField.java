@@ -58,6 +58,7 @@ public class CompletableJTextField extends JTextField
         final String completionString =
             (String) completionList.getSelectedValue();
         Thread worker = new Thread() {
+            @Override
                 public void run() {
                     setText (completionString);
                 }

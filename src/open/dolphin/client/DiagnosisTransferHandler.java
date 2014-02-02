@@ -1,9 +1,3 @@
-/*
- * Created on 2005/09/25
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
 package open.dolphin.client;
 
 import java.awt.Toolkit;
@@ -23,14 +17,12 @@ import open.dolphin.infomodel.RegisteredDiagnosisModel;
 import open.dolphin.table.ObjectReflectTableModel;
 
 /**
- * MasterItemTransferHandler
+ * DiagnosisTransferHandler
  *
  * @author Minagawa,Kazushi
  *
  */
 public class DiagnosisTransferHandler extends TransferHandler {
-    
-    private static final long serialVersionUID = 2036391153175354211L;
     
     private JTable sourceTable;
     
@@ -46,6 +38,7 @@ public class DiagnosisTransferHandler extends TransferHandler {
         this.parent = parent;
     }
     
+    @Override
     protected Transferable createTransferable(JComponent c) {
         sourceTable = (JTable) c;
         ObjectReflectTableModel tableModel = (ObjectReflectTableModel) sourceTable.getModel();
@@ -53,10 +46,12 @@ public class DiagnosisTransferHandler extends TransferHandler {
         return dragItem != null ? new InfoModelTransferable(dragItem) : null;
     }
     
+    @Override
     public int getSourceActions(JComponent c) {
         return COPY_OR_MOVE;
     }
     
+    @Override
     public boolean importData(JComponent c, Transferable t) {
         
         if (canImport(c, t.getTransferDataFlavors())) {
@@ -124,6 +119,7 @@ public class DiagnosisTransferHandler extends TransferHandler {
         return false;
     }
     
+    @Override
     protected void exportDone(JComponent c, Transferable data, int action) {
         if (action == MOVE && shouldRemove) {
             ObjectReflectTableModel tableModel = (ObjectReflectTableModel) sourceTable.getModel();
@@ -131,6 +127,7 @@ public class DiagnosisTransferHandler extends TransferHandler {
         }
     }
     
+    @Override
     public boolean canImport(JComponent c, DataFlavor[] flavors) {
         for (int i = 0; i < flavors.length; i++) {
             if (LocalStampTreeNodeTransferable.localStampTreeNodeFlavor.equals(flavors[i])) {

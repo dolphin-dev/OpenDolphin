@@ -1,24 +1,21 @@
-/*
- * Created on 2005/07/11
- *
- */
 package open.dolphin.client;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.Preferences;
-
-import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
@@ -28,7 +25,6 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import open.dolphin.infomodel.DocumentModel;
@@ -36,70 +32,70 @@ import open.dolphin.infomodel.KarteBean;
 import open.dolphin.infomodel.PVTHealthInsuranceModel;
 import open.dolphin.infomodel.PatientModel;
 import open.dolphin.infomodel.PatientVisitModel;
-import open.dolphin.plugin.helper.ComponentMemory;
-import open.dolphin.plugin.helper.WindowSupport;
+import open.dolphin.helper.WindowSupport;
+import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.project.Project;
+import org.jdesktop.application.ApplicationContext;
+import org.jdesktop.application.ResourceMap;
 
 /**
  * EditorFrame
  *
  * @author Kazushi Minagawa
  */
-public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
+public class EditorFrame extends AbstractMainTool implements Chart {
     
     // このクラスの２つのモード（状態）でメニューの制御に使用する
     public enum EditorMode {BROWSER, EDITOR};
     
     // 全インスタンスを保持するリスト
-    private static List<IChart> allEditorFrames = new ArrayList<IChart>(3);
+    private static List<Chart> allEditorFrames = new ArrayList<Chart>(3);
     
-    // フレームサイズ関連
-    private static final int FRAME_X = 25;
-    private static final int FRAME_Y = 20;
-    private static final int FRAME_WIDTH          = 724;
-    private static final int FRAME_HEIGHT         = 740;
-    private static final String TITLE_ASSIST = " - カルテ";
+    // このフレームの実のコンテキストチャート
+    private Chart realChart;
     
-    /** このフレームの実のコンテキストチャート */
-    private IChart realChart;
-    
-    /** このフレームに表示する KarteView オブジェクト */
+    // このフレームに表示する KarteView オブジェクト
     private KarteViewer view;
     
-    /** このフレームに表示する KarteEditor オブジェクト */
+    // このフレームに表示する KarteEditor オブジェクト
     private KarteEditor editor;
     
-    /** ToolBar パネル */
+    // ToolBar パネル
     private JPanel myToolPanel;
     
-    /** スクローラコンポーネント */
+    // スクローラコンポーネント
     private JScrollPane scroller;
     
-    /** Status パネル */
+    // Status パネル
     private IStatusPanel statusPanel;
     
-    /** このフレームの動作モード */
+    // このフレームの動作モード
     private EditorMode mode;
     
-    /** WindowSupport オブジェクト */
+    // WindowSupport オブジェクト
     private WindowSupport windowSupport;
     
-    /** Mediator オブジェクト */
+    // Mediator オブジェクト
     private ChartMediator mediator;
     
-    /** Block GlassPane */
+    // Block GlassPane 
     private BlockGlass blockGlass;
     
-    /** 親チャートの位置 */
+    // 親チャートの位置 
     private Point parentLoc;
     
-    private JPopupMenu insurancePop;
+    //private JPopupMenu insurancePop;
+    
+    private ResourceMap resMap;
+    
+    private JPanel content;
+    
     
     /**
      * 全インスタンスを保持するリストを返す。
      * @return 全インスタンスを保持するリスト
      */
-    public static List<IChart> getAllEditorFrames() {
+    public static List<Chart> getAllEditorFrames() {
         return allEditorFrames;
     }
     
@@ -123,13 +119,13 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
      * IChart コンテキストを設定する。
      * @param chartCtx IChart コンテキスト
      */
-    public void setChart(IChart chartCtx) {
+    public void setChart(Chart chartCtx) {
         this.realChart = chartCtx;
         parentLoc = realChart.getFrame().getLocation();
         super.setContext(chartCtx.getContext());
     }
     
-    public IChart getChart() {
+    public Chart getChart() {
         return realChart;
     }
     
@@ -188,14 +184,6 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
     public void setPatientVisit(PatientVisitModel model) {
         realChart.setPatientVisit(model);
     }
-    
-//    public void setClaimSent(boolean b) {
-//        realChart.setClaimSent(b);
-//    }
-//
-//    public boolean isClaimSent() {
-//        return realChart.isClaimSent();
-//    }
     
     /**
      * Chart state を返す。
@@ -262,6 +250,18 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
     }
     
     /**
+     * Menu アクションを制御する。
+     */
+    public void enabledAction(String name, boolean enabled) {
+        Action action = mediator.getAction(name);
+        if (action != null) {
+            action.setEnabled(enabled);
+        } else {
+            Toolkit.getDefaultToolkit().beep();
+        }
+    }
+    
+    /**
      * DocumentHistory を返す。
      * @return DocumentHistory
      */
@@ -285,34 +285,30 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
         return (mode == EditorMode.EDITOR) ? editor.isDirty() : false;
     }
     
+    public PVTHealthInsuranceModel[] getHealthInsurances() {
+        return realChart.getHealthInsurances();
+    }
+    
     /**
      * プログラムを開始する。
      */
     public void start() {
-        
-        //
-        // コンポーネントの初期化を別スレッドで行い制御を呼び出し側に返す
-        //
-        Runnable r = new Runnable() {
-            public void run() {
-                initialize();
-            }
-        };
-        Thread t = new Thread(r);
-        t.setPriority(Thread.NORM_PRIORITY);
-        t.start();
+        initialize();
     }
     
     /**
      * 初期化する。
      */
-    @SuppressWarnings("serial")
     private void initialize() {
+        
+        // ResourceMap を保存する
+        resMap = ClientContext.getResourceMap(EditorFrame.class);
         
         //
         // Frame を生成する
         // Frame のタイトルを
         // 患者氏名(カナ):性別:患者ID に設定する
+        String karteStr = resMap.getString("karteStr");
         StringBuilder sb = new StringBuilder();
         sb.append(getPatient().getFullName());
         sb.append("(");
@@ -320,43 +316,17 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
         kana = kana.replace("　", " ");
         sb.append(kana);
         sb.append(")");
-        //sb.append(" : ");
-        //sb.append(getPatient().getGenderDesc());
         sb.append(" : ");
         sb.append(getPatient().getPatientId());
-        sb.append(TITLE_ASSIST);
+        sb.append(karteStr);
         
         windowSupport = WindowSupport.create(sb.toString());
+        
         JMenuBar myMenuBar = windowSupport.getMenuBar();
-        final JFrame frame = windowSupport.getFrame();
-        frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                processWindowClosing();
-            }
-        });
         
-        //
-        // フレームの表示位置を決める J2SE 5.0
-        //
-        boolean locByPlatform = Project.getPreferences().getBoolean(Project.LOCATION_BY_PLATFORM, true);
-        
-        if (locByPlatform) {
-            
-            frame.setSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
-            frame.setLocationByPlatform(true);
-            
-        } else {
-            frame.setLocationByPlatform(false);
-            int x = parentLoc.x + FRAME_X;
-            int y = parentLoc.y + FRAME_Y;
-            Point loc = new Point(x, y);
-            Dimension size = new Dimension(FRAME_WIDTH, FRAME_HEIGHT);
-            ComponentMemory cm = new ComponentMemory(frame, loc, size, this);
-            cm.setToPreferenceBounds();
-        }
-        
-        blockGlass = new BlockGlass();
-        frame.setGlassPane(blockGlass);
+        JFrame frame = windowSupport.getFrame();
+        frame.setName("editorFrame");
+        content = new JPanel(new BorderLayout());
         
         //
         // Mediator が変更になる
@@ -366,9 +336,12 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
         //
         //  MenuBar を生成する
         //
-        Object[] menuStaff = realChart.getContext().createMenuBar(myMenuBar,mediator);
-        myToolPanel = (JPanel) menuStaff[1];
-        frame.getContentPane().add(myToolPanel, BorderLayout.NORTH);
+        AbstractMenuFactory appMenu = AbstractMenuFactory.getFactory();
+        appMenu.setMenuSupports(realChart.getContext().getMenuSupport(), mediator);
+        appMenu.build(myMenuBar);
+        mediator.registerActions(appMenu.getActionMap());
+        myToolPanel = appMenu.getToolPanelProduct();
+        content.add(myToolPanel, BorderLayout.NORTH);
         
         //
         // このクラス固有のToolBarを生成する
@@ -377,16 +350,12 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
         myToolPanel.add(toolBar);
         
         // テキストツールを生成する
-        AbstractAction action = new AbstractAction(GUIConst.MENU_TEXT) {
-            public void actionPerformed(ActionEvent e) {
-            }
-        };
-        mediator.getActions().put(GUIConst.ACTION_INSERT_TEXT, action);
-        JButton stampBtn = toolBar.add(action);
-        stampBtn.setText("");
-        stampBtn.setIcon(ClientContext.getImageIcon("notep_24.gif"));
-        stampBtn.setToolTipText(GUIConst.TOOLTIPS_INSERT_TEXT);
-        stampBtn.addMouseListener(new MouseAdapter() {
+        Action action = mediator.getActions().get(GUIConst.ACTION_INSERT_TEXT);
+        JButton textBtn = new JButton();
+        textBtn.setName("textBtn");
+        textBtn.setAction(action);
+        textBtn.addMouseListener(new MouseAdapter() {
+            @Override
             public void mousePressed(MouseEvent e) {
                 JPopupMenu popup = new JPopupMenu();
                 mediator.addTextMenu(popup);
@@ -395,101 +364,129 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
                 }
             }
         });
+        toolBar.add(textBtn);
         
         // シェーマツールを生成する
-        action = new AbstractAction(GUIConst.MENU_SCHEMA) {
-            public void actionPerformed(ActionEvent e) {
-            }
-        };
-        mediator.getActions().put(GUIConst.ACTION_INSERT_SCHEMA, action);
-        stampBtn = toolBar.add(action);
-        stampBtn.setText("");
-        stampBtn.setIcon(ClientContext.getImageIcon("picts_24.gif"));
-        stampBtn.setToolTipText(GUIConst.TOOLTIPS_INSERT_SCHEMA);
-        stampBtn.addMouseListener(new MouseAdapter() {
+        action = mediator.getActions().get(GUIConst.ACTION_INSERT_SCHEMA);
+        JButton schemaBtn = new JButton();
+        schemaBtn.setName("schemaBtn");
+        schemaBtn.setAction(action);
+        schemaBtn.addMouseListener(new MouseAdapter() {
+            @Override
             public void mousePressed(MouseEvent e) {
                 getContext().showSchemaBox();
             }
         });
+        toolBar.add(schemaBtn);
         
         // スタンプツールを生成する
-        action = new AbstractAction(GUIConst.MENU_STAMP) {
-            public void actionPerformed(ActionEvent e) {
-            }
-        };
-        mediator.getActions().put(GUIConst.ACTION_INSERT_STAMP, action);
-        stampBtn = toolBar.add(action);
-        stampBtn.setText("");
-        stampBtn.setIcon(ClientContext.getImageIcon("lgicn_24.gif"));
-        stampBtn.setToolTipText(GUIConst.TOOLTIPS_INSERT_STAMP);
+        action = mediator.getActions().get(GUIConst.ACTION_INSERT_STAMP);
+        JButton stampBtn = new JButton();
+        stampBtn.setName("stampBtn");
+        stampBtn.setAction(action);
         stampBtn.addMouseListener(new MouseAdapter() {
+            @Override
             public void mousePressed(MouseEvent e) {
                 JPopupMenu popup = new JPopupMenu();
                 mediator.addStampMenu(popup);
                 popup.show(e.getComponent(), e.getX(), e.getY());
             }
         });
+        toolBar.add(stampBtn);
         
         // 保険選択ツールを生成する
-        action = new AbstractAction(GUIConst.MENU_INSURANCE) {
-            public void actionPerformed(ActionEvent e) {
-            }
-        };
-        mediator.getActions().put(GUIConst.ACTION_SELECT_INSURANCE, action);
-        stampBtn = toolBar.add(action);
-        stampBtn.setText("");
-        stampBtn.setIcon(ClientContext.getImageIcon("addbk_24.gif"));
-        stampBtn.setToolTipText(GUIConst.TOOLTIPS_SELECT_INSURANCE);
-        insurancePop = new JPopupMenu();
-        PVTHealthInsuranceModel[] insurances = ((ChartPlugin)realChart).getHealthInsurances();
-        for (PVTHealthInsuranceModel hm : insurances) {
-            ReflectActionListener ra = new ReflectActionListener(mediator,
-                    "applyInsurance",
-                    new Class[]{hm.getClass()},
-                    new Object[]{hm});
-            JMenuItem mi = new JMenuItem(hm.toString());
-            mi.addActionListener(ra);
-            insurancePop.add(mi);
-        }
-        
-        stampBtn.addMouseListener(new MouseAdapter() {
+        // 保険選択ツールを生成する
+        action = mediator.getActions().get(GUIConst.ACTION_SELECT_INSURANCE);
+        JButton insBtn = new JButton();
+        insBtn.setName("insBtn");
+        insBtn.setAction(action);
+        insBtn.addMouseListener(new MouseAdapter() {
+            
+            @Override
             public void mousePressed(MouseEvent e) {
-                insurancePop.show(e.getComponent(), e.getX(), e.getY());
+                JPopupMenu popup = new JPopupMenu();
+                PVTHealthInsuranceModel[] insurances = getHealthInsurances();
+                for (PVTHealthInsuranceModel hm : insurances) {
+                    ReflectActionListener ra = new ReflectActionListener(mediator, 
+                                                                        "applyInsurance", 
+                                                                        new Class[]{hm.getClass()}, 
+                                                                        new Object[]{hm});
+                    JMenuItem mi = new JMenuItem(hm.toString());
+                    mi.addActionListener(ra);
+                    popup.add(mi);
+                }
+                
+                popup.show(e.getComponent(), e.getX(), e.getY());
             }
         });
+        toolBar.add(insBtn);
         
         statusPanel = new StatusPanel();
         
-        //
-        // 何故か Event Dispatch スレッドで GUI の組み立てをしている
-        //
-        Runnable awt = new Runnable() {
-            
+        if (view != null) {
+            mode = EditorMode.BROWSER;
+            view.setContext(EditorFrame.this);
+            view.start();
+            scroller = new JScrollPane(view.getUI());
+            mediator.enabledAction(GUIConst.ACTION_NEW_DOCUMENT, false);
+
+        } else if (editor != null) {
+            mode = EditorMode.EDITOR;
+            editor.setContext(EditorFrame.this);
+            editor.initialize();
+            editor.start();
+            scroller = new JScrollPane(editor.getUI());
+            mediator.enabledAction(GUIConst.ACTION_NEW_KARTE, false);
+            mediator.enabledAction(GUIConst.ACTION_NEW_DOCUMENT, false);
+        }
+
+        content.add(scroller, BorderLayout.CENTER);
+        frame.getContentPane().setLayout(new BorderLayout(0, 7));
+        frame.getContentPane().add(content, BorderLayout.CENTER);
+        frame.getContentPane().add((JPanel) statusPanel, BorderLayout.SOUTH);
+        resMap.injectComponents(frame);
+        
+        
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                processWindowClosing();
+            }
+        });
+        
+        blockGlass = new BlockGlass();
+        frame.setGlassPane(blockGlass);
+        
+        // Frame の大きさをストレージからロードする
+        Rectangle bounds = null;
+        ApplicationContext appCtx = ClientContext.getApplicationContext();
+        try {
+            bounds = (Rectangle) appCtx.getLocalStorage().load("editorFrameBounds.xml");
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+
+        if (bounds == null) {
+            int x = resMap.getInteger("frameX").intValue();
+            int y = resMap.getInteger("frameY").intValue();
+            int width = resMap.getInteger("frameWidth").intValue();
+            int height = resMap.getInteger("frameHeight").intValue();
+            bounds = new Rectangle(x, y, width, height);
+        }
+        frame.setBounds(bounds);
+        windowSupport.getFrame().setVisible(true);
+        
+        Runnable awt = new Runnable() {      
             public void run() {
-                
                 if (view != null) {
-                    mode = EditorMode.BROWSER;
-                    view.setContext(EditorFrame.this);
-                    view.initialize();
-                    view.start();
-                    scroller = new JScrollPane(view.getUI());
-                    
+                    view.getUI().scrollRectToVisible(new Rectangle(0,0,view.getUI().getWidth(), 50));
                 } else if (editor != null) {
-                    mode = EditorMode.EDITOR;
-                    editor.setContext(EditorFrame.this);
-                    editor.initialize();
-                    editor.start();
-                    scroller = new JScrollPane(editor.getUI());
+                    editor.getUI().scrollRectToVisible(new Rectangle(0,0,editor.getUI().getWidth(), 50));
                 }
-                
-                frame.getContentPane().add(scroller, BorderLayout.CENTER);
-                frame.getContentPane().add((JPanel) statusPanel, BorderLayout.SOUTH);
-                frame.setVisible(true);
             }
         };
-        
-        SwingUtilities.invokeLater(awt);
-        
+        EventQueue.invokeLater(awt);
     }
     
     /**
@@ -498,6 +495,12 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
     public void stop() {
         mediator.dispose();
         allEditorFrames.remove(this);
+        try {
+            ClientContext.getLocalStorage().save(getFrame().getBounds(), "editorFrameBounds.xml");
+            
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
         getFrame().setVisible(false);
         getFrame().dispose();
     }
@@ -540,10 +543,14 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
      */
     private void replaceView() {
         if (editor != null) {
+            // Editor Frame の時、
+            // 新規カルテとドキュメントは不可とする
+            mediator.enabledAction(GUIConst.ACTION_NEW_KARTE, false);
+            mediator.enabledAction(GUIConst.ACTION_NEW_DOCUMENT, false);
             mode = EditorMode.EDITOR;
-            getFrame().getContentPane().remove(scroller);
+            content.remove(scroller);
             scroller = new JScrollPane(editor.getUI());
-            getFrame().getContentPane().add(scroller, BorderLayout.CENTER);
+            content.add(scroller, BorderLayout.CENTER);
             getFrame().validate();
         }
     }
@@ -551,12 +558,119 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
     /**
      * 新規カルテを作成する。
      */
+//    public void newKarte() {
+//        
+//        // 新規カルテ作成ダイアログを表示しパラメータを得る
+//        String docType = view.getModel().getDocInfo().getDocType();
+//        
+//        final ChartImpl chart = (ChartImpl) realChart;
+//        String dept = chart.getPatientVisit().getDepartment();
+//        String deptCode = chart.getPatientVisit().getDepartmentCode();
+//        String insuranceUid = chart.getPatientVisit().getInsuranceUid();
+//        
+//        NewKarteParams params = null;
+//        Preferences prefs = Project.getPreferences();
+//        
+//        if (prefs.getBoolean(Project.KARTE_SHOW_CONFIRM_AT_NEW, true)) {
+//            
+//            params = chart.getNewKarteParams(docType,Chart.NewKarteOption.EDITOR_COPY_NEW, getFrame(), dept, deptCode, insuranceUid);
+//            
+//        } else {
+//            //
+//            // 手動でパラメータを設定する
+//            //
+//            params = new NewKarteParams(Chart.NewKarteOption.EDITOR_COPY_NEW);
+//            params.setDocType(docType);
+//            params.setDepartment(dept);
+//            params.setDepartmentCode(deptCode);
+//            
+//            PVTHealthInsuranceModel[] ins = chart.getHealthInsurances();
+//            params.setPVTHealthInsurance(ins[0]);
+//            
+//            int cMode = prefs.getInt(Project.KARTE_CREATE_MODE, 0);
+//            if (cMode == 0) {
+//                params.setCreateMode(Chart.NewKarteMode.EMPTY_NEW);
+//            } else if (cMode == 1) {
+//                params.setCreateMode(Chart.NewKarteMode.APPLY_RP);
+//            } else if (cMode == 2) {
+//                params.setCreateMode(Chart.NewKarteMode.ALL_COPY);
+//            }
+//        }
+//        
+//        if (params == null) {
+//            return;
+//        }
+//        
+//        
+//        // 編集用のモデルを得る
+//        DocumentModel editModel = null;
+//        
+//        // シングルドキュメントを生成する場合
+//        if (params.getDocType().equals(IInfoModel.DOCTYPE_S_KARTE)) {
+//            //logger.debug("シングルドキュメントを生成する");
+//            // Baseになるカルテがあるかどうかでモデルの生成が異なる
+//            if (params.getCreateMode() == Chart.NewKarteMode.EMPTY_NEW) {
+//                //logger.debug("empty new is selected");
+//                editModel = chart.getKarteModelToEdit(params);
+//            } else {
+//                //logger.debug("copy new is selected");
+//                editModel = chart.getKarteModelToEdit(view.getModel(), params);
+//            }
+//            
+//        } else {
+//            //logger.debug("2号カルテを生成する");
+//            // Baseになるカルテがあるかどうかでモデルの生成が異なる
+//            if (params.getCreateMode() == Chart.NewKarteMode.EMPTY_NEW) {
+//                //logger.debug("empty new is selected");
+//                editModel = chart.getKarteModelToEdit(params);
+//            } else {
+//                //logger.debug("copy new is selected");
+//                editModel = chart.getKarteModelToEdit(view.getModel(), params);
+//            }
+//        }
+//        
+//        final DocumentModel theModel = editModel;
+//        
+//        Runnable r = new Runnable() {
+//            
+//            public void run() {
+//                
+//                editor = chart.createEditor();
+//                editor.setModel(theModel);
+//                editor.setEditable(true);
+//                editor.setContext(EditorFrame.this);
+//                if (theModel.getDocInfo().getDocType().equals(IInfoModel.DOCTYPE_S_KARTE)) {
+//                    editor.setMode(KarteEditor.SINGLE_MODE);
+//                } else {
+//                    editor.setMode(KarteEditor.DOUBLE_MODE);
+//                }
+//                
+//                Runnable awt = new Runnable() {
+//                    public void run() {
+//                        editor.initialize();
+//                        editor.start();
+//                        replaceView();
+//                    }
+//                };
+//                
+//                EventQueue.invokeLater(awt);
+//            }
+//        };
+//        
+//        Thread t = new Thread(r);
+//        t.setPriority(Thread.NORM_PRIORITY);
+//        t.start();
+//    }
+    
+    /**
+     * 新規カルテを作成する。
+     */    
     public void newKarte() {
         
-        //
         // 新規カルテ作成ダイアログを表示しパラメータを得る
-        //
-        final ChartPlugin chart = (ChartPlugin) realChart;
+        String docType = view.getModel().getDocInfo().getDocType();
+        
+        final ChartImpl chart = (ChartImpl) realChart;
         String dept = chart.getPatientVisit().getDepartment();
         String deptCode = chart.getPatientVisit().getDepartmentCode();
         String insuranceUid = chart.getPatientVisit().getInsuranceUid();
@@ -566,13 +680,14 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
         
         if (prefs.getBoolean(Project.KARTE_SHOW_CONFIRM_AT_NEW, true)) {
             
-            params = chart.getNewKarteParams(IChart.NewKarteOption.EDITOR_COPY_NEW, getFrame(), dept, deptCode, insuranceUid);
+            params = chart.getNewKarteParams(docType,Chart.NewKarteOption.EDITOR_COPY_NEW, getFrame(), dept, deptCode, insuranceUid);
             
         } else {
             //
             // 手動でパラメータを設定する
             //
-            params = new NewKarteParams(IChart.NewKarteOption.EDITOR_COPY_NEW);
+            params = new NewKarteParams(Chart.NewKarteOption.EDITOR_COPY_NEW);
+            params.setDocType(docType);
             params.setDepartment(dept);
             params.setDepartmentCode(deptCode);
             
@@ -581,11 +696,11 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
             
             int cMode = prefs.getInt(Project.KARTE_CREATE_MODE, 0);
             if (cMode == 0) {
-                params.setCreateMode(IChart.NewKarteMode.EMPTY_NEW);
+                params.setCreateMode(Chart.NewKarteMode.EMPTY_NEW);
             } else if (cMode == 1) {
-                params.setCreateMode(IChart.NewKarteMode.APPLY_RP);
+                params.setCreateMode(Chart.NewKarteMode.APPLY_RP);
             } else if (cMode == 2) {
-                params.setCreateMode(IChart.NewKarteMode.ALL_COPY);
+                params.setCreateMode(Chart.NewKarteMode.ALL_COPY);
             }
         }
         
@@ -595,11 +710,13 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
         
         // 編集用のモデルを得る
         DocumentModel editModel = null;
-        if (params.getCreateMode() == IChart.NewKarteMode.EMPTY_NEW) {
+        
+        if (params.getCreateMode() == Chart.NewKarteMode.EMPTY_NEW) {
             editModel = chart.getKarteModelToEdit(params);
         } else {
             editModel = chart.getKarteModelToEdit(view.getModel(), params);
         }
+        
         final DocumentModel theModel = editModel;
         
         Runnable r = new Runnable() {
@@ -610,6 +727,7 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
                 editor.setModel(theModel);
                 editor.setEditable(true);
                 editor.setContext(EditorFrame.this);
+                editor.setMode(KarteEditor.DOUBLE_MODE);
                 
                 Runnable awt = new Runnable() {
                     public void run() {
@@ -619,7 +737,7 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
                     }
                 };
                 
-                SwingUtilities.invokeLater(awt);
+                EventQueue.invokeLater(awt);
             }
         };
         
@@ -627,7 +745,7 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
         t.setPriority(Thread.NORM_PRIORITY);
         t.start();
     }
-    
+        
     /**
      * カルテを修正する。
      */
@@ -637,13 +755,16 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
             
             public void run() {
                 
-                ChartPlugin chart = (ChartPlugin)realChart;
+                ChartImpl chart = (ChartImpl)realChart;
                 DocumentModel editModel = chart.getKarteModelToEdit(view.getModel());
                 editor = chart.createEditor();
                 editor.setModel(editModel);
                 editor.setEditable(true);
                 editor.setContext(EditorFrame.this);
                 editor.setModify(true);
+                String docType = editModel.getDocInfo().getDocType();
+                int mode = docType.equals(IInfoModel.DOCTYPE_KARTE) ? KarteEditor.DOUBLE_MODE : KarteEditor.SINGLE_MODE;
+                editor.setMode(mode);
                 
                 Runnable awt = new Runnable() {
                     public void run() {
@@ -653,7 +774,7 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
                     }
                 };
                 
-                SwingUtilities.invokeLater(awt);
+                EventQueue.invokeLater(awt);
             }
         };
         
@@ -696,11 +817,11 @@ public class EditorFrame extends DefaultMainWindowPlugin implements IChart {
             
             if (editor.isDirty()) {
                 
-                String save = ClientContext.getString("chart.unsavedtask.saveText"); //"保存";
-                String discard = ClientContext.getString("chart.unsavedtask.discardText"); //"破棄";
-                String question = ClientContext.getString("editoFrame.unsavedtask.question"); // 未保存のドキュメントがあります。保存しますか ?
-                String title = ClientContext.getString("chart.unsavedtask.title"); // 未保存処理
-                String cancelText =  (String)UIManager.get("OptionPane.cancelButtonText");
+                String save = resMap.getString("unsavedtask.saveText"); //"保存";
+                String discard = resMap.getString("unsavedtask.discardText"); //"破棄";
+                String question = resMap.getString("unsavedtask.question"); // 未保存のドキュメントがあります。保存しますか ?
+                String title = resMap.getString("unsavedtask.title"); // 未保存処理
+                String cancelText =  (String) UIManager.get("OptionPane.cancelButtonText");
                 int option = JOptionPane.showOptionDialog(
                         getFrame(),
                         question,

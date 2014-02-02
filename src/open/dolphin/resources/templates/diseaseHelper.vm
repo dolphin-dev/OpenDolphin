@@ -34,8 +34,8 @@
 					</mmlNm:Name>
 				</mmlPsi:personName>
                                 <mmlFc:Facility>
-                                    <mmlFc:name mmlFc:repCode="I" mmlFc:tableId="MML0025">医療法人　オルカ医院</mmlFc:name>
-                                    <mmlCm:Id mmlCm:type="insurance" mmlCm:tableId="MML0027">JPN999999999999</mmlCm:Id>
+                                    <mmlFc:name mmlFc:repCode="I" mmlFc:tableId="MML0025">${diseaseHelper.getFacilityName()}</mmlFc:name>
+                                    <mmlCm:Id mmlCm:type="insurance" mmlCm:tableId="MML0027">${diseaseHelper.getJmariCode()}</mmlCm:Id>
                                 </mmlFc:Facility>
                                 <mmlDp:Department>
                                     <mmlDp:name mmlDp:repCode="I" mmlDp:tableId="MML0025">${diseaseHelper.getDepartmentDesc()}</mmlDp:name>
@@ -100,10 +100,10 @@
   									<mmlNm:fullname>${diseaseHelper.getCreatorName()}</mmlNm:fullname> 
 								</mmlNm:Name>
 							</mmlPsi:personName>
-                                               <mmlFc:Facility>
-                                                    <mmlFc:name mmlFc:repCode="I" mmlFc:tableId="MML0025">医療法人　オルカ医院</mmlFc:name>
-                                                    <mmlCm:Id mmlCm:type="insurance" mmlCm:tableId="MML0027">JPN999999999999</mmlCm:Id>
-                                               </mmlFc:Facility>
+                                                        <mmlFc:Facility>
+                                                            <mmlFc:name mmlFc:repCode="I" mmlFc:tableId="MML0025">${diseaseHelper.getFacilityName()}</mmlFc:name>
+                                                            <mmlCm:Id mmlCm:type="insurance" mmlCm:tableId="MML0027">${diseaseHelper.getJmariCode()}</mmlCm:Id>
+                                                        </mmlFc:Facility>
                                                 <mmlDp:Department>
                                                     <mmlDp:name mmlDp:repCode="I" mmlDp:tableId="MML0025">${diseaseHelper.getDepartmentDesc()}</mmlDp:name>
                                                     <mmlCm:Id mmlCm:type="medical" mmlCm:tableId="MML0029">${diseaseHelper.getDepartment()}</mmlCm:Id>
@@ -116,9 +116,9 @@
 			<content>
 				<mmlRd:RegisteredDiagnosisModule>
 #if ($moduleItem.getRegisteredDiagnosisModule().getDiagnosisCode())				
-					<mmlRd:diagnosis mmlRd:code="${moduleItem.getRegisteredDiagnosisModule().getDiagnosisCode()}" mmlRd:system="Diagnosis">${moduleItem.getRegisteredDiagnosisModule().getDiagnosis()}</mmlRd:diagnosis> 
+					<mmlRd:diagnosis mmlRd:code="${moduleItem.getRegisteredDiagnosisModule().getDiagnosisCode()}" mmlRd:system="Diagnosis">${moduleItem.getRegisteredDiagnosisModule().getDiagnosisName()}</mmlRd:diagnosis> 
 #else
-					<mmlRd:diagnosis>${moduleItem.getRegisteredDiagnosisModule().getDiagnosis()}</mmlRd:diagnosis> 					
+					<mmlRd:diagnosis>${moduleItem.getRegisteredDiagnosisModule().getDiagnosisName()}</mmlRd:diagnosis> 					
 #end
 #if ($moduleItem.getRegisteredDiagnosisModule().getCategory())					
 					<mmlRd:categories>

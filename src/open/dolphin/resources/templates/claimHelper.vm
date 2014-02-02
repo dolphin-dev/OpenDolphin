@@ -34,8 +34,8 @@
                                     </mmlNm:Name>
 				</mmlPsi:personName>
                                 <mmlFc:Facility>
-                                    <mmlFc:name mmlFc:repCode="I" mmlFc:tableId="MML0025">医療法人　オルカ医院</mmlFc:name>
-                                    <mmlCm:Id mmlCm:type="insurance" mmlCm:tableId="MML0027">JPN999999999999</mmlCm:Id>
+                                    <mmlFc:name mmlFc:repCode="I" mmlFc:tableId="MML0025">${claimHelper.getFacilityName()}</mmlFc:name>
+                                    <mmlCm:Id mmlCm:type="insurance" mmlCm:tableId="MML0027">${claimHelper.getJmariCode()}</mmlCm:Id>
                                 </mmlFc:Facility>
                                 <mmlDp:Department>
                                     <mmlDp:name mmlDp:repCode="I" mmlDp:tableId="MML0025">${claimHelper.getCreatorDeptDesc()}</mmlDp:name>
@@ -98,8 +98,8 @@
                                                     </mmlNm:Name>
 						</mmlPsi:personName>
                                                 <mmlFc:Facility>
-                                                    <mmlFc:name mmlFc:repCode="I" mmlFc:tableId="MML0025">医療法人　オルカ医院</mmlFc:name>
-                                                    <mmlCm:Id mmlCm:type="insurance" mmlCm:tableId="MML0027">JPN999999999999</mmlCm:Id>
+                                                    <mmlFc:name mmlFc:repCode="I" mmlFc:tableId="MML0025">${claimHelper.getFacilityName()}</mmlFc:name>
+                                                    <mmlCm:Id mmlCm:type="insurance" mmlCm:tableId="MML0027">${claimHelper.getJmariCode()}</mmlCm:Id>
                                                 </mmlFc:Facility>
                                                 <mmlDp:Department>
                                                     <mmlDp:name mmlDp:repCode="I" mmlDp:tableId="MML0025">${claimHelper.getCreatorDeptDesc()}</mmlDp:name>

@@ -12,8 +12,6 @@ import javax.swing.table.AbstractTableModel;
  */
 public class ImageTableModel extends AbstractTableModel {
     
-    private static final long serialVersionUID = 4054286703884656575L;
-    
     private String[] columnNames;
     private int columnCount;
     private List imageList;
@@ -23,6 +21,7 @@ public class ImageTableModel extends AbstractTableModel {
         this.columnCount = columnCount;
     }
     
+    @Override
     public String getColumnName(int col) {
         return (columnNames != null && col < columnNames.length) ? columnNames[col] : null;
     }

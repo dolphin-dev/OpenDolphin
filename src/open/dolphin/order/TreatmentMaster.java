@@ -1,40 +1,18 @@
-/*
- * TreatmentMaster.java
- * Copyright (C) 2007 Dolphin Project. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.order;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.List;
 
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -45,16 +23,17 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 
-import open.dolphin.client.AbstractInfiniteTask;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.MasterRenderer;
-import open.dolphin.client.TimeoutWarning;
-import open.dolphin.client.UltraSonicProgressLabel;
+import open.dolphin.client.TaskTimerMonitor;
 import open.dolphin.dao.SqlDaoFactory;
 import open.dolphin.dao.SqlMasterDao;
 import open.dolphin.infomodel.TreatmentEntry;
 import open.dolphin.table.ObjectTableModel;
-import open.dolphin.util.ReflectMonitor;
+import org.jdesktop.application.Application;
+import org.jdesktop.application.ApplicationContext;
+import org.jdesktop.application.Task;
+import org.jdesktop.application.TaskMonitor;
 
 /**
  * 診療行為マスタ検索パネルクラス。
@@ -142,7 +121,7 @@ public class TreatmentMaster extends MasterPanel {
             
             private static final long serialVersionUID = 8084360322119845887L;
             
-            @SuppressWarnings("unchecked")
+            @Override
             public Class getColumnClass(int col) {
                 return TreatmentEntry.class;
             }
@@ -247,6 +226,7 @@ public class TreatmentMaster extends MasterPanel {
      * 検索する診療行為コードの範囲を設定する。
      * @param searchClass
      */
+    @Override
     public void setSearchClass(String searchClass) {
         
         this.searchClass = searchClass;
@@ -267,292 +247,173 @@ public class TreatmentMaster extends MasterPanel {
         radLOcationButton.setEnabled(enabled);
     }
     
-//    /**
-//     * 検索中プロパティを設定する。
-//     * @param busy 検索中の時 true
-//     */
-//    public void setBusy(boolean busy) {
-//        
-//        keywordField.setEnabled(!busy);
-//        
-//        if (this.searchClass != null) {
-//            categoryButton.setEnabled(!busy);
-//        }
-//        
-//        if (radiology) {
-//            radLOcationButton.setEnabled(!busy);
-//        }
-//        
-//        super.setBusy(busy);
-//    }
-    
     /**
      * 診療行為コードで点数マスタを検索する。
      */
     private void getByClaimClass() {
         
-        // DAO を生成する
+        logger.debug("master = " + master);
+        logger.debug("searchClass = " + searchClass);
+        logger.debug("sortBy = " + sortBy);
+        logger.debug("order = " + order);
+        
         final SqlMasterDao dao = (SqlMasterDao) SqlDaoFactory.create(this, "dao.master");
         
-        // ReflectMonitor を生成する
-        final ReflectMonitor rm = new ReflectMonitor();
-        rm.setReflection(dao, 
-                         "getByClaimClass", 
-                         new Class[]{String.class, String.class, String.class, String.class},
-                         new Object[]{master, searchClass, sortBy, order});
-        rm.setMonitor(SwingUtilities.getWindowAncestor(this), "診療行為検索", searchClass + " を検索しています...  ", 200, 30*1000);
+        ApplicationContext appCtx = ClientContext.getApplicationContext();
+        Application app = appCtx.getApplication();
         
-        // 結果状態のリスナを生成する
-        PropertyChangeListener pl = new PropertyChangeListener() {
-           
-            public void propertyChange(PropertyChangeEvent e) {
-                
-                int state = ((Integer) e.getNewValue()).intValue();
-                
-                switch (state) {
-                    
-                    case ReflectMonitor.DONE:
-                        processResult(dao.isNoError(), rm.getResult(), dao.getErrorMessage());
-                        break;
-                        
-                    case ReflectMonitor.TIME_OVER:
-                        Window parent = SwingUtilities.getWindowAncestor(TreatmentMaster.this);
-                        String title = ClientContext.getString(getMaster());
-                        new TimeoutWarning(parent, title, null).start();
-                        break;
-                        
-                    case ReflectMonitor.CANCELED:
-                        break;
-                }
-                
-                //
-                // Block を解除する
-                //
-                setBusy(false);
+        Task task = new Task<List<TreatmentEntry>, Void>(app) {
+
+            @Override
+            protected List<TreatmentEntry> doInBackground() throws Exception {
+                List<TreatmentEntry> result = dao.getByClaimClass(master, searchClass, sortBy, order);
+                return result;
+            }
+            
+            @Override
+            protected void succeeded(List<TreatmentEntry> result) {
+                logger.debug("Task succeeded");
+                processResult(dao.isNoError(), result, dao.getErrorMessage());
+            }
+            
+            @Override
+            protected void cancelled() {
+                logger.debug("Task cancelled");
+            }
+            
+            @Override
+            protected void failed(java.lang.Throwable cause) {
+                logger.warn(cause.getMessage());
+            }
+            
+            @Override
+            protected void interrupted(java.lang.InterruptedException e) {
+                logger.warn(e.getMessage());
             }
         };
-        rm.addPropertyChangeListener(pl);
         
-        //
-        // Block し、メソッドの実行を開始する
-        //
-        setBusy(true);
-        rm.start();
+        TaskMonitor taskMonitor = appCtx.getTaskMonitor();
+        String message = "診療行為検索";
+        String note = searchClass + "を検索しています...";
+        Component c = SwingUtilities.getWindowAncestor(this);
+        TaskTimerMonitor w = new TaskTimerMonitor(task, taskMonitor, c, message, note, 200, 60*1000);
+        taskMonitor.addPropertyChangeListener(w);
+        
+        appCtx.getTaskService().execute(task);
     }
-    
-//    /**
-//     * 診療行為コードで点数マスタを検索する。
-//     */
-//    private void getByClaimClass() {
-//        
-//        // DAO を生成する
-//        final SqlMasterDao dao = (SqlMasterDao) SqlDaoFactory.create(this, "dao.master");
-//        
-//        // Worker を生成する
-//        int maxEstimation = ClientContext.getInt("task.masterSearch.maxEstimation");
-//        int delay = ClientContext.getInt("task.masterSearch.delay");
-//        final TreatmentTask worker = new TreatmentTask(0, dao, maxEstimation/delay);
-//        
-//        // タスクタイマーを生成する
-//        taskTimer = new javax.swing.Timer(TIMER_DELAY, new ActionListener() {
-//            
-//            public void actionPerformed(ActionEvent e) {
-//                
-//                worker.getCurrent();
-//                
-//                if (worker.isDone()) {
-//                    
-//                    taskTimer.stop();
-//                    setBusy(false);
-//                    
-//                    if (dao.isNoError()) {
-//                        List result = worker.getResult();
-//                        tableModel.setObjectList(result);
-//                        setItemCount(tableModel.getObjectCount());
-//                        
-//                    } else {
-//                        Window parent = SwingUtilities.getWindowAncestor(TreatmentMaster.this);
-//                        String message = dao.getErrorMessage();
-//                        String title = ClientContext.getFrameTitle(getMaster());
-//                        JOptionPane.showMessageDialog(parent, message, title, JOptionPane.WARNING_MESSAGE);
-//                    }
-//                } else if (worker.isTimeOver()) {
-//                    taskTimer.stop();
-//                    setBusy(false);
-//                    Window parent = SwingUtilities.getWindowAncestor(TreatmentMaster.this);
-//                    String title = ClientContext.getString(getMaster());
-//                    new TimeoutWarning(parent, title, null).start();
-//                }
-//            }
-//        });
-//        setBusy(true);
-//        worker.start();
-//        taskTimer.start();
-//    }
-    
+        
     /**
      * 撮影部位を検索する。
      */
     private void getRadLocation() {
         
+        logger.debug("master = " + master);
+        logger.debug("sortBy = " + sortBy);
+        logger.debug("order = " + order);
+        
         // DAO を生成する
         final SqlMasterDao dao = (SqlMasterDao)SqlDaoFactory.create(this, "dao.master");
         
-          // ReflectMonitor を生成する
-        final ReflectMonitor rm = new ReflectMonitor();
-        rm.setReflection(dao, 
-                         "getRadLocation", 
-                         new Class[]{String.class, String.class, String.class},
-                         new Object[]{master, sortBy, order});
-        rm.setMonitor(SwingUtilities.getWindowAncestor(this), "放射線部位検索", "検索しています...  ", 200, 30*1000);
+        ApplicationContext appCtx = ClientContext.getApplicationContext();
+        Application app = appCtx.getApplication();
         
-        // 結果状態のリスナを生成する
-        PropertyChangeListener pl = new PropertyChangeListener() {
-           
-            public void propertyChange(PropertyChangeEvent e) {
-                
-                int state = ((Integer) e.getNewValue()).intValue();
-                
-                switch (state) {
-                    
-                    case ReflectMonitor.DONE:
-                        processResult(dao.isNoError(), rm.getResult(), dao.getErrorMessage());
-                        break;
-                        
-                    case ReflectMonitor.TIME_OVER:
-                        Window parent = SwingUtilities.getWindowAncestor(TreatmentMaster.this);
-                        String title = ClientContext.getString(getMaster());
-                        new TimeoutWarning(parent, title, null).start();
-                        break;
-                        
-                    case ReflectMonitor.CANCELED:
-                        break;
-                }
-                
-                //
-                // Block を解除する
-                //
-                setBusy(false);
+        Task task = new Task<List<TreatmentEntry>, Void>(app) {
+
+            @Override
+            protected List<TreatmentEntry> doInBackground() throws Exception {
+                List<TreatmentEntry> result = dao.getRadLocation(master, sortBy, order);
+                return result;
+            }
+            
+            @Override
+            protected void succeeded(List<TreatmentEntry> result) {
+                logger.debug("Task succeeded");
+                processResult(dao.isNoError(), result, dao.getErrorMessage());
+            }
+            
+            @Override
+            protected void cancelled() {
+                logger.debug("Task cancelled");
+            }
+            
+            @Override
+            protected void failed(java.lang.Throwable cause) {
+                logger.warn(cause.getMessage());
+            }
+            
+            @Override
+            protected void interrupted(java.lang.InterruptedException e) {
+                logger.warn(e.getMessage());
             }
         };
-        rm.addPropertyChangeListener(pl);
         
-        //
-        // Block し、メソッドの実行を開始する
-        //
-        setBusy(true);
-        rm.start();      
+        TaskMonitor taskMonitor = appCtx.getTaskMonitor();
+        String message = "放射線部位検索";
+        String note = searchClass + "検索しています...";
+        Component c = SwingUtilities.getWindowAncestor(this);
+        TaskTimerMonitor w = new TaskTimerMonitor(task, taskMonitor, c, message, note, 200, 60*1000);
+        taskMonitor.addPropertyChangeListener(w);
         
+        appCtx.getTaskService().execute(task);
     }
-    
-//    /**
-//     * 撮影部位を検索する。
-//     */
-//    private void getRadLocation() {
-//        
-//        // DAO を生成する
-//        final SqlMasterDao dao = (SqlMasterDao)SqlDaoFactory.create(this, "dao.master");
-//        
-//        // Worker を生成する
-//        int maxEstimation = ClientContext.getInt("task.masterSearch.maxEstimation");
-//        int delay = ClientContext.getInt("task.masterSearch.delay");
-//        final TreatmentTask worker = new TreatmentTask(1, dao, maxEstimation/delay);
-//        
-//        // タスクタイマーを生成する
-//        taskTimer = new javax.swing.Timer(TIMER_DELAY, new ActionListener() {
-//            
-//            public void actionPerformed(ActionEvent e) {
-//                
-//                worker.getCurrent();
-//                
-//                if (worker.isDone()) {
-//                    
-//                    taskTimer.stop();
-//                    setBusy(false);
-//                    
-//                    if (dao.isNoError()) {
-//                        List result = worker.getResult();
-//                        tableModel.setObjectList(result);
-//                        setItemCount(tableModel.getObjectCount());
-//                        
-//                    } else {
-//                        Window parent = SwingUtilities.getWindowAncestor(TreatmentMaster.this);
-//                        String message = dao.getErrorMessage();
-//                        String title = ClientContext.getFrameTitle(getMaster());
-//                        JOptionPane.showMessageDialog(parent, message, title, JOptionPane.WARNING_MESSAGE);
-//                    }
-//                } else if (worker.isTimeOver()) {
-//                    taskTimer.stop();
-//                    setBusy(false);
-//                    Window parent = SwingUtilities.getWindowAncestor(TreatmentMaster.this);
-//                    String title = ClientContext.getString(getMaster());
-//                    new TimeoutWarning(parent, title, null).start();
-//                }
-//            }
-//        });
-//        setBusy(true);
-//        worker.start();
-//        taskTimer.start();
-//    }
     
     /**
      * 診療行為マスタ Table のレンダラー
      */
     protected final class TreatmentMasterRenderer extends MasterRenderer {
-        
+
         private static final long serialVersionUID = -23933027994436326L;
-        
-        private final int CODE_COLUMN       = 0;
-        private final int NAME_COLUMN       = 1;
-        private final int KANA_COLUMN       = 2;
-        private final int COST_FLAG_COLUMN  = 3;
-        private final int COST_COLUMN       = 4;
-        private final int INOUT_COLUMN      = 5;
-        private final int OLD_COLUMN        = 6;
+        private final int CODE_COLUMN = 0;
+        private final int NAME_COLUMN = 1;
+        private final int KANA_COLUMN = 2;
+        private final int COST_FLAG_COLUMN = 3;
+        private final int COST_COLUMN = 4;
+        private final int INOUT_COLUMN = 5;
+        private final int OLD_COLUMN = 6;
         private final int HOSP_CLINIC_COLUMN = 7;
-        private final int START_COLUMN      = 8;
-        private final int END_COLUMN      = 9;
-        
+        private final int START_COLUMN = 8;
+        private final int END_COLUMN = 9;
         private String[] costFlags;
         private String[] inOutFlags;
         private String[] oldFlags;
         private String[] hospitalClinicFlags;
-        
+
         public TreatmentMasterRenderer() {
         }
-        
+
         public String[] getCostFlag() {
             return costFlags;
         }
-        
+
         public void setCostFlag(String[] val) {
             costFlags = val;
         }
-        
+
         public String[] getInOutFlag() {
             return inOutFlags;
         }
-        
+
         public void setInOutFlag(String[] val) {
             inOutFlags = val;
         }
-        
+
         public String[] getOldFlag() {
             return oldFlags;
         }
-        
+
         public void setOldFlag(String[] val) {
             oldFlags = val;
         }
-        
+
         public String[] getHospitalClinicFlag() {
             return hospitalClinicFlags;
         }
-        
+
         public void setHospitalClinicFlag(String[] val) {
             hospitalClinicFlags = val;
         }
-        
+
+        @Override
         public Component getTableCellRendererComponent(
                 JTable table,
                 Object value,
@@ -565,43 +426,43 @@ public class TreatmentMaster extends MasterPanel {
                     isSelected,
                     isFocused,
                     row, col);
-            if (row % 2 == 0) {
-                setBackground(getEvenColor());
-            } else {
-                setBackground(getOddColor());
-            }
-            
+
             if (isSelected) {
                 setBackground(table.getSelectionBackground());
                 setForeground(table.getSelectionForeground());
+            } else {
+
+                setForeground(table.getForeground());
+                setBackground(table.getBackground());
             }
-            JLabel label = (JLabel)c;
-            
+
+            JLabel label = (JLabel) c;
+
             if (value != null && value instanceof TreatmentEntry) {
-                
-                TreatmentEntry entry = (TreatmentEntry)value;
-                
+
+                TreatmentEntry entry = (TreatmentEntry) value;
+
                 String startDate = entry.getStartDate();
                 String endDate = entry.getEndDate();
-                
-                setColor(label,startDate, endDate);
-                
+
+                setColor(label, startDate, endDate);
+
                 String tmp = null;
-                
-                switch(col) {
-                    
+
+                switch (col) {
+
                     case CODE_COLUMN:
                         label.setText(entry.getCode());
                         break;
-                        
+
                     case NAME_COLUMN:
                         label.setText(entry.getName());
                         break;
-                        
+
                     case KANA_COLUMN:
                         label.setText(entry.getKana());
                         break;
-                        
+
                     case COST_FLAG_COLUMN:
                         tmp = entry.getCostFlag();
                         if (tmp != null) {
@@ -615,11 +476,11 @@ public class TreatmentMaster extends MasterPanel {
                             label.setText("");
                         }
                         break;
-                        
+
                     case COST_COLUMN:
                         label.setText(entry.getCost());
                         break;
-                        
+
                     case INOUT_COLUMN:
                         tmp = entry.getInOutFlag();
                         if (tmp != null) {
@@ -633,7 +494,7 @@ public class TreatmentMaster extends MasterPanel {
                             label.setText("");
                         }
                         break;
-                        
+
                     case OLD_COLUMN:
                         tmp = entry.getOldFlag();
                         if (tmp != null) {
@@ -647,7 +508,7 @@ public class TreatmentMaster extends MasterPanel {
                             label.setText("");
                         }
                         break;
-                        
+
                     case HOSP_CLINIC_COLUMN:
                         tmp = entry.getHospitalClinicFlag();
                         if (tmp != null) {
@@ -661,7 +522,7 @@ public class TreatmentMaster extends MasterPanel {
                             label.setText("");
                         }
                         break;
-                        
+
                     case START_COLUMN:
                         if (startDate.startsWith("0")) {
                             label.setText("");
@@ -669,7 +530,7 @@ public class TreatmentMaster extends MasterPanel {
                             label.setText(startDate);
                         }
                         break;
-                        
+
                     case END_COLUMN:
                         if (endDate.startsWith("9")) {
                             label.setText("");
@@ -677,46 +538,14 @@ public class TreatmentMaster extends MasterPanel {
                             label.setText(endDate);
                         }
                         break;
-                }
-                
+                    }
+
             } else {
                 //label.setBackground(Color.white);
                 label.setText(value == null ? "" : value.toString());
             }
+
             return c;
         }
     }
-    
-//    /**
-//     * 検索タスククラス。
-//     */
-//    protected class TreatmentTask extends AbstractInfiniteTask {
-//        
-//        private SqlMasterDao dao;
-//        private int mode;
-//        private List result;
-//        
-//        public TreatmentTask(int mode, SqlMasterDao dao, int taskLength) {
-//            this.mode = mode;
-//            this.dao = dao;
-//            setTaskLength(taskLength);
-//        }
-//        
-//        protected List getResult() {
-//            return result;
-//        }
-//        
-//        protected void doTask() {
-//            
-//            switch (mode) {
-//                case 0:
-//                    result = dao.getByClaimClass(master, searchClass, sortBy, order);
-//                    break;
-//                case 1:
-//                    result = dao.getRadLocation(master, sortBy, order);
-//                    break;
-//            }
-//            setDone(true);
-//        }
-//    }
 }

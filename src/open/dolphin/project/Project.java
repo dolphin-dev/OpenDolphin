@@ -1,22 +1,3 @@
-/*
- * Project.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2003-2005 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.project;
 
 import java.awt.*;
@@ -91,6 +72,7 @@ public class Project  {
     public static final String DOC_HISTORY_FETCHCOUNT 	= "docHistory.fetchCount";
     public static final String DOC_HISTORY_PERIOD 	= "docHistory.period";
     public static final String KARTE_SCROLL_DIRECTION   = "karte.scroll.direction";
+    public static final String DOUBLE_KARTE             = "karte.double";
     
     // •a–¼
     public static final String DIAGNOSIS_ASCENDING 	= "diagnosis.ascending";
@@ -170,6 +152,14 @@ public class Project  {
         return stub.getFacilityId();
     }
     
+    public static String getOrcaVersion() {
+        return stub.getOrcaVersion();
+    }
+    
+    public static String getJMARICode() {
+        return stub.getJMARICode();
+    }
+    
     public static String getHostAddress() {
         return stub.getHostAddress();
     }
@@ -236,6 +226,10 @@ public class Project  {
      */
     public static boolean getUseAsPVTServer() {
         return stub.getUseAsPVTServer();
+    }
+    
+    public static boolean isClaim01() {
+        return stub.isClaim01();
     }
     
     /**
@@ -327,7 +321,7 @@ public class Project  {
         return new ID(pid, "facility", "MML0024");
     }
     
-    public static Object createSaveDialog(Frame parent, SaveParams params) {
+    public static Object createSaveDialog(Window parent, SaveParams params) {
         return getProjectFactory().createSaveDialog(parent, params);
     }
     

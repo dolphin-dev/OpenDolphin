@@ -1,22 +1,3 @@
-/*
- * StampTree.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2001,2003,2004,2005 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
 import javax.swing.*;
@@ -33,12 +14,17 @@ import open.dolphin.infomodel.TextStampModel;
 import open.dolphin.project.*;
 import open.dolphin.util.GUIDGenerator;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.*;
 import java.beans.XMLEncoder;
 import java.io.*;
 import java.util.*;
+import java.util.List;
+import org.apache.log4j.Logger;
+import org.jdesktop.application.Application;
+import org.jdesktop.application.ApplicationContext;
+import org.jdesktop.application.Task;
+import org.jdesktop.application.TaskMonitor;
+import org.jdesktop.application.TaskService;
 
 /**
  * StampTree
@@ -56,17 +42,22 @@ public class StampTree extends JTree implements TreeModelListener {
     private static final String NEW_FOLDER_NAME = "新規フォルダ";
     private static final String STAMP_SAVE_TASK_NAME = "スタンプ保存";
     
-    /** ASP Tree かどうかのフラグ */
+    // ASP Tree かどうかのフラグ 
     private boolean asp;
     
-    /** 個人用Treeかどうかのフラグ */
+    // 個人用Treeかどうかのフラグ 
     private boolean userTree;
     
-    /** StampBox */
+    // StampBox
     private StampBoxPlugin stampBox;
     
-    /** DBから取得する時のTaskTimer */
-    private javax.swing.Timer taskTimer;
+    // Logger, Application
+    private Logger logger;
+    private Application app;
+    private ApplicationContext appCtx;
+    private TaskMonitor taskMonitor;
+    private TaskService taskService;
+    
     
     /**
      * StampTreeオブジェクトを生成する。
@@ -76,6 +67,12 @@ public class StampTree extends JTree implements TreeModelListener {
     public StampTree(TreeModel model) {
         
         super(model);
+        
+        logger = ClientContext.getBootLogger();
+        appCtx = ClientContext.getApplicationContext();
+        app = appCtx.getApplication();
+        taskMonitor = appCtx.getTaskMonitor();
+        taskService = appCtx.getTaskService();
         
         this.putClientProperty("JTree.lineStyle", "Angled"); // 水平及び垂直線を使用する
         this.setEditable(false); // ノード名を編集不可にする
@@ -230,7 +227,7 @@ public class StampTree extends JTree implements TreeModelListener {
     /**
      * KartePaneから drop されたスタンプをツリーに加える。
      */
-    public boolean addStamp(final ModuleModel droppedStamp, final StampTreeNode selected) {
+    public boolean addStamp(ModuleModel droppedStamp, final StampTreeNode selected) {
         
         boolean ret = false;
         if (droppedStamp == null) {
@@ -247,15 +244,12 @@ public class StampTree extends JTree implements TreeModelListener {
         //
         // Entityを生成する
         //
-        StampModel stampModel = new StampModel();
-        String stampId = GUIDGenerator.generate(stampModel);    // stampId
+        final StampModel stampModel = new StampModel();
+        final String stampId = GUIDGenerator.generate(stampModel);    // stampId
         stampModel.setId(stampId);
         stampModel.setUserId(Project.getUserModel().getId());   // userId
         stampModel.setEntity(droppedInfo.getEntity());          // entity
         stampModel.setStampBytes(getXMLBytes(droppedStamp.getModel())); // XML
-        
-        // Delegator を生成する
-        final StampDelegater sdl = new StampDelegater();
         
         //
         // Tree に加える新しい StampInfo を生成する
@@ -267,60 +261,55 @@ public class StampTree extends JTree implements TreeModelListener {
         info.setStampMemo(constractToolTip(droppedStamp));  // Tooltip
         info.setStampId(stampId);                           // StampID
         
-        // 保存タスクを生成する
-        int maxEstimation = ClientContext.getInt("task.default.maxEstimation");
-        int delay = ClientContext.getInt("task.default.delay");
-        int taskLength = maxEstimation/delay;
-        int decideToPopup = ClientContext.getInt("task.default.decideToPopup");
-        int milisToPopup = ClientContext.getInt("task.default.milisToPopup");
-        String saveMsg = ClientContext.getString("task.default.saveMessage");
-        final StampTask worker = new StampTask(stampModel, sdl, taskLength);
+        // Delegator を生成する
+        final StampDelegater sdl = new StampDelegater();
         
-        // ProgressMonitor を生成する
-        final ProgressMonitor monitor = new ProgressMonitor(null, null, saveMsg, 0, taskLength);
-        monitor.setProgress(0);
-        monitor.setMillisToDecideToPopup(decideToPopup);
-        monitor.setMillisToPopup(milisToPopup);
-        
-        // タスクタイマーを起動する
-        taskTimer = new javax.swing.Timer(delay, new ActionListener() {
+        Task task = new Task<String, Void>(app) {
+
+            @Override
+            protected String doInBackground() throws Exception {
+                logger.debug("addStamp doInBackground");
+                String ret = sdl.putStamp(stampModel);
+                return ret;
+            }
             
-            public void actionPerformed(ActionEvent e) {
-                
-                monitor.setProgress(worker.getCurrent());
-                
-                if (worker.isDone()) {
-                    
-                    //
-                    // 終了処理を行う
-                    //
-                    taskTimer.stop();
-                    monitor.close();
-                    
-                    // 保存処理が成功しているかどうかをチェックする
-                    if (sdl.isNoError()) {
-                        //
-                        // 成功したら Tree に加える
-                        //
-                        addInfoToTree(info, selected);
-                        
-                    } else {
-                        //
-                        // エラーメッセージを表示する
-                        //
-                        warning(sdl.getErrorMessage());
-                    }
-                    
-                } else if (worker.isTimeOver()) {
-                    taskTimer.stop();
-                    monitor.close();
-                    String title = ClientContext.getString("stamptree.title");
-                    new TimeoutWarning(null, title, null);
+            @Override
+            protected void succeeded(String result) {
+                logger.debug("addStamp succeeded");
+                if (sdl.isNoError() && result.equals(stampId)) {
+                    addInfoToTree(info, selected);
+                } else {
+                    logger.warn(sdl.getErrorMessage());
                 }
             }
-        });
-        worker.start();
-        taskTimer.start();
+            
+            @Override
+            protected void cancelled() {
+                logger.debug("addStamp cancelled");
+            }
+            
+            @Override
+            protected void failed(java.lang.Throwable cause) {
+                logger.debug("addStamp failed");
+                logger.warn(cause.getCause());
+                logger.warn(cause.getMessage());
+            }
+            
+            @Override
+            protected void interrupted(java.lang.InterruptedException e) {
+                logger.debug("addStamp interrupted");
+                logger.warn(e.getMessage());
+            }
+        };
+        
+        String message = "スタンプ保存";
+        String note = info.getStampName() + "を保存しています...";
+        Component c = SwingUtilities.getWindowAncestor(this);
+        TaskTimerMonitor w = new TaskTimerMonitor(task, taskMonitor, c, message, note, 200, 60*1000);
+        taskMonitor.addPropertyChangeListener(w);
+        
+        taskService.execute(task);
+        
         return true;
     }
     
@@ -438,13 +427,12 @@ public class StampTree extends JTree implements TreeModelListener {
         stamp.setModel(add);
         
         // データベースへ Stamp のデータモデルを永続化する
-        StampModel addStamp = new StampModel();
-        String stampId = GUIDGenerator.generate(addStamp);
+        final StampModel addStamp = new StampModel();
+        final String stampId = GUIDGenerator.generate(addStamp);
         addStamp.setId(stampId);
         addStamp.setUserId(Project.getUserModel().getId());
         addStamp.setEntity(IInfoModel.ENTITY_DIAGNOSIS);
         addStamp.setStampBytes(getXMLBytes(stamp.getModel()));
-        final StampDelegater sdl = new StampDelegater();
         
         // Tree に加える 新しい StampInfo を生成する
         final ModuleInfoBean info = new ModuleInfoBean();
@@ -461,50 +449,55 @@ public class StampTree extends JTree implements TreeModelListener {
             buf.append(cd);
             buf.append(")"); // Tooltip
         }
-        info.setStampMemo(buf.toString());
+        info.setStampMemo(buf.toString());     
         
-        // 保存タスクを生成し実行する
-        int maxEstimation = ClientContext.getInt("task.default.maxEstimation");
-        int delay = ClientContext.getInt("task.default.delay");
-        int taskLength = maxEstimation/delay;
-        int decideToPopup = ClientContext.getInt("task.default.decideToPopup");
-        int milisToPopup = ClientContext.getInt("task.default.milisToPopup");
-        String saveMsg = ClientContext.getString("task.default.saveMessage");
-        final StampTask worker = new StampTask(addStamp, sdl, taskLength);
-        
-        final ProgressMonitor monitor = new ProgressMonitor(null, null, saveMsg, 0, taskLength);
-        monitor.setProgress(0);
-        monitor.setMillisToDecideToPopup(decideToPopup);
-        monitor.setMillisToPopup(milisToPopup);
-        
-        taskTimer = new javax.swing.Timer(delay, new ActionListener() {
+        final StampDelegater sdl = new StampDelegater();
+                
+        Task task = new Task<String, Void>(app) {
+
+            @Override
+            protected String doInBackground() throws Exception {
+                logger.debug("addDiagnosis doInBackground");
+                String ret = sdl.putStamp(addStamp);
+                return ret;
+            }
             
-            public void actionPerformed(ActionEvent e) {
-                
-                monitor.setProgress(worker.getCurrent());
-                
-                if (worker.isDone()) {
-                    taskTimer.stop();
-                    monitor.close();
-                    
-                    if (sdl.isNoError()) {
-                        // 成功したら Tree に加える
-                        addInfoToTree(info, selected);
-                    } else {
-                        // エラーメッセージを表示する
-                        warning(sdl.getErrorMessage());
-                    }
-                    
-                } else if (worker.isTimeOver()) {
-                    taskTimer.stop();
-                    monitor.close();
-                    String title = ClientContext.getString("stamptree.title");
-                    new TimeoutWarning(null, title, null);
+            @Override
+            protected void succeeded(String result) {
+                logger.debug("addDiagnosis succeeded");
+                if (sdl.isNoError() && result.equals(stampId)) {
+                    addInfoToTree(info, selected);
+                } else {
+                    logger.warn(sdl.getErrorMessage());
                 }
             }
-        });
-        worker.start();
-        taskTimer.start();
+            
+            @Override
+            protected void cancelled() {
+                logger.debug("addDiagnosis cancelled");
+            }
+            
+            @Override
+            protected void failed(java.lang.Throwable cause) {
+                logger.warn("addDiagnosis failed");
+                logger.warn(cause.getCause());
+                logger.warn(cause.getMessage());
+            }
+            
+            @Override
+            protected void interrupted(java.lang.InterruptedException e) {
+                logger.warn("addDiagnosis interrupted");
+                logger.warn(e.getMessage());
+            }
+        };
+        
+        String message = "スタンプ保存";
+        String note = info.getStampName() + "を保存しています...";
+        Component c = SwingUtilities.getWindowAncestor(this);
+        TaskTimerMonitor w = new TaskTimerMonitor(task, taskMonitor, c, message, note, 200, 60*1000);
+        taskMonitor.addPropertyChangeListener(w);
+        
+        taskService.execute(task);
         
         return true;
     }
@@ -575,50 +568,53 @@ public class StampTree extends JTree implements TreeModelListener {
         
         final StampDelegater sdl = new StampDelegater();
         
-        // 保存タスクを生成し実行する
-        int maxEstimation = ClientContext.getInt("task.default.maxEstimation");
-        int delay = ClientContext.getInt("task.default.delay");
-        int taskLength = maxEstimation/delay;
-        int decideToPopup = ClientContext.getInt("task.default.decideToPopup");
-        int milisToPopup = ClientContext.getInt("task.default.milisToPopup");
-        String saveMsg = ClientContext.getString("task.default.saveMessage");
-        final StampTask worker = new StampTask(stampList, sdl, taskLength);
-        
-        final ProgressMonitor monitor = new ProgressMonitor(null, null, saveMsg, 0, taskLength);
-        monitor.setProgress(0);
-        monitor.setMillisToDecideToPopup(decideToPopup);
-        monitor.setMillisToPopup(milisToPopup);
-        
-        taskTimer = new javax.swing.Timer(delay, new ActionListener() {
+        Task task = new Task<List<String>, Void>(app) {
+
+            @Override
+            protected List<String> doInBackground() throws Exception {
+                logger.debug("addDiagnosis doInBackground");
+                sdl.putStamp(stampList);
+                return null;
+            }
             
-            public void actionPerformed(ActionEvent e) {
-                
-                monitor.setProgress(worker.getCurrent());
-                
-                if (worker.isDone()) {
-                    taskTimer.stop();
-                    monitor.close();
-                    
-                    if (sdl.isNoError()) {
-                        // 成功したら Tree に加える
-                        for(ModuleInfoBean info : infoList) {
-                            addInfoToTree(info, null);
-                        }
-                    } else {
-                        // エラーメッセージを表示する
-                        warning(sdl.getErrorMessage());
+            @Override
+            protected void succeeded(List<String> result) {
+                logger.debug("addDiagnosis succeeded");
+                if (sdl.isNoError()) {
+                    for(ModuleInfoBean info : infoList) {
+                        addInfoToTree(info, null);
                     }
-                    
-                } else if (worker.isTimeOver()) {
-                    taskTimer.stop();
-                    monitor.close();
-                    String title = ClientContext.getString("stamptree.title");
-                    new TimeoutWarning(null, title, null);
+                } else {
+                    logger.warn(sdl.getErrorMessage());
                 }
             }
-        });
-        worker.start();
-        taskTimer.start();
+            
+            @Override
+            protected void cancelled() {
+                logger.debug("addDiagnosis cancelled");
+            }
+            
+            @Override
+            protected void failed(java.lang.Throwable cause) {
+                logger.warn("addDiagnosis failed");
+                logger.warn(cause.getCause());
+                logger.warn(cause.getMessage());
+            }
+            
+            @Override
+            protected void interrupted(java.lang.InterruptedException e) {
+                logger.warn("addDiagnosis failed");
+                logger.warn(e.getMessage());
+            }
+        };
+        
+        String message = "スタンプ保存";
+        String note = "病名スタンプを保存しています...";
+        Component c = SwingUtilities.getWindowAncestor(this);
+        TaskTimerMonitor w = new TaskTimerMonitor(task, taskMonitor, c, message, note, 200, 60*1000);
+        taskMonitor.addPropertyChangeListener(w);
+        
+        taskService.execute(task);
     }
     
     /**
@@ -636,14 +632,12 @@ public class StampTree extends JTree implements TreeModelListener {
         //
         // データベースへ Stamp のデータモデルを永続化する
         //
-        StampModel addStamp = new StampModel();
-        String stampId = GUIDGenerator.generate(addStamp);
+        final StampModel addStamp = new StampModel();
+        final String stampId = GUIDGenerator.generate(addStamp);
         addStamp.setId(stampId);
         addStamp.setUserId(Project.getUserModel().getId());
         addStamp.setEntity(IInfoModel.ENTITY_TEXT);
         addStamp.setStampBytes(getXMLBytes((IInfoModel) stamp));
-        
-        final StampDelegater sdl = new StampDelegater();
         
         //
         // Tree へ加える 新しい StampInfo を生成する
@@ -661,55 +655,53 @@ public class StampTree extends JTree implements TreeModelListener {
         info.setStampMemo(text);                    // Tooltip
         info.setStampId(stampId);                   // Stamp ID
         
-        // 保存タスクを生成し実行する
-        int maxEstimation = ClientContext.getInt("task.default.maxEstimation");
-        int delay = ClientContext.getInt("task.default.delay");
-        int taskLength = maxEstimation/delay;
-        int decideToPopup = ClientContext.getInt("task.default.decideToPopup");
-        int milisToPopup = ClientContext.getInt("task.default.milisToPopup");
-        String saveMsg = ClientContext.getString("task.default.saveMessage");
+        final StampDelegater sdl = new StampDelegater();
         
-        final StampTask worker = new StampTask(addStamp, sdl, taskLength);
-        
-        final ProgressMonitor monitor = new ProgressMonitor(null, null, saveMsg, 0, taskLength);
-        monitor.setProgress(0);
-        monitor.setMillisToDecideToPopup(decideToPopup);
-        monitor.setMillisToPopup(milisToPopup);
-        
-        taskTimer = new javax.swing.Timer(delay, new ActionListener() {
+        Task task = new Task<String, Void>(app) {
+
+            @Override
+            protected String doInBackground() throws Exception {
+                logger.debug("addTextStamp doInBackground");
+                String ret = sdl.putStamp(addStamp);
+                return ret;
+            }
             
-            public void actionPerformed(ActionEvent e) {
-                
-                monitor.setProgress(worker.getCurrent());
-                
-                if (worker.isDone()) {
-                    
-                    taskTimer.stop();
-                    monitor.close();
-                    
-                    if (sdl.isNoError()) {
-                        // 
-                        // 成功したら Tree に加える
-                        //
-                        addInfoToTree(info, selected);
-                        
-                    } else {
-                        //
-                        // エラーメッセージを表示する
-                        //
-                        warning(sdl.getErrorMessage());
-                    }
-                    
-                } else if (worker.isTimeOver()) {
-                    taskTimer.stop();
-                    monitor.close();
-                    String title = ClientContext.getString("stamptree.title");
-                    new TimeoutWarning(null, title, null);
+            @Override
+            protected void succeeded(String result) {
+                logger.debug("addTextStamp succeeded");
+                if (sdl.isNoError() && result.equals(stampId)) {
+                    addInfoToTree(info, selected);
+                } else {
+                    logger.warn(sdl.getErrorMessage());
                 }
             }
-        });
-        worker.start();
-        taskTimer.start();
+            
+            @Override
+            protected void cancelled() {
+                logger.debug("addTextStamp cancelled");
+            }
+            
+            @Override
+            protected void failed(java.lang.Throwable cause) {
+                logger.warn("addTextStamp failed");
+                logger.warn(cause.getCause());
+                logger.warn(cause.getMessage());
+            }
+            
+            @Override
+            protected void interrupted(java.lang.InterruptedException e) {
+                logger.warn("addTextStamp interrupted");
+                logger.warn(e.getMessage());
+            }
+        };
+        
+        String message = "スタンプ保存";
+        String note = info.getStampName() + "を保存しています...";
+        Component c = SwingUtilities.getWindowAncestor(this);
+        TaskTimerMonitor w = new TaskTimerMonitor(task, taskMonitor, c, message, note, 200, 60*1000);
+        taskMonitor.addPropertyChangeListener(w);
+        
+        taskService.execute(task);
         
         return true;
     }
@@ -765,9 +757,7 @@ public class StampTree extends JTree implements TreeModelListener {
                 ClientContext.getFrameTitle(title),
                 JOptionPane.WARNING_MESSAGE);
     }
-    
-    // //////////// PopupMenu サポート //////////////
-    
+        
     /**
      * ノードの名前を変更する。
      */
@@ -791,54 +781,13 @@ public class StampTree extends JTree implements TreeModelListener {
         // this.setEditable (false); は TreeModelListener で行う
     }
     
-//    public void cut() {
-//        System.out.println("called cut");
-//        if (!isUserTree()) {
-//            return;
-//        }
-//        
-//        StampTreeNode theNode = getSelectedNode();
-//        if (theNode != null && theNode.isLeaf()) {
-//            Action a = this.getTransferHandler().getCutAction();
-//            if (a != null) {
-//                a.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
-//            }
-//        }
-//    }
-//    
-//    public void copy() {
-//        System.out.println("called copy");
-//        if (!isUserTree()) {
-//            return;
-//        }
-//        
-//        StampTreeNode theNode = getSelectedNode();
-//        if (theNode != null) {
-//            Action a = this.getTransferHandler().getCopyAction();
-//            if (a != null) {
-//                a.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
-//            }
-//        }
-//    }
-//    
-//    public void paste() {
-//        System.out.println("called paste");
-//        if (!isUserTree()) {
-//            return;
-//        }
-//        Action a = this.getTransferHandler().getPasteAction();
-//        if (a != null) {
-//            a.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
-//        }
-//    }
     
     /**
      * ノードを削除する。
      */
     public void deleteNode() {
         
-        //System.out.println("Called delete");
-        //Toolkit.getDefaultToolkit().beep();
+        logger.debug("stampTree deleteNode");
         
         if (!isUserTree()) {
             return;
@@ -862,16 +811,19 @@ public class StampTree extends JTree implements TreeModelListener {
         //
         // このリストのなかに削除するノードとその子を含める
         //
-        ArrayList<String> deleteList = new ArrayList<String>();
+        final ArrayList<String> deleteList = new ArrayList<String>();
         
         // エディタから発行があるかどうかのフラグ
         boolean hasEditor = false;
         
         // 列挙する
         while (e.hasMoreElements()) {
-            //System.out.println("e.hasMore");
+            
+            logger.debug("stampTree deleteNode e.hasMoreElements()");
             StampTreeNode node = (StampTreeNode) e.nextElement();
+            
             if (node.isLeaf()) {
+                
                 ModuleInfoBean info = (ModuleInfoBean) node.getUserObject();
                 String stampId = info.getStampId();
                 //
@@ -887,6 +839,7 @@ public class StampTree extends JTree implements TreeModelListener {
                 //
                 if (stampId != null) {
                     deleteList.add(stampId);
+                    logger.debug("added " + info.getStampName());
                 }
             }
         }
@@ -913,7 +866,6 @@ public class StampTree extends JTree implements TreeModelListener {
         // リストのサイズがゼロかつ theNode が葉でない時
         // 
         if (deleteList.size() == 0 && (!theNode.isLeaf()) ) {
-            //System.out.println("Empty Folder");
             DefaultTreeModel model = (DefaultTreeModel)(StampTree.this).getModel();
             model.removeNodeFromParent(theNode);
             return;
@@ -922,71 +874,64 @@ public class StampTree extends JTree implements TreeModelListener {
         // データベースのスタンプを削除するデリゲータを生成する
         final StampDelegater sdl = new StampDelegater();
         
-        // 削除タスクを生成する
-        int maxEstimation = ClientContext.getInt("task.default.maxEstimation");
-        int delay = ClientContext.getInt("task.default.delay");
-        int taskLength = maxEstimation/delay;
-        int decideToPopup = ClientContext.getInt("task.default.decideToPopup");
-        int milisToPopup = ClientContext.getInt("task.default.milisToPopup");
-        String deleteMessage = ClientContext.getString("task.default.deleteMessage");
-        final StampTask worker = new StampTask(deleteList, sdl, taskLength);
-        
-        // Progress Monitor を生成する
-        final ProgressMonitor monitor = new ProgressMonitor(null, null, deleteMessage, 0, taskLength);
-        monitor.setProgress(0);
-        monitor.setMillisToDecideToPopup(decideToPopup);
-        monitor.setMillisToPopup(milisToPopup);
-        
-        // タスクタイマーを生成する
-        taskTimer = new javax.swing.Timer(delay, new ActionListener() {
+        Task task = new Task<Void, Void>(app) {
+
+            @Override
+            protected Void doInBackground() throws Exception {
+                logger.debug("deleteNode doInBackground");
+                sdl.removeStamp(deleteList);
+                return null;
+            }
             
-            public void actionPerformed(ActionEvent e) {
-                
-                // モニタを進める
-                monitor.setProgress(worker.getCurrent());
-                
-                // タスクが終了しているかどうかをチェックする
-                if (worker.isDone()) {
-                    
+            @Override
+            protected void succeeded(Void result) {
+                logger.debug("deleteNode succeeded");
+                if (sdl.isNoError()) {
                     //
-                    // 終了処理を行う
+                    // 成功している場合は Tree からノードを削除する
                     //
-                    taskTimer.stop();
-                    monitor.close();
-                    
-                    // 
-                    // データベースの削除が成功しているかどうかをチェックする
+                    DefaultTreeModel model = (DefaultTreeModel) (StampTree.this).getModel();
+                    model.removeNodeFromParent(theNode);
+
+                } else {
                     //
-                    if (sdl.isNoError()) {
-                        //
-                        // 成功している場合は Tree からノードを削除する
-                        // TODO エディタから発行も削除される
-                        //
-                        DefaultTreeModel model = (DefaultTreeModel)(StampTree.this).getModel();
-                        model.removeNodeFromParent(theNode);
-                        
-                    } else {
-                        //
-                        // エラーメッセージを表示する
-                        // warning(sdl.getErrorMessage());
-                        //
-                        // 強制削除をあるバージョンまで実行する
-                        // TODO エディタから発行も削除される
-                        //
-                        DefaultTreeModel model = (DefaultTreeModel)(StampTree.this).getModel();
-                        model.removeNodeFromParent(theNode); 
-                    }
-                    
-                } else if (worker.isTimeOver()) {
-                    taskTimer.stop();
-                    monitor.close();
-                    String title = ClientContext.getString("stamptree.title");
-                    new TimeoutWarning(null, title, null);
+                    // エラーメッセージを表示する
+                    // warning(sdl.getErrorMessage());
+                    //
+                    // 強制削除をあるバージョンまで実行する
+                    // TODO エディタから発行も削除される
+                    //
+                    DefaultTreeModel model = (DefaultTreeModel) (StampTree.this).getModel();
+                    model.removeNodeFromParent(theNode);
                 }
             }
-        });
-        worker.start();
-        taskTimer.start();
+            
+            @Override
+            protected void cancelled() {
+                logger.debug("deleteNode cancelled");
+            }
+            
+            @Override
+            protected void failed(java.lang.Throwable cause) {
+                logger.debug("deleteNode failed");
+                logger.warn(cause.getCause());
+                logger.warn(cause.getMessage());
+            }
+            
+            @Override
+            protected void interrupted(java.lang.InterruptedException e) {
+                logger.debug("deleteNode interrupted");
+                logger.warn(e.getMessage());
+            }
+        };
+        
+        String message = "スタンプ削除";
+        String note = "スタンプを削除しています...";
+        Component c = SwingUtilities.getWindowAncestor(this);
+        TaskTimerMonitor w = new TaskTimerMonitor(task, taskMonitor, c, message, note, 200, 60*1000);
+        taskMonitor.addPropertyChangeListener(w);
+        
+        taskService.execute(task);
     }
     
     /**
@@ -1026,8 +971,6 @@ public class StampTree extends JTree implements TreeModelListener {
         //TreePath parentPath = new TreePath(parent.getPath());
         //this.expandPath(parentPath);
     }
-    
-    // /////////// TreeModelListener ////////////////
     
     public void treeNodesChanged(TreeModelEvent e) {
         this.setEditable(false);

@@ -1,21 +1,3 @@
-/*
- * RegisteredDiagnosisTransferHandler.java
- * Copyright (C) 2007 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.order;
 
 import java.awt.datatransfer.DataFlavor;
@@ -36,8 +18,6 @@ import open.dolphin.table.ObjectTableModel;
  */
 public class RegisteredDiagnosisTransferHandler extends TransferHandler {
     
-    private static final long serialVersionUID = 4871088750931696219L;
-    
     private DataFlavor registeredDiagnosisFlavor = RegisteredDiagnosisTransferable.registeredDiagnosisFlavor;
     
     private JTable sourceTable;
@@ -50,6 +30,7 @@ public class RegisteredDiagnosisTransferHandler extends TransferHandler {
         this.editor = editor;
     }
     
+    @Override
     protected Transferable createTransferable(JComponent c) {
         sourceTable = (JTable) c;
         ObjectTableModel tableModel = (ObjectTableModel) sourceTable.getModel();
@@ -58,10 +39,12 @@ public class RegisteredDiagnosisTransferHandler extends TransferHandler {
         return dragItem != null ? new RegisteredDiagnosisTransferable(dragItem) : null;
     }
     
+    @Override
     public int getSourceActions(JComponent c) {
         return COPY_OR_MOVE;
     }
     
+    @Override
     public boolean importData(JComponent c, Transferable t) {
         if (canImport(c, t.getTransferDataFlavors())) {
             try {
@@ -84,6 +67,7 @@ public class RegisteredDiagnosisTransferHandler extends TransferHandler {
         return false;
     }
     
+    @Override
     protected void exportDone(JComponent c, Transferable data, int action) {
         if (action == MOVE && shouldRemove) {
         }
@@ -92,6 +76,7 @@ public class RegisteredDiagnosisTransferHandler extends TransferHandler {
         toIndex = -1;
     }
     
+    @Override
     public boolean canImport(JComponent c, DataFlavor[] flavors) {
         JTable dropTable = (JTable) c;
         ObjectTableModel tableModel = (ObjectTableModel) dropTable.getModel();

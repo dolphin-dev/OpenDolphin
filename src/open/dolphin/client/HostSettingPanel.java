@@ -1,7 +1,3 @@
-/*
- * Created on 2005/06/01
- *
- */
 package open.dolphin.client;
 
 import java.awt.GridBagConstraints;
@@ -13,6 +9,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.event.DocumentListener;
 
+import open.dolphin.helper.GridBagBuilder;
 import open.dolphin.project.DolphinPrincipal;
 import open.dolphin.project.Project;
 import open.dolphin.project.ProjectStub;
@@ -27,8 +24,10 @@ public class HostSettingPanel extends AbstractSettingPanel {
     private static final String DEFAULT_FACILITY_OID = "1.3.6.1.4.1.9414.10.1";
     
     private String ipAddressPattern = "[A-Za-z0-9.\\-_]*";
-    
-    // 設定用の GUI components
+    private static final String ID = "hostSetting";
+    private static final String TITLE = "サーバ";
+    private static final String ICON = "ntwrk_24.gif";
+   
     private JTextField userIdField;
     private JTextField hostAddressField;
     
@@ -41,6 +40,9 @@ public class HostSettingPanel extends AbstractSettingPanel {
     private StateMgr stateMgr;
     
     public HostSettingPanel() {
+        this.setId(ID);
+        this.setTitle(TITLE);
+        this.setIcon(ICON);
     }
     
     /**
@@ -84,6 +86,7 @@ public class HostSettingPanel extends AbstractSettingPanel {
         RegexConstrainedDocument hostDoc = new RegexConstrainedDocument(ipAddressPattern);
         hostAddressField.setDocument(hostDoc);
         
+        // サーバ情報パネル
         GridBagBuilder gb = new GridBagBuilder(serverInfoText);
         int row = 0;
         JLabel label = new JLabel(ipAddressText, SwingConstants.RIGHT);
@@ -101,14 +104,11 @@ public class HostSettingPanel extends AbstractSettingPanel {
         
         // 全体レイアウト
         gb = new GridBagBuilder();
-        gb.add(sip,            0, 0, GridBagConstraints.HORIZONTAL, 1.0, 0.0);
-        gb.add(uip,            0, 1, GridBagConstraints.HORIZONTAL, 1.0, 0.0);
-        gb.add(new JLabel(""), 0, 2, GridBagConstraints.BOTH,       1.0, 1.0);
+        gb.add(sip, 0, 0, GridBagConstraints.HORIZONTAL, 1.0, 0.0);
+        gb.add(uip, 0, 1, GridBagConstraints.HORIZONTAL, 1.0, 0.0);
+        gb.add(new JLabel(""), 0, 2, GridBagConstraints.BOTH, 1.0, 1.0);
         setUI(gb.getProduct());
         
-        //
-        // コンポーネントのリスナ接続を行う
-        //
         connect();
     }
     
@@ -128,7 +128,7 @@ public class HostSettingPanel extends AbstractSettingPanel {
         // IME OFF FocusAdapter
         //
         hostAddressField.addFocusListener(AutoRomanListener.getInstance());
-        userIdField.addFocusListener(AutoRomanListener.getInstance());
+        userIdField.addFocusListener(AutoRomanListener.getInstance());        
         
         hostAddressField.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -181,6 +181,7 @@ public class HostSettingPanel extends AbstractSettingPanel {
     private void bindViewToModel() {
         
         // 施設IDとユーザIDを保存する
+        // 施設IDとユーザIDを保存する
         String facilityId = DEFAULT_FACILITY_OID;
         String userId = userIdField.getText().trim();
         String ipAddress = hostAddressField.getText().trim();
@@ -222,7 +223,7 @@ public class HostSettingPanel extends AbstractSettingPanel {
             setUserId(stub.getUserId());
             
             // 施設IDを設定する
-            setFacilityId(DEFAULT_FACILITY_OID);
+            setFacilityId(stub.getFacilityId());
             
             // UserTypeを設定する
             setUserType(stub.getUserType());

@@ -203,7 +203,7 @@ public class PatientVisitModel extends InfoModel  {
     
     /**
      * 受付診療科を返す。
-     * @return 受付診療科
+     * @return 受付診療科名
      */
     public String getDepartment() {
         // 1.3 までの暫定
@@ -221,22 +221,34 @@ public class PatientVisitModel extends InfoModel  {
         return tokens[1];
     }
     
+    /**
+     * 担当医を返す。
+     * @return 担当医名
+     */
     public String getAssignedDoctorName() {
         // 1.3 までの暫定
         String[] tokens = tokenizeDept(department);
         return tokens[2];
     }
     
+    /**
+     * 担当医IDを返す。
+     * @return 担当医ID
+     */
     public String getAssignedDoctorId() {
         // 1.3 までの暫定
         String[] tokens = tokenizeDept(department);
         return tokens[3];
     }
     
+    /**
+     * JMARI コードを返す。
+     * @return JMARI コード
+     */
     public String getJmariCode() {
         // 1.3 までの暫定
         String[] tokens = tokenizeDept(department);
-        return tokens[5];
+        return tokens[4];
     }
     
     public String getDeptNoTokenize() {
@@ -248,6 +260,8 @@ public class PatientVisitModel extends InfoModel  {
      */
     private String[] tokenizeDept(String dept) {
         
+        // 診療科名、コード、担当医名、担当医コード、JMARI コード
+        // を格納する配列を生成する
         String[] ret = new String[5];
         for (int i = 0; i < ret.length; i++) {
             ret[i] = null;
@@ -261,6 +275,7 @@ public class PatientVisitModel extends InfoModel  {
                     ret[index++] = st.nextToken();
                 }
             } catch (Exception e) { 
+                e.printStackTrace();
             }
         }
         
@@ -325,6 +340,10 @@ public class PatientVisitModel extends InfoModel  {
      */
     public String getPatientBirthday() {
         return getPatient().getBirthday();
+    }
+    
+    public String getPatientAge() {
+        return ModelUtils.getAge(getPatient().getBirthday());
     }
     
     /**

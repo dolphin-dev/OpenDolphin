@@ -1,12 +1,3 @@
-/*
- * Uninstall.java
- *
- * Created on 2007/01/12, 9:48
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
 package open.dolphin.client;
 
 import java.util.prefs.Preferences;

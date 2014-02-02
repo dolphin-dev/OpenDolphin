@@ -17,6 +17,7 @@ public class MouseDragDetecter extends MouseMotionAdapter {
     
     private MouseEvent firstMouseEvent = null;
     
+    @Override
     public void mouseDragged(MouseEvent e) {
         
         if (firstMouseEvent == null) {

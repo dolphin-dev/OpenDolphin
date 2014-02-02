@@ -1,21 +1,3 @@
-/*
- * MasterTabPanel.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.order;
 
 import javax.swing.*;
@@ -24,11 +6,12 @@ import javax.swing.event.*;
 import open.dolphin.client.BlockGlass;
 import open.dolphin.client.GUIFactory;
 import open.dolphin.client.SeparatorPanel;
-import open.dolphin.client.UltraSonicProgressLabel;
 
 import java.awt.*;
 import java.beans.*;
 import java.util.EnumSet;
+import open.dolphin.client.ClientContext;
+import org.apache.log4j.Logger;
 
 /**
  * マスタ検索パネルを格納するタブパネルクラス。
@@ -95,11 +78,14 @@ public class MasterTabPanel extends JPanel{
     /** 診療行為ラベル */
     private JLabel classCodeLabel;
     
+    private Logger logger;
+    
     /** 
      * Creates new MasterTabPanel
      */
     public MasterTabPanel() {
         super(new BorderLayout(0, 11));
+        logger = ClientContext.getBootLogger();
         enumSet = EnumSet.of(
                 ClaimConst.MasterSet.TREATMENT,
                 ClaimConst.MasterSet.MEDICAL_SUPPLY,
@@ -114,8 +100,18 @@ public class MasterTabPanel extends JPanel{
      * @param enumSet 使用するマスタの Set
      */
     public MasterTabPanel(EnumSet<ClaimConst.MasterSet> enumSet) {
+        
         super(new BorderLayout(0, 11));
+        
+        logger = ClientContext.getBootLogger();
         this.enumSet = enumSet;
+        
+        if (this.enumSet != null) {
+            logger.debug("enumSet is not null");
+        } else {
+            logger.debug("enumSet is null");
+        }
+        
         intialize();
     }
     
@@ -132,37 +128,45 @@ public class MasterTabPanel extends JPanel{
      */
     private void intialize() {
         
+        logger.debug("initialize start");
+        
         // 超音波進捗バーを生成する
         //pulse = new UltraSonicProgressLabel();
         
         // 傷病名マスタを生成する
         if (enumSet.contains(ClaimConst.MasterSet.DIAGNOSIS)) {
             diagnosis = new DiagnosisMaster(ClaimConst.MasterSet.DIAGNOSIS.getName());
+            logger.debug("enumSet contains DIAGNOSIS");
         }
         
         // 診療行為マスタを生成する
         if (enumSet.contains(ClaimConst.MasterSet.TREATMENT)) {
             treatment = new TreatmentMaster(ClaimConst.MasterSet.TREATMENT.getName());
+            logger.debug("enumSet contains TREATMENT");
         }
         
         // 医薬品マスタを生成する
         if (enumSet.contains(ClaimConst.MasterSet.MEDICAL_SUPPLY)) {
             medicalSupplies = new MedicalSuppliesMaster(ClaimConst.MasterSet.MEDICAL_SUPPLY.getName());
+            logger.debug("enumSet contains medicalSupplies");
         }
         
         // 用法マスタを生成する
         if (enumSet.contains(ClaimConst.MasterSet.ADMINISTRATION)) {
             administration = new AdminMaster(ClaimConst.MasterSet.ADMINISTRATION.getName());
+            logger.debug("enumSet contains ADMINISTRATION");
         }
         
         // 注射薬マスタを生成する
         if (enumSet.contains(ClaimConst.MasterSet.INJECTION_MEDICINE)) {
             injection = new InjectionMedicineMaster(ClaimConst.MasterSet.INJECTION_MEDICINE.getName());
+            logger.debug("enumSet contains INJECTION_MEDICINE");
         }
         
         // 特定器材マスタを生成する
         if (enumSet.contains(ClaimConst.MasterSet.TOOL_MATERIAL)) {
             toolMaterial = new ToolMaterialMaster(ClaimConst.MasterSet.TOOL_MATERIAL.getName());
+            logger.debug("enumSet contains toolMaterial");
         }
         
         // BUSY リスナを生成する
@@ -179,6 +183,7 @@ public class MasterTabPanel extends JPanel{
         tabbedPane.addTab(ClaimConst.MasterSet.ADMINISTRATION.getDispName(), administration);
         tabbedPane.addTab(ClaimConst.MasterSet.INJECTION_MEDICINE.getDispName(), injection);
         tabbedPane.addTab(ClaimConst.MasterSet.TOOL_MATERIAL.getDispName(), toolMaterial);
+        logger.debug("craeted tabbedPane");
         
         // タブへ ChangeListener を登録する
         tabbedPane.addChangeListener(new ChangeListener() {

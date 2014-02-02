@@ -25,7 +25,7 @@ public class RemoteSystemServiceImpl extends DolphinService implements RemoteSys
     
     private static final String DEFAULT_FACILITY_OID = "1.3.6.1.4.1.9414.10.1";
     
-    @PersistenceContext(unitName="openDolphin")
+    @PersistenceContext
     private EntityManager em;
     
     /**

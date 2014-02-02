@@ -1,7 +1,3 @@
-/*
- * Created on 2005/06/01
- *
- */
 package open.dolphin.client;
 
 import java.awt.BorderLayout;
@@ -13,7 +9,6 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
 import java.awt.event.FocusListener;
 
 import javax.swing.BorderFactory;

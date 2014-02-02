@@ -1,21 +1,3 @@
-/*
- * SqlOrcaSetDao.java
- * Copyright (C) 2007 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.dao;
 
 import java.sql.Connection;
@@ -64,14 +46,27 @@ public class SqlOrcaView extends SqlDaoBean {
         PreparedStatement pt = null;
         String sql = null;
         String ptid = null;
+        int hospNum = -1;
         
         StringBuilder sb = new StringBuilder();
-        sb.append("select ptid, ptnum from tbl_ptnum where ptnum=?");
+        sb.append("select ptid, ptnum from tbl_ptnum where ");
+        if (Project.getOrcaVersion().startsWith("4")) {
+            hospNum = getHospNum();
+            sb.append("hospnum=? and ptnum=?");
+        } else {
+            sb.append("ptnum=?");
+        }
         sql = sb.toString();
+        
         try {
             con = getConnection();
             pt = con.prepareStatement(sql);
-            pt.setString(1, patientId);
+            if (hospNum > 0) {
+                pt.setInt(1, hospNum);
+                pt.setString(2, patientId);
+            } else {
+                pt.setString(1, patientId);
+            }
             ResultSet rs = pt.executeQuery();
             if (rs.next()) {
                 ptid = rs.getString(1);
@@ -92,18 +87,34 @@ public class SqlOrcaView extends SqlDaoBean {
         sb = new StringBuilder();
         
         if (ascend.booleanValue()) {
-            sb.append("select sryymd, khnbyomeicd, tenkikbn, tenkiymd, byomei from tbl_ptbyomei where ptid=? and sryymd >= ? and sryymd < ? order by sryymd asc");
+            if (hospNum > 0) {
+                sb.append("select sryymd,khnbyomeicd,tenkikbn,tenkiymd,byomei from tbl_ptbyomei where hospnum=? and ptid=? and sryymd >= ? and sryymd <= ? order by sryymd asc");
+            } else {
+                sb.append("select sryymd,khnbyomeicd,tenkikbn,tenkiymd,byomei from tbl_ptbyomei where ptid=? and sryymd >= ? and sryymd <= ? order by sryymd asc");
+            }
         } else {
-            sb.append("select sryymd, khnbyomeicd, tenkikbn, tenkiymd, byomei from tbl_ptbyomei where ptid=? and sryymd >= ? and sryymd < ? order by sryymd desc");
+            if (hospNum > 0) {
+                sb.append("select sryymd,khnbyomeicd,tenkikbn,tenkiymd,byomei from tbl_ptbyomei where hospnum=? and ptid=? and sryymd >= ? and sryymd <= ? order by sryymd desc");
+            } else {
+                sb.append("select sryymd,khnbyomeicd,tenkikbn,tenkiymd,byomei from tbl_ptbyomei where ptid=? and sryymd >= ? and sryymd <= ? order by sryymd desc");
+            }
         }
         sql = sb.toString();
         
         try {
             con = getConnection();
             pt = con.prepareStatement(sql);
-            pt.setString(1, ptid);
-            pt.setString(2, from);
-            pt.setString(3, to);
+            if (hospNum > 0) {
+                pt.setInt(1, hospNum);
+                pt.setString(2, ptid);
+                pt.setString(3, from);
+                pt.setString(4, to);
+            } else {
+                pt.setString(1, ptid);
+                pt.setString(2, from);
+                pt.setString(3, to);
+            }
+            //System.out.println(pt.toString());
             ResultSet rs = pt.executeQuery();
             collection = new ArrayList<RegisteredDiagnosisModel>();
             
@@ -120,7 +131,8 @@ public class SqlOrcaView extends SqlDaoBean {
                 // 転帰
                 DiagnosisOutcomeModel out = new DiagnosisOutcomeModel();
                 ord.setDiagnosisOutcomeModel(out);
-                out.setOutcomeDesc(toDolphinOutcome(rs.getString(3)));
+                String data = rs.getString(3);
+                out.setOutcomeDesc(toDolphinOutcome(data));
                 
                 // 疾患終了日（転帰）
                 ord.setEndDate(toDolphinDateStr(rs.getString(4)));
@@ -132,7 +144,6 @@ public class SqlOrcaView extends SqlDaoBean {
                 ord.setStatus("ORCA");
                 
                 collection.add(ord);
-                
             }
             
             rs.close();
@@ -182,7 +193,7 @@ public class SqlOrcaView extends SqlDaoBean {
                 outcomeDesc = IInfoModel.ORCA_OUTCOME_DIED;
             } else if (orcaOutcome.equals("3")) {
                 outcomeDesc = IInfoModel.ORCA_OUTCOME_END;
-            } else if (orcaOutcome.equals("4")) {
+            } else if (orcaOutcome.equals("8")) {
                 outcomeDesc = IInfoModel.ORCA_OUTCOME_TRANSFERED;
             }
             return outcomeDesc;

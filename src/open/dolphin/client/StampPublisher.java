@@ -1,6 +1,7 @@
 package open.dolphin.client;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -29,18 +30,22 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.swing.ProgressMonitor;
-import javax.swing.Timer;
 import javax.swing.WindowConstants;
 
 import open.dolphin.delegater.StampDelegater;
+import open.dolphin.helper.GridBagBuilder;
 import open.dolphin.infomodel.FacilityModel;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.IStampTreeModel;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.infomodel.StampTreeModel;
-import open.dolphin.plugin.helper.ComponentMemory;
+import open.dolphin.helper.ComponentMemory;
 import open.dolphin.project.Project;
+import org.apache.log4j.Logger;
+import org.jdesktop.application.Application;
+import org.jdesktop.application.ApplicationContext;
+import org.jdesktop.application.Task;
+import org.jdesktop.application.TaskMonitor;
 
 /**
  * StampTreePublisher
@@ -82,18 +87,21 @@ public class StampPublisher {
     
     private int publishType = TT_NONE;
     private boolean okState;
-    
-    private Timer timer;
-    private PublishTask worker;
-    private CancelTask cancelWorker;
-    private ProgressMonitor progressMonitor;
+            
     private StampDelegater sdl;
     
     private PublishedState publishState;
     
+    private ApplicationContext appCtx;
+    private Application app;
+    private Logger logger;
+    
     
     public StampPublisher(StampBoxPlugin stampBox) {
         this.stampBox = stampBox;
+        appCtx = ClientContext.getApplicationContext();
+        app = appCtx.getApplication();
+        logger = ClientContext.getBootLogger();
     }
     
     public void start() {
@@ -102,6 +110,7 @@ public class StampPublisher {
         dialog = new JFrame(ClientContext.getFrameTitle(title));
         dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         dialog.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowClosing(WindowEvent e) {
                 stop();
             }
@@ -444,12 +453,13 @@ public class StampPublisher {
         DefaultStampTreeXmlBuilder builder = new DefaultStampTreeXmlBuilder();
         StampTreeXmlDirector director = new StampTreeXmlDirector(builder);
         String publishXml = director.build(publishList);
-        byte[] publishBytes = null;
+        byte[] bytes = null;
         try {
-            publishBytes = publishXml.getBytes("UTF-8");
+            bytes = publishXml.getBytes("UTF-8");
         } catch (UnsupportedEncodingException ex) {
             ex.printStackTrace();
         }
+        final byte[] publishBytes = bytes;
         
         //
         // 公開時の自分（個人用）の StampTree と同期をとる
@@ -463,7 +473,7 @@ public class StampPublisher {
         //
         // 個人用のStampTreeModelに公開時のXMLをセットする
         //
-        open.dolphin.infomodel.StampTreeModel stmpTree = (open.dolphin.infomodel.StampTreeModel) stampBox.getUserStampBox().getStampTreeModel();
+        final open.dolphin.infomodel.StampTreeModel stmpTree = (open.dolphin.infomodel.StampTreeModel) stampBox.getUserStampBox().getStampTreeModel();
         stmpTree.setTreeXml(treeXml);
         
         //
@@ -497,52 +507,91 @@ public class StampPublisher {
         
         int delay = 200;
         int maxEstimation = 30*1000;
-        String mmsg = "公開しています...";
-        int decideToPopup = ClientContext.getInt("task.default.decideToPopup");
-        int milisToPopup = ClientContext.getInt("task.default.milisToPopup");
-        progressMonitor = new ProgressMonitor(dialog, null, mmsg, 0, maxEstimation/delay);
+    
         
-        worker = new PublishTask(stmpTree, publishBytes, sdl, maxEstimation/delay);
+        Task task = new Task<Boolean, Void>(app) {
         
-        timer = new javax.swing.Timer(delay, new ActionListener() {
+        
+            @Override
+            protected Boolean doInBackground() throws Exception {
+
+                switch (publishState) {
+
+                    case NONE:
+                        //
+                        // 最初のログイン時、まだ自分のStamptreeが保存されていない状態の時
+                        // 自分（個人用）StampTreeModelを保存し公開する
+                        //
+                        long id = sdl.saveAndPublishTree(stmpTree, publishBytes);
+                        stmpTree.setId(id);
+                        break;
+
+                    case SAVED_NONE:
+                        //
+                        // 自分用のStampTreeがあって新規に公開する場合
+                        //
+                        sdl.publishTree(stmpTree, publishBytes);
+                        break;
+
+                    case LOCAL:
+                        //
+                        // Localに公開されていて更新する場合
+                        //
+                        sdl.updatePublishedTree(stmpTree, publishBytes);
+                        break;
+
+                    case GLOBAL:
+                        //
+                        // Global に公開されていて更新する場合
+                        //
+                        sdl.updatePublishedTree(stmpTree, publishBytes);
+                        break;
+                }
+                return new Boolean(sdl.isNoError());
+            }
             
-            public void actionPerformed(ActionEvent e) {
-                
-                progressMonitor.setProgress(worker.getCurrent());
-                
-                if (worker.isDone()) {
-                    
-                    progressMonitor.close();
-                    timer.stop();
-                    
-                    if (sdl.isNoError()) {
-                        JOptionPane.showMessageDialog(dialog,
-                                "スタンプを公開しました。",
-                                ClientContext.getFrameTitle(title),
-                                JOptionPane.INFORMATION_MESSAGE);
-                        stop();
-                        
-                    } else {
-                        JOptionPane.showMessageDialog(dialog,
-                                sdl.getErrorMessage(),
-                                ClientContext.getFrameTitle(title),
-                                JOptionPane.WARNING_MESSAGE);
-                    }
-                    
-                } else if (worker.isTimeOver()) {
-                    timer.stop();
-                    progressMonitor.close();
-                    publish.setEnabled(true);
-                    new TimeoutWarning(dialog, title, null).start();
+            @Override
+            protected void succeeded(Boolean result) {
+                logger.debug("Task succeeded");
+                if (result.booleanValue()) {
+                    JOptionPane.showMessageDialog(dialog,
+                            "スタンプを公開しました。",
+                            ClientContext.getFrameTitle(title),
+                            JOptionPane.INFORMATION_MESSAGE);
+                    stop();
+
+                } else {
+                    JOptionPane.showMessageDialog(dialog,
+                            sdl.getErrorMessage(),
+                            ClientContext.getFrameTitle(title),
+                            JOptionPane.WARNING_MESSAGE);
                 }
             }
-        });
-        publish.setEnabled(false);
-        progressMonitor.setProgress(0);
-        progressMonitor.setMillisToDecideToPopup(milisToPopup);
-        progressMonitor.setMillisToPopup(decideToPopup);
-        worker.start();
-        timer.start();
+            
+            @Override
+            protected void cancelled() {
+                logger.debug("Task cancelled");
+            }
+            
+            @Override
+            protected void failed(java.lang.Throwable cause) {
+                logger.warn(cause.getMessage());
+            }
+            
+            @Override
+            protected void interrupted(java.lang.InterruptedException e) {
+                logger.warn(e.getMessage());
+            }
+        };
+        
+        TaskMonitor taskMonitor = appCtx.getTaskMonitor();
+        String message = "スタンプ公開";
+        String note = "公開しています...";
+        Component c = dialog;
+        TaskTimerMonitor w = new TaskTimerMonitor(task, taskMonitor, c, message, note, delay, maxEstimation);
+        taskMonitor.addPropertyChangeListener(w);
+        
+        appCtx.getTaskService().execute(task);
     }
     
     /**
@@ -585,7 +634,7 @@ public class StampPublisher {
         //
         // 個人用のStampTreeModelにXMLをセットする
         //
-        open.dolphin.infomodel.StampTreeModel stmpTree = (open.dolphin.infomodel.StampTreeModel) stampBox.getUserStampBox().getStampTreeModel();
+        final open.dolphin.infomodel.StampTreeModel stmpTree = (open.dolphin.infomodel.StampTreeModel) stampBox.getUserStampBox().getStampTreeModel();
         
         //
         // 公開データをクリアする
@@ -601,52 +650,58 @@ public class StampPublisher {
         sdl = new StampDelegater();
         
         int delay = 200;
-        int maxEstimation = 20*1000;
-        String mmsg = "公開を取り消しています...";
-        int decideToPopup = ClientContext.getInt("task.default.decideToPopup");
-        int milisToPopup = ClientContext.getInt("task.default.milisToPopup");
-        progressMonitor = new ProgressMonitor(dialog, null, mmsg, 0, maxEstimation/delay);
+        int maxEstimation = 60*1000;       
         
-        cancelWorker = new CancelTask(stmpTree, sdl, maxEstimation/delay);
-        
-        timer = new javax.swing.Timer(delay, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                
-                progressMonitor.setProgress(cancelWorker.getCurrent());
-                
-                if (cancelWorker.isDone()) {
-                    
-                    progressMonitor.close();
-                    timer.stop();
-                    
-                    if (sdl.isNoError()) {
-                        JOptionPane.showMessageDialog(dialog,
-                                "公開を取り消しました。",
-                                ClientContext.getFrameTitle(title),
-                                JOptionPane.INFORMATION_MESSAGE);
-                        stop();
-                        
-                    } else {
-                        JOptionPane.showMessageDialog(dialog,
-                                sdl.getErrorMessage(),
-                                ClientContext.getFrameTitle(title),
-                                JOptionPane.WARNING_MESSAGE);
-                    }
-                    
-                } else if (cancelWorker.isTimeOver()) {
-                    timer.stop();
-                    progressMonitor.close();
-                    publish.setEnabled(true);
-                    new TimeoutWarning(dialog, title, null).start();
+        Task task = new Task<Boolean, Void>(app) {
+               
+            @Override
+            protected Boolean doInBackground() throws Exception {
+                sdl.cancelPublishedTree(stmpTree);
+                return new Boolean(sdl.isNoError());
+            }
+            
+            @Override
+            protected void succeeded(Boolean result) {
+                logger.debug("Task succeeded");
+                if (result.booleanValue()) {
+                    JOptionPane.showMessageDialog(dialog,
+                            "公開を取り消しました。",
+                            ClientContext.getFrameTitle(title),
+                            JOptionPane.INFORMATION_MESSAGE);
+                    stop();
+
+                } else {
+                    JOptionPane.showMessageDialog(dialog,
+                            sdl.getErrorMessage(),
+                            ClientContext.getFrameTitle(title),
+                            JOptionPane.WARNING_MESSAGE);
                 }
             }
-        });
-        publish.setEnabled(false);
-        progressMonitor.setProgress(0);
-        progressMonitor.setMillisToDecideToPopup(milisToPopup);
-        progressMonitor.setMillisToPopup(decideToPopup);
-        cancelWorker.start();
-        timer.start();
+            
+            @Override
+            protected void cancelled() {
+                logger.debug("Task cancelled");
+            }
+            
+            @Override
+            protected void failed(java.lang.Throwable cause) {
+                logger.warn(cause.getMessage());
+            }
+            
+            @Override
+            protected void interrupted(java.lang.InterruptedException e) {
+                logger.warn(e.getMessage());
+            }
+        };
+        
+        TaskMonitor taskMonitor = appCtx.getTaskMonitor();
+        String message = "スタンプ公開";
+        String note = "公開を取り消しています...";
+        Component c = dialog;
+        TaskTimerMonitor w = new TaskTimerMonitor(task, taskMonitor, c, message, note, delay, maxEstimation);
+        taskMonitor.addPropertyChangeListener(w);
+        
+        appCtx.getTaskService().execute(task);
     }
     
     public void checkButton() {
@@ -691,79 +746,6 @@ public class StampPublisher {
                     publish.setEnabled(okState);
                 }
                 break;
-        }
-    }
-    
-    class PublishTask extends AbstractInfiniteTask {
-        
-        /** 個人用StampTreeModel */
-        private open.dolphin.infomodel.StampTreeModel pubModel;
-        
-        /** 上記のなかで公開するStampTree の XML byte[]*/
-        private byte[] publishBytes;
-        
-        /** Delegator */
-        private StampDelegater mySdl;
-        
-        public PublishTask(open.dolphin.infomodel.StampTreeModel pubModel, byte[] publishBytes, StampDelegater mySdl, int taskLength) {
-            this.pubModel = pubModel;
-            this.publishBytes = publishBytes;
-            this.mySdl = mySdl;
-            setTaskLength(taskLength);
-        }
-        
-        protected void doTask() {
-            
-            switch (publishState) {
-                
-                case NONE:
-                    //
-                    // 最初のログイン時、まだ自分のStamptreeが保存されていない状態の時
-                    // 自分（個人用）StampTreeModelを保存し公開する
-                    //
-                    long id = mySdl.saveAndPublishTree(pubModel, publishBytes);
-                    pubModel.setId(id);
-                    break;
-                    
-                case SAVED_NONE:
-                    //
-                    // 自分用のStampTreeがあって新規に公開する場合
-                    //
-                    mySdl.publishTree(pubModel, publishBytes);
-                    break;
-                    
-                case LOCAL:
-                    //
-                    // Localに公開されていて更新する場合
-                    //
-                    mySdl.updatePublishedTree(pubModel, publishBytes);
-                    break;
-                    
-                case GLOBAL:
-                    //
-                    // Global に公開されていて更新する場合
-                    //
-                    mySdl.updatePublishedTree(pubModel, publishBytes);
-                    break;
-            }
-            setDone(true);
-        }
-    }
-    
-    class CancelTask extends AbstractInfiniteTask {
-        
-        private open.dolphin.infomodel.StampTreeModel pubModel;
-        private StampDelegater mySdl;
-        
-        public CancelTask(open.dolphin.infomodel.StampTreeModel pubModel, StampDelegater mySdl, int taskLength) {
-            this.pubModel = pubModel;
-            this.mySdl = mySdl;
-            setTaskLength(taskLength);
-        }
-        
-        protected void doTask() {
-            mySdl.cancelPublishedTree(pubModel);
-            setDone(true);
         }
     }
 }

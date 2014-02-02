@@ -1,9 +1,0 @@
-<persistence>
-  <persistence-unit name="openDolphin">
-    <jta-data-source>java:/PostgresDS</jta-data-source>
-    <properties>
-      <property name="hibernate.hbm2ddl.auto" value="update"/>
-      <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
-    </properties> 
-  </persistence-unit>
-</persistence>

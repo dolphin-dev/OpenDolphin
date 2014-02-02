@@ -42,18 +42,21 @@ public interface IInfoModel extends Serializable {
     
     public static final String MALE 		= "male";
     
-    public static final String MALE_DISP 	= "íjê´";
+    public static final String MALE_DISP 	= "íj";
     
     public static final String FEMALE 		= "female";
     
-    public static final String FEMALE_DISP 	= "èóê´";
+    public static final String FEMALE_DISP 	= "èó";
     
     public static final String UNKNOWN 		= "ïsñæ";
     
     public static final String AGE 		= "çŒ";
     
+    public static final String DOCTYPE_S_KARTE = "s_karte";
     
     public static final String DOCTYPE_KARTE = "karte";
+    
+    public static final String DOCTYPE_LETTER = "letter";
     
     public static final String PURPOSE_RECORD = "recode";
     

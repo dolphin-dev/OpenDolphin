@@ -369,22 +369,6 @@ public class RegisteredDiagnosisModel extends KarteEntryBean {
         this.diagnosisOutcomeModel = diagnosisOutcomeModel;
     }
     
-//    public String getConfirmDate() {
-//        return confirmDate;
-//    }
-//    
-//    public void setConfirmDate(String confirmDate) {
-//        this.confirmDate = confirmDate;
-//    }
-//    
-//    public String getFirstConfirmDate() {
-//        return firstConfirmDate;
-//    }
-//    
-//    public void setFirstConfirmDate(String firstConfirmDate) {
-//        this.firstConfirmDate = firstConfirmDate;
-//    }
-    
     public PatientLiteModel getPatientLiteModel() {
         return patientLiteModel;
     }
@@ -399,5 +383,35 @@ public class RegisteredDiagnosisModel extends KarteEntryBean {
     
     public void setUserLiteModel(UserLiteModel userLiteModel) {
         this.userLiteModel = userLiteModel;
+    }
+    
+    private static String[] splitDiagnosis(String diagnosis) {
+        if (diagnosis == null) {
+            return null;
+        }
+        String[] ret = null;
+        try {
+            ret = diagnosis.split("\\s*,\\s*");
+        } catch (Exception e) {
+        }
+        return ret;
+    }
+    
+    public String getDiagnosisName() {
+        String[] splits = splitDiagnosis(this.diagnosis);
+        return (splits != null && splits.length == 2 && splits[0] != null) ? splits[0] : this.diagnosis;
+    }
+    
+    public String getDiagnosisAlias() {
+        String[] splits = splitDiagnosis(this.diagnosis);
+        return (splits != null && splits.length == 2 && splits[1] != null) ? splits[1] : null;
+    }
+    
+    public String getAliasOrName() {
+        String[] aliasOrName = splitDiagnosis(this.diagnosis);
+        if (aliasOrName != null && aliasOrName.length == 2 && aliasOrName[1] != null) {
+            return aliasOrName[1];
+        }
+        return this.diagnosis;
     }
 }

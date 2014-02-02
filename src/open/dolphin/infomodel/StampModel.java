@@ -2,8 +2,6 @@ package open.dolphin.infomodel;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Table;
@@ -100,15 +98,24 @@ public class StampModel extends InfoModel {
     
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+    
+        if (getClass() != obj.getClass()) {
             return false;
+        }
+        
         final StampModel other = (StampModel) obj;
-        if (id != other.id)
+        if (!id.equals(other.id)) {
             return false;
+        }
+        
         return true;
     }
 }

@@ -1,7 +1,3 @@
-/*
- * Created on 2005/02/23
- *
- */
 package open.dolphin.client;
 
 import java.awt.BorderLayout;
@@ -83,6 +79,10 @@ public class LiteCalendarPanel extends JPanel implements PropertyChangeListener 
     private Font calendarFont = CALENDAR_FONT;
     private Font outOfMonthFont = OUTOF_MONTH_FONT;
     
+    public LiteCalendarPanel() {
+        super();
+    }
+    
     public LiteCalendarPanel(int n) {
         this(n, true);
     }
@@ -119,6 +119,7 @@ public class LiteCalendarPanel extends JPanel implements PropertyChangeListener 
         // MouseAdapter
         table.addMouseListener(new MouseAdapter() {
             
+            @Override
             public void mouseClicked(MouseEvent e) {
                 
                 if (e.getClickCount() != 1) {
@@ -171,6 +172,7 @@ public class LiteCalendarPanel extends JPanel implements PropertyChangeListener 
         return month;
     }
     
+    @Override
     public void addPropertyChangeListener(String prop, PropertyChangeListener l) {
         if (boundSupport == null) {
             boundSupport = new PropertyChangeSupport(this);
@@ -178,6 +180,7 @@ public class LiteCalendarPanel extends JPanel implements PropertyChangeListener 
         boundSupport.addPropertyChangeListener(prop, l);
     }
     
+    @Override
     public void removePropertyChangeListener(String prop,
             PropertyChangeListener l) {
         if (boundSupport == null) {
@@ -512,6 +515,7 @@ public class LiteCalendarPanel extends JPanel implements PropertyChangeListener 
             this.setHorizontalAlignment(SwingConstants.RIGHT);
         }
         
+        @Override
         public Component getTableCellRendererComponent(JTable table,
                 Object value, boolean isSelected, boolean isFocused, int row,
                 int col) {

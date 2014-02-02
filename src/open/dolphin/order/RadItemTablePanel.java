@@ -1,24 +1,6 @@
-/*
- * ItemTable.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2004 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.order;
 
+import open.dolphin.table.OddEvenRowRenderer;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.table.*;
@@ -35,9 +17,9 @@ import open.dolphin.table.ObjectReflectTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
-import java.text.NumberFormat;
 import java.util.Iterator;
-import java.awt.im.InputSubset;
+import open.dolphin.project.Project;
+import open.dolphin.util.ZenkakuUtils;
 
 /**
  * ItemTablePanel
@@ -51,18 +33,18 @@ public class RadItemTablePanel extends JPanel implements PropertyChangeListener 
     protected static final String DEFAULT_STAMP_NAME = "新規スタンプ";
     private static final String FROM_EDITOR_STAMP_NAME = "エディタから";
     private static final String DEFAULT_NUMBER = "1";
-    private static final String[] COLUMN_NAMES = { "コード", "名 称", "一回量", "単 位" };
+    private static final String[] COLUMN_NAMES = { "コード", "診療内容", "数 量", "単 位" };
     private static final String[] METHOD_NAMES = { "getCode", "getName", "getNumber", "getUnit" };
     private static final int[] COLUMN_WIDTH = { 50, 200, 10, 10 };
     private static final int NUM_ROWS = 14;
     private static final String REMOVE_BUTTON_IMAGE = "del_16.gif";
     private static final String CLEAR_BUTTON_IMAGE = "remov_16.gif";
-    private static final String NUMBER_LABEL_TEXT = "数 量";
+    private static final String NUMBER_LABEL_TEXT = "回 数";
     private static final String SET_NAME_LABEL_TEXT = "セット名";
     private static final String MEMO_LABEL_TEXT = "メ モ";
-    private static final String TOOLTIP_DELETE = "選択したアイテムを削除します";
-    private static final String TOOLTIP_CLEAR = "セット内容をクリアします";
-    private static final String TOOLTIP_DND = "ドラッグ & ドロップで順番を入れ替えることができます";
+    private static final String TOOLTIP_DELETE = "選択したアイテムを削除します。";
+    private static final String TOOLTIP_CLEAR = "セット内容をクリアします。";
+    private static final String TOOLTIP_DND = "ドラッグ & ドロップで順番を入れ替えることができます。";
     
     // 数量コンボ用のデータ
     private static String[] NUMBER_LIST = null;
@@ -113,11 +95,13 @@ public class RadItemTablePanel extends JPanel implements PropertyChangeListener 
             private static final long serialVersionUID = 5162264518307934378L;
             
             // NUMBER_COLUMN を編集可能にする
+            @Override
             public boolean isCellEditable(int row, int col) {
                 return col == NUMBER_COLUMN ? true : false;
             }
             
             // NUMBER_COLUMN に値を設定する
+            @Override
             public void setValueAt(Object o, int row, int col) {
                 
                 if (o == null || ((String) o).trim().equals("")) {
@@ -152,12 +136,7 @@ public class RadItemTablePanel extends JPanel implements PropertyChangeListener 
             }
         });
         setTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // 選択モード
-        setTable.setRowSelectionAllowed(true); // 行選択
-        setTable.setSurrendersFocusOnKeystroke(true);
-        setTable.setToolTipText(TOOLTIP_DND);
-        setTable.setDefaultRenderer(Object.class, new OddEvenRowRenderer());
-        
-        // 行が選択された場合の処理を登録する
+        setTable.setRowSelectionAllowed(true); 
         ListSelectionModel m = setTable.getSelectionModel();
         m.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
@@ -166,56 +145,40 @@ public class RadItemTablePanel extends JPanel implements PropertyChangeListener 
                 }
             }
         });
+        setTable.setToolTipText(TOOLTIP_DND);
+        setTable.setDefaultRenderer(Object.class, new OddEvenRowRenderer());
         
         // カラム幅を設定する
         TableColumn column = null;
-        int widthSize = 400;
         if (COLUMN_WIDTH != null) {
             int len = COLUMN_WIDTH.length;
-            widthSize = 0;
             for (int i = 0; i < len; i++) {
                 column = setTable.getColumnModel().getColumn(i);
                 column.setPreferredWidth(COLUMN_WIDTH[i]);
-                widthSize += COLUMN_WIDTH[i];
             }
         }
         
         // 数量カラムにセルエディタを設定する
-        NumberFormat numFormat = NumberFormat.getNumberInstance();
-        numFormat.setMinimumFractionDigits(2);
-        JFormattedTextField tf = new JFormattedTextField(numFormat);
+        JTextField tf = new JTextField();
+        tf.addFocusListener(AutoRomanListener.getInstance());
         column = setTable.getColumnModel().getColumn(NUMBER_COLUMN);
-        column.setCellEditor(new DefaultCellEditor(tf));
-        tf.addFocusListener(new FocusAdapter() {
-            public void focusGained(FocusEvent event) {
-                JFormattedTextField tf = (JFormattedTextField) event.getSource();
-                tf.getInputContext().setCharacterSubsets(null);
-            }
-        });
+        DefaultCellEditor dce = new DefaultCellEditor(tf);
+        int ccts = Project.getPreferences().getInt("order.table.clickCountToStart", 1);
+        dce.setClickCountToStart(ccts);
+        column.setCellEditor(dce);
         
         // 数量コンボを設定する
         numberCombo = new JComboBox(NUMBER_LIST);
         
         // コメントエリアを生成する
-        //commentField = new JTextArea();
         commentField = new JTextField(15);
-        commentField.addFocusListener(new FocusAdapter() {
-            public void focusGained(FocusEvent event) {
-                commentField.getInputContext().setCharacterSubsets(
-                        new Character.Subset[] { InputSubset.KANJI });
-            }
-        });
+        commentField.addFocusListener(AutoKanjiListener.getInstance());
         
         // スタンプ名フィールドを生成する
         stampNameField = new JTextField(15);
         stampNameField.setOpaque(true);
         stampNameField.setBackground(new Color(251, 239, 128));
-        stampNameField.addFocusListener(new FocusAdapter() {
-            public void focusGained(FocusEvent event) {
-                stampNameField.getInputContext().setCharacterSubsets(
-                        new Character.Subset[] { InputSubset.KANJI });
-            }
-        });
+        stampNameField.addFocusListener(AutoKanjiListener.getInstance());
         
         // 削除ボタンを生成する
         removeButton = new JButton(createImageIcon(REMOVE_BUTTON_IMAGE));
@@ -236,7 +199,6 @@ public class RadItemTablePanel extends JPanel implements PropertyChangeListener 
             }
         });
         clearButton.setToolTipText(TOOLTIP_CLEAR);
-        
         
         // 放射線メソッドのリストボックスとセットテーブルをリスナ関係にする
         RadiologyMethod method = new RadiologyMethod();
@@ -431,13 +393,12 @@ public class RadItemTablePanel extends JPanel implements PropertyChangeListener 
                 }
                 
                 // 材料もしくは薬剤の時、数量と単位を取得する
-                if (mItem.getClassCode() != 0) {
-                    
+                //if (mItem.getClassCode() != ClaimConst.SYUGI) {
                     String number = mItem.getNumber();
                     if (number != null) {
                         number = number.trim();
                         if (!number.equals("")) {
-                            
+                            number = ZenkakuUtils.toHankuNumber(number);
                             item.setNumber(number);
                             item.setUnit(mItem.getUnit());
                             item.setNumberCode(getNumberCode(mItem
@@ -445,7 +406,7 @@ public class RadItemTablePanel extends JPanel implements PropertyChangeListener 
                             item.setNumberCodeSystem(ClaimConst.NUMBER_CODE_ID);
                         }
                     }
-                }
+                //} 
                 bundle.addClaimItem(item);
             }
         }
@@ -524,23 +485,21 @@ public class RadItemTablePanel extends JPanel implements PropertyChangeListener 
             // 手技・材料・薬品のフラグ
             String val = item.getClassCode();
             mItem.setClassCode(Integer.parseInt(val));
-            // //System.out.println("subclassCode = " + mItem.classCode);
             
             // Name Code TableId
             mItem.setName(item.getName());
             mItem.setCode(item.getCode());
-            // //mItem.masterTableId = item.getTableId();
             
-            // 材料もしくは薬剤の場合
-            // 数量と単位を取得する
-            if (mItem.getClassCode() != ClaimConst.SYUGI) {
-                val = item.getNumber();
-                if (val != null) {
+            val = item.getNumber();
+            if (val != null) {
+                val = val.trim();
+                if (!val.equals("")) {
+                    val = ZenkakuUtils.toHankuNumber(val);
                     mItem.setNumber(val);
-                    val = item.getUnit();
-                    if (val != null) {
-                        mItem.setUnit(val);
-                    }
+                }
+                val = item.getUnit();
+                if (val != null) {
+                    mItem.setUnit(val);
                 }
             }
             
@@ -555,7 +514,10 @@ public class RadItemTablePanel extends JPanel implements PropertyChangeListener 
         }
         
         String number = bundle.getBundleNumber();
-        numberCombo.setSelectedItem(number);
+        if (number != null && (!number.equals(""))) {
+            number = ZenkakuUtils.toHankuNumber(number);
+            numberCombo.setSelectedItem(number);
+        }
         
         // Stateを変更する
         stateMgr.checkState();
@@ -575,12 +537,30 @@ public class RadItemTablePanel extends JPanel implements PropertyChangeListener 
             String textVal = stampNameField.getText().trim();
             
             // マスターアイテムを判別して自動設定を行う
-            if (item.getClassCode() != ClaimConst.SYUGI) {
+            if (item.getClassCode() == ClaimConst.SYUGI) {
                 // 材料及び薬剤の場合は数量1を設定する
+                //item.setNumber(DEFAULT_NUMBER);
+                if (textVal.equals("") || textVal.equals(DEFAULT_STAMP_NAME)) {
+                    // 手技の場合はスタンプ名フィールドに名前を設定する
+                    stampNameField.setText(item.getName());
+                }
+                
+            } else if (item.getClassCode() == ClaimConst.YAKUZAI) {
+                String inputNum = "1";
+                if (item.getUnit()!= null) {
+                    String unit = item.getUnit();
+                    if (unit.equals("錠")) {
+                        inputNum = Project.getPreferences().get("defaultZyozaiNum", "3");
+                    } else if (unit.equals("ｇ")) {
+                        inputNum = Project.getPreferences().get("defaultSanyakuNum", "1.0");
+                    } else if (unit.equals("ｍＬ")) {
+                        inputNum = Project.getPreferences().get("defaultMizuyakuNum", "1");
+                    }
+                } 
+                item.setNumber(inputNum);
+                
+            } else if (item.getClassCode() == ClaimConst.ZAIRYO) {
                 item.setNumber(DEFAULT_NUMBER);
-            } else if (textVal.equals("") || textVal.equals(DEFAULT_STAMP_NAME)) {
-                // 手技の場合はスタンプ名フィールドに名前を設定する
-                stampNameField.setText(item.getName());
             }
             tableModel.addRow(item);
             stateMgr.checkState();

@@ -1,21 +1,3 @@
-/*
- * BacteriaStampEditor.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *	
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *	
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.order;
 
 import javax.swing.*;
@@ -33,105 +15,99 @@ import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
 import java.util.EnumSet;
-import java.awt.im.InputSubset;
 import flextable.*;
-
 
 /**
  * Bacteria test editor.
  *
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
-public final class BacteriaStampEditor extends StampModelEditor  {
-    
+public final class BacteriaStampEditor extends StampModelEditor {
+
     private static final long serialVersionUID = 7617611120663234798L;
-	
     // Bacteria test table related
     private static final String[] COLUMN_NAMES = {
-       "名　称", "対 象 薬 品", "数　量"
+        "名　称", "対 象 薬 品", "数　量"
     };
     private static final int[] COLUMN_WIDTH = {
         300, 200, 50
     };
     private static String[] NUMBER_LIST = null;
+
     static {
         NUMBER_LIST = new String[31];
         for (int i = 0; i < 31; i++) {
-            NUMBER_LIST[i] = String.valueOf(i+ 1);
+            NUMBER_LIST[i] = String.valueOf(i + 1);
         }
     }
     private static final String TREATMENT_CRITERIA = "600";  //"62";
-    private static final int NUM_ROWS           = 9;
-    private static final int NAME_COLUMN        = 0;
-    private static final int MEDICINE_COLUMN    = 1;
-    private static final int NUMBER_COLUMN      = 2;
-    private static final int NUMBER_ROW         = 0;
-    
-    private static final String ORDER_NAME      = "細菌検査";
-    
+    private static final int NUM_ROWS = 9;
+    private static final int NAME_COLUMN = 0;
+    private static final int MEDICINE_COLUMN = 1;
+    private static final int NUMBER_COLUMN = 2;
+    private static final int NUMBER_ROW = 0;
+    private static final String ORDER_NAME = "細菌検査";
     // Claim 診療行為区分
-    private static final String classCode        = "600";
-    private static final String classCodeId      = "Claim007";
-    private static final String classCodeName    = "検査";
+    private static final String classCode = "600";
+    private static final String classCodeId = "Claim007";
+    private static final String classCodeName = "検査";
     //private static final String entityName       = "bacteria";
-        
     // 診療種別区分(手技・材料・薬剤)
     private String subclassCode;
-    private static final String subclassCodeId  = "Claim003";
-    
+    private static final String subclassCodeId = "Claim003";
     private static final String DEFAULT_BUNDLE_NUMBER = "1";
-        
     private TestTablePanel testTable;
     private MasterTabPanel masterPanel;
-    
-    private static final String RESOURCE_BASE       = "/open/dolphin/resources/images/";
+    private static final String RESOURCE_BASE = "/open/dolphin/resources/images/";
     private static final String REMOVE_BUTTON_IMAGE = "del_16.gif";
-    private static final String CLEAR_BUTTON_IMAGE  = "remov_16.gif";
-    private static final String TABLE_TITLE         = "細菌検査セット";
-    private static final String WINDOW_TITLE        = "細菌検査";
-    
+    private static final String CLEAR_BUTTON_IMAGE = "remov_16.gif";
+    private static final String TABLE_TITLE = "細菌検査セット";
+    private static final String WINDOW_TITLE = "細菌検査";
+
     /** 
      * Creates new InjectionStampEditor 
      */
     public BacteriaStampEditor() {
-        
+
         this.setTitle(WINDOW_TITLE);
     }
-    
+
+    @Override
     public void start() {
-                
+
         // Creates table
         testTable = new TestTablePanel(this);
         Border b = BorderFactory.createEtchedBorder();
         testTable.setBorder(BorderFactory.createTitledBorder(b, TABLE_TITLE));
-        
+
         // Start master
         EnumSet<ClaimConst.MasterSet> set = EnumSet.of(
-        		ClaimConst.MasterSet.TREATMENT);
+                ClaimConst.MasterSet.TREATMENT);
         masterPanel = new MasterTabPanel(set);
         masterPanel.setSearchClass(TREATMENT_CRITERIA);
         masterPanel.startCharge(testTable);
-        
+
         //testTable.setParent(this);
-        
+
         setLayout(new BorderLayout());
         add(testTable, BorderLayout.NORTH);
         add(masterPanel, BorderLayout.CENTER);
         setPreferredSize(new Dimension(920, 610));
     }
-    
+
     public Object getValue() {
         return testTable.getValue();
     }
-    
+
     public void setValue(Object val) {
         testTable.setValue(val);
     }
-    
+
+    @Override
     public void dispose() {
         masterPanel.stopCharge(testTable);
     }
-    
+
     /**
      * Test order table.
      *
@@ -140,37 +116,34 @@ public final class BacteriaStampEditor extends StampModelEditor  {
     protected final class TestTablePanel extends JPanel implements PropertyChangeListener {
 
         private static final long serialVersionUID = -5626466878381854553L;
-		
         private FlexibleTable medTable;
-        private JTextField   adminMemo;
+        private JTextField adminMemo;
         private int itemCount;
         private final JComboBox numberCombo;
-
         private JButton removeButton;
         private JButton clearButton;
         private StampModelEditor parent;
-        
         private ModuleModel savedStamp;
         private JTextField stampNameField;
 //        private JRadioButton expand;
 //        private JRadioButton turnInRadio;
-
         /** 
          * Creates new MedicineTable
          */
         public TestTablePanel(StampModelEditor parent) {
 
             super(new BorderLayout());
-            
+
             setParent(parent);
 
             medTable = new FlexibleTable(new FlexibleTableModel(COLUMN_NAMES, NUM_ROWS)) {
 
-                 private static final long serialVersionUID = -4829816185141627195L;
+                private static final long serialVersionUID = -4829816185141627195L;
 
-				public boolean isCellEditable(int row, int col) {
-                    return ( (col == MEDICINE_COLUMN) || 
-                             (col == NUMBER_COLUMN) )  ? true : false;
+                @Override
+                public boolean isCellEditable(int row, int col) {
+                    return ((col == MEDICINE_COLUMN) ||
+                            (col == NUMBER_COLUMN)) ? true : false;
                 }
             };
             medTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -193,11 +166,11 @@ public final class BacteriaStampEditor extends StampModelEditor  {
                 column = medTable.getColumnModel().getColumn(i);
                 column.setPreferredWidth(COLUMN_WIDTH[i]);
             }
-            
+
             // Set the combo editor to the bundleNumber column
             numberCombo = new JComboBox(NUMBER_LIST);
             TableColumn numberColumn = medTable.getColumnModel().getColumn(NUMBER_COLUMN);
-            numberColumn.setCellEditor (new DefaultCellEditor(numberCombo));
+            numberColumn.setCellEditor(new DefaultCellEditor(numberCombo));
 
             // Combine rows
             combineRows(NUMBER_ROW, NUMBER_COLUMN, NUM_ROWS);
@@ -205,19 +178,15 @@ public final class BacteriaStampEditor extends StampModelEditor  {
             // Stamp, Admin comment & memo
             JPanel p = new JPanel();
             p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-            
+
             // スタンプ名編集フィールド
             p.add(new JLabel("スタンプ名"));
-            p.add(Box.createRigidArea(new Dimension(5,0)));
+            p.add(Box.createRigidArea(new Dimension(5, 0)));
             stampNameField = new JTextField();
             stampNameField.setOpaque(true);
-            stampNameField.setBackground(new Color(251,239,128));
-            stampNameField.addFocusListener(new FocusAdapter() {
-                public void focusGained(FocusEvent event) {
-                   stampNameField.getInputContext().setCharacterSubsets(new Character.Subset[] {InputSubset.KANJI});
-                }
-            });
-            Dimension dim = new Dimension(150,21);
+            stampNameField.setBackground(new Color(251, 239, 128));
+            stampNameField.addFocusListener(AutoKanjiListener.getInstance());
+            Dimension dim = new Dimension(150, 21);
             stampNameField.setPreferredSize(dim);
             stampNameField.setMaximumSize(dim);
             p.add(stampNameField);
@@ -233,13 +202,13 @@ public final class BacteriaStampEditor extends StampModelEditor  {
 //            turnInRadio.setSelected(true);
 //            p.add(expand);
 //            p.add(turnInRadio);
-            
+
             p.add(Box.createHorizontalStrut(7));
-            
+
             p.add(new JLabel("検体材料"));
-            p.add(Box.createRigidArea(new Dimension(5,0)));
+            p.add(Box.createRigidArea(new Dimension(5, 0)));
             adminMemo = new JTextField();
-            dim = new Dimension(200,21);
+            dim = new Dimension(200, 21);
             adminMemo.setPreferredSize(dim);
             adminMemo.setMaximumSize(dim);
             p.add(adminMemo);
@@ -248,7 +217,7 @@ public final class BacteriaStampEditor extends StampModelEditor  {
 
             // Command buttons
             removeButton = new JButton(createImageIcon(REMOVE_BUTTON_IMAGE));
-            removeButton.setToolTipText("選択したアイテムを削除します");
+            removeButton.setToolTipText("選択したアイテムを削除します。");
             removeButton.setEnabled(false);
             removeButton.addActionListener(new ActionListener() {
 
@@ -261,7 +230,7 @@ public final class BacteriaStampEditor extends StampModelEditor  {
             p.add(Box.createRigidArea(new Dimension(5, 0)));
 
             clearButton = new JButton(createImageIcon(CLEAR_BUTTON_IMAGE));
-            clearButton.setToolTipText("セット内容をクリアします");
+            clearButton.setToolTipText("セット内容をクリアします。");
             clearButton.setEnabled(false);
             clearButton.addActionListener(new ActionListener() {
 
@@ -269,12 +238,12 @@ public final class BacteriaStampEditor extends StampModelEditor  {
                     clear();
                 }
             });
-            p.add(clearButton);  
-            
+            p.add(clearButton);
+
             if (parent.getContext().getOkButton() != null) {
                 p.add(parent.getContext().getOkButton());
             }
-            p.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+            p.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
             this.add(medTable.getTableHeader(), BorderLayout.NORTH);
             this.add(medTable, BorderLayout.CENTER);
@@ -285,8 +254,8 @@ public final class BacteriaStampEditor extends StampModelEditor  {
         }
 
         private void setDefaultBundleNumber() {
-            FlexibleTableModel model = (FlexibleTableModel)medTable.getModel();
-            model.setValueAt(DEFAULT_BUNDLE_NUMBER, NUMBER_ROW, NUMBER_COLUMN); 
+            FlexibleTableModel model = (FlexibleTableModel) medTable.getModel();
+            model.setValueAt(DEFAULT_BUNDLE_NUMBER, NUMBER_ROW, NUMBER_COLUMN);
         }
 
         public void setParent(StampModelEditor parent) {
@@ -301,11 +270,11 @@ public final class BacteriaStampEditor extends StampModelEditor  {
 
                 if (itemCount < NUM_ROWS) {
 
-                    MasterItem item = (MasterItem)e.getNewValue();
+                    MasterItem item = (MasterItem) e.getNewValue();
                     medTable.setValueAt(item, itemCount, NAME_COLUMN);
 
                     // 診療行為のみ
-                    FlexibleTableModel model = (FlexibleTableModel)medTable.getModel();
+                    FlexibleTableModel model = (FlexibleTableModel) medTable.getModel();
                     model.fireTableRowsUpdated(itemCount, itemCount);
                     itemCount++;
                     notifyCount();
@@ -323,7 +292,7 @@ public final class BacteriaStampEditor extends StampModelEditor  {
         private void notifySelectedRow() {
             int index = medTable.getSelectedRow();
             int val = -1;
-            if ( index > val ) {
+            if (index > val) {
                 Object o = medTable.getValueAt(index, 0);
                 if (o == null) {
                     index = val;
@@ -331,18 +300,18 @@ public final class BacteriaStampEditor extends StampModelEditor  {
             }
             boolean b = (index > -1) ? true : false;
             removeButton.setEnabled(b);
-        }    
+        }
 
         private void clear() {
 
             for (int i = 0; i < NUM_ROWS; i++) {
-                for ( int j = 0; j < COLUMN_NAMES.length -1; j++) {
+                for (int j = 0; j < COLUMN_NAMES.length - 1; j++) {
                     medTable.setValueAt(null, i, j);
                 }
-            }        
-            FlexibleTableModel model = (FlexibleTableModel)medTable.getModel();
+            }
+            FlexibleTableModel model = (FlexibleTableModel) medTable.getModel();
             model.fireTableRowsUpdated(0, NUM_ROWS);
-            itemCount= 0;
+            itemCount = 0;
             notifyCount();
             notifySelectedRow();
         }
@@ -355,19 +324,19 @@ public final class BacteriaStampEditor extends StampModelEditor  {
                 return;
             }
             Object o = medTable.getValueAt(index, 0);
-            if ( o == null ) {
+            if (o == null) {
                 notifySelectedRow();
                 return;
             }
 
             for (int i = index; i < itemCount; i++) {
-                for ( int j = 0; j < COLUMN_NAMES.length -1; j++) {
+                for (int j = 0; j < COLUMN_NAMES.length - 1; j++) {
                     o = medTable.getValueAt(i + 1, j);
-                    medTable.setValueAt(o, i, j);    
+                    medTable.setValueAt(o, i, j);
                 }
             }
-            for ( int j = 0; j < COLUMN_NAMES.length -1; j++) {
-                medTable.setValueAt(null, itemCount - 1, j);    
+            for (int j = 0; j < COLUMN_NAMES.length - 1; j++) {
+                medTable.setValueAt(null, itemCount - 1, j);
             }
             itemCount--;
             notifyCount();
@@ -376,34 +345,34 @@ public final class BacteriaStampEditor extends StampModelEditor  {
 
         private void combineRows(int row, int col, int nRows) {
 
-            FlexibleTableModel model = (FlexibleTableModel)medTable.getModel();
-            CellAttribute cellAtt = (CellAttribute)model.getCellAttribute();
+            FlexibleTableModel model = (FlexibleTableModel) medTable.getModel();
+            CellAttribute cellAtt = (CellAttribute) model.getCellAttribute();
             int[] r = new int[nRows];
             for (int i = 0; i < nRows; i++) {
                 r[i] = row + i;
             }
             int[] c = {col};
-            cellAtt.combine(r,c);       
+            cellAtt.combine(r, c);
         }
 
         public Object getValue() {
 
             // Stamp　名と表示形式をセット
             String text = stampNameField.getText().trim();
-            if (! text.equals("")) {
+            if (!text.equals("")) {
                 savedStamp.getModuleInfo().setStampName(text);
             }
             //savedStamp.getStampInfo().setTurnIn(turnInRadio.isSelected());
-        
+
             BundleDolphin test = new BundleDolphin();
             test.setOrderName(ORDER_NAME);
-            
+
             test.setClassCode(classCode);
             test.setClassCodeSystem(classCodeId);
             test.setClassName(classCodeName);
             //test.setEntityName(entityName);
 
-            FlexibleTableModel tableModel = (FlexibleTableModel)medTable.getModel();
+            FlexibleTableModel tableModel = (FlexibleTableModel) medTable.getModel();
             //int rows = tableModel.getRowCount();
             //String name;
             String memo = null;
@@ -413,7 +382,7 @@ public final class BacteriaStampEditor extends StampModelEditor  {
 
             for (int i = 0; i < itemCount; i++) {
 
-                mItem = (MasterItem)tableModel.getValueAt(i, NAME_COLUMN);
+                mItem = (MasterItem) tableModel.getValueAt(i, NAME_COLUMN);
 
                 if (mItem != null) {
 
@@ -422,15 +391,15 @@ public final class BacteriaStampEditor extends StampModelEditor  {
                     item.setName(mItem.getName());
                     item.setCode(mItem.getCode());
                     //item.setTableId(mItem.masterTableId);
-                    
+
                     // 診療種別
                     subclassCode = String.valueOf(mItem.getClassCode());
                     item.setClassCode(subclassCode);
                     item.setClassCodeSystem(subclassCodeId);
 
                     // item memo に薬品名
-                    memo = (String)tableModel.getValueAt(i, MEDICINE_COLUMN);
-                    if ( (memo != null) && (! memo.equals("")) ){
+                    memo = (String) tableModel.getValueAt(i, MEDICINE_COLUMN);
+                    if ((memo != null) && (!memo.equals(""))) {
                         item.setMemo(memo);
                     }
                     test.addClaimItem(item);
@@ -439,19 +408,19 @@ public final class BacteriaStampEditor extends StampModelEditor  {
 
             // Admin Memo
             memo = adminMemo.getText();
-            if (! memo.equals("")) {
+            if (!memo.equals("")) {
                 test.setAdminMemo(memo);
             }
 
             // BundleNumber
-            test.setBundleNumber((String)tableModel.getValueAt(NUMBER_ROW, NUMBER_COLUMN));
+            test.setBundleNumber((String) tableModel.getValueAt(NUMBER_ROW, NUMBER_COLUMN));
 
             //return (Object)test;
-            savedStamp.setModel((IInfoModel)test);
-            
+            savedStamp.setModel((IInfoModel) test);
+
             stampNameField.setText("");
-            
-            return (Object)savedStamp;
+
+            return (Object) savedStamp;
         }
 
         public void setValue(Object theModel) {
@@ -459,9 +428,9 @@ public final class BacteriaStampEditor extends StampModelEditor  {
             if (theModel == null) {
                 return;
             }
-            
-            savedStamp = (ModuleModel)theModel;
-            
+
+            savedStamp = (ModuleModel) theModel;
+
             // Stamp 名と表示形式を設定する
             String stampName = savedStamp.getModuleInfo().getStampName();
             boolean serialized = savedStamp.getModuleInfo().isSerialized();
@@ -469,7 +438,7 @@ public final class BacteriaStampEditor extends StampModelEditor  {
                 stampName = "新規スタンプ";
             }
             stampNameField.setText(stampName);
-            
+
 //            //boolean b = savedStamp.getStampInfo().getTurnIn();
 //            boolean b = false;
 //            if (b) {
@@ -478,9 +447,9 @@ public final class BacteriaStampEditor extends StampModelEditor  {
 //            } else {
 //                expand.setSelected(true);
 //            }
-            
+
             // Model 表示
-            BundleDolphin test = (BundleDolphin)savedStamp.getModel();
+            BundleDolphin test = (BundleDolphin) savedStamp.getModel();
             if (test == null) {
                 return;
             }
@@ -489,14 +458,14 @@ public final class BacteriaStampEditor extends StampModelEditor  {
             int count = items.length;
             ClaimItem item;
             MasterItem mItem;
-            FlexibleTableModel tableModel = (FlexibleTableModel)medTable.getModel();
+            FlexibleTableModel tableModel = (FlexibleTableModel) medTable.getModel();
 
             for (int i = 0; i < count; i++) {
                 item = items[i];
                 mItem = new MasterItem();
                 subclassCode = item.getClassCode();
                 mItem.setClassCode(Integer.parseInt(subclassCode));
-                
+
                 // Code, Name, TableId
                 mItem.setName(item.getName());
                 mItem.setCode(item.getCode());
@@ -505,7 +474,7 @@ public final class BacteriaStampEditor extends StampModelEditor  {
 
                 // item memo = 薬品
                 if (item.getMemo() != null) {
-                    tableModel.setValueAt(item.getMemo(), i, MEDICINE_COLUMN);  
+                    tableModel.setValueAt(item.getMemo(), i, MEDICINE_COLUMN);
                 }
             }
 
@@ -520,26 +489,25 @@ public final class BacteriaStampEditor extends StampModelEditor  {
 
             // Notify
             itemCount = count;
-            notifyCount();           
-        } 
+            notifyCount();
+        }
 
         private void checkValidModel() {
             boolean mmlOk = itemCount > 0 ? true : false;
             parent.setValidModel(mmlOk);
         }
 
-       /**
+        /**
          * Returns Claim004 Number Code
          * 21 材料個数　　when subclassCode = 1
          * 11 薬剤投与量（１回）when subclassCode = 2
          */
         /*private String getNumberCode(int subclassCode) {
-            return (subclassCode == 1) ? "21" : "11";   // 材料個数 : 薬剤投与量１回
+        return (subclassCode == 1) ? "21" : "11";   // 材料個数 : 薬剤投与量１回
         }*/
-
         private ImageIcon createImageIcon(String name) {
             String res = RESOURCE_BASE + name;
             return new ImageIcon(this.getClass().getResource(res));
         }
-    }    
+    }
 }

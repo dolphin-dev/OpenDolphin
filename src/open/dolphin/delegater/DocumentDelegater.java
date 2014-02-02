@@ -1,21 +1,3 @@
-/*
- * DocumentDelegater.java
- * Copyright (C) 2004 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.delegater;
 
 import java.awt.Dimension;
@@ -38,14 +20,17 @@ import open.dolphin.dto.ObservationSearchSpec;
 import open.dolphin.ejb.RemoteKarteService;
 import open.dolphin.infomodel.DocInfoModel;
 import open.dolphin.infomodel.DocumentModel;
+import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.InfoModel;
 import open.dolphin.infomodel.KarteBean;
+import open.dolphin.infomodel.LetterModel;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.ObservationModel;
 import open.dolphin.infomodel.PatientMemoModel;
 import open.dolphin.infomodel.RegisteredDiagnosisModel;
 import open.dolphin.infomodel.SchemaModel;
+import open.dolphin.infomodel.TouTouLetter;
 import open.dolphin.util.BeanUtils;
 
 /**
@@ -146,11 +131,70 @@ public class  DocumentDelegater extends BusinessDelegater {
      */
     public List getDocumentList(DocumentSearchSpec spec) {
         
+        if (spec.getDocType().equals(IInfoModel.DOCTYPE_KARTE)) {
+            return getKarteList(spec);
+            
+        } else if (spec.getDocType().equals(IInfoModel.DOCTYPE_LETTER)) {
+            return getLetterList(spec);
+        }
+        
+        return null;
+    }
+    
+    private List getKarteList(DocumentSearchSpec spec) {
+        
         List ret= null;
         
         try {
             ret = getService().getDocumentList(spec);
             
+        } catch (Exception e) {
+            e.printStackTrace();
+            processError(e);
+        }
+        
+        return ret;
+    }
+    
+    private List<DocInfoModel> getLetterList(DocumentSearchSpec spec) {
+        
+        List ret = new ArrayList<DocInfoModel>(1);
+        
+        try {
+            List<LetterModel> result = (List<LetterModel>) getService().getLetterList(spec.getKarteId(), "TOUTOU");
+            
+            for (LetterModel model : result) {
+                TouTouLetter letter = (TouTouLetter) model;
+                DocInfoModel docInfo = new DocInfoModel();
+                docInfo.setDocPk(letter.getId());
+                docInfo.setDocType(IInfoModel.DOCTYPE_LETTER);
+                docInfo.setDocId(String.valueOf(letter.getId()));
+                docInfo.setConfirmDate(letter.getConfirmed());
+                docInfo.setFirstConfirmDate(letter.getConfirmed());
+                docInfo.setTitle(letter.getConsultantHospital());
+
+                ret.add(docInfo);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            processError(e);
+        }
+        
+        return ret;
+    }
+    
+    public LetterModel getLetter(long letterPk) {
+        
+        LetterModel ret = null;
+        
+        try {
+            LetterModel result = getService().getLetter(letterPk);
+            byte[] bytes = result.getBeanBytes();
+            ret = (LetterModel) BeanUtils.xmlDecode(bytes);
+            ret.setId(result.getId());
+            ret.setBeanBytes(null);
+             
         } catch (Exception e) {
             e.printStackTrace();
             processError(e);
@@ -507,3 +551,23 @@ public class  DocumentDelegater extends BusinessDelegater {
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

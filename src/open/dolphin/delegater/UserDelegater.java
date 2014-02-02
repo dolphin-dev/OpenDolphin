@@ -1,21 +1,3 @@
-/*
- * StatusPanel.java
- * Copyright (C) 2004 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.delegater;
 
 import java.util.ArrayList;
@@ -42,44 +24,31 @@ public class UserDelegater extends BusinessDelegater {
      * ユーザ認証を行う。
      * @return  UserModel
      */
-    public UserModel login(DolphinPrincipal principal, String password) {
+    public UserModel login(DolphinPrincipal principal, String password) throws Exception {
         
-        UserModel ret = null;
+        String pk = principal.getFacilityId() + ":" + principal.getUserId();
+        UsernamePasswordHandler h = new UsernamePasswordHandler(pk, password.toCharArray());
+        LoginContext lc = new LoginContext(getSecurityDomain(), h);
+        lc.login();
+        return getUser(pk);
         
-        try {
-            String pk = principal.getFacilityId() + ":" + principal.getUserId();
-            UsernamePasswordHandler h = new UsernamePasswordHandler(pk, password.toCharArray());
-            LoginContext lc = new LoginContext(getSecurityDomain(), h);
-            lc.login();
-            
-            ret = getUser(pk);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            processError(e);
-        }
-        
-        return ret;
-    }
-    
-    /**
-     * ユーザ認証を行う。
-     * @return  UserModel
-     */
-    public void reLogin(DolphinPrincipal principal, String password) {
-        
-        UserModel ret = null;
-        
-        try {
-            String pk = principal.getFacilityId() + ":" + principal.getUserId();
-            UsernamePasswordHandler h = new UsernamePasswordHandler(pk, password.toCharArray());
-            LoginContext lc = new LoginContext(getSecurityDomain(), h);
-            lc.login();
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            processError(e);
-        }
+//        UserModel ret = null;
+//        
+//        try {
+//            String pk = principal.getFacilityId() + ":" + principal.getUserId();
+//            UsernamePasswordHandler h = new UsernamePasswordHandler(pk, password.toCharArray());
+//            LoginContext lc = new LoginContext(getSecurityDomain(), h);
+//            lc.login();
+//            
+//            ret = getUser(pk);
+//            
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            processError(e);
+//            throw new Exception(e);
+//        }
+//        
+//        return ret;
     }
     
     /**
@@ -87,38 +56,50 @@ public class UserDelegater extends BusinessDelegater {
      * @param userId
      * @return UserModel
      */
-    public UserModel getUser(String pk) {
+    public UserModel getUser(String pk) throws Exception {
         
-        try {
-            return getService().getUser(pk);
-            
-        }  catch (Exception e) {
-            e.printStackTrace();
-            processError(e);
-        }
+        return getService().getUser(pk);
         
-        return null;
+//        try {
+//            return getService().getUser(pk);
+//            
+//        }  catch (Exception e) {
+//            e.printStackTrace();
+//            processError(e);
+//        }
+//        
+//        return null;
     }
     
-    public ArrayList<UserModel> getAllUser() {
+    public ArrayList<UserModel> getAllUser() throws Exception {
         
-        try {
-            Collection c = getService().getAllUser();
-            ArrayList<UserModel> ret = new ArrayList<UserModel>();
-            
-            for (Iterator iter = c.iterator(); iter.hasNext(); ) {
-                UserModel user = (UserModel)iter.next();
-                ret.add(user);
-            }
-            
-            return ret;
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            processError(e);
+        Collection c = getService().getAllUser();
+        ArrayList<UserModel> ret = new ArrayList<UserModel>();
+
+        for (Iterator iter = c.iterator(); iter.hasNext(); ) {
+            UserModel user = (UserModel) iter.next();
+            ret.add(user);
         }
+
+        return ret;
         
-        return null;
+//        try {
+//            Collection c = getService().getAllUser();
+//            ArrayList<UserModel> ret = new ArrayList<UserModel>();
+//            
+//            for (Iterator iter = c.iterator(); iter.hasNext(); ) {
+//                UserModel user = (UserModel)iter.next();
+//                ret.add(user);
+//            }
+//            
+//            return ret;
+//            
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            processError(e);
+//        }
+//        
+//        return null;
     }
     
     /**
@@ -126,64 +107,72 @@ public class UserDelegater extends BusinessDelegater {
      * @param userModel
      * @return
      */
-    public int putUser(UserModel userModel) {
+    public int putUser(UserModel userModel) throws Exception {
         
-        int retCode = 0;
+        return getService().addUser(userModel);
         
-        try {
-            retCode = getService().addUser(userModel);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            processError(e);
-        }
-        
-        return retCode;
+//        int retCode = 0;
+//        
+//        try {
+//            retCode = getService().addUser(userModel);
+//            
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            processError(e);
+//        }
+//        
+//        return retCode;
     }
     
-    public int updateUser(UserModel userModel) {
+    public int updateUser(UserModel userModel) throws Exception {
         
-        int retCode = 0;
+        return getService().updateUser(userModel);
         
-        try {
-            retCode = getService().updateUser(userModel);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            processError(e);
-        }
-        
-        return retCode;
+//        int retCode = 0;
+//        
+//        try {
+//            retCode = getService().updateUser(userModel);
+//            
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            processError(e);
+//        }
+//        
+//        return retCode;
     }
     
-    public int removeUser(String uid) {
+    public int removeUser(String uid) throws Exception {
         
-        int retCode = 0;
+        return getService().removeUser(uid);
         
-        try {
-            retCode = getService().removeUser(uid);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            processError(e);
-        }
-        
-        return retCode;
+//        int retCode = 0;
+//        
+//        try {
+//            retCode = getService().removeUser(uid);
+//            
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            processError(e);
+//        }
+//        
+//        return retCode;
     }
     
-    public int updateFacility(UserModel user) {
+    public int updateFacility(UserModel user) throws Exception {
         
-        int retCode = 0;
+        return getService().updateFacility(user);
         
-        try {
-            retCode = getService().updateFacility(user);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            processError(e);
-        }
-        
-        return retCode;
+//        int retCode = 0;
+//        
+//        try {
+//            retCode = getService().updateFacility(user);
+//            
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            processError(e);
+//        }
+//        
+//        return retCode;
     }
     
     private RemoteUserService getService() throws NamingException {

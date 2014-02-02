@@ -1,27 +1,8 @@
-/*
- * SqlDaoBean.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2003 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *	
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *	
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.dao;
 
 import java.sql.*;
+import open.dolphin.project.Project;
 
-import open.dolphin.client.ClientContext;
 
 
 /**
@@ -35,7 +16,7 @@ public class SqlDaoBean extends DaoBean {
 
     String driver;
     
-    boolean trace = false;
+    boolean trace = true;
     
     /** 
      * Creates a new instance of SqlDaoBean 
@@ -55,8 +36,8 @@ public class SqlDaoBean extends DaoBean {
             Class.forName(driver);
 			  
         } catch (ClassNotFoundException cnfe) {
-            System.out.println("Couldn't find the driver!");
-            System.out.println("Let's print a stack trace, and exit.");
+            logger.warn("Couldn't find the driver!");
+            logger.warn("Let's print a stack trace, and exit.");
             cnfe.printStackTrace();
             System.exit(1);
         }
@@ -88,24 +69,6 @@ public class SqlDaoBean extends DaoBean {
     public void setTrace(boolean b) {
         trace = b;
     }
-
-    /*public Connection getConnection() {
-
-        Connection con = null;
-
-        try {
-            con = DriverManager.getConnection(getURL(), user, passwd);
-            System.out.println("Got connection");
-        } catch (Exception e) {
-            //e.printStackTrace();
-            System.out.println("Exception at connection");
-            System.out.println("Class Name=" + e.getClass().getName());
-            System.out.println("Cause = " + e.getCause());
-            System.out.println("Message = " + e.getMessage());
-            System.out.println("toString = " + e);
-        }
-        return con;
-    }*/
     
     public Connection getConnection() throws Exception {
         return DriverManager.getConnection(getURL(), user, passwd);
@@ -153,14 +116,12 @@ public class SqlDaoBean extends DaoBean {
     }
     
     protected void debug(String msg) {
-    	if (ClientContext.isDebug()) {
-    		System.out.println(msg);
-    	}
+        logger.debug(msg);
     }
     
     protected void printTrace(String msg) {
         if (trace) {
-            System.out.println(msg);
+            logger.debug(msg);
         }
     }
     
@@ -172,5 +133,36 @@ public class SqlDaoBean extends DaoBean {
                 e.printStackTrace();
             }
         }
-    }    
+    }
+    
+    protected int getHospNum() {
+        
+        Connection con = null;
+        Statement st = null;
+        String sql = null;
+        int hospNum = 1;
+        String jmari = Project.getJMARICode();
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("select hospnum, kanritbl from tbl_syskanri where kanricd='1001' and kanritbl like '%");
+        sb.append(jmari);
+        sb.append("%'");
+        sql = sb.toString();
+        
+        try {
+            con = getConnection();
+            st = con.createStatement();
+            ResultSet rs = st.executeQuery(sql);
+            if (rs.next()) {
+                hospNum = rs.getInt(1);
+            }
+            
+        }  catch (Exception e) {
+            processError(e);
+            closeConnection(con);
+            closeStatement(st);
+        }
+        
+        return hospNum;
+    }
 }

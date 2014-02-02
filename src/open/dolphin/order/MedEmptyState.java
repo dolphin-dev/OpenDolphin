@@ -1,6 +1,7 @@
 package open.dolphin.order;
 
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 
@@ -11,19 +12,20 @@ import javax.swing.JTextField;
  *
  */
 public class MedEmptyState extends AbstractMedTableState {
-	
-	
-	public MedEmptyState(JTable setTable, JButton deleteBtn, JButton clearBtn, JTextField stampNameField, JTextField adminField) {
-		super(setTable, deleteBtn, clearBtn, stampNameField, adminField);
-	}
-	
-	public void enter() {
-		deleteBtn.setEnabled(false);
-		clearBtn.setEnabled(false);
-		stampNameField.setText(MedicineTablePanel.DEFAULT_STAMP_NAME);
-	}
-	
-	public boolean isValidModel() {
-		return false;
-	}
+
+    public MedEmptyState(JTable setTable, JButton deleteBtn, JButton clearBtn, 
+            JTextField stampNameField, JLabel stateLabel) {
+        super(setTable, deleteBtn, clearBtn, stampNameField, stateLabel);
+    }
+
+    public void enter() {
+        deleteBtn.setEnabled(false);
+        clearBtn.setEnabled(false);
+        stampNameField.setText(MedicineTablePanel.DEFAULT_STAMP_NAME);
+        stateLabel.setText("à„ñÚïiÇì¸óÕÇµÇƒÇ≠ÇæÇ≥Ç¢ÅB");
+    }
+
+    public boolean isValidModel() {
+        return false;
+    }
 }

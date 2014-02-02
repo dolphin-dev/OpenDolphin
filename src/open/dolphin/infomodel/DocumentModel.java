@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
@@ -29,7 +28,7 @@ public class DocumentModel extends KarteEntryBean {
     private Collection<ModuleModel> modules;
     
     @OneToMany(mappedBy="document", cascade={CascadeType.PERSIST, CascadeType.REMOVE})
-    @Column(name="c_schema")
+    //@Column(name="c_schema")
     private Collection<SchemaModel> schema;
 
     

@@ -1,14 +1,9 @@
-/*
- * SaveDialog.java
- *
- * Created on 2001/10/24, 16:09
- */
 package open.dolphin.client;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.GridLayout;
+import java.awt.Window;
 import java.awt.event.ActionListener;
 import java.beans.EventHandler;
 import javax.swing.Box;
@@ -21,8 +16,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
-import javax.swing.event.DocumentListener;
-
 
 /**
  * SaveDialog
@@ -30,8 +23,6 @@ import javax.swing.event.DocumentListener;
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
 public class SaveDialog {
-    
-    private static final long serialVersionUID = 2957911074585657300L;
     
     private static final String[] PRINT_COUNT = {
         "0", "1",  "2",  "3",  "4", "5"
@@ -43,39 +34,38 @@ public class SaveDialog {
     private static final String SAVE = "保存";
     private static final String TMP_SAVE = "仮保存";
     
-    //private JLabel imageLabel;
     private JCheckBox patientCheck;
     private JCheckBox clinicCheck;
     
-    /** 保存ボタン */
+    // 保存ボタン
     private JButton okButton;
     
-    /** キャンセルボタン */
+    // キャンセルボタン
     private JButton cancelButton;
     
-    /** 仮保存ボタン */
+    // 仮保存ボタン
     private JButton tmpButton;
     
     private JTextField titleField;
     private JComboBox titleCombo;
-    private JLabel sendMmlLabel;
+    //private JLabel sendMmlLabel;
     private JComboBox printCombo;
     private JLabel departmentLabel;
-    private Frame parent;
+    //private Frame parent;
     
-    /** CLAIM 送信 */
+    // CLAIM 送信
     private JCheckBox sendClaim;
     
-    /** 戻り値のSaveParams */
+    // 戻り値のSaveParams/
     private SaveParams value;
     
-    /** ダイアログ */
+    // ダイアログ
     private JDialog dialog;
     
     /** 
      * Creates new OpenKarteDialog  
      */
-    public SaveDialog(Frame parent) {
+    public SaveDialog(Window parent) {
         
         JPanel contentPanel = createComponent();
         
@@ -107,16 +97,22 @@ public class SaveDialog {
         
         // Titleを表示する
         String val = params.getTitle();
-        if (val != null && (!val.equals(""))) {
-            titleCombo.getEditor().setItem((String) val);
+        if (val != null && (!val.equals("") &&(!val.equals("経過記録")))) {
+            titleCombo.insertItemAt(val, 0);
         }
+        titleCombo.setSelectedIndex(0);
         
         //
         // 診療科を表示する
         // 受付情報からの診療科を設定する
         val = params.getDepartment();
         if (val != null) {
-            departmentLabel.setText(val);
+            String[] depts = val.split("\\s*,\\s*");
+            if (depts[0] != null) {
+                departmentLabel.setText(depts[0]);
+            } else {
+                departmentLabel.setText(val);
+            }
         }
         
         // 印刷部数選択
@@ -131,7 +127,13 @@ public class SaveDialog {
         //
         // CLAIM 送信をチェックする
         //
-        sendClaim.setSelected(params.isSendClaim());
+        if (params.isDisableSendClaim()) {
+            // シングルカルテで CLAIM 送信自体を行わない場合
+            sendClaim.setEnabled(false);
+        } else {
+            sendClaim.setSelected(params.isSendClaim());
+        }
+        
         
         // アクセス権を設定する
         if (params.getSendMML()) {
@@ -195,22 +197,8 @@ public class SaveDialog {
         
         
         // AccessRightを設定するボタンとパネルを生成する
-        //p = new JPanel();
-        //p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
         patientCheck = new JCheckBox("患者に参照を許可する");
-        //p.add(patientCheck);
         clinicCheck = new JCheckBox("診療歴のある病院に参照を許可する");
-        //p.add(clinicCheck);
-        //p.add(Box.createVerticalStrut(7));
-        // Imageラベルを配置する
-        //p.setBorder(BorderFactory.createEmptyBorder(3,3,2,2));
-        //JPanel p3 = new JPanel(new BorderLayout(11, 0));
-        //imageLabel = new JLabel(ClientContext.getImageIcon("lock_32.gif"));
-        //p3.add(imageLabel, BorderLayout.CENTER);
-        //p3.add(p, BorderLayout.EAST);
-        //p3.setBorder(BorderFactory.createTitledBorder("アクセス権設定-地域連携時"));
-//        
-//        topPanel.add(p3);
         
         //
         // CLAIM 送信ありなし
@@ -229,12 +217,10 @@ public class SaveDialog {
         // Cancel Button
         String buttonText =  (String)UIManager.get("OptionPane.cancelButtonText");
         cancelButton = new JButton(buttonText);
-        //cancelButton.setMnemonic(KeyEvent.VK_C);
         cancelButton.addActionListener((ActionListener) EventHandler.create(ActionListener.class, this, "doCancel"));
         
         // 仮保存 button
         tmpButton = new JButton(TMP_SAVE);
-        //tmpButton.setMnemonic(KeyEvent.VK_T);
         tmpButton.setToolTipText("診療行為は送信しません。");
         tmpButton.addActionListener((ActionListener) EventHandler.create(ActionListener.class, this, "doTemp"));
         tmpButton.setEnabled(false);

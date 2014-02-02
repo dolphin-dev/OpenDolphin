@@ -1,26 +1,12 @@
-/*
- * ImageIconTransferable.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *	
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *	
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
-import javax.swing.*;
-import java.awt.datatransfer.*;
-import java.io.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
+import javax.swing.ImageIcon;
 
      
 /**
@@ -60,6 +46,7 @@ public final class ImageIconTransferable implements Transferable, ClipboardOwner
         }
     }
 
+    @Override
     public String toString() {
         return "Image Icon Transferable";
     }

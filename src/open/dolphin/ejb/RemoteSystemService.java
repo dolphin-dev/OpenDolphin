@@ -39,4 +39,5 @@ public interface RemoteSystemService {
      */
     public void putRadMethodMaster(Collection c);
     
+    
 }

@@ -1,22 +1,3 @@
-/*
- * NewKarteParams.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2003,2004 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
 import open.dolphin.infomodel.PVTHealthInsuranceModel;
@@ -27,26 +8,55 @@ import open.dolphin.infomodel.PVTHealthInsuranceModel;
  *
  * @author  Kazushi Minagawa
  */
-public class NewKarteParams {
+public final class NewKarteParams {
     
-    private IChart.NewKarteOption option;
-    private IChart.NewKarteMode createMode;
-    private String groupId;
+    // ベースのカルテがあるかどうか、タブ及びEditorFrameの別、修正かどうか
+    private Chart.NewKarteOption option;
+    
+    // 空白、全コピー、前回処方適用のフラグ
+    private Chart.NewKarteMode createMode;
+    
+    // 診療科
     private String department;
+    
+    // 診療科コード
     private String departmentCode;
+    
+    // 健康保険
     private Object[] insurances;
+    
+    // 初期化時に選択する保険
     private int initialSelectedInsurance;
+    
+    // ダイアログでユーザが選択した保険
     private PVTHealthInsuranceModel insurance;
+    
+    // EditorFrame で編集するかどうかのフラグ 
     private boolean openFrame;
+    
+    // 生成するドキュメントの種類
+    // 2号カルテ、シングル、紹介状等
+    private String docType;
+    
+    // 不明
+    private String groupId;
     
     
     /** Creates a new instance of NewKarteParams */
-    public NewKarteParams(IChart.NewKarteOption option) {
+    public NewKarteParams(Chart.NewKarteOption option) {
         this.option = option;
     }
     
-    public IChart.NewKarteOption getOption() {
+    public Chart.NewKarteOption getOption() {
         return option;
+    }
+    
+    public String getDocType() {
+        return docType;
+    }
+    
+    public String setDocType(String docType) {
+        return this.docType = docType;
     }
     
     public String getGroupId() {
@@ -70,7 +80,7 @@ public class NewKarteParams {
     }
     
     public void setDepartmentCode(String departmentCode) {
-        departmentCode = departmentCode;
+        this.departmentCode = departmentCode;
     }
     
     public Object[] getInsurances() {
@@ -97,11 +107,11 @@ public class NewKarteParams {
         return openFrame;
     }
     
-    public IChart.NewKarteMode getCreateMode() {
+    public Chart.NewKarteMode getCreateMode() {
         return createMode;
     }
     
-    public void setCreateMode(IChart.NewKarteMode createMode) {
+    public void setCreateMode(Chart.NewKarteMode createMode) {
         this.createMode = createMode;
     }
     

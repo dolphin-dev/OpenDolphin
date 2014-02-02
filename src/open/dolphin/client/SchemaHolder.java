@@ -1,21 +1,3 @@
-/*
- * SchemaHolder.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
 import javax.swing.*;
@@ -26,21 +8,19 @@ import open.dolphin.infomodel.SchemaModel;
 import java.beans.*;
 import java.awt.*;
 
-import jp.ac.kumamoto_u.kuh.fc.jsato.swing_beans.*;
-
-//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-// Junzo SATO
-import java.awt.event.FocusEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.*;
 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+import java.util.Iterator;
+import open.dolphin.plugin.PluginLoader;
+import org.apache.log4j.Logger;
 
 /**
  * スタンプのデータを保持するコンポーネントで TextPane に挿入される。
  *
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
-public final class SchemaHolder extends ComponentHolder implements IComponentHolder {
+public final class SchemaHolder extends AbstractComponentHolder implements ComponentHolder {
     
     private static final long serialVersionUID = 1777560751402251092L;
     private static final Color SELECTED_BORDER = new Color(255, 0, 153);
@@ -66,8 +46,13 @@ public final class SchemaHolder extends ComponentHolder implements IComponentHol
     
     private Color selectedBorder = SELECTED_BORDER;
     
+    private Logger logger;
+    
     
     public SchemaHolder(KartePane kartePane, SchemaModel schema) {
+        
+        logger = ClientContext.getBootLogger();
+        logger.debug("SchemaHolder constractor");
         
         this.kartePane = kartePane;
         
@@ -90,12 +75,12 @@ public final class SchemaHolder extends ComponentHolder implements IComponentHol
     }
     
     public void setImageIcon(ImageIcon icon) {
-        //schema.setIcon(icon);
+        logger.debug("SchemaHolder setImageIcon");
         setIcon(adjustImageSize(icon, new Dimension(fixedWidth, fixedHeight)));
     }
     
     public int getContentType() {
-        return IComponentHolder.TT_IMAGE;
+        return ComponentHolder.TT_IMAGE;
     }
     
     public KartePane getKartePane() {
@@ -110,36 +95,40 @@ public final class SchemaHolder extends ComponentHolder implements IComponentHol
         return selected;
     }
     
-    public void focusGained(FocusEvent e) {
-        //System.out.println("schema gained");
-        ChartMediator mediator = kartePane.getMediator();
-        mediator.setCurrentComponent(this);
-        mediator.setCurrentComponent(this);
-        mediator.getAction(GUIConst.ACTION_CUT).setEnabled(false);
-        mediator.getAction(GUIConst.ACTION_COPY).setEnabled(false);
-        mediator.getAction(GUIConst.ACTION_PASTE).setEnabled(false);
-        mediator.getAction(GUIConst.ACTION_UNDO).setEnabled(false);
-        mediator.getAction(GUIConst.ACTION_REDO).setEnabled(false);
-        mediator.getAction(GUIConst.ACTION_INSERT_TEXT).setEnabled(false);
-        mediator.getAction(GUIConst.ACTION_INSERT_SCHEMA).setEnabled(false);
-        mediator.getAction(GUIConst.ACTION_INSERT_STAMP).setEnabled(false);
-        mediator.enableMenus(new String[]{GUIConst.ACTION_COPY});
-        mediator.enableMenus(new String[]{GUIConst.ACTION_COPY});
+    public void enter(ActionMap map) {
+        
+        logger.debug("SchemaHolder enter");
+        
+//        ChartMediator mediator = kartePane.getMediator();
+//        mediator.getAction(GUIConst.ACTION_CUT).setEnabled(false);
+//        mediator.getAction(GUIConst.ACTION_COPY).setEnabled(false);
+//        mediator.getAction(GUIConst.ACTION_PASTE).setEnabled(false);
+//        mediator.getAction(GUIConst.ACTION_UNDO).setEnabled(false);
+//        mediator.getAction(GUIConst.ACTION_REDO).setEnabled(false);
+//        mediator.getAction(GUIConst.ACTION_INSERT_TEXT).setEnabled(false);
+//        mediator.getAction(GUIConst.ACTION_INSERT_SCHEMA).setEnabled(false);
+//        mediator.getAction(GUIConst.ACTION_INSERT_STAMP).setEnabled(false);
+                
+        map.get(GUIConst.ACTION_COPY).setEnabled(true);
+        
         if (kartePane.getTextPane().isEditable()) {
-            mediator.enableMenus(new String[]{GUIConst.ACTION_CUT});
+            map.get(GUIConst.ACTION_CUT).setEnabled(true);
         } else {
-            mediator.disableMenus(new String[]{GUIConst.ACTION_CUT});
+            map.get(GUIConst.ACTION_CUT).setEnabled(false);
         }
-        mediator.disableMenus(new String[]{GUIConst.ACTION_PASTE});
+        
+        map.get(GUIConst.ACTION_PASTE).setEnabled(false);
+        
         setSelected(true);
     }
     
-    public void focusLost(FocusEvent e) {
-        //System.out.println("schema lost");
-        //	ChartMediator mediator = kartePane.getMediator();
-        //	String[] menus = new String[]{"cut", "copy", "paste"};
-        //	mediator.disableMenus(menus);
+    public void exit(ActionMap map) {
+        logger.debug("SchemaHolder exit");
         setSelected(false);
+    }
+    
+    public Component getComponent() {
+        return this;
     }
     
     public void mabeShowPopup(MouseEvent e) {
@@ -155,6 +144,7 @@ public final class SchemaHolder extends ComponentHolder implements IComponentHol
     }
     
     public void setSelected(boolean selected) {
+        logger.debug("SchemaHolder setSelected " + selected);
         boolean old = this.selected;
         this.selected = selected;
         if (old != this.selected) {
@@ -168,23 +158,32 @@ public final class SchemaHolder extends ComponentHolder implements IComponentHol
     
     public void edit() {
         
+        logger.debug("SchemaHolder edit");
         try {
-            final SchemaEditorDialog dlg = new SchemaEditorDialog((Frame)null, true, schema, kartePane.getTextPane().isEditable());
-            dlg.addPropertyChangeListener(SchemaHolder.this);
-            SwingUtilities.invokeLater(new Runnable() {
-                
-                public void run() {
-                    dlg.run();
-                }
-            });
+            PluginLoader<SchemaEditor> loader = PluginLoader.load(SchemaEditor.class, ClientContext.getPluginClassLoader());
+            Iterator<SchemaEditor> iter = loader.iterator();
+            if (iter.hasNext()) {
+                final SchemaEditor editor = iter.next();
+                editor.setSchema(schema);
+                editor.setEditable(kartePane.getTextPane().isEditable());
+                editor.addPropertyChangeListener(SchemaHolder.this);
+                Runnable awt = new Runnable() {
+
+                    public void run() {
+                        editor.start();
+                    }
+                };
+                EventQueue.invokeLater(awt);
+            }
+            
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println(e);
+            logger.warn(e);
         }
     }
     
     public void propertyChange(PropertyChangeEvent e) {
-        
+        logger.debug("SchemaHolder propertyChange");
         SchemaModel newSchema = (SchemaModel)e.getNewValue();
         if (newSchema ==  null) {
             return;
@@ -207,83 +206,11 @@ public final class SchemaHolder extends ComponentHolder implements IComponentHol
         return end.getOffset();
     }
     
-    // this is a trick for the print out functionality:-)
-    class ColorFilter extends RGBImageFilter {
-        public ColorFilter() {
-            canFilterIndexColorModel = true;
-        }
-        public int filterRGB(int x, int y, int rgb) {
-            DirectColorModel cm = (DirectColorModel)ColorModel.getRGBdefault();
-            int a = cm.getAlpha(rgb);
-            //int r = 255 - cm.getRed(rgb);
-            //int g = 255 - cm.getGreen(rgb);
-            //int b = 255 - cm.getBlue(rgb);
-            int r = cm.getRed(rgb);
-            int g = cm.getGreen(rgb);
-            int b = cm.getBlue(rgb);
-            
-            return (a << 24 | r << 16 | g << 8 | b);
-        }
-    }
-    
-    /*public void paint(Graphics g) {
-        super.paint(g);
-     
-        this.setForeground(Color.black);
-        this.setBackground(Color.white);
-     
-        Dimension d = this.getSize();
-        g.setColor(Color.white);
-        //g.fillRect(0,0,d.width,d.height);
-        g.fillRect(1,1,d.width-2,d.height-2);// leave margin
-     
-        // get current (latest) image
-        ImageIcon icon = (ImageIcon)this.getIcon();
-        if (icon == null) return;
-     
-        Image smallImg = icon.getImage();
-        if (smallImg == null) return;
-     
-        int xx = 0, yy = 0, ww = 0, hh = 0;
-        ww = smallImg.getWidth(this);
-        hh = smallImg.getHeight(this);
-        if (ww < 0 || hh < 0) return;
-     
-        if (ww > hh) {
-            if (fixedWidth < ww) {
-                hh = (int)(hh * ((float)fixedWidth / ww));
-                ww = fixedWidth;
-                yy = yy + (fixedHeight - hh)/2;
-            } else {
-                xx = xx + (fixedWidth - ww)/2;
-                yy = yy + (fixedHeight - hh)/2;
-            }
-        } else {
-            if (fixedHeight < hh) {
-                ww = (int)(ww * ((float)fixedHeight / hh));
-                hh = fixedHeight;
-                xx = xx + (fixedWidth - ww)/2;
-            } else {
-                xx = xx + (fixedWidth - ww)/2;
-                yy = yy + (fixedHeight - hh)/2;
-            }
-        }
-     
-        //----------------------------------------------------------------------
-        // because jdk1.4 beta3 cannot print component with correct color of schema image,
-        // I apply color filter here.
-        // I know this is a cheap and dirty trick. But this works:-)
-        Image src = smallImg;
-        ImageFilter colorfilter = new ColorFilter();
-        Image img = createImage(new FilteredImageSource(src.getSource(),colorfilter));
-        g.drawImage(img, xx+1, yy+1, ww-2, hh-2, this);// leave margin
-    }*/
-    
     /**
      * LDAP Programming with Java.
      */
     protected ImageIcon adjustImageSize(ImageIcon icon, Dimension dim) {
-        
+        logger.debug("SchemaHolder adjustImageSize");
         if ( (icon.getIconHeight() > dim.height) ||
                 (icon.getIconWidth() > dim.width) ) {
             Image img = icon.getImage();

@@ -1,21 +1,3 @@
-/*
- * MasterItem.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.order;
 
 /**
@@ -28,7 +10,7 @@ public class MasterItem implements java.io.Serializable {
     private static final long serialVersionUID = -6359300744722498857L;
     
     /** Claim subclass code マスタ項目の種別 */
-    // 0: 手技  1: 材料  2: 薬剤
+    // 0: 手技  1: 材料  2: 薬剤 3: 用法
     private int classCode;
     
     /** 項目名 */
@@ -55,6 +37,11 @@ public class MasterItem implements java.io.Serializable {
     /** 薬剤の場合の区分 内用1、外用6、注射薬4 */
     private String ykzKbn;
     
+    private String dummy;
+    
+    private String bundleNumber;
+    
+    
     /**
      * Creates new MasterItem
      */
@@ -68,6 +55,7 @@ public class MasterItem implements java.io.Serializable {
         setCode(code);
     }
     
+    @Override
     public String toString() {
         return getName();
     }
@@ -190,5 +178,21 @@ public class MasterItem implements java.io.Serializable {
 
     public void setYkzKbn(String ykzKbn) {
         this.ykzKbn = ykzKbn;
+    }
+
+    public String getDummy() {
+        return dummy;
+    }
+
+    public void setDummy(String dummy) {
+        this.dummy = dummy;
+    }
+
+    public String getBundleNumber() {
+        return bundleNumber;
+    }
+
+    public void setBundleNumber(String bundleNumber) {
+        this.bundleNumber = bundleNumber;
     }
 }

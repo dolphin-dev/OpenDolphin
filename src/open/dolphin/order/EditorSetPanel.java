@@ -2,6 +2,7 @@ package open.dolphin.order;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,9 +17,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 
@@ -27,16 +26,20 @@ import open.dolphin.client.GUIConst;
 import open.dolphin.client.IStampEditorDialog;
 import open.dolphin.client.StampEditorDialog;
 import open.dolphin.client.StampModelEditor;
-import open.dolphin.client.StampTask;
 import open.dolphin.client.StampTree;
 import open.dolphin.client.StampTreeNode;
-import open.dolphin.client.TimeoutWarning;
+import open.dolphin.client.TaskTimerMonitor;
 import open.dolphin.delegater.StampDelegater;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.StampModel;
 import open.dolphin.util.BeanUtils;
+import org.apache.log4j.Logger;
+import org.jdesktop.application.Application;
+import org.jdesktop.application.ApplicationContext;
+import org.jdesktop.application.Task;
+import org.jdesktop.application.TaskMonitor;
 
 /**
  * EditorSetPanel
@@ -45,8 +48,6 @@ import open.dolphin.util.BeanUtils;
  *
  */
 public class EditorSetPanel extends JPanel implements IStampEditorDialog, PropertyChangeListener, TreeSelectionListener {
-    
-    private static final long serialVersionUID = -1749656093805207712L;
     
     private LBacteriaStampEditor bacteria;
     private LBaseChargeStampEditor baseCharge;
@@ -77,12 +78,15 @@ public class EditorSetPanel extends JPanel implements IStampEditorDialog, Proper
     private Object editorValue;
     private StampTreeNode selectedNode;
     
-    private Timer taskTimer;
-    private StampTask worker;
-    private ProgressMonitor monitor;
+    private ApplicationContext appCtx;
+    private Application app;
+    private Logger logger;
     
     /** EditorSetPanel を生成する。 */
     public EditorSetPanel() {
+        appCtx = ClientContext.getApplicationContext();
+        app = appCtx.getApplication();
+        logger = ClientContext.getBootLogger();
         editorSet = new JPanel();
         cardLayout = new CardLayout();
         editorSet.setLayout(cardLayout);
@@ -131,6 +135,7 @@ public class EditorSetPanel extends JPanel implements IStampEditorDialog, Proper
      * @param prop プロパティ名
      * @param listener プロパティチェンジリスナ
      */
+    @Override
     public void addPropertyChangeListener(String prop, PropertyChangeListener listener) {
         boundSupport.addPropertyChangeListener(prop, listener);
     }
@@ -269,60 +274,64 @@ public class EditorSetPanel extends JPanel implements IStampEditorDialog, Proper
             
             final StampDelegater sdl = new StampDelegater();
             
-            int maxEstimation = ClientContext.getInt("task.default.maxEstimation");
-            int delay = ClientContext.getInt("task.default.delay");
-            int decideToPopup = ClientContext.getInt("task.default.decideToPopup");
-            int milisToPopup = ClientContext.getInt("task.default.milisToPopup");
-            String updateMsg = ClientContext.getString("task.default.searchMessage");
+            int maxEstimation = 60*1000;
+            int delay = 200;
+            String note = "検索しています...";
             
-            worker = new StampTask(stampInfo.getStampId(), sdl, maxEstimation / delay);
-            
-            monitor = new ProgressMonitor(SwingUtilities.getWindowAncestor(editorSet), null, updateMsg, 0, maxEstimation / delay);
-            monitor.setProgress(0);
-            monitor.setMillisToDecideToPopup(milisToPopup);
-            monitor.setMillisToPopup(decideToPopup);
-            
-            taskTimer = new javax.swing.Timer(delay, new ActionListener() {
-                
-                public void actionPerformed(ActionEvent e) {
-                    
-                    monitor.setProgress(worker.getCurrent());
-                    
-                    if (worker.isDone()) {
-                        taskTimer.stop();
-                        monitor.close();
-                        
-                        if (sdl.isNoError()) {
-                            StampModel stampModel = worker.getStampModel();
-                            if (stampModel != null) {
-                                IInfoModel model = (IInfoModel) BeanUtils.xmlDecode(stampModel.getStampBytes());
-                                if (model != null) {
-                                    ModuleModel stamp = new ModuleModel();
-                                    stamp.setModel(model);
-                                    stamp.setModuleInfo(stampInfo);
-                                    if (curEditor != null) {
-                                        curEditor.setValue(stamp);
-                                    }
+            Task task = new Task<StampModel, Void>(app) {
+
+                @Override
+                protected StampModel doInBackground() throws Exception {
+                    StampModel result = sdl.getStamp(stampInfo.getStampId());
+                    return result;
+                }
+
+                @Override
+                protected void succeeded(StampModel stampModel) {
+                    if (sdl.isNoError() && stampModel != null) {
+                        if (stampModel != null) {
+                            IInfoModel model = (IInfoModel) BeanUtils.xmlDecode(stampModel.getStampBytes());
+                            if (model != null) {
+                                ModuleModel stamp = new ModuleModel();
+                                stamp.setModel(model);
+                                stamp.setModuleInfo(stampInfo);
+                                if (curEditor != null) {
+                                    curEditor.setValue(stamp);
                                 }
                             }
-                            
-                        } else {
-                            JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(editorSet),
-                                    sdl.getErrorMessage(),
-                                    ClientContext.getFrameTitle("Stamp取得"),
-                                    JOptionPane.WARNING_MESSAGE);
                         }
-                    } else if (worker.isTimeOver()) {
-                        taskTimer.stop();
-                        monitor.close();
-                        String title = "Stamp取得";
-                        new TimeoutWarning(SwingUtilities.getWindowAncestor(editorSet), title, null).start();
+
+                    } else {
+                        JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(editorSet),
+                                sdl.getErrorMessage(),
+                                ClientContext.getFrameTitle("Stamp取得"),
+                                JOptionPane.WARNING_MESSAGE);
                     }
                 }
-            });
-            leftArrow.setEnabled(false);
-            worker.start();
-            taskTimer.start();
+
+                @Override
+                protected void cancelled() {
+                    logger.debug("Task cancelled");
+                }
+
+                @Override
+                protected void failed(java.lang.Throwable cause) {
+                    logger.warn(cause.getMessage());
+                }
+
+                @Override
+                protected void interrupted(java.lang.InterruptedException e) {
+                    logger.warn(e.getMessage());
+                }
+            };
+            
+            TaskMonitor taskMonitor = appCtx.getTaskMonitor();
+            String message = "スタンプ箱";
+            Component c = SwingUtilities.getWindowAncestor(editorSet);
+            TaskTimerMonitor w = new TaskTimerMonitor(task, taskMonitor, c, message, note, delay, maxEstimation);
+            taskMonitor.addPropertyChangeListener(w);
+
+            appCtx.getTaskService().execute(task);
         }
     }
     

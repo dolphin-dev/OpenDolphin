@@ -1,16 +1,10 @@
-/*
- * Created on 2005/09/13
- *
- * TODO To change the template for this generated file go to
- * Window - Preferences - Java - Code Style - Code Templates
- */
 package open.dolphin.client;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Point;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -24,19 +18,22 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.ProgressMonitor;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
-import open.dolphin.plugin.helper.CallBacksWorker;
-import open.dolphin.plugin.helper.ComponentMemory;
-
+import open.dolphin.helper.ComponentMemory;
+import org.apache.log4j.Logger;
+import org.jdesktop.application.Application;
+import org.jdesktop.application.ApplicationContext;
+import org.jdesktop.application.Task;
+import org.jdesktop.application.TaskMonitor;
 
 /**
  * ImageBox
  *
  * @author Minagawa,Kazushi
  */
-public class ImageBox extends DefaultMainWindowPlugin {
+public class ImageBox extends AbstractMainTool {
     
     private static final int DEFAULT_COLUMN_COUNT 	=   3;
     private static final int DEFAULT_IMAGE_WIDTH 	= 120;
@@ -58,19 +55,17 @@ public class ImageBox extends DefaultMainWindowPlugin {
     //private JFrame frame;
     private JDialog frame;
     private String title = "シェーマボックス";
-    // Task Timer 関連
-    private javax.swing.Timer taskTimer;
     private static final int TIMER_DELAY 	=  200;		// 200 msec 毎にチェック
     private static final int MAX_ESTIMATION 	= 5000;		// 全体の見積もり時間
-    private static final int DECIDE_TO_POPUP 	=  300;		// 300 msec 後にポップアップの判断をする
-    private static final int MILIS_TO_POPUP  	=  500;		// その時　Taskが 500msec 以上かかるようであればポップアップする
     private static final String PROGRESS_NOTE = "画像をロードしています...";
     
+    private Logger logger;
+    
     public void start() {
+        logger = ClientContext.getBootLogger();
         initComponent();
         connect();
         setImageLocation(imageLocation);
-        super.start();
     }
     
     public void stop() {
@@ -85,7 +80,6 @@ public class ImageBox extends DefaultMainWindowPlugin {
         }
         frame.setVisible(false);
         frame.dispose();
-        super.stop();
     }
     
     public JFrame getFrame() {
@@ -107,58 +101,100 @@ public class ImageBox extends DefaultMainWindowPlugin {
     }
     
     public void setImageLocation(String loc) {
+        
         this.imageLocation = loc;
         
-        final CallBacksWorker worker = new CallBacksWorker(this, "createImagePalettes", null, null);
-        final ProgressMonitor monitor = new ProgressMonitor(null, null, PROGRESS_NOTE, 0, MAX_ESTIMATION/TIMER_DELAY);
-        taskTimer = new javax.swing.Timer(TIMER_DELAY, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                
-                if (worker.isDone()) {
-                    taskTimer.stop();
-                    monitor.close();
-                    if (! frame.isVisible()) {
-                        frame.setVisible(true);
-                    }
-                } else {
-                    monitor.setProgress(worker.getCurrent());
-                }
+        ApplicationContext appCtx = ClientContext.getApplicationContext();
+        Application app = appCtx.getApplication();
+        
+        Task task = new Task<Void, Void>(app) {
+
+            @Override
+            protected Void doInBackground() throws Exception {
+                createImagePalettes();
+                return null;
             }
-        });
-        monitor.setProgress(0);
-        monitor.setMillisToDecideToPopup(DECIDE_TO_POPUP);
-        monitor.setMillisToPopup(MILIS_TO_POPUP);
-        worker.start();
-        taskTimer.start();
+            
+            @Override
+            protected void succeeded(Void result) {
+                if (! frame.isVisible()) {
+                    frame.setVisible(true);
+                }
+                logger.debug("Task succeeded");
+            }
+            
+            @Override
+            protected void cancelled() {
+                logger.debug("Task cancelled");
+            }
+            
+            @Override
+            protected void failed(java.lang.Throwable cause) {
+                logger.warn(cause.getMessage());
+            }
+            
+            @Override
+            protected void interrupted(java.lang.InterruptedException e) {
+                logger.warn(e.getMessage());
+            }
+        };
+        
+        TaskMonitor taskMonitor = appCtx.getTaskMonitor();
+        String message = "シェーマ画像";
+        Component c = null;
+        TaskTimerMonitor w = new TaskTimerMonitor(task, taskMonitor, c, message, PROGRESS_NOTE, TIMER_DELAY, MAX_ESTIMATION);
+        taskMonitor.addPropertyChangeListener(w);
+        
+        appCtx.getTaskService().execute(task);
     }
     
     public void refresh() {
         
-        ImagePalette imageTable = (ImagePalette)tabbedPane.getSelectedComponent();
+        final ImagePalette imageTable = (ImagePalette) tabbedPane.getSelectedComponent();
         
-        final CallBacksWorker worker = new CallBacksWorker(imageTable, "refresh", null, null);
-        final ProgressMonitor monitor = new ProgressMonitor(imageTable, null, "画像リストを更新しています", 0, MAX_ESTIMATION/TIMER_DELAY);
-        taskTimer = new javax.swing.Timer(TIMER_DELAY, new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                
-                if (worker.isDone()) {
-                    taskTimer.stop();
-                    monitor.close();
-                    if (! frame.isVisible()) {
-                        frame.setVisible(true);
-                    }
-                } else {
-                    monitor.setProgress(worker.getCurrent());
-                }
+        ApplicationContext appCtx = ClientContext.getApplicationContext();
+        Application app = appCtx.getApplication();
+        
+        Task task = new Task<Void, Void>(app) {
+
+            @Override
+            protected Void doInBackground() throws Exception {
+                imageTable.refresh();
+                return null;
             }
-        });
-        monitor.setProgress(0);
-        monitor.setMillisToDecideToPopup(DECIDE_TO_POPUP);
-        monitor.setMillisToPopup(MILIS_TO_POPUP);
-        worker.start();
-        taskTimer.start();
+            
+            @Override
+            protected void succeeded(Void result) {
+                if (! frame.isVisible()) {
+                    frame.setVisible(true);
+                }
+                logger.debug("Task succeeded");
+            }
+            
+            @Override
+            protected void cancelled() {
+                logger.debug("Task cancelled");
+            }
+            
+            @Override
+            protected void failed(java.lang.Throwable cause) {
+                logger.warn(cause.getMessage());
+            }
+            
+            @Override
+            protected void interrupted(java.lang.InterruptedException e) {
+                logger.warn(e.getMessage());
+            }
+        };
         
-        //imageTable.refresh();
+        TaskMonitor taskMonitor = appCtx.getTaskMonitor();
+        String message = "シェーマ画像";
+        Component c = SwingUtilities.getWindowAncestor(this.getFrame());
+        TaskTimerMonitor w = new TaskTimerMonitor(task, taskMonitor, c, message, "画像リストを更新しています", TIMER_DELAY, MAX_ESTIMATION);
+        taskMonitor.addPropertyChangeListener(w);
+        
+        appCtx.getTaskService().execute(task);
+        
     }
     
     private void initComponent() {
@@ -194,6 +230,7 @@ public class ImageBox extends DefaultMainWindowPlugin {
         cm.setToPreferenceBounds();
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowClosing(WindowEvent e) {
                 processWindowClosing();
             }
@@ -299,6 +336,4 @@ public class ImageBox extends DefaultMainWindowPlugin {
             return path.isDirectory();
         }
     }
-    
-    
 }

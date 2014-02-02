@@ -1,24 +1,6 @@
-/*
- * PatientSearch.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2003,2004 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
+import open.dolphin.table.OddEvenRowRenderer;
 import javax.swing.*;
 import javax.swing.event.*;
 
@@ -81,6 +63,7 @@ public class ObjectListTable {
         
         table = new JTable(tableModel) {
             
+            @Override
             public boolean isCellEditable(int row, int col) {
                 boolean editable = false;
                 for (int i : editableColumns) {
@@ -92,6 +75,7 @@ public class ObjectListTable {
                 return editable;
             }
             
+            @Override
             public void setValueAt(Object value, int row, int col) {
                 
                 if (value == null) {
@@ -216,6 +200,7 @@ public class ObjectListTable {
 //            EventHandler.create(MouseListener.class, this, "mouseClicked", "processClick", ""));
         
         table.addMouseListener(new MouseAdapter() {
+            @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
                     Object value = (Object) tableModel.getObject(table.getSelectedRow());

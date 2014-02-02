@@ -1,21 +1,3 @@
-/*
- * StatusPanel.java
- * Copyright (C) 2003,2004 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
 import java.awt.BorderLayout;
@@ -25,12 +7,15 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Window;
 
+import java.beans.PropertyChangeEvent;
 import javax.swing.Box;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import org.jdesktop.application.TaskMonitor;
 
 /**
  * Chart plugin で共通に利用するステータスパネル。
@@ -39,14 +24,14 @@ import javax.swing.SwingUtilities;
  */
 public class StatusPanel extends JPanel implements IStatusPanel {
     
-    private static final long serialVersionUID = 4125423462560140072L;
-    
     private static final int DEFAULT_HEIGHT = 23;
     
     private JLabel messageLable;
-    private UltraSonicProgressLabel ultraSonic;
+    //private UltraSonicProgressLabel ultraSonic;
+    private JProgressBar progressBar;
     private JLabel leftLabel;
     private JLabel rightLabel;
+    private TaskMonitor taskMonitor;
     
     /**
      * Creates a new instance of StatusPanel
@@ -54,7 +39,11 @@ public class StatusPanel extends JPanel implements IStatusPanel {
     public StatusPanel() {
         
         messageLable = new JLabel("");
-        ultraSonic = new UltraSonicProgressLabel();
+        //ultraSonic = new UltraSonicProgressLabel();
+        progressBar = new JProgressBar();
+        progressBar.setPreferredSize(new Dimension(100, 14));
+        progressBar.setMinimumSize(new Dimension(100, 14));
+        progressBar.setMaximumSize(new Dimension(100, 14));
         leftLabel = new JLabel("");
         rightLabel = new JLabel("");
         Font font = GUIFactory.createSmallFont();
@@ -64,7 +53,7 @@ public class StatusPanel extends JPanel implements IStatusPanel {
         rightLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
         JPanel info = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 0));
-        info.add(ultraSonic);
+        info.add(progressBar);
         info.add(Box.createHorizontalStrut(3));
         info.add(leftLabel);
         info.add(new SeparatorPanel());
@@ -91,31 +80,34 @@ public class StatusPanel extends JPanel implements IStatusPanel {
         return null;
     }
     
-    public void start() {
+    private void start() {
         BlockGlass glass = getBlock();
         if (glass != null) {
             glass.block();
         }
-        ultraSonic.start();
+        //ultraSonic.start();
+        progressBar.setIndeterminate(true);
     }
     
-    public void start(String startMsg) {
-        setMessage(startMsg);
-        start();
-    }
+//    public void start(String startMsg) {
+//        setMessage(startMsg);
+//        start();
+//    }
     
-    public void stop() {
+    private void stop() {
         BlockGlass glass = getBlock();
         if (glass != null) {
             glass.unblock();
         }
-        ultraSonic.stop();
+        //ultraSonic.stop();
+        progressBar.setIndeterminate(false);
+        progressBar.setValue(0);
     }
     
-    public void stop(String stopMsg) {
-        setMessage(stopMsg);
-        stop();
-    }
+//    public void stop(String stopMsg) {
+//        setMessage(stopMsg);
+//        stop();
+//    }
     
     public void setRightInfo(String info) {
         rightLabel.setText(info);
@@ -123,6 +115,28 @@ public class StatusPanel extends JPanel implements IStatusPanel {
     
     public void setLeftInfo(String info) {
         leftLabel.setText(info);
+    }
+    
+    public JProgressBar getProgressBar() {
+        return progressBar;
+    }
+    
+    public void ready(TaskMonitor taskMonitor) {
+        taskMonitor.addPropertyChangeListener(this);
+        this.taskMonitor = taskMonitor;
+    }
+        
+    public void propertyChange(PropertyChangeEvent e) {
+                
+        String propertyName = e.getPropertyName();
+
+        if ("started".equals(propertyName)) {
+            this.start();
+
+        } else if ("done".equals(propertyName)) {
+            this.stop();
+            this.taskMonitor.removePropertyChangeListener(this); // 重要
+        }
     }
 }
 

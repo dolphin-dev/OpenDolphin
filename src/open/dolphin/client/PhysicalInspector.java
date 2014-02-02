@@ -1,97 +1,67 @@
-/*
- * PhysicalInspector.java
- *
- * Created on 2007/01/18, 18:38
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
 package open.dolphin.client;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.FlowLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.im.InputSubset;
-import java.beans.EventHandler;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
 import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.event.DocumentListener;
+import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumn;
 import open.dolphin.delegater.DocumentDelegater;
+import open.dolphin.helper.DBTask;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.infomodel.ObservationModel;
 import open.dolphin.infomodel.PhysicalModel;
-import open.dolphin.infomodel.SimpleDate;
 import open.dolphin.project.Project;
+import open.dolphin.table.ObjectReflectTableModel;
+import open.dolphin.table.OddEvenRowRenderer;
+import org.apache.log4j.Logger;
 
 /**
- *
- * @author kazm
+ * 身長体重インスペクタクラス。
+ * 
+ * @author Kazushi Minagawa, Digital Globe, Inc.
  */
 public class PhysicalInspector {
     
-    private ObjectListTable physicaltable;
-
-    // 削除ボタン
-    private JButton deleteBtn;
-
-    // 追加ボタン
-    private JButton addBtn;
-
+    private ObjectReflectTableModel tableModel;
     
-    // 身長テキストフィールド
-    private JTextField heightField;
-
-    // 体重テキストフィールド
-    private JTextField weightField;
-
-    // 測定日テキストフィールド
-    private JTextField confirmDateField;
-
-    // レイアウト用パネル
-    private JPanel physicalPanel;
-
-    // ボタンコントロールフラグ
-    private boolean ok;
+    private PhysicalView view;
     
-    private ChartPlugin context;
-
+    private ChartImpl context;
+    
+    private Logger logger;
+    
     /**
      * PhysicalInspectorオブジェクトを生成する。
      */
-    public PhysicalInspector(ChartPlugin context) {
+    public PhysicalInspector(ChartImpl context) {
         this.context = context;
+        logger = ClientContext.getBootLogger();
         initComponents();
         update();
     }
+    
+    public Chart getContext() {
+        return context;
+    }
 
     public void clear() {
-        if (physicaltable != null) {
-            physicaltable.clear();
-        }
+        tableModel.clear();
     }
 
     /**
@@ -99,13 +69,15 @@ public class PhysicalInspector {
      * @return レイアウトパネル
      */
     public JPanel getPanel() {
-        return physicalPanel;
+        return (JPanel) view;
     }
 
     /**
      * GUIコンポーネントを初期化する。
      */
     private void initComponents() {
+        
+        view = new PhysicalView();  
         
          // カラム名
         String[] columnNames = ClientContext.getStringArray("patientInspector.physicalInspector.columnNames"); // {"身長","体重","BMI","測定日"};
@@ -116,169 +88,80 @@ public class PhysicalInspector {
         // 属性値を取得するためのメソッド名
         String[] methodNames = ClientContext.getStringArray("patientInspector.physicalInspector.methodNames"); // {"getHeight","getWeight","getBMI","getConfirmDate"};
 
-        // 追加ボタン用のアイコン
-        ImageIcon addIcon = ClientContext.getImageIcon("add_16.gif");
-
-        // 削除ボタン用のアイコン
-        ImageIcon deleteIcon = ClientContext.getImageIcon("del_16.gif");
-        
-        // テキストフィールドの長さ
-        int[] fieldLength = ClientContext.getIntArray("patientInspector.physicalInspector.fieldLength"); // 5,5,5?
-        
-        // ラベル配列
-        String[] labelTexts = ClientContext.getStringArray("patientInspector.physicalInspector.labelTexts");// 身長,cm,体重,Kg,BMI値,%,測定日
-
-        // 身長ラベル
-        JLabel heightLabel = new JLabel(labelTexts[0], SwingConstants.RIGHT);
-
-        // 身長単位ラベル
-        JLabel heightUnitLabel = new JLabel(labelTexts[1], SwingConstants.RIGHT);
-
-        // 体重ラベル
-        JLabel weightLabel = new JLabel(labelTexts[2], SwingConstants.RIGHT);
-
-        // 体重単位ラベル
-        JLabel weightUnitLabel = new JLabel(labelTexts[3], SwingConstants.RIGHT);
-
-        // 測定日ラベル
-        JLabel confirmDateLabel = new JLabel(labelTexts[6], SwingConstants.RIGHT);
-        
-        
         // 身長体重テーブルを生成する
-        physicaltable = new ObjectListTable(columnNames, startNumRows, methodNames, null);
-        physicaltable.getTable().getColumnModel().getColumn(2).setCellRenderer(new BMIRenderer());
+        tableModel = new ObjectReflectTableModel(columnNames, startNumRows, methodNames, null);
+        view.getTable().setModel(tableModel);
+        view.getTable().setDefaultRenderer(Object.class, new OddEvenRowRenderer());
+        view.getTable().getColumnModel().getColumn(2).setCellRenderer(new BMIRenderer());
+        view.getTable().getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         
-        // GUI コンポーネントを生成する
-        physicalPanel = new JPanel();
-        addBtn = new JButton(addIcon);
-        deleteBtn = new JButton(deleteIcon);
-        heightField = new JTextField(fieldLength[0]);
-        weightField = new JTextField(fieldLength[1]);
-        confirmDateField = new JTextField(10);
+        // 列幅を調整する カット&トライ
+        int[] cellWidth = new int[]{50,50,50,110};
+        for (int i = 0; i < cellWidth.length; i++) {
+            TableColumn column = view.getTable().getColumnModel().getColumn(i);
+            column.setPreferredWidth(cellWidth[i]);
+        }
+        
+        // 右クリックによる追加削除のメニューを登録する
+        view.getTable().addMouseListener(new MouseAdapter() {
+
+            private void mabeShowPopup(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    JPopupMenu pop = new JPopupMenu();
+                    JMenuItem item = new JMenuItem("追加");
+                    pop.add(item);
+                    item.addActionListener(new ActionListener() {
+                        public void actionPerformed(ActionEvent e) {
+                            new PhysicalEditor(PhysicalInspector.this);
+                        }
+                    });
+                    final int row = view.getTable().rowAtPoint(e.getPoint());
+                    if (tableModel.getObject(row) != null) {
+                        pop.add(new JSeparator());
+                        JMenuItem item2 = new JMenuItem("削除");
+                        pop.add(item2);
+                        item2.addActionListener(new ActionListener() {
+                            public void actionPerformed(ActionEvent e) {
+                                delete(row);
+                            }
+                        });
+                    }
+                    pop.show(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                mabeShowPopup(e);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                mabeShowPopup(e);
+            }
+        });
+    }
     
-        addBtn.setEnabled(false);
-        deleteBtn.setEnabled(false);
-        addBtn.setMargin(new Insets(2, 2, 2, 2));
-        deleteBtn.setMargin(new Insets(2, 2, 2, 2));
+    private void scroll(boolean ascending) {
         
-        String datePattern = ClientContext.getString("common.pattern.mmlDate");
-        confirmDateField.setDocument(new RegexConstrainedDocument(datePattern));
-
-        // 選択された physical データを削除する
-        physicaltable.addPropertyChangeListener(
-                ObjectListTable.SELECTED_OBJECT, 
-                (PropertyChangeListener) EventHandler.create(PropertyChangeListener.class, this, "rowSelectionChanged", ""));
-
-        DocumentListener dl = new DocumentListener() {
-            public void insertUpdate(javax.swing.event.DocumentEvent e) {
-                addCheck();
+        int cnt = tableModel.getObjectCount();
+        if (cnt > 0) {
+            int row = 0;
+            if (ascending) {
+                row = cnt - 1;
             }
-
-            public void removeUpdate(javax.swing.event.DocumentEvent e) {
-                addCheck();
-            }
-
-            public void changedUpdate(javax.swing.event.DocumentEvent e) {
-            }
-        };
-
-        heightField.getDocument().addDocumentListener(dl);
-        weightField.getDocument().addDocumentListener(dl);
-        confirmDateField.getDocument().addDocumentListener(dl);
-
-        addBtn.addActionListener((ActionListener) EventHandler.create(ActionListener.class, this, "add"));
-        addBtn.setToolTipText("身長体重データを追加します");
-
-        deleteBtn.addActionListener((ActionListener) EventHandler.create(ActionListener.class, this, "delete"));
-        deleteBtn.setToolTipText("選択した身長体重データを削除します");
-
-        // 同定日にポップアップカレンダを設定する
-        new PopupListener(confirmDateField);
-        confirmDateField.setToolTipText("右クリックでカレンダーがポップアップします");
-        
-        //
-        // 身長、体重、同定日フィールドで自動的に IME OFF にする
-        //
-        heightField.addFocusListener(new FocusAdapter() {
-            public void focusGained(FocusEvent event) {
-                JTextField tf = (JTextField) event.getSource();
-                tf.getInputContext().setCharacterSubsets(null);
-            }
-        });
-        
-        weightField.addFocusListener(new FocusAdapter() {
-            public void focusGained(FocusEvent event) {
-                JTextField tf = (JTextField) event.getSource();
-                tf.getInputContext().setCharacterSubsets(null);
-            }
-        });
-        
-        confirmDateField.addFocusListener(new FocusAdapter() {
-            public void focusGained(FocusEvent event) {
-                JTextField tf = (JTextField) event.getSource();
-                tf.getInputContext().setCharacterSubsets(null);
-            }
-        });
-        
-        JPanel cmdPanel = new JPanel();
-        cmdPanel.add(deleteBtn);
-        cmdPanel.add(addBtn);
-
-        GridBagBuilder gb = new GridBagBuilder();
-        gb.add(heightLabel, 0, 0, GridBagConstraints.EAST);
-        gb.add(createUnitField(heightField, heightUnitLabel), 1, 0,
-                GridBagConstraints.WEST);
-
-        gb.add(weightLabel, 0, 1, GridBagConstraints.EAST);
-        gb.add(createUnitField(weightField, weightUnitLabel), 1, 1,
-                GridBagConstraints.WEST);
-
-        // gb.add(bmiLabel, 0, 2, GridBagConstraints.EAST);
-        // gb.add(createUnitField(bmiField,bmiUnitLabel), 1, 2,
-        // GridBagConstraints.WEST);
-
-        gb.add(confirmDateLabel, 0, 2, GridBagConstraints.EAST);
-        gb.add(confirmDateField, 1, 2, GridBagConstraints.WEST);
-
-        JPanel sip = gb.getProduct();
-
-        physicalPanel.setLayout(new BoxLayout(physicalPanel,
-                BoxLayout.Y_AXIS));
-        physicalPanel.add(physicaltable.getScroller());
-        physicalPanel.add(cmdPanel);
-        physicalPanel.add(sip);
-
-        //本日オブジェクト
-        Date date = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat(IInfoModel.DATE_WITHOUT_TIME);
-        String todayString = sdf.format(date);
-        confirmDateField.setText(todayString);
+            Rectangle r = view.getTable().getCellRect(row, row, true);
+            view.getTable().scrollRectToVisible(r);
+        }
     }
 
     /**
      * 身長体重データを表示する。
      */
-    @SuppressWarnings("unchecked")
     public void update() {
         
         List listH = context.getKarte().getEntryCollection("height");
         List listW = context.getKarte().getEntryCollection("weight");
-        
-//        if (listH != null && listW != null && listH.size() == listW.size()) {
-//            List list = new ArrayList(listH.size());
-//            for (int i = 0; i < listH.size(); i++) {
-//                PhysicalModel h = (PhysicalModel) listH.get(i);
-//                PhysicalModel w = (PhysicalModel) listW.get(i);
-//                PhysicalModel m = new PhysicalModel();
-//                m.setHeightId(h.getHeightId());
-//                m.setHeight(h.getHeight());
-//                m.setWeightId(w.getWeightId());
-//                m.setWeight(w.getWeight());
-//                m.setIdentifiedDate(h.getIdentifiedDate());
-//                list.add(m);
-//            }
-//            physicaltable.setObjectList(list);
-//        }
         
         List list = new ArrayList();
         
@@ -346,174 +229,116 @@ public class PhysicalInspector {
             }
         }
         
-        physicaltable.setObjectList(list);
-    }
-
-    /**
-     * 追加ボタンを制御する。
-     */
-    private void addCheck() {
-
-//        boolean newOk
-//                = (heightField.getText().trim().equals("") == false
-//                && weightField.getText().trim().equals("") == false
-//                && confirmDateField.getText().trim().equals("") == false)
-//                ? true
-//                : false;
-        
-        //
-        // 身長と体重を独立にする 2007-04-12
-        //
-        boolean newOk = heightField.getText().trim().equals("") 
-                     && weightField.getText().trim().equals("")
-                     ? false
-                     : true;
-        
-        newOk = newOk && (confirmDateField.getText().trim().equals("") == false) ? true : false;
-
-        if (newOk != ok) {
-            addBtn.setEnabled(newOk);
-            ok = newOk;
+        if (list.size() == 0) {
+            return;
         }
-    }
-    
-    public void rowSelectionChanged(PropertyChangeEvent e) {
-        if (e.getPropertyName().equals(
-                ObjectListTable.SELECTED_OBJECT)) {
-            Object[] selected = (Object[]) e.getNewValue();
-            boolean canDelete = (selected != null && selected.length > 0) ? true
-                    : false;
-            if (canDelete != deleteBtn.isEnabled()) {
-                deleteBtn.setEnabled(canDelete);
-            }
+        
+        boolean asc = Project.getPreferences().getBoolean(Project.DOC_HISTORY_ASCENDING, false);
+        if (asc) {
+            Collections.sort(list);
+        } else {
+            Collections.sort(list, Collections.reverseOrder());
         }
+        
+        tableModel.setObjectList(list);
+        scroll(asc);
     }
 
     /**
      * 身長体重データを追加する。
      */
-    public void add() {
+    public void add(final PhysicalModel model) {
 
-        try {
-            String h = heightField.getText().trim();
-            String w = weightField.getText().trim();
-            final PhysicalModel model = new PhysicalModel();
-            
-            if (!h.equals("")) {
-                model.setHeight(h);
-            }
-            if (!w.equals("")) {
-                model.setWeight(w);
-            }
+        // 同定日
+        String confirmedStr = model.getIdentifiedDate();
+        Date confirmed = ModelUtils.getDateTimeAsObject(confirmedStr + "T00:00:00");
+        
+        // 記録日
+        Date recorded = new Date();
 
-            // 同定日
-            String confirmedStr = confirmDateField.getText().trim();
-            model.setIdentifiedDate(confirmedStr);
-            Date confirmed = ModelUtils.getDateTimeAsObject(confirmedStr + "T00:00:00");
+        final List<ObservationModel> addList = new ArrayList<ObservationModel>(2);
 
-            // 記録日
-            Date recorded = new Date();
-            //model.setMemo(ModelUtils.getDateAsString(recorded));
-
-            final List<ObservationModel> addList = new ArrayList<ObservationModel>(2);
-
-            if (model.getHeight() != null) {
-                ObservationModel observation = new ObservationModel();
-                observation.setKarte(context.getKarte());
-                observation.setCreator(Project.getUserModel());
-                observation.setObservation(IInfoModel.OBSERVATION_PHYSICAL_EXAM);
-                observation.setPhenomenon(IInfoModel.PHENOMENON_BODY_HEIGHT);
-                observation.setValue(model.getHeight());
-                observation.setUnit(IInfoModel.UNIT_BODY_HEIGHT);
-                observation.setConfirmed(confirmed);        // 確定（同定日）
-                observation.setStarted(confirmed);          // 適合開始日
-                observation.setRecorded(recorded);          // 記録日
-                observation.setStatus(IInfoModel.STATUS_FINAL);
-                //observation.setMemo(model.getMemo());
-                addList.add(observation);
-            }
-            
-            if (model.getWeight() != null) {
-
-                ObservationModel observation = new ObservationModel();
-                observation.setKarte(context.getKarte());
-                observation.setCreator(Project.getUserModel());
-                observation.setObservation(IInfoModel.OBSERVATION_PHYSICAL_EXAM);
-                observation.setPhenomenon(IInfoModel.PHENOMENON_BODY_WEIGHT);
-                observation.setValue(model.getWeight());
-                observation.setUnit(IInfoModel.UNIT_BODY_WEIGHT);
-                observation.setConfirmed(confirmed);        // 確定（同定日）
-                observation.setStarted(confirmed);          // 適合開始日
-                observation.setRecorded(recorded);          // 記録日
-                observation.setStatus(IInfoModel.STATUS_FINAL);
-                //observation.setMemo(model.getMemo());
-                addList.add(observation);
-            }
-            
-            if (addList.size() == 0) {
-                return;
-            }
-
-            // Worker thread
-            Runnable r = new Runnable() {
-                public void run() {
-                    fireStart();
-                    DocumentDelegater pdl = new DocumentDelegater();
-                    List<Long> ids = pdl.addObservations(addList);
-                    
-                    if (model.getHeight() != null && model.getWeight() != null) {
-                        model.setHeightId(ids.get(0));
-                        model.setWeightId(ids.get(1));
-                    } else if (model.getHeight() != null) {
-                        model.setHeightId(ids.get(0));
-                    } else {
-                        model.setWeightId(ids.get(0));
-                    }
-                    
-                    physicaltable.addRow(model);
-                    fireStop();
-                }
-            };
-            addBtn.setEnabled(false);
-            Thread t = new Thread(r);
-            t.setPriority(Thread.NORM_PRIORITY);
-            t.start();
-        } catch (Exception e) {
-            // input error
+        if (model.getHeight() != null) {
+            ObservationModel observation = new ObservationModel();
+            observation.setKarte(context.getKarte());
+            observation.setCreator(Project.getUserModel());
+            observation.setObservation(IInfoModel.OBSERVATION_PHYSICAL_EXAM);
+            observation.setPhenomenon(IInfoModel.PHENOMENON_BODY_HEIGHT);
+            observation.setValue(model.getHeight());
+            observation.setUnit(IInfoModel.UNIT_BODY_HEIGHT);
+            observation.setConfirmed(confirmed);        // 確定（同定日）
+            observation.setStarted(confirmed);          // 適合開始日
+            observation.setRecorded(recorded);          // 記録日
+            observation.setStatus(IInfoModel.STATUS_FINAL);
+            //observation.setMemo(model.getMemo());
+            addList.add(observation);
         }
-    }
 
-    /**
-     * 追加ボタンを disabled にし、progressbar を開始する。
-     */
-    private void fireStart() {
-        Runnable awt = new Runnable() {
-            public void run() {
-                context.getStatusPanel().start();
+        if (model.getWeight() != null) {
+
+            ObservationModel observation = new ObservationModel();
+            observation.setKarte(context.getKarte());
+            observation.setCreator(Project.getUserModel());
+            observation.setObservation(IInfoModel.OBSERVATION_PHYSICAL_EXAM);
+            observation.setPhenomenon(IInfoModel.PHENOMENON_BODY_WEIGHT);
+            observation.setValue(model.getWeight());
+            observation.setUnit(IInfoModel.UNIT_BODY_WEIGHT);
+            observation.setConfirmed(confirmed);        // 確定（同定日）
+            observation.setStarted(confirmed);          // 適合開始日
+            observation.setRecorded(recorded);          // 記録日
+            observation.setStatus(IInfoModel.STATUS_FINAL);
+            //observation.setMemo(model.getMemo());
+            addList.add(observation);
+        }
+
+        if (addList.size() == 0) {
+            return;
+        }
+
+        DBTask task = new DBTask<List<Long>>(context) {
+
+            @Override
+            protected List<Long> doInBackground() throws Exception {
+                logger.debug("physical add doInBackground");
+                DocumentDelegater pdl = new DocumentDelegater();
+                List<Long> ids = pdl.addObservations(addList);
+                return ids;
+            }
+
+            @Override
+            protected void succeeded(List<Long> result) {
+                logger.debug("physical add succeeded");
+                if (model.getHeight() != null && model.getWeight() != null) {
+                    model.setHeightId(result.get(0));
+                    model.setWeightId(result.get(1));
+                } else if (model.getHeight() != null) {
+                    model.setHeightId(result.get(0));
+                } else {
+                    model.setWeightId(result.get(0));
+                }
+                boolean asc = Project.getPreferences().getBoolean(Project.DOC_HISTORY_ASCENDING, false);
+                if (asc) {
+                    tableModel.addRow(model);
+                } else {
+                    tableModel.addRow(0, model);
+                }
+                scroll(asc);
             }
         };
-        SwingUtilities.invokeLater(awt);
-    }
 
-    /**
-     * ProgressBar を停止する。
-     */
-    private void fireStop() {
-        Runnable awt = new Runnable() {
-            public void run() {
-                context.getStatusPanel().stop();
-            }
-        };
-        SwingUtilities.invokeLater(awt);
+        task.execute();
     }
 
     /**
      * テーブルで選択した身長体重データを削除する。
      */
-    public void delete() {
+    public void delete(final int row) {
 
-        Object[] selected = physicaltable.getSelectedObject();
-        PhysicalModel model = (PhysicalModel) selected[0];
+        PhysicalModel model = (PhysicalModel) tableModel.getObject(row);
+        if (model == null) {
+            return;
+        }
+        
         final List<Long> list = new ArrayList<Long>(2);
         
         if (model.getHeight() != null) {
@@ -523,72 +348,25 @@ public class PhysicalInspector {
         if (model.getWeight() != null) {
             list.add(new Long(model.getWeightId()));
         }
+        
+        DBTask task = new DBTask<Void>(context) {
 
-        Runnable r = new Runnable() {
-            public void run() {
-                fireStart();
+            @Override
+            protected Void doInBackground() throws Exception {
+                logger.debug("physical delete doInBackground");
                 DocumentDelegater ddl = new DocumentDelegater();
                 ddl.removeObservations(list);
-                physicaltable.deleteSelectedRows();
-                fireStop();
+                return null;
+            }
+            
+            @Override
+            protected void succeeded(Void result) {
+                logger.debug("physical delete succeeded");
+                tableModel.deleteRow(row);
             }
         };
-        deleteBtn.setEnabled(false);
-        Thread t = new Thread(r);
-        t.setPriority(Thread.NORM_PRIORITY);
-        t.start();
-    }
-
-    private JPanel createUnitField(JTextField tf, JLabel unit) {
-        JPanel p = new JPanel();
-        p.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        p.add(tf);
-        p.add(unit);
-        return p;
-    }
-
-    class PopupListener extends MouseAdapter implements PropertyChangeListener {
-
-        private JPopupMenu popup;
-
-        private JTextField tf;
-
-        // private LiteCalendarPanel calendar;
-
-        public PopupListener(JTextField tf) {
-            this.tf = tf;
-            tf.addMouseListener(this);
-        }
-
-        public void mousePressed(MouseEvent e) {
-            maybeShowPopup(e);
-        }
-
-        public void mouseReleased(MouseEvent e) {
-            maybeShowPopup(e);
-        }
-
-        private void maybeShowPopup(MouseEvent e) {
-
-            if (e.isPopupTrigger()) {
-                popup = new JPopupMenu();
-                CalendarCardPanel cc = new CalendarCardPanel(context.getContext().getEventColorTable());
-                cc.addPropertyChangeListener(CalendarCardPanel.PICKED_DATE, this);
-                cc.setCalendarRange(new int[] { -12, 0 });
-                popup.insert(cc, 0);
-                popup.show(e.getComponent(), e.getX(), e.getY());
-            }
-        }
-
-        public void propertyChange(PropertyChangeEvent e) {
-            if (e.getPropertyName().equals(CalendarCardPanel.PICKED_DATE)) {
-                SimpleDate sd = (SimpleDate) e.getNewValue();
-                tf.setText(SimpleDate.simpleDateToMmldate(sd));
-                popup.setVisible(false);
-                // calendar = null;
-                popup = null;
-            }
-        }
+        
+        task.execute();
     }
     
     /**
@@ -603,6 +381,7 @@ public class PhysicalInspector {
             super();
         }
         
+        @Override
         public Component getTableCellRendererComponent(JTable table,
                 Object value,
                 boolean isSelected,
@@ -611,20 +390,21 @@ public class PhysicalInspector {
             Component c = super.getTableCellRendererComponent(table,
                     value,
                     isSelected,
-                    isFocused, row, col);            
-                
-            if (row % 2 == 0) {
-                setBackground(ClientContext.getColor("color.even"));
-            } else {
-                setBackground(ClientContext.getColor("color.odd"));
-            }
+                    isFocused, row, col);  
             
             if (isSelected) {
                 setBackground(table.getSelectionBackground());
                 setForeground(table.getSelectionForeground());
+            } else {
+                setForeground(table.getForeground());
+                if (row % 2 == 0) {
+                    setBackground(ClientContext.getColor("color.even"));
+                } else {
+                    setBackground(ClientContext.getColor("color.odd"));
+                }
             }
             
-            PhysicalModel h = (PhysicalModel) physicaltable.getTableModel().getObject(row);
+            PhysicalModel h = (PhysicalModel) tableModel.getObject(row);
             
             Color fore = (h != null && h.getBmi() != null && h.getBmi().compareTo("25") > 0)  ? Color.RED : Color.BLACK;
             this.setForeground(fore);

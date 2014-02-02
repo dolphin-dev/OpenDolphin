@@ -1,26 +1,7 @@
-/*
- * UserStampBox.java
- * Copyright (C) 2006 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
 import java.io.BufferedReader;
 import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.List;
 
 import open.dolphin.infomodel.IInfoModel;
@@ -31,8 +12,6 @@ import open.dolphin.infomodel.IInfoModel;
  * @author Kazushi Minagawa, Digital Globe, Inc.
  */
 public class UserStampBox extends AbstractStampBox {
-     
-    private static final long serialVersionUID = -4011341355573558175L;
     
     private static final String BOX_INFO = "個人用スタンプボックス";
     
@@ -104,16 +83,19 @@ public class UserStampBox extends AbstractStampBox {
      * @param index タブ番号
      * @return エディタから発行がある場合に true 
      */
+    @Override
     public boolean isHasEditor(int index) {
         return (index == textIndex || index == pathIndex || index == orcaIndex) ? false : true;
     }
 
+    @Override
     public void setHasNoEditorEnabled(boolean b) {
         this.setEnabledAt(textIndex, b);
         this.setEnabledAt(pathIndex, b);
         this.setEnabledAt(orcaIndex, b);
     }
     
+    @Override
     public String getInfo() {
         return BOX_INFO;
     }

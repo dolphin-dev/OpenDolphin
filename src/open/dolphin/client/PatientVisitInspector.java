@@ -1,12 +1,3 @@
-/*
- * PatientVisitInspector.java
- *
- * Created on 2007/01/18, 17:04
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
 package open.dolphin.client;
 
 import java.util.ArrayList;
@@ -24,12 +15,12 @@ public class PatientVisitInspector {
 
     private String pvtEvent; // PVT
     
-    private ChartPlugin context;
+    private ChartImpl context;
 
     /**
      * PatientVisitInspector Çê∂ê¨Ç∑ÇÈÅB
      */
-    public PatientVisitInspector(ChartPlugin context) {
+    public PatientVisitInspector(ChartImpl context) {
         this.context = context;
         initComponent();
         update();
@@ -48,7 +39,7 @@ public class PatientVisitInspector {
      */
     private void initComponent() {
         pvtEvent = ClientContext.getString("eventCode.pvt"); // PVT
-        calendarCardPanel = new CalendarCardPanel(context.getContext().getEventColorTable());
+        calendarCardPanel = new CalendarCardPanel(ClientContext.getEventColorTable());
     }
 
     @SuppressWarnings("unchecked")

@@ -1,22 +1,3 @@
-/*
- * SqlMasterDao.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2003 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.dao;
 
 import java.sql.*;
@@ -27,6 +8,7 @@ import open.dolphin.infomodel.DiseaseEntry;
 import open.dolphin.infomodel.MedicineEntry;
 import open.dolphin.infomodel.ToolMaterialEntry;
 import open.dolphin.infomodel.TreatmentEntry;
+import open.dolphin.project.Project;
 import open.dolphin.util.*;
 
 /**
@@ -161,7 +143,7 @@ public final class SqlMasterDao extends SqlDaoBean {
         buf.append(orderBy);
         
         String sql = buf.toString();
-        printTrace(sql);
+        debug(sql);
         
         return sql;
     }
@@ -236,11 +218,18 @@ public final class SqlMasterDao extends SqlDaoBean {
         
         //
         // 点数マスタが6で始まり、薬剤区分が注射薬 4 でないものを検索する
-        // 
+        //
         String word = null;
         StringBuilder buf = new StringBuilder();
         
-        buf.append("select srycd, name, kananame, taniname, tensikibetu, ten, ykzkbn, yakkakjncd, yukostymd, yukoedymd from tbl_tensu where srycd ~ '^6' and ");
+        buf.append("select srycd,name,kananame,taniname,tensikibetu,ten,ykzkbn,yakkakjncd,yukostymd,yukoedymd from tbl_tensu where ");
+        if (Project.getOrcaVersion().startsWith("4")) {
+            int hospnum = getHospNum();
+            buf.append("hospnum=");
+            buf.append(hospnum);
+            buf.append(" and ");
+        }
+        buf.append("srycd ~ '^6' and ");
         
         // 全て数字であればコードを検索し、それ以外は名称を検索する
         if (StringTool.isAllDigit(text)) {
@@ -350,10 +339,18 @@ public final class SqlMasterDao extends SqlDaoBean {
     }
     private String getInjectionSql(String text, String sortBy, String order, boolean forward) {
         
+        
         String word = null;
         StringBuilder buf = new StringBuilder();
         
-        buf.append("select srycd, name, kananame, taniname, tensikibetu, ten, ykzkbn, yakkakjncd, yukostymd, yukoedymd from tbl_tensu where srycd ~ '^6' and ");
+        buf.append("select srycd,name,kananame,taniname,tensikibetu,ten,ykzkbn,yakkakjncd,yukostymd,yukoedymd from tbl_tensu where ");
+        if (Project.getOrcaVersion().startsWith("4")) {
+            int hospnum = getHospNum();
+            buf.append("hospnum=");
+            buf.append(hospnum);
+            buf.append(" and ");
+        }
+        buf.append("srycd ~ '^6' and ");
         
         if (StringTool.isAllDigit(text)) {
             word = text;
@@ -459,7 +456,14 @@ public final class SqlMasterDao extends SqlDaoBean {
         String word = null;
         StringBuilder buf = new StringBuilder();
         
-        buf.append("select srycd, name, kananame, tensikibetu, ten, nyugaitekkbn, routekkbn, srysyukbn, hospsrykbn, yukostymd, yukoedymd from tbl_tensu where (srycd ~ '^1' or srycd ~ '^00') and ");
+        buf.append("select srycd,name,kananame,tensikibetu,ten,nyugaitekkbn,routekkbn,srysyukbn,hospsrykbn,yukostymd,yukoedymd from tbl_tensu where ");
+        if (Project.getOrcaVersion().startsWith("4")) {
+            int hospnum = getHospNum();
+            buf.append("hospnum=");
+            buf.append(hospnum);
+            buf.append(" and ");
+        } 
+        buf.append("(srycd ~ '^1' or srycd ~ '^00') and ");
         
         if (StringTool.isAllDigit(text)) {
             word = text;
@@ -592,7 +596,15 @@ public final class SqlMasterDao extends SqlDaoBean {
         String max = cClass[1];
         
         StringBuffer buf = new StringBuffer();
-        buf.append("select srycd,name,kananame,tensikibetu,ten,nyugaitekkbn,routekkbn,srysyukbn,hospsrykbn, yukostymd, yukoedymd from tbl_tensu where srycd ~ '^1' and ");
+        buf.append("select srycd,name,kananame,tensikibetu,ten,nyugaitekkbn,routekkbn,srysyukbn,hospsrykbn,yukostymd,yukoedymd from tbl_tensu where ");
+        if (Project.getOrcaVersion().startsWith("4")) {
+            int hospnum = getHospNum();
+            buf.append("hospnum=");
+            buf.append(hospnum);
+            buf.append(" and ");
+        }
+        
+        buf.append("srycd ~ '^1' and ");
         
         if ( (! min.equals("")) && max.equals("") ) {
             buf.append("srysyukbn = ");
@@ -670,13 +682,22 @@ public final class SqlMasterDao extends SqlDaoBean {
      */
     public ArrayList<TreatmentEntry> getRadLocation(String master, String sortBy, String order) {
         
+        
         Connection con = null;
         ArrayList<TreatmentEntry> collection = null;
         ArrayList<TreatmentEntry> outUse = null;
         Statement st = null;
         
         StringBuffer buf = new StringBuffer();
-        buf.append("select srycd,name,kananame,srysyukbn,yukostymd, yukoedymd from tbl_tensu where srycd ~ '^002'");
+        buf.append("select srycd,name,kananame,srysyukbn,yukostymd,yukoedymd from tbl_tensu where ");
+        if (Project.getOrcaVersion().startsWith("4")) {
+            int hospnum = getHospNum();
+            buf.append("hospnum=");
+            buf.append(hospnum);
+            buf.append(" and ");
+        } 
+        
+        buf.append("srycd ~ '^002'");
         String orderBy = getOrderBy(sortBy, order);
         if (orderBy != null) {
             buf.append(orderBy);
@@ -751,7 +772,14 @@ public final class SqlMasterDao extends SqlDaoBean {
         String word = null;
         StringBuilder buf = new StringBuilder();
         
-        buf.append("select srycd, name, kananame, taniname, tensikibetu, ten ,yukostymd, yukoedymd from tbl_tensu where srycd ~ '^7' and ");
+        buf.append("select srycd,name,kananame,taniname,tensikibetu,ten,yukostymd,yukoedymd from tbl_tensu where ");
+        if (Project.getOrcaVersion().startsWith("4")) {
+            int hospnum = getHospNum();
+            buf.append("hospnum=");
+            buf.append(hospnum);
+            buf.append(" and ");
+        } 
+        buf.append("srycd ~ '^7' and ");
         
         if (StringTool.isAllDigit(text)) {
             word = text;
@@ -853,7 +881,14 @@ public final class SqlMasterDao extends SqlDaoBean {
         String word = null;
         StringBuilder buf = new StringBuilder();
         
-        buf.append("select srycd, name from tbl_tensu where srycd ~ '^001' and ");
+        buf.append("select srycd, name from tbl_tensu where ");
+        if (Project.getOrcaVersion().startsWith("4")) {
+            int hospnum = getHospNum();
+            buf.append("hospnum=");
+            buf.append(hospnum);
+            buf.append(" and ");
+        } 
+        buf.append("srycd ~ '^001' and ");
         
         if (StringTool.isAllDigit(text)) {
             word = text;
@@ -916,13 +951,21 @@ public final class SqlMasterDao extends SqlDaoBean {
     }
     
     public ArrayList<AdminEntry> getAdminByCategory(String category) {
-                
+               
         Connection con = null;
         ArrayList<AdminEntry> collection = null;
         Statement st = null;
         
         StringBuffer buf = new StringBuffer();
-        buf.append("select srycd,name from tbl_tensu where srycd ~ '^");
+        buf.append("select srycd,name from tbl_tensu where ");
+        if (Project.getOrcaVersion().startsWith("4")) {
+            int hospnum = getHospNum();
+            buf.append("hospnum=");
+            buf.append(hospnum);
+            buf.append(" and ");
+        } 
+        buf.append("srycd ~ '^");
+        
         int index = category.indexOf(' ');
         if (index > 0) {
             String s1 = category.substring(0, index);

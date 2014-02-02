@@ -23,7 +23,6 @@ package open.dolphin.project;
 import java.awt.*;
 
 import open.dolphin.client.*;
-import open.dolphin.infomodel.DocInfoModel;
 import open.dolphin.infomodel.ID;
 
 /**
@@ -53,5 +52,5 @@ public abstract class AbstractProjectFactory {
     
     public abstract ID createMasterId(String pid, String facilityId);
     
-    public abstract Object createSaveDialog(Frame parent, SaveParams params);
+    public abstract Object createSaveDialog(Window parent, SaveParams params);
 }

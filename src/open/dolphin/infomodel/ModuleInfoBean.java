@@ -206,7 +206,13 @@ public class ModuleInfoBean extends InfoModel implements StampInfo, Comparable {
      * 文字列表現を返す。
      * @return スタンプ名
      */
+    @Override
     public String toString() {
+        // 病名でエイリアスがあればそれを返す
+        if (this.entity.equals(ENTITY_DIAGNOSIS)) {
+            String alias =  ModelUtils.getDiagnosisAlias(name);
+            return alias != null ? alias : name;
+        }
         return name;
     }
     

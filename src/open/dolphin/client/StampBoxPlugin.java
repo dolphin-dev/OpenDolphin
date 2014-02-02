@@ -1,25 +1,11 @@
-/*
- * StampBoxService.java
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2001-2007 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -33,97 +19,113 @@ import open.dolphin.infomodel.PublishedTreeModel;
 import open.dolphin.infomodel.RegisteredDiagnosisModel;
 import open.dolphin.infomodel.StampTreeModel;
 import open.dolphin.order.EditorSetPanel;
-import open.dolphin.plugin.ILongTask;
-import open.dolphin.plugin.helper.ComponentMemory;
+import open.dolphin.helper.ComponentMemory;
 import open.dolphin.project.*;
 
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.prefs.Preferences;
-import java.io.*;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JToggleButton;
+import javax.swing.WindowConstants;
+
 import org.apache.log4j.Logger;
 
 /**
- * StampBoxPlugin
+ * StampBox クラス。
  *
  * @author Kazushi Minagawa, Digital Globe, Inc.
  */
-public class StampBoxPlugin extends DefaultMainWindowPlugin {
+public class StampBoxPlugin extends AbstractMainTool {
+    
+    private static final String NAME = "スタンプ箱";
     
     // frameのデフォルトの大きさ及びタイトル
     private final int DEFAULT_WIDTH     = 320;
     private final int DEFAULT_HEIGHT    = 690;
     private final int IMPORT_TREE_OFFSET = 1;
     
-    /** StampBox の JFrame */
+    // StampBox の JFrame
     private JFrame frame;
     
-    /** StampBox */
+    // StampBox
     private JTabbedPane parentBox;
     
-    /** ユーザ個人用の StampBox*/
+    //ユーザ個人用の StampBox
     private AbstractStampBox userBox;
     
-    /** 現在選択されている StampBox */
+    // 現在選択されている StampBox
     private AbstractStampBox curBox;
     
-    /** インポートしている StampTree のリスト */
+    // インポートしている StampTree のリスト
     private List<Long> importedTreeList;
     
-    /** 現在選択されている StampBox の情報を表示するラベル */
+    // 現在選択されている StampBox の情報を表示するラベル
     private JLabel curBoxInfo;
     
-    /** Container Panel*/
+    // Container Panel
     private JPanel content;
     
-    /** Stampmaker ボタン */
+    // Stampmaker ボタン
     private JToggleButton toolBtn;
     
-    /** 公開ボタン */
+    // 公開ボタン
     private JButton publishBtn;
     
-    /** インポートボタン */
+    // インポートボタン
     private JButton importBtn;
     
-    /** StampMaker のエディタセット */
+    // StampMaker のエディタセット
     private EditorSetPanel editors;
     
-    /** Editorの編集値リスナ */
+    // Editorの編集値リスナ
     private EditorValueListener editorValueListener;
     
-    /** StampMaker モードのフラグ */
+    // StampMaker モードのフラグ
     private boolean editing;
     
-    /** StampBox 位置 */
+    // StampBox 位置
     private Point stampBoxLoc;
     
-    /** StampBox 幅 */
+    // StampBox 幅
     private int stampBoxWidth;
     
-    /** StampBox 高さ */
+    // StampBox 高さ
     private int stampBoxHeight;
     
-    /** Block Glass Pane */
+    // Block Glass Pane
     private BlockGlass glass;
     
-    /** Container Panel */
+    // Container Panel
     private JPanel stampBoxPanel;
     
-    /** このスタンプボックスの StmpTreeModel */
+    // このスタンプボックスの StmpTreeModel
     private List<IStampTreeModel> stampTreeModels;
     
+    // Logger
+    private Logger logger;
     
-    /** 
-     * Creates new StampBoxPlugin 
+    /**
+     * Creates new StampBoxPlugin
      */
     public StampBoxPlugin() {
+        setName(NAME);
+        logger = ClientContext.getBootLogger();
     }
     
     /**
@@ -199,83 +201,90 @@ public class StampBoxPlugin extends DefaultMainWindowPlugin {
     }
     
     /**
-     * User用、共有用、サードパーティ製のStampTreeをデータベースから読み込む。
-     * バックグランドスレッドで実行されることを想定している。
-     * @return 読み込んだStampTreeModel のリスト
+     * StampTree をデータベースまたはリソースから読み込む。
+     * アプリケーションの起動時に一括してコールされる。
      */
-    public void loadStampTrees() {
+    @Override
+    public Callable<Boolean> getStartingTask() {
         
-        Logger logger = ClientContext.getLogger("boot");
-        
-        try {
-            // UserPkを取得する
-            long userPk = Project.getUserModel().getId();
+        Callable<Boolean> task = new Callable<Boolean>() {
             
-            // データベース検索を行う
-            StampDelegater stampDel = new StampDelegater();
-            List<IStampTreeModel> treeList = stampDel.getTrees(userPk);
-            if (!stampDel.isNoError()) {
-                logger.fatal("Fata error reading stampTrees from the server.");
-                throw new RuntimeException();
-            }
-            
-            // User用のStampTreeが存在しない新規ユーザの場合、そのTreeを生成する
-            boolean hasTree = false;
-            if (treeList != null || treeList.size() > 0) {
-                for (IStampTreeModel tree : treeList) {
-                    if (tree != null) {
-                        long id = tree.getUser().getId();
-                        if (id == userPk && tree instanceof StampTreeModel) {
-                            hasTree = true;
-                            break;
+            public Boolean call() {
+                
+                try {
+                    // UserPkを取得する
+                    long userPk = Project.getUserModel().getId();
+                    
+                    // データベース検索を行う
+                    StampDelegater stampDel = new StampDelegater();
+                    List<IStampTreeModel> treeList = stampDel.getTrees(userPk);
+                    if (!stampDel.isNoError()) {
+                        logger.fatal("Could't read the stamp tree");
+                        return new Boolean(false);
+                    }
+                    logger.info("Read the user's tree successfully");
+                    
+                    // User用のStampTreeが存在しない新規ユーザの場合、そのTreeを生成する
+                    boolean hasTree = false;
+                    if (treeList != null || treeList.size() > 0) {
+                        for (IStampTreeModel tree : treeList) {
+                            if (tree != null) {
+                                long id = tree.getUser().getId();
+                                if (id == userPk && tree instanceof StampTreeModel) {
+                                    hasTree = true;
+                                    break;
+                                }
+                            }
                         }
                     }
+                    
+                    // 新規ユーザでデータベースに個人用のStampTreeが存在しなかった場合
+                    if (!hasTree) {
+                        logger.info("New user, constract user's tree by resource");
+                        InputStream in = ClientContext.getResourceAsStream("stamptree-seed.xml");
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(in, "SHIFT_JIS"));
+                        String line = null;
+                        StringBuilder sb = new StringBuilder();
+                        while( (line = reader.readLine()) != null ) {
+                            sb.append(line);
+                        }
+                        // Tree情報を設定し保存する
+                        IStampTreeModel tm = new StampTreeModel();
+                        tm.setUser(Project.getUserModel());
+                        tm.setName(ClientContext.getString("stampTree.personal.box.name"));
+                        tm.setDescription(ClientContext.getString("stampTree.personal.box.tooltip"));
+                        FacilityModel facility = Project.getUserModel().getFacilityModel();
+                        tm.setPartyName(facility.getFacilityName());
+                        String url = facility.getUrl();
+                        if (url != null) {
+                            tm.setUrl(url);
+                        }
+                        tm.setTreeXml(sb.toString());
+                        in.close();
+                        reader.close();
+                        // リストの先頭へ追加する
+                        treeList.add(0, tm);
+                    }
+                    
+                    setStampTreeModels(treeList);
+                    
+                    return new Boolean(true);
+                    
+                } catch (Exception e) {
+                    logger.fatal(e.getMessage());
                 }
+                
+                return new Boolean(false);
             }
-            
-            // 新規ユーザでデータベースに個人用のStampTreeが存在しなかった場合
-            if (!hasTree) {
-                // リソースTreeを読み込む
-                InputStream in = ClientContext.getResourceAsStream("stamptree-seed.xml");
-                BufferedReader reader = new BufferedReader(new InputStreamReader(in, "SHIFT_JIS"));
-                String line = null;
-                StringBuilder sb = new StringBuilder();
-                while( (line = reader.readLine()) != null ) {
-                    sb.append(line);
-                }
-                // Tree情報を設定し保存する
-                IStampTreeModel tm = new StampTreeModel();
-                tm.setUser(Project.getUserModel());
-                tm.setName(ClientContext.getString("stampTree.personal.box.name"));
-                tm.setDescription(ClientContext.getString("stampTree.personal.box.tooltip"));
-                FacilityModel facility = Project.getUserModel().getFacilityModel();
-                tm.setPartyName(facility.getFacilityName());
-                String url = facility.getUrl();
-                if (url != null) {
-                    tm.setUrl(url);
-                }
-                tm.setTreeXml(sb.toString());
-                in.close();
-                reader.close();
-                // リストの先頭へ追加する
-                treeList.add(0, tm);
-            }
-            
-            setStampTreeModels(treeList);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            logger.fatal("Fata error at loadStampTrees:" + e.getMessage());
-            throw new RuntimeException();
-        }
+        };
+        
+        return task;
     }
     
     /**
      * プログラムを開始する。
      */
     public void start() {
-        
-        Logger logger = ClientContext.getLogger("boot");
         
         if (stampTreeModels == null) {
             logger.fatal("StampTreeModel is null");
@@ -285,10 +294,16 @@ public class StampBoxPlugin extends DefaultMainWindowPlugin {
         //
         // StampBoxのJFrameを生成する
         //
-        String title = ClientContext.getFrameTitle(getTitle());
-        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-        int x = screen.width - DEFAULT_WIDTH;
-        int y = (screen.height - DEFAULT_HEIGHT) / 2;
+        String title = ClientContext.getFrameTitle(getName());
+        Rectangle setBounds = new Rectangle(0, 0, 1000, 690);
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        int defaultX = (screenSize.width - setBounds.width) / 2;
+        int defaultY = (screenSize.height - setBounds.height) / 2;
+        int defaultWidth = setBounds.width;
+        int defaultHeight = setBounds.height;
+        setBounds = new Rectangle(defaultX, defaultY, defaultWidth, defaultHeight);
+        int x = (defaultX + defaultWidth) - DEFAULT_WIDTH;
+        int y = defaultY;
         int width = DEFAULT_WIDTH;
         int height = DEFAULT_HEIGHT;
         frame = new JFrame(title);
@@ -296,6 +311,7 @@ public class StampBoxPlugin extends DefaultMainWindowPlugin {
         frame.setGlassPane(glass);
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowClosing(WindowEvent e) {
                 if (editing) {
                     toolBtn.doClick();
@@ -463,8 +479,6 @@ public class StampBoxPlugin extends DefaultMainWindowPlugin {
         // ボタンをコントロールする
         //
         boxChanged();
-        
-        super.start();
     }
     
     /**
@@ -751,26 +765,23 @@ public class StampBoxPlugin extends DefaultMainWindowPlugin {
     public void stop() {
         frame.setVisible(false);
         frame.dispose();
-        super.stop();
     }
-     
+    
     /**
      * フレームを前面に出す。
      */
-    public void toFront() {
+    @Override
+    public void enter() {
         if (frame != null) {
             frame.toFront();
         }
     }
     
-    /**
-     * stop() 時に返す ILongTask で Stamptree を保存するためのタスク。
-     * コンテナが他のプラグインのタスクもまとめ、一つのタイマーで実行する。
-     */
-    public ILongTask getStoppingTask() {
+    @Override
+    public Callable<Boolean> getStoppingTask() {
         
         Preferences prefs = Preferences.userNodeForPackage(this.getClass());
-        String name = this.getClass().getName();
+        String name = (StampBoxPlugin.this).getClass().getName();
         
         // StampMeker modeで終了した場合、
         // 次回起動時に通常モードの位置と大きさで表示するため
@@ -799,7 +810,7 @@ public class StampBoxPlugin extends DefaultMainWindowPlugin {
         for (StampTree tree : list) {
             if (tree.getTreeInfo().getEntity().equals(IInfoModel.ENTITY_ORCA)) {
                 list.remove(tree);
-                System.out.println("ORCAセットを除きました");
+                logger.debug("ORCAセットを除きました");
                 break;
             }
         }
@@ -810,15 +821,23 @@ public class StampBoxPlugin extends DefaultMainWindowPlugin {
         String treeXml = director.build(list);
         
         // 個人用のStampTreeModelにXMLをセットする
-        IStampTreeModel treeM = userBox.getStampTreeModel();
+        final IStampTreeModel treeM = userBox.getStampTreeModel();
         treeM.setTreeXml(treeXml);
         
-        // 保存タスク用の delegater を生成する
-        StampDelegater stampDel = new StampDelegater();
+        // StampTree を保存する Callable Object を生成する
+        Callable<Boolean> longTask = new Callable<Boolean>() {
+            
+            public Boolean call() {
+                
+                StampDelegater stampDel = new StampDelegater();
+                stampDel.putTree(treeM);
+                boolean result = stampDel.isNoError();
+                return new Boolean(result);
+            }
+        };
         
-        // StampTree 保存用のタスクを生成して返す
-        return new SaveStampTreeTask(treeM, stampDel);
-    }    
+        return longTask;
+    }
     
     /**
      * 引数のカテゴリに対応するTreeを返す。

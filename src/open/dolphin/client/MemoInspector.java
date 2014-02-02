@@ -1,38 +1,25 @@
-/*
- * MemoInspector.java
- *
- * Created on 2007/01/18, 17:10
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
 package open.dolphin.client;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.im.InputSubset;
 import java.util.Date;
 import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentListener;
 import open.dolphin.delegater.DocumentDelegater;
+import open.dolphin.helper.DBTask;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.PatientMemoModel;
 import open.dolphin.project.Project;
+import org.apache.log4j.Logger;
 
 /**
- *
- * @author kazm
+ * 患者のメモを表示し編集するクラス。
+ * 
+ * @author Kazushi Minagawa, Digital Globe, Inc.
  */
 public class MemoInspector {
 
@@ -40,19 +27,24 @@ public class MemoInspector {
 
     private JPanel memoPanel;
     
-    private JTextArea memoArea;
+    private CompositeArea memoArea;
     
     private JButton updateMemoBtn;
 
     private PatientMemoModel patientMemoModel;
     
-    private ChartPlugin context;
+    private ChartImpl context;
+    
+    private Logger logger;
 
     /**
      * MemoInspectorオブジェクトを生成する。
      */
-    public MemoInspector(ChartPlugin context) {
+    public MemoInspector(ChartImpl context) {
+        
         this.context = context;
+        logger = ClientContext.getBootLogger();
+        
         initComponents();
         update();
         memoArea.getDocument().addDocumentListener(new DocumentListener() {
@@ -82,10 +74,10 @@ public class MemoInspector {
      */
     private void initComponents() {
         
-        int[] memoSize = ClientContext.getIntArray("patientInspector.memoInspector.textArea.size"); // 5,10
+        //int[] memoSize = ClientContext.getIntArray("patientInspector.memoInspector.textArea.size"); // 5,10
         ImageIcon updateIcon = ClientContext.getImageIcon("ref_16.gif");
 
-        memoArea = new JTextArea(5, 10);
+        memoArea = new CompositeArea(5, 10);
         memoArea.setLineWrap(true);
         memoArea.setMargin(new java.awt.Insets(3, 3, 2, 2));
         memoArea.addFocusListener(AutoKanjiListener.getInstance());
@@ -118,7 +110,7 @@ public class MemoInspector {
      */
     public void updateMemo() {
 
-        updateMemoBtn.setEnabled(false);
+        //updateMemoBtn.setEnabled(false);
 
         if (patientMemoModel == null) {
             patientMemoModel =  new PatientMemoModel();
@@ -132,45 +124,25 @@ public class MemoInspector {
         patientMemoModel.setStarted(confirmed);
         patientMemoModel.setStatus(IInfoModel.STATUS_FINAL);
         patientMemoModel.setMemo(memoArea.getText().trim());
+        
+        DBTask task = new DBTask<Void>(context) {
 
-        // worker thread
-        Runnable r = new Runnable() {
-            public void run() {
-                fireStart();
+            @Override
+            protected Void doInBackground() throws Exception {
+                logger.debug("updateMemo doInBackground");
                 DocumentDelegater ddl = new DocumentDelegater();
                 ddl.updatePatientMemo(patientMemoModel);
+                return null;
+            }
+            
+            @Override
+            protected void succeeded(Void result) {
+                logger.debug("updateMemo succeeded");
                 dirty = false;
-                fireStop();
             }
         };
-        Thread t = new Thread(r);
-        t.setPriority(Thread.NORM_PRIORITY);
-        t.start();
-    }
-
-    /**
-     * 更新ボタンを無効にし progress bar を開始する。
-     */
-    private void fireStart() {
-        Runnable awt = new Runnable() {
-            public void run() {
-                updateMemoBtn.setEnabled(false);
-                context.getStatusPanel().start();
-            }
-        };
-        SwingUtilities.invokeLater(awt);
-    }
-
-    /**
-     * progress bar をストップする。
-     */
-    private void fireStop() {
-        Runnable awt = new Runnable() {
-            public void run() {
-                context.getStatusPanel().stop();
-            }
-        };
-        SwingUtilities.invokeLater(awt);
+        
+        task.execute();
     }
 
     /**
@@ -183,5 +155,4 @@ public class MemoInspector {
             updateMemoBtn.setEnabled(true);
         }
     }
-    
 }

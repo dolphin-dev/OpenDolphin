@@ -1,7 +1,3 @@
-/*
- * Created on 2005/02/22
- *
- */
 package open.dolphin.client;
 
 import java.util.Calendar;
@@ -98,6 +94,7 @@ public class CalendarTableModel extends AbstractTableModel {
         this.columnNames = columnNames;
     }
     
+    @Override
     public String getColumnName(int col) {
         return columnNames[col];
     }
@@ -140,6 +137,7 @@ public class CalendarTableModel extends AbstractTableModel {
         return ret;
     }
     
+    @Override
     public void setValueAt(Object value, int row, int col) {
         
         int cellNumber = row*numCols + col;

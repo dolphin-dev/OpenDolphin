@@ -1,32 +1,12 @@
-/*
- * StampEditorDialog.java        1.0 2001/3/1
- * Copyright (C) 2002 Dolphin Project. All rights reserved.
- * Copyright (C) 2003,2004 Digital Globe, Inc. All rights reserved.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
 package open.dolphin.client;
 
 import javax.swing.*;
-
-import open.dolphin.plugin.IPluginContext;
-import open.dolphin.plugin.helper.ComponentMemory;
+import open.dolphin.helper.ComponentMemory;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
+import org.apache.log4j.Logger;
 
 /**
  * Stamp 編集用の外枠を提供する Dialog.
@@ -61,6 +41,8 @@ public class StampEditorDialog implements IStampEditorDialog, PropertyChangeList
     private static final int DEFAULT_WIDTH = 924;
     private static final int DEFAULT_HEIGHT = 616;
     
+    private Logger logger;
+    
     /**
      * Constructor. Use layered inititialization pattern.
      */
@@ -69,6 +51,7 @@ public class StampEditorDialog implements IStampEditorDialog, PropertyChangeList
         this.value = value;
         this.toKarte = toKarte;
         boundSupport = new PropertyChangeSupport(this);
+        logger = ClientContext.getBootLogger();
     }
     
     /**
@@ -91,6 +74,7 @@ public class StampEditorDialog implements IStampEditorDialog, PropertyChangeList
         Thread t = new Thread(initilizer);
         t.setPriority(Thread.NORM_PRIORITY);
         t.start();
+        //initialize();
     }
     
     /**
@@ -101,11 +85,11 @@ public class StampEditorDialog implements IStampEditorDialog, PropertyChangeList
         // カルテに展開するかスタンプボックスに保存するかで
         // モーダル属性及びボタンのアイコンとツールチップを変える
         if (toKarte) {
-            dialog = new JDialog((Frame)null, true);
+            dialog = new JDialog((Frame) null, true);
             okButton = new JButton(createImageIcon(OK_ICON_KARTE));
             okButton.setToolTipText("カルテに展開します");
         } else {
-            dialog = new JDialog((Frame)null, false);
+            dialog = new JDialog((Frame) null, false);
             okButton = new JButton(createImageIcon(OK_ICON_STAMPBOX));
             okButton.setToolTipText("スタンプボックスに保存します");
         }
@@ -137,28 +121,28 @@ public class StampEditorDialog implements IStampEditorDialog, PropertyChangeList
         
         // 実際の（中味となる）エディタを生成して Dialog に add する
         try {
-            IPluginContext pluginCtx = ClientContext.getPluginContext();
-            String jndiName = EDITOR_PLUG_POINT + "/" + entity;
-            editor = (IStampModelEditor) pluginCtx.lookup(jndiName);
+            editor = createEditor(this.entity);
             editor.setContext(this);
             editor.start();
             editor.addPropertyChangeListener(VALIDA_DATA_PROP, this);
-            System.err.println("edito.setValue");
             editor.setValue(value);
+            
         } catch (Exception e) {
             e.printStackTrace();
+            logger.warn(e.getMessage());
             return;
         }
         
         // レアイウトする
-        JPanel panel = new JPanel(new BorderLayout(0,11));
-        panel.add((Component)editor, BorderLayout.CENTER);
+        JPanel panel = new JPanel(new BorderLayout(0, 11));
+        panel.add((Component) editor, BorderLayout.CENTER);
         panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 11, 11));
         dialog.getContentPane().add(panel, BorderLayout.CENTER);
         
         // CloseBox 処理を登録する
         dialog.addWindowListener(new WindowAdapter() {
             
+            @Override
             public void windowClosing(WindowEvent e) {
                 // CloseBox がクリックされた場合はキャンセルとする
                 value = null;
@@ -253,5 +237,56 @@ public class StampEditorDialog implements IStampEditorDialog, PropertyChangeList
     
     private ImageIcon createImageIcon(String name) {
         return new ImageIcon(this.getClass().getResource(name));
+    }
+    
+    
+    private IStampModelEditor createEditor(String entity) {
+        
+        IStampModelEditor ret = null;
+        
+        if (entity.equals("diagnosis")) {
+            ret = new open.dolphin.order.DiagnosisEditor();
+        
+        } else if (entity.equals("medOrder")) {
+            ret = new open.dolphin.order.MedStampEditor2();
+        
+        } else if (entity.equals("injectionOrder")) {
+            ret = new open.dolphin.order.InjectionStampEditor();
+            
+        } else if (entity.equals("testOrder")) {
+            ret = new open.dolphin.order.TestStampEditor();
+            
+        } else if (entity.equals("bacteriaOrder")) {
+            ret = new open.dolphin.order.BacteriaStampEditor();
+            
+        } else if (entity.equals("physiologyOrder")) {
+            ret = new open.dolphin.order.PhysiologyStampEditor();
+            
+        } else if (entity.equals("treatmentOrder")) {
+            ret = new open.dolphin.order.TreatmentStampEditor();
+            
+        } else if (entity.equals("radiologyOrder")) {
+            ret = new open.dolphin.order.RadiologyStampEditor();
+            
+        } else if (entity.equals("baseChargeOrder")) {
+            ret = new open.dolphin.order.BaseChargeStampEditor();
+            
+        } else if (entity.equals("instractionChargeOrder")) {
+            ret = new open.dolphin.order.InstractionChargeStampEditor();
+            
+        } else if (entity.equals("otherOrder")) {
+            ret = new open.dolphin.order.OtherStampEditor();
+            
+        } else if (entity.equals("generalOrder")) {
+            ret = new open.dolphin.order.GeneralStampEditor();
+            
+        } else if (entity.equals("surgeryOrder")) {
+            ret = new open.dolphin.order.SurgeryStampEditor();
+            
+        }
+        
+        logger.debug("StampEditor class = " + ret.getClass().getName());
+        
+        return ret;
     }
 }
