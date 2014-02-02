@@ -1,16 +1,14 @@
 package open.dolphin.delegater;
 
-import open.dolphin.converter14.StampTreeModelConverter;
-import open.dolphin.converter14.StampTreeHolderConverter;
-import open.dolphin.converter14.SubscribedTreeListConverter;
-import open.dolphin.converter14.StampListConverter;
-import open.dolphin.converter14.StampModelConverter;
 import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
+import open.dolphin.converter.*;
 import open.dolphin.infomodel.*;
+import open.dolphin.util.Log;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
@@ -48,9 +46,13 @@ public final class StampDelegater extends BusinessDelegater {
         model.setTreeBytes(model.getTreeXml().getBytes(UTF8)); // UTF-8 bytes
         StampTreeModelConverter conv = new StampTreeModelConverter();
         conv.setModel(model);
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I","StampTree を保存/更新する。");
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I",model.getTreeXml());
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -60,6 +62,13 @@ public final class StampDelegater extends BusinessDelegater {
         ClientResponse<String> response = request.put(String.class);
         
         checkFirstCommitWin(response);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
+        
         
         // PK
         String entityStr = getString(response);
@@ -79,9 +88,12 @@ public final class StampDelegater extends BusinessDelegater {
         model.setTreeBytes(model.getTreeXml().getBytes(UTF8)); // UTF-8 bytes
         StampTreeModelConverter conv = new StampTreeModelConverter();
         conv.setModel(model);
-        
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I","現在のuserTreeとDBを同期化する。");
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I",model.getTreeXml());
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -91,7 +103,11 @@ public final class StampDelegater extends BusinessDelegater {
         ClientResponse<String> response = request.put(String.class);
         
         checkFirstCommitWin(response);
-
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         // PK,versionNumberの連結
         String entityStr = getString(response);
         return entityStr;
@@ -103,9 +119,13 @@ public final class StampDelegater extends BusinessDelegater {
         model.setTreeBytes(model.getTreeXml().getBytes(UTF8)); // UTF-8 bytes
         StampTreeModelConverter conv = new StampTreeModelConverter();
         conv.setModel(model);
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I","前のuserTreeとDBを同期化する。");
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I",model.getTreeXml());
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -114,6 +134,11 @@ public final class StampDelegater extends BusinessDelegater {
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.put(String.class);
 
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         checkStatus(response);
     }
 
@@ -123,7 +148,7 @@ public final class StampDelegater extends BusinessDelegater {
         StringBuilder sb = new StringBuilder();
         sb.append(RES_STAMP_TREE).append("/").append(userPK);
         String path = sb.toString();
-        
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
@@ -132,9 +157,14 @@ public final class StampDelegater extends BusinessDelegater {
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         StampTreeHolder h = mapper.readValue(br, StampTreeHolder.class);
         br.close();
-        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         // return List
         List<IStampTreeModel> retList = new ArrayList<IStampTreeModel>();
         
@@ -212,6 +242,7 @@ public final class StampDelegater extends BusinessDelegater {
         StringBuilder sb = new StringBuilder();
         sb.append("/stamp/published/tree");
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Model
         model.setTreeBytes(model.getTreeXml().getBytes(UTF8));
@@ -228,6 +259,8 @@ public final class StampDelegater extends BusinessDelegater {
 
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -238,6 +271,11 @@ public final class StampDelegater extends BusinessDelegater {
         
         checkFirstCommitWin(response);
 
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         // Version
         String entityStr = getString(response);
         return entityStr;
@@ -254,6 +292,7 @@ public final class StampDelegater extends BusinessDelegater {
         StringBuilder sb = new StringBuilder();
         sb.append("/stamp/published/tree");
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Model
         model.setTreeBytes(model.getTreeXml().getBytes(UTF8));
@@ -270,6 +309,8 @@ public final class StampDelegater extends BusinessDelegater {
 
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -279,6 +320,12 @@ public final class StampDelegater extends BusinessDelegater {
         ClientResponse<String> response = request.put(String.class); 
         
         checkFirstCommitWin(response);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         
         // Version
         String entityStr = getString(response);
@@ -294,7 +341,7 @@ public final class StampDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/stamp/published/cancel";
-        
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         // Model
         model.setTreeBytes(model.getTreeXml().getBytes(UTF8));
         
@@ -304,6 +351,8 @@ public final class StampDelegater extends BusinessDelegater {
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -314,6 +363,10 @@ public final class StampDelegater extends BusinessDelegater {
         
         checkFirstCommitWin(response);
         
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         // Version
         String entityStr = getString(response);
         return entityStr;
@@ -323,6 +376,7 @@ public final class StampDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/stamp/published/tree";
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
@@ -332,9 +386,14 @@ public final class StampDelegater extends BusinessDelegater {
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         PublishedTreeList result = mapper.readValue(br, PublishedTreeList.class);
         br.close();
-        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         // List
         return result.getList();
     }
@@ -363,6 +422,7 @@ public final class StampDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/stamp/subscribed/tree";
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Wrapper
         SubscribedTreeList wrapper = new SubscribedTreeList();
@@ -374,6 +434,8 @@ public final class StampDelegater extends BusinessDelegater {
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -381,6 +443,11 @@ public final class StampDelegater extends BusinessDelegater {
         ClientRequest request = getRequest(path);
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.put(String.class); 
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // PK list
         String entityStr = getString(response);
@@ -405,6 +472,7 @@ public final class StampDelegater extends BusinessDelegater {
         }
         String path = sb.toString();
         path = path.substring(0, path.length()-1);
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // DELETE
         ClientRequest request = getRequest(path);
@@ -413,6 +481,11 @@ public final class StampDelegater extends BusinessDelegater {
         
         // Check
         checkStatus(response);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // Count
         return 1;
@@ -429,6 +502,7 @@ public final class StampDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/stamp/list";
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Wrapper
         StampList wrapper = new StampList();
@@ -440,6 +514,8 @@ public final class StampDelegater extends BusinessDelegater {
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -453,6 +529,12 @@ public final class StampDelegater extends BusinessDelegater {
         String[] params = entityStr.split(",");
         List<String> ret = new ArrayList<String>();
         ret.addAll(Arrays.asList(params));
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         return ret;
     }
     
@@ -465,13 +547,15 @@ public final class StampDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/stamp/id";
-        
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         // Convereter
         StampModelConverter conv = new StampModelConverter();
         conv.setModel(model);
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -479,6 +563,12 @@ public final class StampDelegater extends BusinessDelegater {
         ClientRequest request = getRequest(path);
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.put(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         
         // PK
         String entityStr = getString(response);
@@ -495,13 +585,15 @@ public final class StampDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/stamp/id";
-        
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         // Converter
         StampModelConverter conv = new StampModelConverter();
         conv.setModel(model);
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -509,6 +601,11 @@ public final class StampDelegater extends BusinessDelegater {
         ClientRequest request = getRequest(path);
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.put(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // PK
         String entityStr = getString(response);
@@ -524,15 +621,23 @@ public final class StampDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/stamp/id/" + stampId;
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
         ClientResponse<String> response = request.get(String.class);
         
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         // StampModel
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         StampModel ret = mapper.readValue(br, StampModel.class);
         
         return ret;
@@ -554,15 +659,22 @@ public final class StampDelegater extends BusinessDelegater {
         String ids = sb.toString();
         ids = ids.substring(0, ids.length()-1);
         String path = "/stamp/list/" + ids;
-        
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
         ClientResponse<String> response = request.get(String.class);
         
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         StampList result = mapper.readValue(br, StampList.class);
         
         // List
@@ -578,11 +690,17 @@ public final class StampDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/stamp/id/" + stampId;
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // DELETE
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
         ClientResponse<String> response = request.delete(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // Check
         checkStatus(response);
@@ -607,11 +725,16 @@ public final class StampDelegater extends BusinessDelegater {
         String idList = sb.toString();
         idList = idList.substring(0, idList.length()-1);
         String path = "/stamp/list/" + idList;
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // DELETE
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
         ClientResponse<String> response = request.delete(String.class);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // Check
         checkStatus(response);

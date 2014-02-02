@@ -7,6 +7,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Properties;
@@ -20,6 +21,7 @@ import javax.jms.*;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import open.dolphin.infomodel.HealthInsuranceModel;
+import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.session.PVTServiceBean;
 
@@ -39,6 +41,12 @@ public class PvtService implements PvtServiceMBean {
     private MBeanServer platformMBeanServer;
     private ObjectName objectName;
     
+//    @Resource(mappedName = "java:/JmsXA")
+//    private ConnectionFactory connectionFactory;
+//    
+//    @Resource(mappedName = "java:/queue/dolphin")
+//    private javax.jms.Queue queue;
+    
     @Inject
     PVTServiceBean pvtServiceBean;
     
@@ -47,6 +55,7 @@ public class PvtService implements PvtServiceMBean {
     private Thread serverThread;
     private String FACILITY_ID;
     private boolean DEBUG;
+    
     
     @PostConstruct
     @Override
@@ -245,6 +254,16 @@ public class PvtService implements PvtServiceMBean {
                         log(sb.toString());
                         debug(recieved);
                         
+//                        //---------------------------------------------
+//                        // send queue
+//                        //---------------------------------------------
+//                        conn = connectionFactory.createConnection();
+//                        Session session = conn.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
+//                        ObjectMessage msg = session.createObjectMessage(recieved);
+//                        MessageProducer producer = session.createProducer(queue);
+//                        producer.send(msg);
+                        
+                        log(recieved);
                         int result = parseAndSend(recieved);
                         
                         // Reply ACK

@@ -29,6 +29,7 @@ import open.dolphin.infomodel.PVTHealthInsuranceModel;
 import open.dolphin.letter.KartePDFImpl2;
 import open.dolphin.letter.KartePDFMaker;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  * DocumentViewer
@@ -44,6 +45,10 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
     // 更新を表す文字
     private static final String TITLE_UPDATE = "更新";
     private static final String TITLE = "参 照";
+    
+//s.oh^ 2013/03/28 入力行が一行の場合に文字が全部表示されない。
+    private static final int KARTE_OFFSET_HEIGHT = 50;
+//s.oh$
     
 //s.oh^ 2013/01/29 過去カルテの修正操作(選択状態)
     public static final Color DEFAULT_BGCOLOR = new Color(214, 217, 223);
@@ -265,6 +270,14 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
                 karteList.remove(karte);
             }
         }
+        
+//s.oh^ 2013/06/13 カルテ履歴が複数の場合、カルテ削除メニューを無効
+        if(karteList != null && karteList.size() > 0) {
+            boolean canEdit = isReadOnly() ? false : true;
+            boolean singleSelected = (karteList.size() == 1) ? true : false;
+            getContext().enabledAction(GUIConst.ACTION_DELETE, (!showModified && canEdit && singleSelected));
+        }
+//s.oh$
 
         // 追加されたものがない場合
         if (added == null || added.isEmpty()) {
@@ -294,6 +307,13 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
             } else {
                 showKarteListH();
             }
+            
+//s.oh^ 2013/08/22 正しくカルテ履歴が選択されない修正
+            if(karteList != null && karteList.size() > 0) {
+                // 選択状態にする
+                setSelectedKarte(karteList.get(0));
+            }
+//s.oh$
 
             return;
         }
@@ -462,6 +482,14 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
         } else {
             showKarteListH();
         }
+        
+//s.oh^ 2013/06/13 カルテ履歴が複数の場合、カルテ削除メニューを無効
+    if(karteList != null) {
+        boolean canEdit = isReadOnly() ? false : true;
+        boolean singleSelected = (karteList.size() == 1) ? true : false;
+        getContext().enabledAction(GUIConst.ACTION_DELETE, (!showModified && canEdit && singleSelected));
+    }
+//s.oh$
     }
 
     private void showKarteListV() {
@@ -475,7 +503,10 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
                     int totalHeight = 0;
                     for (KarteViewer view : karteList) {
                         int w = view.panel2.getPreferredSize().width;
-                        int h = view.getActualHeight() + 30;
+//s.oh^ 2013/03/28 入力行が一行の場合に文字が全部表示されない。
+                        //int h = view.getActualHeight() + 30;
+                        int h = view.getActualHeight() + KARTE_OFFSET_HEIGHT;
+//s.oh$
                         totalHeight += h;
                         view.panel2.setPreferredSize(new Dimension(w, h));
                     }
@@ -742,24 +773,34 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
                 null,
                 btn,
                 "PDF作成");
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle("カルテ印刷"), msg[0].toString(), String.valueOf(cb.isSelected()));
 
         if(Project.getBoolean(Project.KARTE_PDF_SEND_AT_SAVE)) {
             if (option == 0) {
+                Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "PDF作成");
                 makePDF(false);
             } else if (option == 1) {
                 if(Project.getBoolean(Project.KARTE_PRINT_PDF)) {
+                    Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "PDF作成");
                     printPDF();
                 }else{
+                    Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "イメージ印刷");
                     printKarte();
                 }
+            } else {
+                Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "取消し");
             }
         }else{
             if (option == 0) {
                 if(Project.getBoolean(Project.KARTE_PRINT_PDF)) {
+                    Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "PDF作成");
                     printPDF();
                 }else{
+                    Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "イメージ印刷");
                     printKarte();
                 }
+            } else {
+                Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "取消し");
             }
         }
     }
@@ -830,10 +871,21 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
             pdumper.dump(pdoc);
         }
         if(karte != null && dumper != null && pdumper != null) {
+//s.oh^ 2013/06/14 自費の場合、印刷時に文言を付加する
+            //KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
+            //                                      karte.getContext().getPatient().getPatientId(), karte.getContext().getPatient().getFullName(),
+            //                                      karte.getTimeStampLabel().getText(),
+            //                                      new Date(), dumper, pdumper);
+            StringBuilder sbTitle = new StringBuilder();
+            sbTitle.append(karte.getTimeStampLabel().getText());
+            if(getSelectedKarte().getModel().getDocInfoModel().getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
+                sbTitle.append("（自費）");
+            }
             KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
                                                   karte.getContext().getPatient().getPatientId(), karte.getContext().getPatient().getFullName(),
-                                                  karte.getTimeStampLabel().getText(),
+                                                  sbTitle.toString(),
                                                   new Date(), dumper, pdumper);
+//s.oh$
             String path = pdf.create();
             //File file = new File(path);
             //if(file.exists()) {
@@ -915,9 +967,13 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
         if (delete == null) {
             return;
         }
-
+        
         // Dialog を表示し理由を求める
-        String message = "このドキュメントを削除しますか ?   ";
+//s.oh^ 2013/08/13
+        //String message = "このドキュメントを削除しますか ?   ";
+        String karteTitle = (delete.getTimeStampLabel() != null) ? delete.getTimeStampLabel().getText() : "カルテ";
+        String message = "このドキュメントを削除しますか ?   \n" + karteTitle;
+//s.oh$
         final JCheckBox box1 = new JCheckBox("作成ミス");
         final JCheckBox box2 = new JCheckBox("診察キャンセル");
         final JCheckBox box3 = new JCheckBox("その他");
@@ -958,14 +1014,19 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
                 null,
                 new String[]{deleteText, cancelText},
                 cancelText);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle("ドキュメント削除"),
+                          message, box1.getText(), String.valueOf(box1.isSelected()),
+                          message, box2.getText(), String.valueOf(box2.isSelected()),
+                          message, box3.getText(), String.valueOf(box3.isSelected()));
 
         //System.out.println(option);
 
         // キャンセルの場合はリターンする
         if (option != 0) {
+            Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, cancelText);
             return;
         }
-
+        Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, deleteText);
         //
         // 削除する status = 'D'
         //
@@ -1154,7 +1215,11 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
             getContext().enabledAction(GUIConst.ACTION_NEW_DOCUMENT, canEdit);   // 新規文書
             getContext().enabledAction(GUIConst.ACTION_MODIFY_KARTE, canEdit);   // 修正
             // delete^
-            getContext().enabledAction(GUIConst.ACTION_DELETE, (!showModified && canEdit)); // 削除 履歴表示中
+//s.oh^ 2013/06/13 カルテ履歴が複数の場合、カルテ削除メニューを無効
+            //getContext().enabledAction(GUIConst.ACTION_DELETE, (!showModified && canEdit)); // 削除 履歴表示中
+            boolean singleSelected = (karteList.size() == 1) ? true : false;
+            getContext().enabledAction(GUIConst.ACTION_DELETE, (!showModified && canEdit && singleSelected));
+//s.oh$
             getContext().enabledAction(GUIConst.ACTION_PRINT, true);             // 印刷
             getContext().enabledAction(GUIConst.ACTION_ASCENDING, true);         // 昇順
             getContext().enabledAction(GUIConst.ACTION_DESCENDING, true);        // 降順

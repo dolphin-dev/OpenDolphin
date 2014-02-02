@@ -16,7 +16,7 @@ public class AddressTipsTable extends JTable {
     @Override
     public String getToolTipText(MouseEvent e) {
         
-        // 
+        // (予定カルテ対応)
         ////ListTableModel<PatientModel> model = (ListTableModel<PatientModel>) getModel();
         //ListTableSorter sorter = (ListTableSorter) getModel();
         //int row = rowAtPoint(e.getPoint());

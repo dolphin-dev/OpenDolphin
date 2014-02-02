@@ -1027,10 +1027,18 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
             } else if (number >= 200 && number <= 299) {
                 return new String[]{IInfoModel.ENTITY_MED_ORDER, "RP"};
             
-            } else if (number >= 300 && number <= 352) {
+            } 
+//minagawa^ LSC 1.4 .344問題 2013/06/24
+//            else if (number >= 300 && number <= 352) {
+//                return new String[]{IInfoModel.ENTITY_INJECTION_ORDER, "注 射"};
+//            
+//            }
+            else if (number >= 300 && number <= 399) {
                 return new String[]{IInfoModel.ENTITY_INJECTION_ORDER, "注 射"};
             
-            } else if (number >= 400 && number <= 499) {
+            }
+//minagawa$            
+            else if (number >= 400 && number <= 499) {
                 return new String[]{IInfoModel.ENTITY_TREATMENT, "処 置"};
             
             } else if (number >= 500 && number <= 599) {

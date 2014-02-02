@@ -2,6 +2,7 @@ package open.dolphin.client;
 
 import java.awt.Component;
 import javax.swing.JOptionPane;
+import open.dolphin.util.Log;
 
 /**
  *
@@ -31,5 +32,6 @@ public class TimeoutWarning {
                 sb.toString(),
                 ClientContext.getFrameTitle(title),
                 JOptionPane.WARNING_MESSAGE);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), sb.toString());
     }
 }

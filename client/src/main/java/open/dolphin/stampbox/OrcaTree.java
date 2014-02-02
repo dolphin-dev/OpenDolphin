@@ -18,6 +18,7 @@ import open.dolphin.helper.SimpleWorker;
 import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.OrcaInputCd;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  * ORCA StampTree クラス。
@@ -140,6 +141,7 @@ public class OrcaTree extends StampTree {
             protected void failed(Throwable e) {
                 String title = ClientContext.getFrameTitle(MONITOR_TITLE);
                 JOptionPane.showMessageDialog(c, e.getMessage(), title, JOptionPane.WARNING_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, e.getMessage());
             }
 
             @Override

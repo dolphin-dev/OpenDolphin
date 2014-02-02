@@ -21,6 +21,7 @@ import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.StampModel;
 import open.dolphin.util.BeanUtils;
+import open.dolphin.util.Log;
 
 /**
  * EditorSetPanel
@@ -351,6 +352,7 @@ public class EditorSetPanel extends JPanel implements PropertyChangeListener, Tr
                                                 ex.getMessage(),
                                                 ClientContext.getFrameTitle("Stamp取得"),
                                                 JOptionPane.WARNING_MESSAGE);
+                            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle("Stamp取得"), ex.getMessage());
                         }
                     }
                 };

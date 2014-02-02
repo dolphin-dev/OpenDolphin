@@ -9,6 +9,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import open.dolphin.infomodel.AppoList;
 import open.dolphin.session.AppoServiceBean;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -32,6 +33,8 @@ public class AppoResource extends AbstractResource {
     public String putXml(String json) throws IOException {
         
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         AppoList list = mapper.readValue(json, AppoList.class);
         
         int count = appoServiceBean.putAppointments(list.getList());

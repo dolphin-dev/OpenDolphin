@@ -335,6 +335,11 @@ public final class BaseEditor extends AbstractStampEditor {
 
                     case TT_LETTER_SEARCH:
                         result = dao.getTensuMasterByName(StringTool.hiraganaToKatakana(text), d, view.getPartialChk().isSelected());
+//s.oh^ 2013/11/08 傷病名検索不具合
+                        if(result == null || result.size() <= 0) {
+                            result = dao.getTensuMasterByName(text, d, view.getPartialChk().isSelected());
+                        }
+//s.oh$
                         break;
 
                     case TT_SHINKU_SERACH:

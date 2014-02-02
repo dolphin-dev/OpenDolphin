@@ -35,6 +35,21 @@ public class HttpConnect extends HTTP {
     }
     
     /**
+     * GET
+     * @param target 接続URLとパラメータ
+     * @param request GET/POST
+     * @param data 送信データ
+     * @return
+     * @throws MalformedURLException
+     * @throws IOException 
+     */
+    public String httpPOST(String target, String request, String data) throws MalformedURLException, IOException {
+        connectHttp(target, request, false, "", 0);
+        setPostData(data);
+        return recvHttp(true);
+    }
+    
+    /**
      * デバッグ情報の有無設定
      * @param dbg デバッグ情報の有無
      */

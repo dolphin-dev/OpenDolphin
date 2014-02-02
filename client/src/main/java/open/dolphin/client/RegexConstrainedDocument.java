@@ -20,6 +20,10 @@ public final class RegexConstrainedDocument extends PlainDocument {
     Pattern pattern;
     Matcher matcher;
     
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+    int textLength;
+//s.oh$
+    
     public RegexConstrainedDocument () { 
     	super(); 
     }
@@ -37,6 +41,14 @@ public final class RegexConstrainedDocument extends PlainDocument {
         super();
         setPatternByString (p);
     }
+    
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+    public RegexConstrainedDocument (String p, int length) {
+        super();
+        setPatternByString (p);
+        textLength = length;
+    }
+//s.oh$
 
     public void setPatternByString (String p) {
         Pattern lpattern = Pattern.compile (p);
@@ -74,7 +86,16 @@ public final class RegexConstrainedDocument extends PlainDocument {
                 return;
             }
         }
-        super.insertString (offs, s, a);
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+        //super.insertString (offs, s, a);
+        if(textLength <= 0) {
+            super.insertString (offs, s, a);
+        }else{
+            if(this.getLength() + s.length() <= textLength) {
+                super.insertString (offs, s, a);
+            }
+        }
+//s.oh$
     }
     
     private void beep() {

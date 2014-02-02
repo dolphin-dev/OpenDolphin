@@ -10,6 +10,7 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import open.dolphin.infomodel.*;
 import open.dolphin.util.BeanUtils;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
@@ -331,6 +332,8 @@ public class MasudaDelegater extends BusinessDelegater {
             // Wrapper
             BufferedReader br = getReader(response);
             ObjectMapper mapper = new ObjectMapper();
+            // 2013/06/24
+            mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             ModuleList result = mapper.readValue(br, ModuleList.class);
             
             if (result!=null) {

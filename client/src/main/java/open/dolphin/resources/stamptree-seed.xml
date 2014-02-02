@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="Shift_JIS" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <stampBox project="open.dolphin" version="1.0">
 <root name="傷病名" role="diagnosis" entity="diagnosis">
 <stampInfo name="エディタから発行..." role="diagnosis" entity="diagnosis" editable="false" memo="傷病名エディタ" />

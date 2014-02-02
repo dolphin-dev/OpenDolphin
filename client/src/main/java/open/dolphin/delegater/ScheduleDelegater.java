@@ -14,6 +14,8 @@ import open.dolphin.infomodel.PatientVisitList;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.infomodel.PostSchedule;
 import open.dolphin.util.BeanUtils;
+import open.dolphin.util.Log;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
@@ -50,10 +52,14 @@ public class ScheduleDelegater extends BusinessDelegater {
         sb.append(RES_SCHEDULE).append("/pvt/");
         sb.append(pvtPK).append(",").append(ptPK).append(",").append(startDate);
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // DELETE
         ClientRequest request = getRequest(path);
         ClientResponse<String> response = request.delete(String.class);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
 
         // Check
         checkStatus(response);
@@ -68,15 +74,22 @@ public class ScheduleDelegater extends BusinessDelegater {
         StringBuilder sb = new StringBuilder();
         sb.append(RES_SCHEDULE).append("/pvt/").append(pvtDate);
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
         ClientResponse<String> response = request.get(String.class);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         PatientVisitList result = mapper.readValue(br, PatientVisitList.class);
         
         // Decode
@@ -87,6 +100,7 @@ public class ScheduleDelegater extends BusinessDelegater {
                 if (pm.getFirstInsurance()==null && pm.getPatientModel().getPvtHealthInsurances()!=null) {
                     PVTHealthInsuranceModel h = pm.getPatientModel().getPvtHealthInsurances().get(0);
                     pm.setFirstInsurance(h.toString());
+                    Log.outputFuncLog(Log.LOG_LEVEL_0,"I","PvtList",h.toString());
                 }
             }
         }
@@ -102,15 +116,21 @@ public class ScheduleDelegater extends BusinessDelegater {
         sb.append(unassignedId).append(",");
         sb.append(pvtDate);
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
         ClientResponse<String> response = request.get(String.class);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         PatientVisitList result = mapper.readValue(br, PatientVisitList.class);
         
         // Decode
@@ -121,6 +141,7 @@ public class ScheduleDelegater extends BusinessDelegater {
                 if (pm.getFirstInsurance()==null && pm.getPatientModel().getPvtHealthInsurances()!=null) {
                     PVTHealthInsuranceModel h = pm.getPatientModel().getPvtHealthInsurances().get(0);
                     pm.setFirstInsurance(h.toString());
+                    Log.outputFuncLog(Log.LOG_LEVEL_0,"I","PvtList",h.toString());
                 }
             }
         }
@@ -131,8 +152,11 @@ public class ScheduleDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/schedule/document";
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
          // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(ps);
         byte[] data = json.getBytes(UTF8);
         
@@ -140,6 +164,9 @@ public class ScheduleDelegater extends BusinessDelegater {
         ClientRequest request = getRequest(path);
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.post(String.class);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         String entityStr = getString(response);
         return Integer.parseInt(entityStr);
     }

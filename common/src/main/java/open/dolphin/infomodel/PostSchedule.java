@@ -3,7 +3,7 @@ package open.dolphin.infomodel;
 import java.util.Date;
 
 /**
- * 
+ * (予定カルテ対応)
  * @author kazushi Minagawa.
  */
 public class PostSchedule {

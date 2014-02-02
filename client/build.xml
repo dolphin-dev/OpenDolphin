@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="project" default="all" basedir="/Users/oh/Develop/Dolphin/Develop/OpenDolphinPro-V1.4/modules">
+<project name="project" default="all" basedir="/Users/oh/Develop/Dolphin/Develop/OpenDolphinPro/modules">
     
     <property name="jarDir" location="${basedir}/jar"/>
-    <property name="jnlpDir" location="${basedir}/win"/>
-    <property name="objDir" location="/Users/oh/Develop/Dolphin/Develop/OpenDolphinPro-V1.4/dolphin-dev/OpenDolphin/client/target"/>
+    <property name="jnlpDir" location="${basedir}/dolphin"/>
+    <property name="objDir" location="/Users/oh/Develop/Dolphin/Develop/OpenDolphinPro/dolphin-dev/OpenDolphin/client/target"/>
     
     <target name="clean">
         <delete dir="${jarDir}/open"/>
@@ -12,16 +12,16 @@
     
     <target name="copy">
         <copy file="${objDir}/OpenDolphin.jar" tofile="${jarDir}/OpenDolphin.jar"/>
-        <copy file="${objDir}/lib/opendolphin-common-2.3.1.jar" tofile="${jarDir}/opendolphin-common-2.3.1.jar"/>
+        <copy file="${objDir}/lib/opendolphin-common-2.5.0.jar" tofile="${jarDir}/opendolphin-common-2.5.0.jar"/>
     </target>
     
     <target name="unjar">
-        <unjar src="${jarDir}/opendolphin-common-2.3.1.jar" dest="${jarDir}"/>
+        <unjar src="${jarDir}/opendolphin-common-2.5.0.jar" dest="${jarDir}"/>
         <unjar src="${jarDir}/OpenDolphin.jar" dest="${jarDir}"/>
     </target>
     
     <target name="clean2">
-        <delete file="${jarDir}/opendolphin-common-2.3.1.jar"/>
+        <delete file="${jarDir}/opendolphin-common-2.5.0.jar"/>
         <delete file="${jarDir}/OpenDolphin.jar"/>
         <delete file="${jarDir}/META-INF/MANIFEST.MF"/>
         <delete file="${jarDir}/META-INF/jboss.xml"/>
@@ -30,7 +30,12 @@
     </target>
     
     <target name="jar">
-        <jar destfile="${jarDir}/OpenDolphin.jar" basedir="${jarDir}"/>
+        <jar destfile="${jarDir}/OpenDolphin.jar" basedir="${jarDir}">
+            <manifest>
+                <attribute name="Main-Class" value="open.dolphin.client.Dolphin"/>
+                <attribute name="Permissions" value="all-permissions"/>
+            </manifest>
+        </jar>
     </target>
   
     <target name="sign">

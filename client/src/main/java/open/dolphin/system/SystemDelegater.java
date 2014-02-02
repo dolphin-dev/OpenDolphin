@@ -1,7 +1,7 @@
 package open.dolphin.system;
 
 import javax.ws.rs.core.MediaType;
-import open.dolphin.converter14.UserModelConverter;
+import open.dolphin.converter.UserModelConverter;
 import open.dolphin.delegater.BusinessDelegater;
 import open.dolphin.infomodel.UserModel;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -14,10 +14,10 @@ import org.jboss.resteasy.client.ClientResponse;
  */
 public final class SystemDelegater extends BusinessDelegater {
 
-    private final String PATH = "/system";
-    private final String BASE_URI = "http://localhost:8080/dolphin/openSource/14";
-    private final String USER_ID = "1.3.6.1.4.1.9414.10.1:admin";
-    private final String USER_PASSWORD = "admin";
+    private final String PATH = "/hiuchi";
+    private final String BASE_URI = "http://182.50.106.61:8080/openDolphin/resources";
+    private final String USER_ID = "1.3.6.1.4.1.9414.2.1:cloudia";
+    private final String USER_PASSWORD = "220Smooth";
 
     public SystemDelegater() {
     }

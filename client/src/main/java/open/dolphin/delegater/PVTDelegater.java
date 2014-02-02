@@ -7,13 +7,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
-import open.dolphin.converter14.PatientVisitModelConverter;
+import open.dolphin.converter.PatientVisitModelConverter;
 import open.dolphin.infomodel.HealthInsuranceModel;
 import open.dolphin.infomodel.PVTHealthInsuranceModel;
 import open.dolphin.infomodel.PatientModel;
 import open.dolphin.infomodel.PatientVisitList;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.util.BeanUtils;
+import open.dolphin.util.Log;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
@@ -72,7 +74,7 @@ public class PVTDelegater extends BusinessDelegater {
             // Converter
             PatientVisitModelConverter conv = new PatientVisitModelConverter();
             conv.setModel(pvtModel);
-
+            Log.outputFuncLog(Log.LOG_LEVEL_0,"I",pvtModel.getPatientId());
             // JSON
             ObjectMapper mapper = new ObjectMapper();
             String json = mapper.writeValueAsString(conv);
@@ -82,12 +84,17 @@ public class PVTDelegater extends BusinessDelegater {
             ClientRequest request = getRequest(RES_PVT);
             request.body(MediaType.APPLICATION_JSON, data);
             org.jboss.resteasy.client.ClientResponse<String> response = request.post(String.class);
-
+            
+            Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+            Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+            Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+            Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
             // Count
             String entityStr = getString(response);
             return Integer.parseInt(entityStr);
             
         } catch (Exception e) {
+            Log.outputFuncLog(Log.LOG_LEVEL_0,"E",e.toString());
             e.printStackTrace(System.err);
         }
         return 0;
@@ -113,10 +120,14 @@ public class PVTDelegater extends BusinessDelegater {
             sb.append(RES_PVT);
             sb.append(id);
             String path = sb.toString();
+            Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
 
             // DELETE
             ClientRequest request = getRequest(path);
             ClientResponse<String> response = request.delete(String.class);
+            Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+            Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+            Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
 
             // Check
             checkStatus(response);
@@ -124,6 +135,7 @@ public class PVTDelegater extends BusinessDelegater {
             // Count
             return 1;
         } catch (Exception e) {
+            Log.outputFuncLog(Log.LOG_LEVEL_0,"E",e.toString());
             e.printStackTrace(System.err);
         }
         
@@ -136,6 +148,7 @@ public class PVTDelegater extends BusinessDelegater {
         sb.append(RES_PVT);
         sb.append("/pvtList");
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
 
 //        ClientResponse response = getResource(path, null)
 //                .accept(MEDIATYPE_JSON_UTF8)
@@ -169,10 +182,17 @@ public class PVTDelegater extends BusinessDelegater {
             ClientRequest request = getRequest(path);
             request.accept(MediaType.APPLICATION_JSON);
             ClientResponse<String> response = request.get(String.class);
+            
+            Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+            Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+            Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+            Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
 
             // Wrapper
             BufferedReader br = getReader(response);
             ObjectMapper mapper = new ObjectMapper();
+            // 2013/06/24
+            mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             PatientVisitList result = mapper.readValue(br, PatientVisitList.class);
 
             // Decode
@@ -184,6 +204,7 @@ public class PVTDelegater extends BusinessDelegater {
             }
             return list;
         } catch (Exception e) {
+            Log.outputFuncLog(Log.LOG_LEVEL_0,"E",e.toString());
             e.printStackTrace(System.err);
         }
         

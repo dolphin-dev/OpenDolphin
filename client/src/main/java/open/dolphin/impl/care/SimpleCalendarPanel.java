@@ -20,6 +20,7 @@ import open.dolphin.client.*;
 import open.dolphin.infomodel.AppointmentModel;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.infomodel.ModuleModel;
+import open.dolphin.util.Log;
 import open.dolphin.util.MMLDate;
 
 
@@ -569,6 +570,7 @@ public final class SimpleCalendarPanel extends JPanel implements DragGestureList
         // 本日以前
         if (evt.before(today)) {
             e.getDropTargetContext().dropComplete(false);
+            Log.outputOperLogOper(context, Log.LOG_LEVEL_0, "本日以前の日付が選択されました。", evt.getDisplayDate());
             return;
         }
         
@@ -587,6 +589,7 @@ public final class SimpleCalendarPanel extends JPanel implements DragGestureList
         }
         
         processAppoint(row, col, source.getName(), source.getMemo());
+        Log.outputOperLogOper(context, Log.LOG_LEVEL_0, "予約されました。", evt.getDisplayDate(), source.getName(), source.getMemo());
         
         e.getDropTargetContext().dropComplete(true);
     }

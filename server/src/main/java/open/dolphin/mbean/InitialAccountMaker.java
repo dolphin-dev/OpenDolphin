@@ -23,6 +23,7 @@ import open.dolphin.infomodel.PatientModel;
 import open.dolphin.infomodel.RoleModel;
 import open.dolphin.infomodel.TelephoneModel;
 import open.dolphin.infomodel.UserModel;
+import open.orca.rest.ORCAConnection;
 
 /**
  * Updator
@@ -33,9 +34,8 @@ import open.dolphin.infomodel.UserModel;
 @Singleton
 public class InitialAccountMaker {
 
-// minagawa^ DolphinProサポートで運用するためかなり勝ってに変更    
     private static final String MEMBER_TYPE = "FACILITY_USER";
-    private static final String DEFAULT_FACILITY_OID = "1.3.6.1.4.1.9414.10.1";
+    private static final String DEFAULT_FACILITY_OID = "1.3.6.1.4.1.9414.70.1";
     private static final String DEFAULT_FACILITY_NAME = "クリニック";
     private static final String ADMIN_USER = "admin";
     private static final String ADMIN_PASS_MD5 = "21232f297a57a5a743894a0e4a801fc3";    // admin
@@ -44,11 +44,16 @@ public class InitialAccountMaker {
 
     private static final boolean DEVELOPMENT = true;
     
+    private static final String UPDATE_MEMO     = "Initial user registered.";
+    private static final String NO_UPDATE_MEMO  = "User account exists.";
+    
     @PersistenceContext
     private EntityManager em;
     
-    @Resource(mappedName="java:jboss/datasources/OrcaDS")
-    private DataSource ds;
+//minagawa^ 2013/08/29
+    //@Resource(mappedName="java:jboss/datasources/OrcaDS")
+    //private DataSource ds;
+//minagawa$
     
     @PostConstruct
     public void init() {
@@ -56,17 +61,25 @@ public class InitialAccountMaker {
     }
     
     private void start() {
-        
-        long userCount = (Long) em.createQuery("select count(*) from UserModel").getSingleResult();
-        long facilityCount = (Long) em.createQuery("select count(*) from FacilityModel").getSingleResult();
-        
-        // ユーザーも施設情報もない場合のみ初期ユーザーと施設情報を登録する
-        if (userCount == 0 && facilityCount == 0) {
-            addFacilityAdmin();
-            if (DEVELOPMENT) {
-                addDemoPatient();
-            }
-        }
+//        boolean updated = false;
+//        
+//        long userCount = (Long) em.createQuery("select count(*) from UserModel").getSingleResult();
+//        long facilityCount = (Long) em.createQuery("select count(*) from FacilityModel").getSingleResult();
+//        
+//        // ユーザーも施設情報もない場合のみ初期ユーザーと施設情報を登録する
+//        if (userCount == 0 && facilityCount == 0) {
+//            addFacilityAdmin();
+//            if (DEVELOPMENT) {
+//                addDemoPatient();
+//            }
+//            updated = true;
+//        }
+//        
+//        if (updated) {
+//            Logger.getLogger("open.dolphin").info(UPDATE_MEMO);
+//        } else {
+//            Logger.getLogger("open.dolphin").info(NO_UPDATE_MEMO);
+//        }
         
         Properties config = new Properties();
         
@@ -87,7 +100,10 @@ public class InitialAccountMaker {
             String conn = config.getProperty("claim.conn");
             String addr = config.getProperty("claim.host");
             if (conn!=null && conn.equals("server") && addr!=null) {
-                Connection con = ds.getConnection();
+//minagawa^ 2013/08/29
+                //Connection con = ds.getConnection();
+                Connection con = ORCAConnection.getInstance().getConnection();
+//minagawa$
                 con.close();
             }
         } catch (Exception e) {
@@ -183,5 +199,4 @@ public class InitialAccountMaker {
         karte.setCreated(new Date());
         em.persist(karte);
     }
-//minagawa$    
 }

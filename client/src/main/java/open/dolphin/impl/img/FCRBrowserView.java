@@ -40,6 +40,8 @@ public class FCRBrowserView extends javax.swing.JPanel {
         fcrImageBtn = new javax.swing.JButton();
         fcrTodayBtn = new javax.swing.JButton();
 
+        dirLbl.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/resources/images/about_16.gif"))); // NOI18N
+
         refreshBtn.setText("更新");
 
         settingBtn.setText("設定");
@@ -82,7 +84,7 @@ public class FCRBrowserView extends javax.swing.JPanel {
                         .add(refreshBtn)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(settingBtn))
-                    .add(jScrollPane1))
+                    .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 738, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(

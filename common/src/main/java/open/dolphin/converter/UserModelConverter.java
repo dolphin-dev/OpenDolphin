@@ -106,11 +106,9 @@ public final class UserModelConverter implements IInfoModelConverter {
         return model.getOrcaId();
     }
     
-//ヒロクリニック^    
     public String getUseDrugId() {
         return model.getUseDrugId();
     }
-//ヒロクリニック$
     
     @Override
     public void setModel(IInfoModel model) {

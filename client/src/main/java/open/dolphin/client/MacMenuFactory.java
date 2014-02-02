@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.ResourceBundle;
 import javax.swing.*;
 import open.dolphin.helper.MenuSupport;
+import open.dolphin.project.Project;
 
 /**
  * Menu Factory for Mac. 
@@ -701,6 +702,57 @@ public class MacMenuFactory extends AbstractMenuFactory {
             }
         };
         map.put("showAbout", showAbout);
+        
+//s.oh^ テキストの挿入 2013/08/12
+        text = resource.getString("soapane.Action.text");
+        icon = ClientContext.getImageIconArias(resource.getString("soapane.Action.icon"));
+        AbstractAction insertSOAText = new AbstractAction(text, icon) {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                chart.sendToChain("insertSOAText");
+            }
+        };
+        map.put("insertSOAText", insertSOAText);
+        
+        text = resource.getString("ppane.Action.text");
+        icon = ClientContext.getImageIconArias(resource.getString("ppane.Action.icon"));
+        AbstractAction insertPText = new AbstractAction(text, icon) {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                chart.sendToChain("insertPText");
+            }
+        };
+        map.put("insertPText", insertPText);
+//s.oh$
+        
+//s.oh^ 他プロセス連携(アイコン) 2013/10/21
+        text = resource.getString("ppane.Action.text");
+        icon = ClientContext.getImageIconArias(resource.getString("ppane.Action.icon"));
+        AbstractAction otherProcessIcon1Link = new AbstractAction(text, icon) {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                chart.sendToChain("otherProcessIcon1Link");
+            }
+        };
+        map.put("otherProcessIcon1Link", otherProcessIcon1Link);
+        
+        AbstractAction otherProcessIcon2Link = new AbstractAction(text, icon) {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                chart.sendToChain("otherProcessIcon2Link");
+            }
+        };
+        map.put("otherProcessIcon2Link", otherProcessIcon2Link);
+        
+
+        AbstractAction otherProcessIcon3Link = new AbstractAction(text, icon) {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                chart.sendToChain("otherProcessIcon3Link");
+            }
+        };
+        map.put("otherProcessIcon3Link", otherProcessIcon3Link);
+//s.oh$
     }
     
     @Override
@@ -811,12 +863,16 @@ public class MacMenuFactory extends AbstractMenuFactory {
         //----------------
         // 削除
         //----------------
-        JMenuItem delete = new JMenuItem();
-        delete.setName("delete");
-        delete.setAction(actionMap.get("delete"));
-        file.add(delete);
-        
-        file.add(new JSeparator());
+//s.oh^ 2013/09/05
+        if(Project.getBoolean("delete.karte.enable", true)) {
+//s.oh$
+            JMenuItem delete = new JMenuItem();
+            delete.setName("delete");
+            delete.setAction(actionMap.get("delete"));
+            file.add(delete);
+
+            file.add(new JSeparator());
+        }
 
         //----------------
         // 印刷設定
@@ -942,7 +998,7 @@ public class MacMenuFactory extends AbstractMenuFactory {
         //----------------
         // Copy
         //----------------
-        JMenuItem copy = new JMenuItem();
+/*        JMenuItem copy = new JMenuItem();
         copy.setName("copy");
         copy.setAction(actionMap.get("copy"));
         setAccelerator(copy, KeyEvent.VK_C);
@@ -957,7 +1013,7 @@ public class MacMenuFactory extends AbstractMenuFactory {
             copyBtn.setFocusable(false);
             copyBtn.setBorderPainted(false);
             toolBar.add(copyBtn);
-        }
+        }*/
 
         //----------------
         // Paste

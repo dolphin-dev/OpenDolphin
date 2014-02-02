@@ -2,11 +2,25 @@ package open.dolphin.delegater;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import open.dolphin.client.ClientContext;
 import open.dolphin.exception.FirstCommitWinException;
 import open.dolphin.project.Project;
 import open.dolphin.util.HashUtil;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -29,10 +43,52 @@ public class BusinessDelegater {
     protected static final String DATE_TIME_FORMAT_REST = "yyyy-MM-dd HH:mm:ss";
     protected static final String USER_NAME = "userName";
     protected static final String PASSWORD = "password";
+    protected static Scheme scheme;
     
     static {
         try {
             RegisterBuiltin.register(ResteasyProviderFactory.getInstance());
+            
+            X509TrustManager xtm = new X509TrustManager() {
+
+                @Override
+                public void checkClientTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                }
+
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+            };
+            X509HostnameVerifier verifier = new X509HostnameVerifier() {
+
+                @Override
+                public void verify(String string, SSLSocket ssls) throws IOException {
+                }
+
+                @Override
+                public void verify(String string, X509Certificate xc) throws SSLException {
+                }
+
+                @Override
+                public void verify(String string, String[] strings, String[] strings1) throws SSLException {
+                }
+
+                @Override
+                public boolean verify(String string, SSLSession ssls) {
+                    return true;
+                }
+            };
+            
+            SSLContext ctx = SSLContext.getInstance("TLS");
+            ctx.init(null, new TrustManager[]{xtm}, null);
+            SSLSocketFactory ssf = new SSLSocketFactory(ctx, verifier);
+            scheme = new Scheme("https",443,ssf);
+            
         } catch (Exception e) {
             e.printStackTrace(System.err);
         }
@@ -131,7 +187,19 @@ public class BusinessDelegater {
         DefaultHttpClient defaultHttpClient;
 
         try {
-            defaultHttpClient = new DefaultHttpClient();
+//minagawa^            
+            //if (!ClientContext.isOpenDolphin()) {
+            if (!ClientContext.isSelfCertTest()) {
+//minagawa$                
+               defaultHttpClient = new DefaultHttpClient();
+            } else {
+                DefaultHttpClient base = new DefaultHttpClient();
+                ClientConnectionManager ccm = base.getConnectionManager();
+                SchemeRegistry sr = ccm.getSchemeRegistry();
+                sr.register(scheme);
+
+                defaultHttpClient = new DefaultHttpClient(ccm, base.getParams());
+            }
             HttpParams params = defaultHttpClient.getParams();
             HttpConnectionParams.setConnectionTimeout(params, 20 * 1000);
             HttpConnectionParams.setSoTimeout(params, Integer.MAX_VALUE);

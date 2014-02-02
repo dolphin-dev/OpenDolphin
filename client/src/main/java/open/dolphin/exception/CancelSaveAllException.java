@@ -2,7 +2,7 @@ package open.dolphin.exception;
 
 /**
  * DolphinException
- *
+ * (予定カルテ対応)
  * 
  * @author  Kazushi Minagawa
  */

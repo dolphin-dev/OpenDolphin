@@ -16,6 +16,7 @@ import open.dolphin.client.SchemaEditor;
 import open.dolphin.infomodel.ExtRefModel;
 import open.dolphin.infomodel.SchemaModel;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  *
@@ -217,6 +218,8 @@ public class SchemaEditorImpl implements SchemaEditor {
         int height = canvas.getPreferredSize().height + 150;
         int width = view.getPreferredSize().width;
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+        if(dim.width < width) width = dim.width;
+        if(dim.height < height) height = dim.height;
         int offsetX = (dim.width - width) / 2;
         int offsetY = (dim.height - height) / 2;
         view.setBounds(offsetX, offsetY, width, height);
@@ -1100,11 +1103,14 @@ public class SchemaEditorImpl implements SchemaEditor {
         @Override
         public void mouseDown(Point p) {
             inputText = JOptionPane.showInputDialog(view, "テキストを入力してください。");
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "テキストを入力してください。");
             if (inputText != null) {
+                Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "OK", inputText);
                 start = p;
                 end = null;
                 canvas.repaint();
             } else {
+                Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "キャンセル");
                 start = null;
                 end = null;
             }

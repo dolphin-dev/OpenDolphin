@@ -7,9 +7,11 @@ package open.dolphin.impl.lbtest;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
@@ -27,6 +29,8 @@ import open.dolphin.client.ClientContext;
 import open.dolphin.infomodel.LabTestRowObject;
 import open.dolphin.infomodel.LabTestValueObject;
 import open.dolphin.letter.AbstractLetterPDFMaker;
+import open.dolphin.letter.KartePDFImpl2;
+import open.dolphin.project.Project;
 import open.dolphin.table.ListTableModel;
 import org.jfree.chart.JFreeChart;
 
@@ -192,7 +196,10 @@ public class LaboTestOutputPDF extends AbstractLetterPDFMaker {
                 }
                 if(col == 0) {
                     if(rowObj != null) {
-                        addData(labo, font, rowObj.getItemName(), cellColor);
+//s.oh^ 2013/07/30 項目に単位を追加
+                        //addData(labo, font, rowObj.getItemName(), cellColor);
+                        addData(labo, font, rowObj.getItemName() + "(" + rowObj.getUnit() + ")", cellColor);
+//s.oh$
                     }else{
                         addData(labo, font, "", cellColor);
                     }
@@ -255,58 +262,73 @@ public class LaboTestOutputPDF extends AbstractLetterPDFMaker {
      */
     public static void printPDF(String pdfFileName) {
         if(pdfFileName == null) return;
-        // ダイアログ表示(プロパティ等は選択できない)
-        PrintRequestAttributeSet pras = new HashPrintRequestAttributeSet();
-        DocFlavor flavor = DocFlavor.INPUT_STREAM.AUTOSENSE;
-        PrintService printService[] = PrintServiceLookup.lookupPrintServices(flavor, pras);
-        PrintService defaultService = PrintServiceLookup.lookupDefaultPrintService();
-        if(printService.length > 0) {
-            PrintService service = ServiceUI.printDialog(null, 200, 200, printService, defaultService, flavor, pras);
-            if(service != null) {
-                DocPrintJob job = service.createPrintJob();
-                //DocPrintJob job = defaultService.createPrintJob();
-                //FileOutputStream fis;
-                FileInputStream fis;
-                try {
-                    fis = new FileInputStream(pdfFileName);
-                    DocAttributeSet das = new HashDocAttributeSet();
-                    Doc doc = new SimpleDoc(fis, flavor, das);
-                    //Doc doc = new SimpleDoc(fis, flavor, null);
-                    job.print(doc, pras);
-                    //job.print(doc, null);
-                } catch (FileNotFoundException ex) {
-                    Logger.getLogger(LaboTestOutputPDF.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (PrintException ex) {
-                    Logger.getLogger(LaboTestOutputPDF.class.getName()).log(Level.SEVERE, null, ex);
+//s.oh^ 2013/06/24 印刷対応
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+        //if(Project.getBoolean(Project.KARTE_PRINT_PDF) && Project.getBoolean(Project.KARTE_PRINT_SHOWPDF)) {
+        if((Project.getBoolean(Project.KARTE_PRINT_PDF) && Project.getBoolean(Project.KARTE_PRINT_SHOWPDF)) || Project.getBoolean(Project.LABO_PRINT_SHOWPDF)) {
+//s.oh$
+            File file = new File(pdfFileName);
+            URI uri = file.toURI();
+            try {
+                Desktop.getDesktop().browse(uri);
+            } catch (IOException ex) {
+                Logger.getLogger(KartePDFImpl2.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }else{
+//s.oh$
+            // ダイアログ表示(プロパティ等は選択できない)
+            PrintRequestAttributeSet pras = new HashPrintRequestAttributeSet();
+            DocFlavor flavor = DocFlavor.INPUT_STREAM.AUTOSENSE;
+            PrintService printService[] = PrintServiceLookup.lookupPrintServices(flavor, pras);
+            PrintService defaultService = PrintServiceLookup.lookupDefaultPrintService();
+            if(printService.length > 0) {
+                PrintService service = ServiceUI.printDialog(null, 200, 200, printService, defaultService, flavor, pras);
+                if(service != null) {
+                    DocPrintJob job = service.createPrintJob();
+                    //DocPrintJob job = defaultService.createPrintJob();
+                    //FileOutputStream fis;
+                    FileInputStream fis;
+                    try {
+                        fis = new FileInputStream(pdfFileName);
+                        DocAttributeSet das = new HashDocAttributeSet();
+                        Doc doc = new SimpleDoc(fis, flavor, das);
+                        //Doc doc = new SimpleDoc(fis, flavor, null);
+                        job.print(doc, pras);
+                        //job.print(doc, null);
+                    } catch (FileNotFoundException ex) {
+                        Logger.getLogger(LaboTestOutputPDF.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (PrintException ex) {
+                        Logger.getLogger(LaboTestOutputPDF.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
+            // ダイアログ非表示
+            /*
+            // docフレーバを設定
+            DocFlavor flavor = DocFlavor.INPUT_STREAM.AUTOSENSE;
+            // 印刷要求属性を設定
+            PrintRequestAttributeSet requestAttributes =
+            new HashPrintRequestAttributeSet();
+            requestAttributes.add(new Copies(3));
+            requestAttributes.add(MediaSizeName.ISO_A4);
+            // 印刷サービスを検出
+            PrintService services =
+            PrintServiceLookup.lookupDefaultPrintService();
+            // 印刷ジョブを作成
+            DocPrintJob job = services.createPrintJob();
+            try {
+                // docオブジェクトを生成
+                FileInputStream data = new FileInputStream("E:\\00001.pdf");
+                DocAttributeSet docAttributes = new HashDocAttributeSet();
+                Doc doc = new SimpleDoc(data, flavor, docAttributes);
+                // 印刷
+                job.print(doc, requestAttributes);
+            }catch (IOException e) {
+                e.printStackTrace();
+            }catch (PrintException e) {
+                e.printStackTrace();
+            }
+            */
         }
-        // ダイアログ非表示
-        /*
-        // docフレーバを設定
-        DocFlavor flavor = DocFlavor.INPUT_STREAM.AUTOSENSE;
-        // 印刷要求属性を設定
-        PrintRequestAttributeSet requestAttributes =
-        new HashPrintRequestAttributeSet();
-        requestAttributes.add(new Copies(3));
-        requestAttributes.add(MediaSizeName.ISO_A4);
-        // 印刷サービスを検出
-        PrintService services =
-        PrintServiceLookup.lookupDefaultPrintService();
-        // 印刷ジョブを作成
-        DocPrintJob job = services.createPrintJob();
-        try {
-            // docオブジェクトを生成
-            FileInputStream data = new FileInputStream("E:\\00001.pdf");
-            DocAttributeSet docAttributes = new HashDocAttributeSet();
-            Doc doc = new SimpleDoc(data, flavor, docAttributes);
-            // 印刷
-            job.print(doc, requestAttributes);
-        }catch (IOException e) {
-            e.printStackTrace();
-        }catch (PrintException e) {
-            e.printStackTrace();
-        }
-        */
     }
 }

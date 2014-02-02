@@ -75,9 +75,11 @@ public class KarteRenderer_2 {
     
     private static final String PROGRESS_COURSE_NAME = "kartePane";
     
-    private static final String[] REPLACES = new String[] { "<", ">", "&", "'" ,"\""};
+    //private static final String[] REPLACES = new String[] { "<", ">", "&", "'" ,"\""};
+    private static final String[] REPLACES = new String[] { "&", "<", ">", "'" ,"\""};
     
-    private static final String[] MATCHES = new String[] { "&lt;", "&gt;", "&amp;", "&apos;", "&quot;" };
+    //private static final String[] MATCHES = new String[] { "&lt;", "&gt;", "&amp;", "&apos;", "&quot;" };
+    private static final String[] MATCHES = new String[] { "&amp;", "&lt;", "&gt;", "&apos;", "&quot;" };
     
     private static final String NAME_STAMP_HOLDER = "name=\"stampHolder\"";
     

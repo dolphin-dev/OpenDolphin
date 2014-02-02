@@ -8,6 +8,7 @@ import open.dolphin.message.DiseaseHelper;
 import open.dolphin.message.MessageBuilder;
 import open.dolphin.project.Project;
 import open.dolphin.util.GUIDGenerator;
+import open.dolphin.util.Log;
 import org.apache.log4j.Level;
 
 /**
@@ -77,6 +78,12 @@ public class DiagnosisSender implements IDiagnosisSender {
         if (!send) {
             return;
         }
+        
+//s.oh^ 2013/12/10 傷病名のCLAIM送信する／しない
+        if(!Project.getBoolean("diagnosis.claim.send", true)) {
+            return;
+        }
+//s.oh$
 
         // DocInfo & RD をカプセル化したアイテムを生成する
         ArrayList<DiagnosisModuleItem> moduleItems = new ArrayList<DiagnosisModuleItem>();
@@ -135,10 +142,11 @@ public class DiagnosisSender implements IDiagnosisSender {
         event.setClaimInstance(claimMessage);
         event.setConfirmDate(confirmDate);
 
-        // debug 出力を行う
-        if (ClientContext.getClaimLogger() != null) {
-            ClientContext.getClaimLogger().debug(event.getClaimInsutance());
-        }
+        //// debug 出力を行う
+        //if (ClientContext.getClaimLogger() != null) {
+        //    ClientContext.getClaimLogger().debug(event.getClaimInsutance());
+        //}
+        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, event.getClaimInsutance());
 
         if (claimListener != null) {
             claimListener.claimMessageEvent(event);

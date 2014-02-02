@@ -25,6 +25,7 @@ public class AreaNetWorkSettingPanel extends AbstractSettingPanel {
     private static final String ID = "areaNetwork";
     private static final String TITLE = "地域連携";
 //minagawa^ Icon Server    
+    //private static final String ICON = "web_16.gif";
     private static final String ICON = "icon_world_small";
 //minagawa$    
     

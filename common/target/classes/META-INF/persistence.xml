@@ -3,9 +3,11 @@
   <persistence-unit name="opendolphinPU" transaction-type="JTA">
     <provider>org.hibernate.ejb.HibernatePersistence</provider>
     <jta-data-source>java:jboss/datasources/PostgresDS</jta-data-source>
+    <!--<jta-data-source>java:jboss/datasources/DerbyDS</jta-data-source>-->
     <exclude-unlisted-classes>false</exclude-unlisted-classes>
     <properties>
       <property name="hibernate.hbm2ddl.auto" value="update"/>
+      <!--<property name="hibernate.dialect" value="org.hibernate.dialect.DerbyDialect"/>-->
     </properties>
   </persistence-unit>
 </persistence>

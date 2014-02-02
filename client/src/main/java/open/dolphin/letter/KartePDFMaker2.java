@@ -48,6 +48,8 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
     private boolean bCreating;                          // Creating paragraph
     private boolean bInitialized;                       // Initialized PDF
     private String docID;                               // Karte ID
+    
+    private boolean border;                             // Border   // Attachment追加
 
     /**
      * コンストラクタ
@@ -284,13 +286,27 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
     }
     
     /**
+     * Attachment追加
+     * @param border 
+     */
+    public void setBorder(boolean border) {
+        this.border = border;
+    }
+    
+    /**
      * データ(行)の終わり
      */
     public void addDataEnd() {
         if(bInitialized == false) return;
         PdfPCell cell = new PdfPCell(pdfParagraph);
         cell.setVerticalAlignment(Element.ALIGN_CENTER);
-        cell.setBorder(Rectangle.NO_BORDER);
+        // Attachment追加
+        //cell.setBorder(Rectangle.NO_BORDER);
+        if(border) {
+            border = false;
+        }else{
+            cell.setBorder(Rectangle.NO_BORDER);
+        }
         cell.setPadding(4f);
         cell.setHorizontalAlignment(paragraphAlign);
         if(getKarteMode() == KM_SOA) {

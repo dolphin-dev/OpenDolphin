@@ -18,6 +18,7 @@ import open.dolphin.client.AutoRomanListener;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.GUIFactory;
 import open.dolphin.client.NameValuePair;
+import open.dolphin.client.RegexConstrainedDocument;
 import open.dolphin.helper.GridBagBuilder;
 
 /**
@@ -30,6 +31,7 @@ public class KarteSettingPanel extends AbstractSettingPanel {
     private static final String ID = "karteSetting";
     private static final String TITLE = "カルテ";
 //minagawa^ Icon Server    
+    //private static final String ICON = "hist_16.gif";
     private static final String ICON = "icon_karte_settings_small";
 //minagawa$    
     
@@ -117,11 +119,19 @@ public class KarteSettingPanel extends AbstractSettingPanel {
     private JRadioButton printNormal;
     private JRadioButton printPdf;
     private JCheckBox printDirect;
+//s.oh^ 2013/06/24 印刷対応
+    private JCheckBox printShowPdf;
+//s.oh$
 //s.oh$
     
 //minagawa^ Schedule On/Off
     private JCheckBox useScheduleKarte;
 //minagawa$    
+    
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+    private JTextField printPdfTextSize;
+    private JCheckBox printLaboPdf;
+//s.oh$
     
     private KarteModel model;
     private boolean ok = true;
@@ -264,6 +274,14 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         printNormal = new JRadioButton("Windows印刷");
         printPdf = new JRadioButton("Windows/Mac印刷");
         printDirect = new JCheckBox("Windows/Mac印刷を選択した場合、印刷ダイアログを表示しない");
+//s.oh^ 2013/06/24 印刷対応
+        printShowPdf = new JCheckBox("Windows/Mac印刷を選択した場合、印刷せずにPDFの表示を行う");
+//s.oh$
+//s.oh$
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+        printPdfTextSize = new JTextField(10);
+        printPdfTextSize.setDocument(new RegexConstrainedDocument("[0-9]*", 2));
+        printLaboPdf = new JCheckBox("PDF変換");
 //s.oh$
         
         // ２号カルテ文字サイズ
@@ -667,11 +685,39 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         row = 0;
         gbb.add(printDirect, 0, row, 2, 1, GridBagConstraints.WEST);
         JPanel dialogP = gbb.getProduct();
+        
+//s.oh^ 2013/06/24 印刷対応
+        gbb = new GridBagBuilder("PDF");
+        row = 0;
+        gbb.add(printShowPdf, 0, row, 2, 1, GridBagConstraints.WEST);
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+        row++;
+        label = new JLabel("デフォルト文字サイズ:", SwingConstants.RIGHT);
+        gbb.add(label, 0, row, 1, 1, GridBagConstraints.EAST);
+        gbb.add(printPdfTextSize, 1, row, 1, 1, GridBagConstraints.WEST);
+//s.oh$
+        JPanel dialogS = gbb.getProduct();
+//s.oh$
+        
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+        gbb = new GridBagBuilder("ラボテストのリスト印刷");
+        row = 0;
+        gbb.add(printLaboPdf, 0, row, 2, 1, GridBagConstraints.WEST);
+        JPanel dialogL = gbb.getProduct();
+//s.oh$
 
         gbb = new GridBagBuilder();
         gbb.add(kindP,            0, 0, GridBagConstraints.HORIZONTAL, 1.0, 0.0);
         gbb.add(dialogP,          0, 1, GridBagConstraints.HORIZONTAL, 1.0, 0.0);
-        gbb.add(new JLabel("　"), 0, 2, GridBagConstraints.BOTH, 1.0, 1.0);
+//s.oh^ 2013/06/24 印刷対応
+        //gbb.add(new JLabel("　"), 0, 2, GridBagConstraints.BOTH, 1.0, 1.0);
+        gbb.add(dialogS,          0, 2, GridBagConstraints.HORIZONTAL, 1.0, 0.0);
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+        //gbb.add(new JLabel("　"), 0, 3, GridBagConstraints.BOTH, 1.0, 1.0);
+        gbb.add(dialogL,          0, 3, GridBagConstraints.HORIZONTAL, 1.0, 0.0);
+        gbb.add(new JLabel("　"), 0, 4, GridBagConstraints.BOTH, 1.0, 1.0);
+//s.oh$
+//s.oh$
         JPanel printPanel = gbb.getProduct();
         
         bg = new ButtonGroup();
@@ -1012,6 +1058,17 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         printDirect.setSelected(model.isPrintDirect());
         printNormal.setSelected(!model.isPrintPdf());
         printPdf.setSelected(model.isPrintPdf());
+//s.oh^ 2013/06/24 印刷対応
+        printShowPdf.setSelected(model.isPrintShowPdf());
+//s.oh$
+//s.oh$
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+        if(model.getPrintPdfTextSize() != null && !model.getPrintPdfTextSize().startsWith("0")) {
+            printPdfTextSize.setText(model.getPrintPdfTextSize());
+        }else{
+            printPdfTextSize.setText("12");
+        }
+        printLaboPdf.setSelected(model.isPrintLaboPdf());
 //s.oh$
     }
 
@@ -1160,6 +1217,13 @@ public class KarteSettingPanel extends AbstractSettingPanel {
 //s.oh^ 2013/02/07 印刷対応
         model.setPrintDirect(printDirect.isSelected());
         model.setPrintPdf(printPdf.isSelected());
+//s.oh^ 2013/06/24 印刷対応
+        model.setPrintShowPdf(printShowPdf.isSelected());
+//s.oh$
+//s.oh$
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+        model.setPrintPdfTextSize(printPdfTextSize.getText().trim());
+        model.setPrintLaboPdf(printLaboPdf.isSelected());
 //s.oh$
     }
 
@@ -1228,6 +1292,13 @@ public class KarteSettingPanel extends AbstractSettingPanel {
 //s.oh^ 2013/02/07 印刷対応
         private boolean printPdf;
         private boolean printDirect;
+//s.oh^ 2013/06/24 印刷対応
+        private boolean printShowPdf;
+//s.oh$
+//s.oh$
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+        private String printPdfTextSize;
+        private boolean printLaboPdf;
 //s.oh$
         
 //minagawa^
@@ -1357,6 +1428,13 @@ public class KarteSettingPanel extends AbstractSettingPanel {
 //s.oh^ 2013/02/07 印刷対応
             setPrintDirect(Project.getBoolean(Project.KARTE_PRINT_DIRECT));   // stub.isPrintDirect()
             setPrintPdf(Project.getBoolean(Project.KARTE_PRINT_PDF));   // stub.isPrintPdf()
+//s.oh^ 2013/06/24 印刷対応
+            setPrintShowPdf(Project.getBoolean(Project.KARTE_PRINT_SHOWPDF));   // stub.isPrintShowPdf()
+//s.oh$
+//s.oh$
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+            setPrintPdfTextSize(Project.getString(Project.KARTE_PRINT_PDF_TEXTSIZE));   // stub.getPrintPdfTextSize()
+            setPrintLaboPdf(Project.getBoolean(Project.LABO_PRINT_SHOWPDF));    // stub.isPrintLaboPdf()
 //s.oh$
 //minagawa^ ScheduleKarte On/Off
             setUseScheduleFunc(Project.getBoolean(Project.USE_SCHEDULE_KARTE));
@@ -1467,6 +1545,13 @@ public class KarteSettingPanel extends AbstractSettingPanel {
 //s.oh^ 2013/02/07 印刷対応
             Project.setBoolean(Project.KARTE_PRINT_DIRECT, isPrintDirect());   //stub.setPrintDirect(isPrintDirect());
             Project.setBoolean(Project.KARTE_PRINT_PDF, isPrintPdf());   //stub.setPrintPdf(isPrintPdf());
+//s.oh^ 2013/06/24 印刷対応
+            Project.setBoolean(Project.KARTE_PRINT_SHOWPDF, isPrintShowPdf());  //stub.setPrintPdf(isPrintShowPdf());
+//s.oh$
+//s.oh$
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+            Project.setString(Project.KARTE_PRINT_PDF_TEXTSIZE, getPrintPdfTextSize()); // stub.setPrintPdf(getPrintPdfTextSize());
+            Project.setBoolean(Project.LABO_PRINT_SHOWPDF, isPrintLaboPdf());  //stub.setPrintPdf(isPrintLaboPdf());
 //s.oh$
             
 //minagawa^ ScheduleKarte On/Off
@@ -1784,6 +1869,34 @@ public class KarteSettingPanel extends AbstractSettingPanel {
 
         public void setPrintPdf(boolean b) {
             printPdf = b;
+        }
+        
+//s.oh^ 2013/06/24 印刷対応
+        public boolean isPrintShowPdf() {
+            return printShowPdf;
+        }
+
+        public void setPrintShowPdf(boolean b) {
+            printShowPdf = b;
+        }
+//s.oh$
+//s.oh$
+        
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+        public String getPrintPdfTextSize() {
+            return printPdfTextSize;
+        }
+        
+        public void setPrintPdfTextSize(String size) {
+            printPdfTextSize = size;
+        }
+        
+        public boolean isPrintLaboPdf() {
+            return printLaboPdf;
+        }
+
+        public void setPrintLaboPdf(boolean b) {
+            printLaboPdf = b;
         }
 //s.oh$
         

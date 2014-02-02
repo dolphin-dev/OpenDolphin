@@ -23,10 +23,12 @@ import org.apache.log4j.Logger;
 public class ExtendedStampTreeBuilder {
 
     /** XML文書で置換が必要な文字 */
-    private static final String[] REPLACES = new String[] { "<", ">", "&", "'" ,"\""};
+    //private static final String[] REPLACES = new String[] { "<", ">", "&", "'" ,"\""};
+    private static final String[] REPLACES = new String[] { "&", "<", ">", "'" ,"\""};
     
     /** 置換文字 */
-    private static final String[] MATCHES = new String[] { "&lt;", "&gt;", "&amp;", "&apos;", "&quot;" };
+    //private static final String[] MATCHES = new String[] { "&lt;", "&gt;", "&amp;", "&apos;", "&quot;" };
+    private static final String[] MATCHES = new String[] { "&amp;", "&lt;", "&gt;", "&apos;", "&quot;" };
     
     /** エディタから発行のスタンプ名 */
     private static final String FROM_EDITOR = "エディタから発行...";

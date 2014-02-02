@@ -11,9 +11,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import open.dolphin.utilities.common.Dicom;
 
 /**
@@ -206,5 +211,21 @@ public final class DicomLib extends Dicom {
             }
         }
          */
+        JFrame frame = new JFrame();
+        DicomLib dcmLib = new DicomLib();
+        try {
+            BufferedImage bImage = dcmLib.dcm2Bmp("");
+            if(bImage != null) {
+                ImageIcon icon = new ImageIcon(bImage);
+                JLabel label = new JLabel(icon);
+                frame.getContentPane().add(label);
+            }
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setTitle("DICOM");
+            frame.setSize(500, 500);
+            frame.setVisible(true);
+        } catch (IOException ex) {
+            Logger.getLogger(DicomLib.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

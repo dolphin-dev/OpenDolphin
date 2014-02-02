@@ -229,7 +229,10 @@ public class HL7Falco implements LabResultParser {
      * @param path  書き込み先のパス
      * @return      結果値
      */
-    public int order(PatientModel patient, UserModel creater, List<BundleDolphin> list, String facilityId, String orderNumber, String path) {
+    // S.oh 2013/12/16 Modify Start
+    //public int order(PatientModel patient, UserModel creater, List<BundleDolphin> list, String facilityId, String orderNumber, String path) {
+    public int order(PatientModel patient, UserModel creater, List<BundleDolphin> list, String facilityId, String orderNumber, String path, String orderDate) {
+    // S.oh 2013/12/16 Modify End
 
         HL7OrderSet set = new HL7OrderSet();
         HL7GetParam hl = new HL7GetParam();
@@ -278,7 +281,7 @@ public class HL7Falco implements LabResultParser {
 //        System.err.println(String.valueOf(AgeCalculater.getAge(patient.getBirthday(), 6)));
 //        System.err.println(creater.getDepartmentModel().getDepartmentDesc());
 //        System.err.println("--------------------------");
-
+        set.studyDate = orderDate;
         set.SreceptionIns = facilityId;           //施設名(ORCAと同じ）
         //set.SreceptionIns = "999999999900";           //施設名(ORCAと同じ）
 
@@ -313,7 +316,8 @@ public class HL7Falco implements LabResultParser {
         }
 
         hl.HL7Createdata(set);
-        int nret = hl.HL7WriteFile(path);//HL7ファイル書き込みパス名
+        //20131216@Add set.studydate
+        int nret = hl.HL7WriteFile(path,set.studyDate);//HL7ファイル書き込みパス名
 
         return nret;
     }
@@ -389,6 +393,8 @@ class HL7OrderSet{
     //10桁の医療機関コード＋2桁の医療機関サブコード
     //東京都＋医科＋医療機関コード＋2桁の医療機関サブコード
     //13+1+1234567
+    //20131216@Add 検査実施予定日
+    String studyDate;           //検査実施予定日
     String SreceptionIns;        //送信施設名
     String reciveIns;           //検査センターコード
     String messageprofileId;    //システム名
@@ -1422,10 +1428,23 @@ class HL7SetParam{
         ret = i;
         return(ret);
     }
-    int HL7WriteFile(String path){
+    //20131216@Add String datetime
+    int HL7WriteFile(String path,String datetime){
         int ret =0;
         String FLGFileName = "";
-        HL7FilePath = path+File.separator+CurrentDateTime("YYYYMMDDHHMMSS")+".HL7";
+        String wStudyDate = "";//20131216@Add
+        if(datetime == null){
+            HL7FilePath = path+File.separator+CurrentDateTime("YYYYMMDDHHMMSS")+".HL7";
+        }else{
+            //20131216@Add
+            if(datetime.length() == 8){
+                wStudyDate = CurrentDateTime("YYYYMMDDHHMMSS");
+                wStudyDate = wStudyDate.substring(wStudyDate.length()-6);
+                HL7FilePath = path+File.separator+datetime+wStudyDate+".HL7";
+            }else{
+                HL7FilePath = path+File.separator+datetime+".HL7";
+            }
+        }
         try{
             //.HL7
             File outFile = new File(HL7FilePath);
@@ -1481,7 +1500,7 @@ class HL7SetParam{
         System.out.println(PV1);
         //IN1
         //SPM
-        SPM = HL7SPMCreate();
+        SPM = HL7SPMCreate(set); //200131216@Add ()->set)
         ms.append(SPM).append(cr);
         System.out.println(SPM);
         //SAC
@@ -1662,12 +1681,23 @@ class HL7SetParam{
         return(PV1);
     }
     //SPM
-    String HL7SPMCreate(){
+    String HL7SPMCreate(HL7OrderSet set){
         String SPM = "";
+        String wStudyDate = "";
         HL7SPM_PutParam spm = new HL7SPM_PutParam();
         //上位から設定するもの
-        spm.g.spcollectionDT = CurrentDateTime("YYYYMMDDHHMM"); //とりあえず
-
+        //20131216@Add 検査実施予定日対応
+        if(set.studyDate == null){
+            spm.g.spcollectionDT = CurrentDateTime("YYYYMMDDHHMM"); //とりあえず
+        }else{
+            if(set.studyDate.length() == 8){
+                wStudyDate = CurrentDateTime("YYYYMMDDHHMM");
+                wStudyDate = wStudyDate.substring(wStudyDate.length()-4);
+                spm.g.spcollectionDT = set.studyDate+wStudyDate;
+            }else{
+                spm.g.spcollectionDT = set.studyDate;
+            }
+        }
         //ここで設定するもの
         spm.g.seqNo = "0001";
 

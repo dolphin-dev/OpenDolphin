@@ -27,6 +27,7 @@ public class PatientVisitModel extends InfoModel implements java.io.Serializable
     public static final int BIT_GO_OUT = 5;
     public static final int BIT_CANCEL = 6;
     public static final int BIT_UNFINISHED = 8;
+    public static final int BIT_NOTUPDATE = 9;
 //masuda$
 
     public static final DataFlavor PVT_FLAVOR =

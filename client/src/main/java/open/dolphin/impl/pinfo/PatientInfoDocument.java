@@ -22,6 +22,7 @@ import open.dolphin.infomodel.PVTPublicInsuranceItemModel;
 import open.dolphin.infomodel.PatientModel;
 import open.dolphin.table.StripeTableCellRenderer;
 import open.dolphin.util.AgeCalculater;
+import open.dolphin.util.Log;
 
 /**
  * Documet to show Patient and Health Insurance info.
@@ -160,7 +161,16 @@ public class PatientInfoDocument extends AbstractChartDocument {
             
             @Override
             public void succeeded(Void result) {
+//minagawa^ Chartの close box 押下で保存する場合、保存終了を通知しておしまい。                    
+                // 2013/04/19
+                if (boundSupport!=null) {
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "患者情報", "保存成功", "インスペクタの終了");
+                    setChartDocDidSave(true);
+                    return;
+                }
+//minagawa$                
                 stateMgr.processSavedEvent();
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "患者情報", "保存成功");
             }
         };
         

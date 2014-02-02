@@ -11,6 +11,7 @@ import javax.swing.event.DocumentListener;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.PhysicalModel;
 import open.dolphin.infomodel.SimpleDate;
+import open.dolphin.util.Log;
 
 /**
  * 身長体重データを編集するエディタクラス。
@@ -46,11 +47,20 @@ public class PhysicalEditor {
         }
     }
     
-    private void add() {
+    private boolean add() {
         
         String h = view.getHeightFld().getText().trim();
         String w = view.getWeightFld().getText().trim();
         final PhysicalModel model = new PhysicalModel();
+        
+//        try{
+//            Double.parseDouble(h);
+//            Double.parseDouble(w);
+//        }catch(Exception ex) {
+//            JOptionPane.showMessageDialog(null, "正しい数値を入力してください。", ClientContext.getString("productString"), JOptionPane.INFORMATION_MESSAGE);
+//            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "正しい数値を入力してください。");
+//            return false;
+//        }
 
         if (!h.equals("")) {
             model.setHeight(h);
@@ -65,7 +75,8 @@ public class PhysicalEditor {
             String[] tmp = confirmedStr.split("-");
             if(confirmedStr.length() != 10 || tmp.length != 3) {
                 JOptionPane.showMessageDialog(null, "測定日が正しく入力されていません。（例：2000-01-31）", ClientContext.getString("productString"), JOptionPane.INFORMATION_MESSAGE);
-                return;
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "測定日が正しく入力されていません。（例：2000-01-31）");
+                return false;
             }
             model.setIdentifiedDate(confirmedStr);
         }
@@ -73,6 +84,8 @@ public class PhysicalEditor {
         addBtn.setEnabled(false);
         clearBtn.setEnabled(false);
         inspector.add(model);
+        
+        return true;
     }
     
     private void clear() {
@@ -185,8 +198,9 @@ public class PhysicalEditor {
         addBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                add();
-                dialog.setVisible(false);
+                if(add()) {
+                    dialog.setVisible(false);
+                }
             }
         });
         addBtn.setEnabled(false);

@@ -107,6 +107,9 @@ public final class PVTBuilder {
     private static final String registTime = "registTime";
     private static final String admitFlag = "admitFlag";
     private static final String insuranceUid = "insuranceUid";
+    // 在宅関連(在宅患者登録)
+    private static final String appoint = "appoint";
+    private static final String memo = "memo";
 
     private static final char FULL_SPACE = '　';
     private static final char HALF_SPACE = ' ';
@@ -264,6 +267,11 @@ public final class PVTBuilder {
         }
         
         return model;
+    }
+    
+    // 在宅関連(在宅患者登録)
+    public PVTClaim getPvtClaim() {
+        return pvtClaim;
     }
     
     /**
@@ -702,6 +710,12 @@ public final class PVTBuilder {
         // insuranceUid
         pvtClaim.setInsuranceUid(claimInfo.getAttributeValue(insuranceUid, claim));
         
+        // 在宅関連(在宅患者登録)
+        Element claimAppoint = claimInfo.getChild(appoint, claim);
+        if(claimAppoint != null) {
+            pvtClaim.setClaimAppMemo(claimAppoint.getChildTextTrim(memo, claim));
+        }
+        
         // DEBUG 出力
         if (DEBUG) {
             System.err.println("担当医ID = " + pvtClaim.getAssignedDoctorId());
@@ -741,7 +755,18 @@ public final class PVTBuilder {
             gc2.clear(Calendar.MINUTE);
             gc2.clear(Calendar.SECOND);
             gc2.clear(Calendar.MILLISECOND);
-            return gc1.after(gc2);
+//s.oh^ 2013/05/16 受付不具合修正
+            //return gc1.after(gc2);
+            boolean after = false;
+            if(gc1.get(Calendar.YEAR) > gc2.get(Calendar.YEAR)) {
+                after = true;
+            }else if(gc1.get(Calendar.MONTH) > gc2.get(Calendar.MONTH)) {
+                after = true;
+            }else if(gc1.get(Calendar.DAY_OF_MONTH) > gc2.get(Calendar.DAY_OF_MONTH)) {
+                after = true;
+            }
+            return after;
+//s.oh$
         } catch (ParseException ex) {
         }
         return false;

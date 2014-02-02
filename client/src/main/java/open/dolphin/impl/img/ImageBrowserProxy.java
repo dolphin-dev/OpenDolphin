@@ -7,6 +7,7 @@ import open.dolphin.client.Chart;
 import open.dolphin.client.ChartDocument;
 import open.dolphin.client.ClientContext;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  * ImageBrowser plugin の proxy class.
@@ -70,6 +71,7 @@ public class ImageBrowserProxy implements ChartDocument {
     @Override
     public void save() {
         getBrowser().save();
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, getTitle(), "保存成功。");
     }
 
     @Override
@@ -105,7 +107,7 @@ public class ImageBrowserProxy implements ChartDocument {
 
 //s.oh^ FCR連携/他プロセス連携/ジェネシス連携
             // FCR連携
-            } else if (win && name!=null && name.equals("fcr")) {
+            } else if (name!=null && name.equals("fcr")) {
                 browser = (ChartDocument)create("open.dolphin.impl.img.FCRBrowser");
                 
             // 他プロセス連携

@@ -17,6 +17,7 @@ import open.dolphin.client.GUIFactory;
 import open.dolphin.client.ServerInfo;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.util.HashUtil;
+import open.dolphin.util.Log;
 import org.apache.log4j.Logger;
 
 
@@ -404,6 +405,7 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
                     sb.toString(),
                     AddFacilityDialog.this.getTitle(),
                     JOptionPane.INFORMATION_MESSAGE);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION,  AddFacilityDialog.this.getTitle(), sb.toString());
 
             // サーバアカウント情報を通知する
             ServerInfo info = new ServerInfo();
@@ -421,6 +423,7 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
             String errMsg = cause.getMessage();
             String title = AddFacilityDialog.this.getTitle();
             JOptionPane.showMessageDialog(AddFacilityDialog.this, errMsg, title, JOptionPane.WARNING_MESSAGE);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, errMsg);
         }
 
         protected void interrupted(java.lang.InterruptedException e) {

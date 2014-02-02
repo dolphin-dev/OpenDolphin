@@ -49,7 +49,7 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
     //protected static final String[] ACCEPT_IMAGE_TYPES = {"dcm","jpg", "png", "bmp", "gif", "tif"};
     protected static final String[] ACCEPT_IMAGE_TYPES = {"jpg", "png", "bmp", "gif", "tif"};
     protected static final String[] ACCEPT_DOC_TYPES = {"pdf", "doc","docx", "xls", "xlsx", "ppt","pptx"};
-//minagawa^    
+//minagawa^ Icon Server   
     //protected static final String[] ACCEPT_DOC_ICONS = 
         //{"pdf_icon40px.gif", "Word-32-d.gif","Word-32-d.gif", "Excel-32-d.gif", "Excel-32-d.gif", "PowerPoint-32-d.gif", "PowerPoint-32-d.gif"};
     protected static final String[] ACCEPT_DOC_ICONS = 
@@ -80,6 +80,8 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
     protected ProgressMonitor progressMonitor;
     
     protected boolean imageOrPDFIsExist;
+    
+    protected int imgCounter;
     
     public AbstractBrowser() {
         DEBUG = (ClientContext.getBootLogger().getLevel()==Level.DEBUG);
@@ -270,7 +272,10 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
         String old = this.imageBase;
         this.imageBase = base;
         if (!this.imageBase.equals(old)) {
-            scan(imageBase);
+//s.oh^ 2013/04/19 パスが正しく表示されない
+            //scan(imageBase);
+            scan(getImgLocation());
+//s.oh$
         }
     }
     
@@ -410,7 +415,19 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
                 for (Path path : paths) {
                     //for (File file : imageFiles) {
 //minagawa^ lsctest
-                    setProgress(100*(++cnt/total));
+//s.oh^ 2013/11/07 複数画像表示できない不具合
+                    //setProgress(100*(++cnt/total));
+                    if(progressMonitor != null && progressMonitor.isCanceled()) {
+                        return imageList;
+                    }
+                    imgCounter += 1;
+                    double tmp = 100 * ((double)imgCounter / (double)total);
+                    if(imgCounter >= total) {
+                        setProgress(100);
+                    }else{
+                        setProgress((int)tmp);
+                    }
+//s.oh$
 //minagawa$                    
                     URI uri = path.toUri();
                     URL url = uri.toURL();
@@ -566,7 +583,8 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
                 if ("progress".equals(evt.getPropertyName())) {
                     int progress = (Integer)evt.getNewValue();
                     progressMonitor.setProgress(progress);
-                    String message = String.format("%d/%d 件を処理しています...", progress, total);
+                    //String message = String.format("%d/%d 件を処理しています...", progress, total);
+                    String message = String.format("%d/%d 件を処理しています...", imgCounter, total);
                     progressMonitor.setNote(message);
                 }
             }

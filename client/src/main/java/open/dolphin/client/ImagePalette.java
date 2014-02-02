@@ -182,11 +182,21 @@ public class ImagePalette extends JPanel implements DragSourceListener, DragGest
         
         this.setLayout(new BorderLayout());
         if (showHeader) {
-            this.add(new JScrollPane(imageTable));
+//s.oh^ 2014/01/27 シェーマボックスのスクロール値
+            //this.add(new JScrollPane(imageTable));
+            JScrollPane scroll = new JScrollPane(imageTable);
+            scroll.getVerticalScrollBar().setUnitIncrement(16);
+            this.add(scroll);
+//s.oh$
         } else {
             JPanel panel = new JPanel(new BorderLayout());
             panel.add(imageTable);
-            this.add(new JScrollPane(panel));
+//s.oh^ 2014/01/27 シェーマボックスのスクロール値
+            //this.add(new JScrollPane(panel));
+            JScrollPane scroll = new JScrollPane(panel);
+            scroll.getVerticalScrollBar().setUnitIncrement(16);
+            this.add(scroll);
+//s.oh$
         }
     }
     

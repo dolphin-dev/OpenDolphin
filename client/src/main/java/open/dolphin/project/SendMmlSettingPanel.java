@@ -20,6 +20,7 @@ public class SendMmlSettingPanel extends AbstractSettingPanel {
     private static final String ID = "mmlSetting";
     private static final String TITLE = "MML出力";
 //minagawa^ Icon Server    
+    //private static final String ICON = "cd_16.gif";
     private static final String ICON = "icon_mml_settings_small";
 //minagawa$    
     

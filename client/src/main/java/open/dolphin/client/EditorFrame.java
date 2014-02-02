@@ -17,6 +17,7 @@ import javax.swing.event.PopupMenuListener;
 import open.dolphin.helper.WindowSupport;
 import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  * EditorFrame
@@ -519,6 +520,32 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         insBtn.setBorderPainted(false);
         insBtn.setMargin(new Insets(3,3,3,3));
         toolBar.add(insBtn);
+        
+//s.oh^ テキストの挿入 2013/08/12
+        if(Project.getString(GUIConst.ACTION_SOAPANE_INSERTTEXT_DIR, "").length() > 0) {
+            toolBar.addSeparator();
+            JButton insertSOATextBtn = new JButton();
+            insertSOATextBtn.setAction(mediator.getActions().get("insertSOAText"));
+            insertSOATextBtn.setText(null);
+            insertSOATextBtn.setToolTipText("所見欄にテキストを追加します。");
+            insertSOATextBtn.setMargin(new Insets(3,3,3,3));
+            insertSOATextBtn.setFocusable(false);
+            insertSOATextBtn.setBorderPainted(true);
+            toolBar.add(insertSOATextBtn);
+        }
+        
+        if(Project.getString(GUIConst.ACTION_PPANE_INSERTTEXT_DIR, "").length() > 0) {
+            toolBar.addSeparator();
+            JButton insertPTextBtn = new JButton();
+            insertPTextBtn.setAction(mediator.getActions().get("insertPText"));
+            insertPTextBtn.setText(null);
+            insertPTextBtn.setToolTipText("所見欄にテキストを追加します。");
+            insertPTextBtn.setMargin(new Insets(3,3,3,3));
+            insertPTextBtn.setFocusable(false);
+            insertPTextBtn.setBorderPainted(true);
+            toolBar.add(insertPTextBtn);
+        }
+//s.oh$
 
         // Status 情報
         setStatusPanel(new StatusPanel(false));
@@ -897,14 +924,17 @@ public class EditorFrame extends AbstractMainTool implements Chart {
                         new String[]{save, discard, cancelText},
                         save
                         );
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle(title), question);
                 
                 switch (option) {
                     
                     case 0:
+                        Log.outputOperLogDlg(realChart, Log.LOG_LEVEL_0, save);
                         editor.save();
                         break;
                         
                     case 1:
+                        Log.outputOperLogDlg(realChart, Log.LOG_LEVEL_0, discard);
                         // 破棄の場合、もし病名をDropしていればクリアする
                         if (realChart.getDroppedDiagnosisList()!=null) {
                             realChart.getDroppedDiagnosisList().clear();
@@ -913,6 +943,7 @@ public class EditorFrame extends AbstractMainTool implements Chart {
                         break;
                         
                     case 2:
+                        Log.outputOperLogDlg(realChart, Log.LOG_LEVEL_0, cancelText);
                         break;
                 }
                 
@@ -923,5 +954,6 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         } else {
             stop();
         }
+        Log.outputOperLogOper(realChart, Log.LOG_LEVEL_0, "カルテ編集終了");
     }
 }

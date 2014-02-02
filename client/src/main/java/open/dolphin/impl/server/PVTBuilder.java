@@ -735,7 +735,18 @@ public final class PVTBuilder {
             gc2.clear(Calendar.MINUTE);
             gc2.clear(Calendar.SECOND);
             gc2.clear(Calendar.MILLISECOND);
-            return gc1.after(gc2);
+//s.oh^ 2013/05/16 受付不具合修正
+            //return gc1.after(gc2);
+            boolean after = false;
+            if(gc1.get(Calendar.YEAR) > gc2.get(Calendar.YEAR)) {
+                after = true;
+            }else if(gc1.get(Calendar.MONTH) > gc2.get(Calendar.MONTH)) {
+                after = true;
+            }else if(gc1.get(Calendar.DAY_OF_MONTH) > gc2.get(Calendar.DAY_OF_MONTH)) {
+                after = true;
+            }
+            return after;
+//s.oh$
         } catch (ParseException ex) {
         }
         return false;

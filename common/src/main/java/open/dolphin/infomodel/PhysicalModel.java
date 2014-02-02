@@ -113,16 +113,20 @@ public class PhysicalModel extends InfoModel implements Comparable {
      */
     public String calcBmi() {
         if (height != null && weight != null) {
-            float fw = new Float(weight).floatValue();
-            float fh = new Float(height).floatValue();
-            float bmif = (10000f*fw) / (fh*fh);
-            String bmiS = String.valueOf(bmif);
-            int index = bmiS.indexOf('.');
-            int len = bmiS.length();
-            if (index >0 && (index + 2 < len)) {
-                bmiS = bmiS.substring(0,index+2);
+            try{
+                float fw = new Float(weight).floatValue();
+                float fh = new Float(height).floatValue();
+                float bmif = (10000f*fw) / (fh*fh);
+                String bmiS = String.valueOf(bmif);
+                int index = bmiS.indexOf('.');
+                int len = bmiS.length();
+                if (index >0 && (index + 2 < len)) {
+                    bmiS = bmiS.substring(0,index+2);
+                }
+                return bmiS;
+            }catch(Exception ex){
+                return null;    // add funabashi (身長体重が数値でない場合の対応：try-catchを追加) ステータス連携
             }
-            return bmiS;
         }
         return null;
     }

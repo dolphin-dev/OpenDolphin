@@ -14,6 +14,7 @@ import open.dolphin.converter.*;
 import open.dolphin.infomodel.*;
 import open.dolphin.session.KarteServiceBean;
 import open.dolphin.session.PVTServiceBean;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -116,8 +117,8 @@ public class KarteResource extends AbstractResource {
         conv.setModel(wrapper);
 
         return conv;
-    }       
-
+    } 
+    
     @POST
     @Path("/document")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -126,6 +127,8 @@ public class KarteResource extends AbstractResource {
         
         // Karte 保存 ddl.putKarte()
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         DocumentModel document = mapper.readValue(json, DocumentModel.class);
 
         // 関係を構築する
@@ -168,6 +171,8 @@ public class KarteResource extends AbstractResource {
         int state = Integer.parseInt(params[1]);
 
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         DocumentModel document = mapper.readValue(json, DocumentModel.class);
         
         // 関係を構築する
@@ -355,6 +360,8 @@ public class KarteResource extends AbstractResource {
     public String postPutSendDiagnosis(String json) throws IOException {
         
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         DiagnosisSendWrapper wrapper = mapper.readValue(json, DiagnosisSendWrapper.class);
 
         List<Long> result = karteServiceBean.postPutSendDiagnosis(wrapper);
@@ -380,6 +387,8 @@ public class KarteResource extends AbstractResource {
     public String postDiagnosis(String json) throws IOException {
         
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         RegisteredDiagnosisList list = mapper.readValue(json, RegisteredDiagnosisList.class);
 
         List<Long> result = karteServiceBean.addDiagnosis(list.getList());
@@ -402,6 +411,8 @@ public class KarteResource extends AbstractResource {
     public String putDiagnosis(String json) throws IOException {
 
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         RegisteredDiagnosisList list = mapper.readValue(json, RegisteredDiagnosisList.class);
 
         int result = karteServiceBean.updateDiagnosis(list.getList());
@@ -461,6 +472,8 @@ public class KarteResource extends AbstractResource {
     public String postObservations(String json) throws IOException {
         
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         ObservationList list = mapper.readValue(json, ObservationList.class);
 
         List<Long> result = karteServiceBean.addObservations(list.getList());
@@ -483,6 +496,8 @@ public class KarteResource extends AbstractResource {
     public String putObservations(String json) throws IOException {
         
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         ObservationList list = mapper.readValue(json, ObservationList.class);
         
         int result = karteServiceBean.updateObservations(list.getList());
@@ -518,6 +533,8 @@ public class KarteResource extends AbstractResource {
     public String putPatientMemo(String json) throws IOException {
         
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         PatientMemoModel memo = mapper.readValue(json, PatientMemoModel.class);
 
         int result = karteServiceBean.updatePatientMemo(memo);
@@ -574,6 +591,8 @@ public class KarteResource extends AbstractResource {
         
         try {
             ObjectMapper mapper = new ObjectMapper();
+            // 2013/06/24
+            mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             DocumentModel model = mapper.readValue(json, DocumentModel.class);
             debug(model.getDocInfoModel().getPVTHealthInsuranceModel().toString());
 

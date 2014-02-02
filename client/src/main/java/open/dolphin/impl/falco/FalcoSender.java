@@ -22,6 +22,9 @@ public final class FalcoSender implements IKarteSender {
     private String path;
     private List<BundleDolphin> sendList;
     private String orderNumber;
+//s.oh^ 2013/12/12 予定カルテのオーダー対応
+    private Date orderDate;
+//s.oh$
 
     private static String createOrderNumber() {
         StringBuilder sb = new StringBuilder();
@@ -87,6 +90,14 @@ public final class FalcoSender implements IKarteSender {
             // 修正の場合は設定されている
             orderNumber = data.getDocInfoModel().getLabtestOrderNumber();
         }
+        
+//s.oh^ 2013/12/12 予定カルテのオーダー対応
+        boolean tmp = IInfoModel.STATUS_TMP.equals(data.getDocInfoModel().getStatus());
+        boolean scheduled = data.getDocInfoModel().getFirstConfirmDate().after(data.getDocInfoModel().getConfirmDate());
+        if(tmp && scheduled) {
+            orderDate = data.getDocInfoModel().getFirstConfirmDate();
+        }
+//s.oh$
     }
 
     @Override
@@ -105,6 +116,10 @@ public final class FalcoSender implements IKarteSender {
         UserModel user = Project.getUserModel();
         
         HL7Falco falco = new HL7Falco();
-        falco.order(patient, user, sendList, insuranceFacilityId, orderNumber, path);
+//s.oh^ 2013/12/12 予定カルテのオーダー対応
+        //falco.order(patient, user, sendList, insuranceFacilityId, orderNumber, path);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        falco.order(patient, user, sendList, insuranceFacilityId, orderNumber, path, (orderDate == null) ? null : sdf.format(orderDate));
+//s.oh$
     }
 }

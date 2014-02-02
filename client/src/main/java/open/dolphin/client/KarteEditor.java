@@ -9,12 +9,18 @@ import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import open.dolphin.delegater.DocumentDelegater;
@@ -26,6 +32,7 @@ import open.dolphin.letter.KartePDFImpl2;
 import open.dolphin.plugin.PluginLoader;
 import open.dolphin.project.Project;
 import open.dolphin.util.BeanUtils;
+import open.dolphin.util.Log;
 import open.dolphin.util.ZenkakuUtils;
 import org.apache.log4j.Level;
 
@@ -460,6 +467,13 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         pPane.setParent(this);
         pPane.setRole(ROLE_P);
         pPane.getTextPane().setTransferHandler(new PTransferHandler(pPane));
+    
+//s.oh^ 2014/01/27 スタンプのテキストコピー機能拡張
+        if(getContext() != null && getContext().getPatient() != null) {
+            soaPane.setPatID(getContext().getPatient().getPatientId());
+            pPane.setPatID(getContext().getPatient().getPatientId());
+        }
+//s.oh$
 
         scroller = new JScrollPane(kp2);
         scroller.getVerticalScrollBar().setUnitIncrement(16);
@@ -478,6 +492,9 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         } else if (getMode() == DOUBLE_MODE) {
             start2();
         }
+//s.oh^ 2013/11/26 スクロールバーのリセット
+        resetScrollBar();
+//s.oh$
     }
 
     @Override
@@ -1035,6 +1052,82 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
             // 仮保存が指定されている端末の場合
             int sMode = Project.getInt(Project.KARTE_SAVE_ACTION);
             boolean tmpSave = sMode == 1 ? true : false;
+//s.oh^ 2014/01/29 保存不具合
+            int enterOption = -1;
+            
+            if (!modify) {
+                // 修正でなければ新規作成
+                enterOption = SaveParamsM.NEW_KARTE;
+            } else {
+                // 修正のケース
+                // null チェック: ChartImpleの修正model作成で設定している
+                boolean scheduled = model.getDocInfoModel().getFirstConfirmDate().after(model.getDocInfoModel().getConfirmDate());
+                
+                if (!tmpSave && !scheduled) {
+                    // 通常の修正 Final->Modify
+                    enterOption = SaveParamsM.FINAL_MODIFY;
+                }
+                else if (tmpSave && !scheduled) {
+                    // 通常の仮保存修正 Tmp->Modify
+                    enterOption = SaveParamsM.TMP_MODIFY;
+                }
+                else if (tmpSave && scheduled) {
+                    // 予定の修正
+                    if (getContext().getPatientVisit().isFromSchedule()) {
+                        // 予定画面からオープン
+                        enterOption = SaveParamsM.SCHEDULE_SCHEDULE;
+                    } else {
+                        // 予定画面以外からオープン
+                        enterOption = SaveParamsM.SCHEDULE_MODIFY;
+                    }
+                }
+            }
+            
+            // 開始時のオプション（カルテ属性）
+            params.setEnterOption(enterOption);
+            
+            switch (enterOption) {
+                
+                case SaveParamsM.NEW_KARTE:
+                    // New Karte
+                    params.setClaimDate(claimDate);    // Now
+                    // 新規カルテの場合のデフォルトチェック
+                    sendClaim = sendClaim && Project.getBoolean(Project.SEND_CLAIM_SAVE);
+                    break;
+                    
+                case SaveParamsM.FINAL_MODIFY:
+                    // Final->Modify
+                    params.setClaimDate(claimDate);     //startDate
+                    // 確定カルテを修正する場合のデフォルトチェック
+                    sendClaim = sendClaim && Project.getBoolean(Project.SEND_CLAIM_MODIFY);
+                    sendLabtest = sendLabtest && false;    // 何故か修正時
+                    break;
+                    
+                case SaveParamsM.TMP_MODIFY:
+                    // Tmp->Modify
+                    params.setClaimDate(claimDate);
+                    // 仮保存カルテを修正する場合のデフォルトチェック
+                    sendClaim = sendClaim && Project.getBoolean(Project.SEND_CLAIM_TMP);
+                    break;
+                    
+                case SaveParamsM.SCHEDULE_MODIFY:
+                    // Scheduled->Modify
+                    params.setClaimDate(claimDate);
+                    // 予定カルテから通常カルテとしてオープンした場合のデフォルトチェック
+                    sendClaim = sendClaim && Project.getBoolean(Project.SEND_CLAIM_EDIT_FROM_SCHEDULE);
+                    break;
+                    
+                case SaveParamsM.SCHEDULE_SCHEDULE:
+                    // Scheduled->Scheduled
+                    params.setClaimDate(null);
+                    // 予定カルテの予定編集時に送信チェックするかどうか
+                    sendClaim = sendClaim && Project.getBoolean(Project.SEND_CLAIM_WHEN_SCHEDULE);
+                    break;    
+                    
+                default:
+                    break;
+            }
+//s.oh$
             params.setTmpSave(tmpSave);
             if (tmpSave) {
                 params.setSendClaim(false);
@@ -1049,9 +1142,20 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
             params.setAllowClinicRef(false);
             params.setAllowPatientRef(false);
             
-            params.setClaimDate(claimDate);
-            
-            params.setSendMML(sendMml);
+//s.oh^ 2014/01/29 保存不具合
+            //params.setClaimDate(claimDate);
+            //
+            //params.setSendMML(sendMml);
+            int returnOption;
+            if (!tmpSave) {
+                returnOption = SaveParamsM.SAVE_AS_FINAL;
+                params.setSendMML(sendMml);
+            } else {
+                returnOption = SaveParamsM.SAVE_AS_TMP;
+                params.setSendMML(false);
+            }
+            params.setReturnOption(returnOption);
+//s.oh$
         }
 
         return params;
@@ -1059,6 +1163,17 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
 
     @Override
     public void save() {
+////s.oh^ 2013/11/06 Cliam項目20項目の制御
+//        if(!checkClaimItemCount()) {
+//            String[] options = {"はい", "いいえ"};
+//            String msg = "スタンプが20項目を超えました。このまま保存しますか？";
+//            int ret = JOptionPane.showOptionDialog(null, msg, ClientContext.getFrameTitle("スタンプ項目"), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
+//            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle("スタンプ項目"), msg, String.valueOf(ret));
+//            if(ret != 0) {
+//                return;
+//            }
+//        }
+////s.oh$
 
         try {
             // 何も書かれていない時はリターンする
@@ -1208,6 +1323,38 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
             ClientContext.getBootLogger().warn(e);
         }
     }
+    
+//s.oh^ 2013/11/06 Cliam項目20項目の制御
+    private boolean checkClaimItemCount() {
+        if(pPane == null || pPane.getTextPane() == null || pPane.getTextPane().getDocument() == null) {
+            return true;
+        }
+        
+        KartePaneDumper_2 pdumper = new KartePaneDumper_2();
+        KarteStyledDocument pdoc = (KarteStyledDocument)pPane.getTextPane().getDocument();
+        pdumper.dump(pdoc);
+        ModuleModel[] plan = pdumper.getModule();
+        
+        int claimCnt = 0;
+        for (ModuleModel bean : plan) {
+            if (bean.getModel() instanceof BundleMed) {
+                BundleMed med = (BundleMed) bean.getModel();
+                ClaimItem[] items = med.getClaimItem();
+                claimCnt += items.length;
+            } else if (bean.getModel() instanceof ClaimBundle) {
+                ClaimBundle bundle = (ClaimBundle) bean.getModel();
+                ClaimItem[] items = bundle.getClaimItem();
+                claimCnt += items.length;
+            }
+        }
+        
+        if(claimCnt > 20) {
+            return false;
+        }
+        
+        return true;
+    }
+//s.oh$
     
     // 併用禁忌をチェックする
     // (予定カルテ対応)
@@ -1647,11 +1794,13 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                 attachment.setIcon(null);
                 model.addAttachment(attachment);
             }
+//間違っていたところ^
             // Flag設定
             docInfo.setHasMark(true);
         } else {
             docInfo.setHasMark(false);
         }
+//間違っていたところ$
 //minagawa$        
         // FLAGを設定する
         // image があるかどうか
@@ -1753,6 +1902,15 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
 
             @Override
             protected void succeeded(Void result) {
+//s.oh^ 2013/03/25 不具合修正(ダイアログが閉じられない)
+//minagawa^ Chartの close box 押下で保存する場合、保存終了を通知しておしまい。                    
+                if (boundSupport!=null) {
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "プレイン文書", "保存成功", "インスペクタの終了");
+                    setChartDocDidSave(true);
+                    return;
+                }
+//minagawa$                    
+//s.oh$
 
                 // 印刷
                 int copies = params.getPrintCount();
@@ -1770,6 +1928,8 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                 // 文書履歴の更新を通知する
                 //------------------------
                 chart.getDocumentHistory().getDocumentHistory();
+                
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "プレイン文書", "保存成功。");
             }
         };
 
@@ -1913,6 +2073,62 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         SaveAdnSender saveSender = new SaveAdnSender(getContext(),params,soa,soaText,schemas,attachments,plan,pText,ef);
         saveSender.doTask();
     }
+    
+//s.oh^ テキストの挿入 2013/08/12
+    public void insertSOAText() {
+        String dir = Project.getString(GUIConst.ACTION_SOAPANE_INSERTTEXT_DIR, "");
+        if(dir.length() > 0) {
+            File file = new File(dir, getContext().getPatient().getPatientId() + ".txt");
+            if(file.exists()) {
+                try {
+                    FileInputStream input = new FileInputStream(file);
+                    InputStreamReader reader = new InputStreamReader(input, "UTF8");
+                    BufferedReader buf = new BufferedReader(reader);
+                    String line;
+                    while((line = buf.readLine()) != null) {
+                        soaPane.insertTextStamp(line + "\n");
+                    }
+                    buf.close();
+                    reader.close();
+                    file.delete();
+                } catch (UnsupportedEncodingException ex) {
+                    Logger.getLogger(KarteEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(KarteEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(KarteEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+    
+    public void insertPText() {
+        String dir = Project.getString(GUIConst.ACTION_PPANE_INSERTTEXT_DIR, "");
+        if(dir.length() > 0) {
+            File file = new File(dir, getContext().getPatient().getPatientId() + ".txt");
+            if(file.exists()) {
+                try {
+                    FileInputStream input = new FileInputStream(file);
+                    InputStreamReader reader = new InputStreamReader(input, "UTF8");
+                    BufferedReader buf = new BufferedReader(reader);
+                    String line;
+                    while((line = buf.readLine()) != null) {
+                        pPane.insertTextStamp(line + "\n");
+                    }
+                    buf.close();
+                    reader.close();
+                    file.delete();
+                } catch (UnsupportedEncodingException ex) {
+                    Logger.getLogger(KarteEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(KarteEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(KarteEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+//s.oh$
    
     /**
      * 保存と送信タスククラス。
@@ -2378,6 +2594,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                 protected void succeeded(Void result) {
 //minagawa^ Chartの close box 押下で保存する場合、保存終了を通知しておしまい。                    
                     if (boundSupport!=null) {
+                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "新規／修正カルテ", "保存成功", "インスペクタの終了");
                         setChartDocDidSave(true);
                         return;
                     }
@@ -2429,6 +2646,8 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                     // ここで保存したカルテが履歴に表示される
                     //--------------------------------
                     chart.getDocumentHistory().getDocumentHistory();
+                    
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "新規／修正カルテ", "保存成功。");
                 }
             };
             
@@ -2449,10 +2668,21 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         KarteStyledDocument pdoc = (KarteStyledDocument)getPPane().getTextPane().getDocument();
         pdumper.dump(pdoc);
         if(dumper != null && pdumper != null) {
+//s.oh^ 2013/06/14 自費の場合、印刷時に文言を付加する
+            //KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
+            //                                      getContext().getPatient().getPatientId(), getContext().getPatient().getFullName(),
+            //                                      timeStampLabel.getText(),
+            //                                      new Date(), dumper, pdumper);
+            StringBuilder sbTitle = new StringBuilder();
+            sbTitle.append(timeStampLabel.getText());
+            if(getModel().getDocInfoModel().getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
+                sbTitle.append("（自費）");
+            }
             KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
                                                   getContext().getPatient().getPatientId(), getContext().getPatient().getFullName(),
-                                                  timeStampLabel.getText(),
+                                                  sbTitle.toString(),
                                                   new Date(), dumper, pdumper);
+//s.oh$
             String path = pdf.create();
             KartePDFImpl2.printPDF(path);
         }
@@ -2491,6 +2721,22 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     public static List<KarteEditor> getAllKarte() {
         return allKarte;
     }
+    
+//s.oh^ 2013/11/26 スクロールバーのリセット
+    public void resetScrollBar() {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                if(scroller != null) {
+                    scroller.getVerticalScrollBar().setValue(0);
+                }
+                if(soaPane != null) soaPane.getTextPane().setCaretPosition(0);
+                if(pPane != null) pPane.getTextPane().setCaretPosition(0);
+            }
+            
+        });
+    }
+//s.oh$
     
     /**
      * このエディタの抽象状態クラス

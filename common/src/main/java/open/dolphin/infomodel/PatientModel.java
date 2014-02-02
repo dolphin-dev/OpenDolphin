@@ -2,6 +2,7 @@ package open.dolphin.infomodel;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
 
@@ -160,7 +161,21 @@ public class PatientModel extends InfoModel implements java.io.Serializable {
     public boolean isOpened() {
         return ownerUUID != null;
     }
-//masuda$    
+//masuda$   
+    
+//minagawa^ 新患検索用に初診日=(カルテ作成日）を追加 for ios7 対応
+//PC用コンバータでは不要    
+    @Transient
+    private Date firstVisited;
+    
+    public Date getFirstVisited() {
+        return firstVisited;
+    }
+
+    public void setFirstVisited(Date firstVisited) {
+        this.firstVisited = firstVisited;
+    }
+//minagawa$    
     
     /** 患者オブジェクトを生成する。*/
     public PatientModel() {

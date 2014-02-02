@@ -41,6 +41,7 @@ public class DiseaseViewText extends javax.swing.JPanel implements IDiseaseView 
         okBtn = new javax.swing.JButton();
         clearBtn = new javax.swing.JButton();
         deleteBtn = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
         searchTextField = new javax.swing.JTextField();
         rtBtn = new javax.swing.JCheckBox();
         countField = new javax.swing.JTextField();
@@ -54,8 +55,8 @@ public class DiseaseViewText extends javax.swing.JPanel implements IDiseaseView 
         setMinimumSize(new java.awt.Dimension(700, 600));
         setPreferredSize(new java.awt.Dimension(700, 600));
 
+        infoLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/resources/images/about_16.gif"))); // NOI18N
         infoLabel.setText("傷病名"); // NOI18N
-        infoLabel.setName("infoLabel"); // NOI18N
 
         setTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -131,13 +132,15 @@ public class DiseaseViewText extends javax.swing.JPanel implements IDiseaseView 
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(stampNameField))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(searchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(28, 28, 28)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(rtBtn)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 39, Short.MAX_VALUE)
+                        .addGap(0, 55, Short.MAX_VALUE)
                         .addComponent(deleteBtn)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(clearBtn)
@@ -149,9 +152,9 @@ public class DiseaseViewText extends javax.swing.JPanel implements IDiseaseView 
                         .addComponent(partialChk)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(countField, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, 0))))
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -171,6 +174,7 @@ public class DiseaseViewText extends javax.swing.JPanel implements IDiseaseView 
                     .addComponent(stampNameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
                     .addComponent(searchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(countField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4)
@@ -189,6 +193,7 @@ public class DiseaseViewText extends javax.swing.JPanel implements IDiseaseView 
     private javax.swing.JCheckBox diseaseCheck;
     private javax.swing.JLabel infoLabel;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;

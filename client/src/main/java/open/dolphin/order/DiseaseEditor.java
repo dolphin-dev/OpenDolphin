@@ -220,6 +220,11 @@ public final class DiseaseEditor extends AbstractStampEditor {
                 OrcaDelegater dao = OrcaDelegaterFactory.create();
                 String d = new SimpleDateFormat("yyyyMMdd").format(new Date());
                 List<DiseaseEntry> result = dao.getDiseaseByName(StringTool.hiraganaToKatakana(text), d, view.getPartialChk().isSelected());
+//s.oh^ 2013/11/08 傷病名検索不具合
+                if(result == null || result.size() <= 0) {
+                    result = dao.getDiseaseByName(text, d, view.getPartialChk().isSelected());
+                }
+//s.oh$
 //                if (!dao.isNoError()) {
 //                    throw new Exception(dao.getErrorMessage());
 //                }

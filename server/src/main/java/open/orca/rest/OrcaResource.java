@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -84,8 +85,10 @@ public class OrcaResource {
     
     private static final String CAMMA = ",";
     
-    @Resource(mappedName="java:jboss/datasources/OrcaDS")
-    private DataSource ds;
+//minagawa^ 2013/08/29
+    //@Resource(mappedName="java:jboss/datasources/OrcaDS")
+    //private DataSource ds;
+//minagawa$
     
     private boolean DEBUG;
     
@@ -176,6 +179,38 @@ public class OrcaResource {
     @Produces(MediaType.TEXT_PLAIN)
     public String getFacilityCodeBy1001() {
        
+//s.oh^ 2013/10/17 ローカルORCA対応
+        try {
+            // custom.properties から 保健医療機関コードとJMARIコードを読む
+            Properties config = new Properties();
+            // コンフィグファイルを読み込む
+            StringBuilder sb = new StringBuilder();
+            sb.append(System.getProperty("jboss.home.dir"));
+            sb.append(File.separator);
+            sb.append("custom.properties");
+            File f = new File(sb.toString());
+            FileInputStream fin = new FileInputStream(f);
+            InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect");
+            config.load(r);
+            r.close();
+            // JMARI code
+            String jmari = config.getProperty("jamri.code");
+            String hcfacility = config.getProperty("healthcarefacility.code");
+            if(jmari != null && jmari.length() == 12 && hcfacility != null && hcfacility.length() == 10) {
+                StringBuilder ret = new StringBuilder();
+                ret.append(hcfacility);
+                ret.append("JPN");
+                ret.append(jmari);
+                return ret.toString();
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(OrcaResource.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(OrcaResource.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(OrcaResource.class.getName()).log(Level.SEVERE, null, ex);
+        }
+//s.oh$
         // SQL 文
         StringBuilder buf = new StringBuilder();
         buf.append(QUERY_FACILITYID_BY_1001);
@@ -1292,10 +1327,16 @@ public class OrcaResource {
             } else if (number >= 200 && number <= 299) {
                 return new String[]{IInfoModel.ENTITY_MED_ORDER, "RP"};
             
-            } else if (number >= 300 && number <= 352) {
+            } 
+//minagawa^ LSC 1.4 .334問題 2013/06/24
+//            else if (number >= 300 && number <= 352) {
+//                return new String[]{IInfoModel.ENTITY_INJECTION_ORDER, "注 射"};
+//            } 
+            else if (number >= 300 && number <= 399) {
                 return new String[]{IInfoModel.ENTITY_INJECTION_ORDER, "注 射"};
-            
-            } else if (number >= 400 && number <= 499) {
+            } 
+//minagawa$            
+            else if (number >= 400 && number <= 499) {
                 return new String[]{IInfoModel.ENTITY_TREATMENT, "処 置"};
             
             } else if (number >= 500 && number <= 599) {
@@ -1710,7 +1751,10 @@ public class OrcaResource {
     }
     
     private Connection getConnection() throws SQLException {
-        return ds.getConnection();
+//minagawa^ 2013/08/29
+        //return ds.getConnection();
+        return ORCAConnection.getInstance().getConnection();
+//minagawa$
     }
     
     private void closeConnection(Connection conn) {

@@ -54,7 +54,9 @@ public final class ClientContextStub {
     private boolean dolphinPro;
     private boolean dolphin5mTest;
     private boolean dolphin;
-
+//minagawa^ Self Cert Test    
+    private boolean dolphinSerfCertTest;
+//minagawa$
     //private URLClassLoader pluginClassLoader;
 
     /**
@@ -66,10 +68,16 @@ public final class ClientContextStub {
             dolphin = true;
             dolphinPro = false;
             dolphin5mTest = false;
+//minagawa^ Self Cert Test             
+            dolphinSerfCertTest = false;
+//minagawa$            
         } else {
             dolphinPro = (mode.equals("pro"));
             dolphin5mTest = (mode.equals("5m"));
-            dolphin = !dolphinPro;
+            dolphin = (mode.equals("asp"));
+//minagawa^ Self Cert Test             
+            dolphinSerfCertTest = (mode.equals("self"));
+//minagawa$            
         }
 //minagawa$
         try {
@@ -171,7 +179,7 @@ public final class ClientContextStub {
             //------------------------------
             //setUI();
 
-        } catch (DolphinException | IOException e) {
+        } catch (Throwable e) {
             e.printStackTrace(System.err);
             System.exit(1);
         }
@@ -289,6 +297,12 @@ public final class ClientContextStub {
     public boolean is5mTest() {
         return dolphin5mTest;
     }
+    
+//minagawa^ Self Cert Test    
+    public boolean isSelfCertTest() {
+        return dolphinSerfCertTest;
+    }
+//minagawa$     
 
     //-----------------------------------------------------------
 
@@ -698,6 +712,7 @@ public final class ClientContextStub {
 //UIManager.put("TextArea.font", fontUIResource);
 //minagawa$            
             UIManager.put("TextPane.font", fontUIResource);
+            // 2013/04/22
 //masuda先生^ tweet            
             if (UIManager.getLookAndFeel().getName().toLowerCase().startsWith("nimbus")) {
                 UIManager.put("TextPaneUI", BasicTextPaneUI.class.getName());

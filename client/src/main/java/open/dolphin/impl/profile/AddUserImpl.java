@@ -25,6 +25,7 @@ import open.dolphin.project.Project;
 import open.dolphin.table.ListTableModel;
 import open.dolphin.table.StripeTableCellRenderer;
 import open.dolphin.util.HashUtil;
+import open.dolphin.util.Log;
 import org.apache.log4j.Logger;
 
 /**
@@ -419,6 +420,7 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
                             FACILITY_SUCCESS_MSG,
                             ClientContext.getFrameTitle(getName()),
                             JOptionPane.INFORMATION_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(getName()), FACILITY_SUCCESS_MSG);
                 }
 
                 @Override
@@ -432,6 +434,7 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
                                 cause.getMessage(),
                                 ClientContext.getFrameTitle(getName()),
                                 JOptionPane.WARNING_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(getName()), cause.getMessage());
                     logger.warn("updateUser failed");
                     logger.warn(cause.getCause());
                     logger.warn(cause.getMessage());
@@ -672,6 +675,7 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
                                 cause.getMessage(),
                                 ClientContext.getFrameTitle(getName()),
                                 JOptionPane.WARNING_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(getName()), cause.getMessage());
                     logger.warn("getUsers failed");
                     logger.warn(cause.getCause());
                     logger.warn(cause.getMessage());
@@ -756,11 +760,22 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
                 @Override
                 protected void succeeded(List<UserModel> results) {
                     logger.debug("deleteUser succeeded");
-                    tableModel.setDataProvider(results);
+//s.oh^ 2013/01/21 メンテユーザの非表示
+                    //tableModel.setDataProvider(results);
+                    ArrayList<UserModel> list = new ArrayList<UserModel>();
+                    for(UserModel model : results) {
+                        if(model.getUserId().endsWith("lscmainte")) {
+                        }else{
+                            list.add(model);
+                        }
+                    }
+                    tableModel.setDataProvider(list);
+//s.oh$
                     JOptionPane.showMessageDialog(getFrame(),
                             DELETE_USER_SUCCESS_MSG,
                             ClientContext.getFrameTitle(getName()),
                             JOptionPane.INFORMATION_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(getName()), DELETE_USER_SUCCESS_MSG);
                 }
 
                 @Override
@@ -774,6 +789,7 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
                                 cause.getMessage(),
                                 ClientContext.getFrameTitle(getName()),
                                 JOptionPane.WARNING_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(getName()), cause.getMessage());
                     logger.warn("deleteUser failed");
                     logger.warn(cause.getCause());
                     logger.warn(cause.getMessage());
@@ -1074,6 +1090,7 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
                             ADD_USER_SUCCESS_MSG,
                             ClientContext.getFrameTitle(getName()),
                             JOptionPane.INFORMATION_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(getName()), ADD_USER_SUCCESS_MSG);
                 }
 
                 @Override
@@ -1090,6 +1107,7 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
                                 sb.toString(),
                                 ClientContext.getFrameTitle(getName()),
                                 JOptionPane.WARNING_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(getName()), sb.toString());
                     logger.warn("addUserEntry failed");
                     //logger.warn(cause.getCause());
                     //logger.warn(cause.getMessage());

@@ -61,6 +61,18 @@ public class DiagnosisSendWrapper extends InfoModel implements Serializable {
     // 更新された（転帰等）病名のリスト
     private List<RegisteredDiagnosisModel> updatedDiagnosis;
     
+//mianagawa^ LSC 1.4 傷病名の削除 2013/06/24
+    // 削除された病名リスト
+    private List<RegisteredDiagnosisModel> deletedDiagnosis;
+    
+    public List<RegisteredDiagnosisModel> getDeletedDiagnosis() {
+        return deletedDiagnosis;
+    }
+
+    public void setDeletedDiagnosis(List<RegisteredDiagnosisModel> deletedDiagnosis) {
+        this.deletedDiagnosis = deletedDiagnosis;
+    }
+//minagawa$    
     
     public String getConfirmDate() {
         return confirmDate;

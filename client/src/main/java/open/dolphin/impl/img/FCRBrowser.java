@@ -10,6 +10,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.*;
 import javax.swing.table.TableColumn;
 import javax.xml.parsers.ParserConfigurationException;
@@ -39,8 +41,13 @@ public class FCRBrowser extends AbstractBrowser {
 
     private FCRBrowserView view;
     private String savePath;
+    private boolean zeroSup;
   
     public FCRBrowser() {
+        
+//s.oh^ 2013/04/18
+        zeroSup = Project.getBoolean("fcr.patientid.zerosuppress", false);
+//s.oh$
         
         String title = Project.getString("fcr.title.name");
         if(valueIsNullOrEmpty(title)) {
@@ -126,7 +133,16 @@ public class FCRBrowser extends AbstractBrowser {
         }
         FCRLink fcr = new FCRLink(savePath);
         try {
-            fcr.linkList(getContext().getPatient().getPatientId());
+            String pid = null;
+//s.oh^ 2013/04/18
+            //fcr.linkList(getContext().getPatient().getPatientId());
+            if(zeroSup) {
+                pid = zeroSuppress(getContext().getPatient().getPatientId());
+            }else{
+                pid = getContext().getPatient().getPatientId();
+            }
+            fcr.linkList(pid);
+//s.oh$
         } catch (ParserConfigurationException ex) {
             Logger.getLogger(FCRBrowser.class.getName()).log(Level.SEVERE, null, ex);
         } catch (TransformerConfigurationException ex) {
@@ -180,7 +196,16 @@ public class FCRBrowser extends AbstractBrowser {
         }
         FCRLink fcr = new FCRLink(savePath);
         try {
-            fcr.linkImage(getContext().getPatient().getPatientId(), date);
+            String pid = null;
+//s.oh^ 2013/04/18
+            //fcr.linkImage(getContext().getPatient().getPatientId(), date);
+            if(zeroSup) {
+                pid = zeroSuppress(getContext().getPatient().getPatientId());
+            }else{
+                pid = getContext().getPatient().getPatientId();
+            }
+            fcr.linkImage(pid, date);
+//s.oh$
         } catch (ParserConfigurationException ex) {
             Logger.getLogger(FCRBrowser.class.getName()).log(Level.SEVERE, null, ex);
         } catch (TransformerConfigurationException ex) {
@@ -438,10 +463,27 @@ public class FCRBrowser extends AbstractBrowser {
         view.getFcrListBtn().setEnabled(canLaunch);
         view.getFcrImageBtn().setEnabled(canLaunch);
 
-//minagawa^ IconServer        
+//minagawa^ Icon Server        
         view.getDirLbl().setIcon(ClientContext.getImageIconArias("icon_info_small"));
 //minagawa$        
         view.getDirLbl().setToolTipText("画像・PDFディレクトリの場所を表示してます。");
         setUI(view);
+    }
+    
+    /**
+     * ゼロサプレス
+     * @param data
+     * @return 
+     */
+    private String zeroSuppress(String data) {
+        String ret = null;
+        Pattern ptn = java.util.regex.Pattern.compile("^0+([0-9]+.*)");
+        Matcher m = ptn.matcher(data);
+        if(m.matches()) {
+            ret = m.group(1);
+        }else{
+            ret = data;
+        }
+        return ret;
     }
 }

@@ -15,8 +15,10 @@ public class LetterSettingPanel extends AbstractSettingPanel {
     
     private static final String ID = "letterSetting";
     private static final String TITLE = "紹介状等";
+//minagawa^ Icon Server    
+    //private static final String ICON = "mail_16.gif";
     private static final String ICON = "icon_letter_settings_small";
-
+//minagawa$    
     private LetterSettingView view;
     private LetterSettingModel model;
 
@@ -41,6 +43,12 @@ public class LetterSettingPanel extends AbstractSettingPanel {
         bg = new ButtonGroup();
         bg.add(view.getFontSizeSmallRadio());
         bg.add(view.getFontSizeLargeRadio());
+        
+//s.oh^ 2013/11/26 文書の電話出力対応
+        bg = new ButtonGroup();
+        bg.add(view.getTelephoneRadio());
+        bg.add(view.getNoTelephoneRadio());
+//s.oh$
         
         // PDF
         view.getPdfBtn().addActionListener(new ActionListener() {
@@ -108,6 +116,14 @@ public class LetterSettingPanel extends AbstractSettingPanel {
         } else if (model.getFontSize().equals("large")) {
              view.getFontSizeLargeRadio().setSelected(true);
         }
+        
+//s.oh^ 2013/11/26 文書の電話出力対応
+        if(model.isTelephoneOutputPdf()) {
+            view.getTelephoneRadio().setSelected(true);
+        }else{
+            view.getNoTelephoneRadio().setSelected(true);
+        }
+//s.oh$
     }
 
     private void bindViewToModel() {
@@ -144,6 +160,14 @@ public class LetterSettingPanel extends AbstractSettingPanel {
         } else if (view.getFontSizeLargeRadio().isSelected()) {
             model.setFontSize("large");
         }
+        
+//s.oh^ 2013/11/26 文書の電話出力対応
+        if(view.getTelephoneRadio().isSelected()) {
+            model.setTelephoneOutputPdf(true);
+        }else{
+            model.setTelephoneOutputPdf(false);
+        }
+//s.oh$
     }
 
     @Override
@@ -167,6 +191,9 @@ public class LetterSettingPanel extends AbstractSettingPanel {
         private boolean printName;
         private String pdfDirectory;
         private String fontSize;
+//s.oh^ 2013/11/26 文書の電話出力対応
+        private boolean telephoneOutputPdf;
+//s.oh$
 
         public void populate(ProjectStub stub) {
             setTitle(stub.getString(Project.LETTER_ATESAKI_TITLE));
@@ -178,6 +205,9 @@ public class LetterSettingPanel extends AbstractSettingPanel {
             }
             setPdfDirectory(test);
             setFontSize(stub.getString(Project.SHINDANSYO_FONT_SIZE));
+//s.oh^ 2013/11/26 文書の電話出力対応
+            setTelephoneOutputPdf(stub.getBoolean(Project.LETTER_TELEPHONE_OUTPUTPDF, true));
+//s.oh$
         }
 
         public void restore(ProjectStub stub) {
@@ -195,6 +225,10 @@ public class LetterSettingPanel extends AbstractSettingPanel {
             
             // 診断書のフォントサイズ
             stub.setString(Project.SHINDANSYO_FONT_SIZE, getFontSize());
+            
+//s.oh^ 2013/11/26 文書の電話出力対応
+            stub.setBoolean(Project.LETTER_TELEPHONE_OUTPUTPDF, isTelephoneOutputPdf());
+//s.oh
         }
 
         public String getTitle() {
@@ -236,5 +270,15 @@ public class LetterSettingPanel extends AbstractSettingPanel {
         public void setFontSize(String fontSize) {
             this.fontSize = fontSize;
         }   
+        
+//s.oh^ 2013/11/26 文書の電話出力対応
+        public boolean isTelephoneOutputPdf() {
+            return telephoneOutputPdf;
+        }
+        
+        public void setTelephoneOutputPdf(boolean output) {
+            this.telephoneOutputPdf = output;
+        }
+//s.oh$
     }
 }

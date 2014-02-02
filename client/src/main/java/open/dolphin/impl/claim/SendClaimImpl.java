@@ -11,6 +11,7 @@ import open.dolphin.client.ClaimMessageListener;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.MainWindow;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 import org.apache.log4j.Logger;
 
 
@@ -239,6 +240,7 @@ public class SendClaimImpl implements ClaimMessageListener {
                         JOptionPane.DEFAULT_OPTION,
                         JOptionPane.WARNING_MESSAGE,null,
                         new String[]{proceedString, dumpString},proceedString);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, title, buf.toString());
                 break;
                 
             case TT_NAK_SIGNAL:
@@ -250,6 +252,7 @@ public class SendClaimImpl implements ClaimMessageListener {
                         buf.toString(),
                         title,
                         JOptionPane.ERROR_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, title, buf.toString());
                 break;
                 
             case TT_SENDING_TROUBLE:
@@ -261,6 +264,7 @@ public class SendClaimImpl implements ClaimMessageListener {
                         buf.toString(),
                         title,
                         JOptionPane.ERROR_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, title, buf.toString());
                 break;
                 
             case TT_CONNECTION_REJECT:
@@ -284,7 +288,13 @@ public class SendClaimImpl implements ClaimMessageListener {
                         JOptionPane.DEFAULT_OPTION,
                         JOptionPane.WARNING_MESSAGE,null,
                         new String[]{proceedString, dumpString},proceedString);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, title, buf.toString());
                 break;
+        }
+        if(option == 0) {
+            Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, proceedString);
+        }else if(option == 1) {
+            Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, dumpString);
         }
         
         return option;

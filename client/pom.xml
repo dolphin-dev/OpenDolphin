@@ -9,7 +9,7 @@
     <parent>
         <artifactId>opendolphin</artifactId>
         <groupId>opendolphin</groupId>
-        <version>2.3.1</version>
+        <version>2.5.0</version>
     </parent>
     <artifactId>opendolphin-client</artifactId>
     <packaging>jar</packaging>
@@ -116,7 +116,7 @@
             <artifactId>AppleJavaExtensions</artifactId>
             <version>1.6</version>
             <type>jar</type>
-        </dependency> 
+        </dependency>
     </dependencies>
 
     <build>
@@ -158,7 +158,7 @@
                 <version>2.3.2</version>
                 <configuration>
                     <showDeprecation>true</showDeprecation>
-                    <debug>false</debug>
+                    <debug>true</debug>
                     <source>1.7</source>
                     <target>1.7</target>
                 </configuration>
@@ -178,5 +178,5 @@
             </resource>
         </resources>
     </build>
-    <version>2.3.1</version>
+    <version>2.5.0</version>
 </project>

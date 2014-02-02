@@ -25,6 +25,7 @@ import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
 import open.dolphin.table.*;
 import open.dolphin.util.AgeCalculator;
+import open.dolphin.util.Log;
 import org.apache.commons.lang.time.DurationFormatUtils;
 
 /**
@@ -40,6 +41,7 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
     //public static final ImageIcon OPEN_ICON = ClientContext.getImageIcon("open_16.gif");    
     //public static final ImageIcon NETWORK_ICON = ClientContext.getImageIcon("ntwrk_16.gif");
     public static final ImageIcon OPEN_ICON = ClientContext.getImageIconArias("icon_karte_open_state_small");    
+    // ネットワークアイコン
     public static final ImageIcon NETWORK_ICON = ClientContext.getImageIconArias("icon_karte_open_someone_small");
 //minagawa$    
 
@@ -187,7 +189,8 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
     private AbstractAction copyAction;
 
     // 受付数・待ち時間の更新間隔
-    private static final int intervalSync = 60;
+    //private static final int intervalSync = 60;
+    private static final int intervalSync = 30;
 
     // pvtUpdateTask
     private ScheduledExecutorService executor;
@@ -422,7 +425,7 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                         Object[] cstOptions = new Object[]{"はい", "いいえ"};
 
                         StringBuilder sb = new StringBuilder(pvt.getPatientName());
-                        sb.append("様の受付を取り消しますか?");
+                        sb.append("様の受付をキャンセルしますか?");
                         String msg = sb.toString();
 
                         int select = JOptionPane.showOptionDialog(
@@ -436,12 +439,15 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                                 ClientContext.getImageIconArias("icon_caution"),
 //minagawa$                                
                                 cstOptions, "はい");
+                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle(getName()), msg);
 
                         System.err.println("select=" + select);
 
                         if (select != 0) {
+                            Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "いいえ");
                             return;
                         }
+                        Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "はい");
                     }
 
 //s.oh^ 不具合修正
@@ -617,7 +623,8 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
         long delay = gc.getTimeInMillis() - now.getTimeInMillis();
         long interval = intervalSync * 1000;
 
-        schedule = executor.scheduleWithFixedDelay(timerTask, delay, interval, TimeUnit.MILLISECONDS);
+        //schedule = executor.scheduleWithFixedDelay(timerTask, delay, interval, TimeUnit.MILLISECONDS);
+        schedule = executor.scheduleWithFixedDelay(timerTask, 60, interval, TimeUnit.MILLISECONDS);
     }
     
     /**
@@ -663,6 +670,11 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
     public void switchRenderere() {
         sexRenderer = !sexRenderer;
         Project.setBoolean("sexRenderer", sexRenderer);
+        if(sexRenderer) {
+            Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "性別レンダラを使用する");
+        }else{
+            Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "偶数奇数レンダラを使用する");
+        }
         if (pvtTable != null) {
             pvtTableModel.fireTableDataChanged();
         }
@@ -674,6 +686,7 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
     public void switchAgeDisplay() {
         if (pvtTable != null) {
             ageDisplay = !ageDisplay;
+            Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "年齢表示", String.valueOf(ageDisplay));
             Project.setBoolean("ageDisplay", ageDisplay);
             String method = ageDisplay ? AGE_METHOD[0] : AGE_METHOD[1];
             pvtTableModel.setProperty(method, ageColumn);
@@ -745,6 +758,7 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
         if (pvt == null) {
             return;
         }
+        Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "カルテを開く", pvt.getPatientId());
         getContext().openKarte(pvt);
     }
 
@@ -855,6 +869,7 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                         public void actionPerformed(ActionEvent ae) {
                             boolean now = isAssignedOnly();
                             Project.setBoolean(ASSIGNED_ONLY, !now);
+                            Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "担当分のみ表示", String.valueOf(!now));
                             filterPatients();
                         }
                     });
@@ -868,6 +883,7 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
 
                     @Override
                     public void actionPerformed(ActionEvent ae) {
+                        Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "修正送信を注意アイコンにする");
                         boolean curIcon = Project.getBoolean("change.icon.modify.send", true);
                         boolean change = !curIcon;
                         Project.setBoolean("change.icon.modify.send", change);
@@ -912,6 +928,7 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
      * 選択されている行をコピーする。
      */
     public void copyRow() {
+        Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "コピー");
 
         StringBuilder sb = new StringBuilder();
         int numRows = pvtTable.getSelectedRowCount();
@@ -937,6 +954,7 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
         if (sb.length() > 0) {
             StringSelection stsel = new StringSelection(sb.toString());
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stsel, stsel);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, sb.toString());
         }
     }
 
@@ -946,6 +964,7 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
     public void undoCancelPvt() {
 
         final PatientVisitModel pvtModel = getSelectedPvt();
+        Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "キャンセル取消", pvtModel.getPatientId());
 
         // ダイアログを表示し確認する
         StringBuilder sb = new StringBuilder(pvtModel.getPatientName());
@@ -1005,6 +1024,12 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                 ClientContext.getImageIconArias("icon_caution"),
 //minagawa$                
                 cstOptions, cstOptions[1]);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle(getName()), msg);
+        if(select == 0) {
+            Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "はい");
+        }else{
+            Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "いいえ");
+        }
         return (select == 0);
     }
 
@@ -1106,13 +1131,20 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
         private boolean fullPvt;
         
         public UpdatePvtInfoTask() {
-            fullPvt = Project.getBoolean("pvt.timer.fullpvt", false);
+//s.oh^ 2013/07/31 赤旗問題対応
+            //fullPvt = Project.getBoolean("pvt.timer.fullpvt", false);
+            fullPvt = Project.getBoolean(Project.PVT_TIMER_CHECK, false);
+//s.oh$
         }
 
         @Override
         public void run() {
             if (fullPvt) {
-                view.getKutuBtn().doClick();
+                //view.getKutuBtn().doClick();
+//s.oh^ 2013/11/06 受付定期チェック処理変更
+                //getFullPvt();
+                updateFullPvt();
+//s.oh$
             } else {
                 // 同期時は時刻と患者数を更新するのみ
                 updatePvtInfo();
@@ -1139,6 +1171,9 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                     List<PatientVisitModel> ret = get();
                     if (ret!=null && ret.size()>0) {
                         pvtList = ret;
+                        for(PatientVisitModel pvm : pvtList) {
+                            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "患者：", pvm.getPatientId());
+                        }
                     }
                     // フィルタリング
                     filterPatients();
@@ -1154,12 +1189,72 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
         worker.execute();
     }
     
+//s.oh^ 2013/11/06 受付定期チェック処理変更
+    private void updateFullPvt() {
+        if(pvtDelegater == null) return;
+
+        view.getKutuBtn().setEnabled(false);
+        if (getContext().getCurrentComponent() == getUI()) {
+            getContext().block();
+            getContext().getProgressBar().setIndeterminate(true);
+        }
+        final int row = pvtTable.getSelectedRow();
+        
+        SwingWorker worker = new SwingWorker<List<PatientVisitModel>, Void>() {
+            @Override
+            protected List<PatientVisitModel> doInBackground() throws Exception {
+                return pvtDelegater.getPvtList();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    pvtList = get();
+                    filterPatients();
+                    countPvt();
+                    updatePvtInfo();
+                } catch (InterruptedException | ExecutionException ex) {
+                }
+                
+                view.getKutuBtn().setEnabled(true);
+                if (getContext().getCurrentComponent() == getUI()) {
+                    getContext().unblock();
+                    getContext().getProgressBar().setIndeterminate(false);
+                    getContext().getProgressBar().setValue(0);
+                }
+                if(row >= 0) {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            pvtTable.getSelectionModel().addSelectionInterval(row, row);
+                            //Rectangle r = pvtTable.getCellRect(row, row, true);
+                            //pvtTable.scrollRectToVisible(r);
+                        }
+                    });
+                }else if(pvtTable.getRowCount() > 0) {
+                    //showLastRow();
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            pvtTable.getSelectionModel().addSelectionInterval(pvtTable.getRowCount()-1, pvtTable.getRowCount()-1);
+                        }
+                    });
+                }
+            }
+        };
+        worker.execute();
+    }
+//s.oh$
+    
     // 受付番号を振り、フィルタリングしてtableModelに設定する
     private void filterPatients() {
 
         List<PatientVisitModel> list = new ArrayList<PatientVisitModel>();
         
-        if (isAssignedOnly() && pvtList!=null) {
+//s.oh^ ORCAIDがない場合は全部表示 2013/08/08
+        //if (isAssignedOnly() && pvtList!=null) {
+        if (isAssignedOnly() && pvtList!=null && orcaId != null) {
+//s.oh$
             for (PatientVisitModel pvt : pvtList) {
                 String doctorId = pvt.getDoctorId();
                 if (doctorId == null || doctorId.equals(orcaId) || doctorId.equals(UN_ASSIGNED_ID)) {
@@ -1187,6 +1282,7 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
     public void propertyChange(PropertyChangeEvent pce) {
 
         if (!pce.getPropertyName().equals(ChartEventHandler.CHART_EVENT_PROP)) {
+            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "not CHART_EVENT_PROP", pce.getPropertyName());
             return;
         }
         
@@ -1198,9 +1294,14 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
             case ChartEventModel.PVT_ADD:
                 PatientVisitModel model = evt.getPatientVisitModel();
                 if (model==null) {
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "PVT_ADD", "model = null");
                     break;
                 }
+                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "PVT_ADD", model.getPatientId());
                 pvtList.add(model);
+//s.oh^ 2013/11/26 スクロールバーのリセット
+                int sRow = pvtTable.getSelectedRow();
+//s.oh$
 //minagawa^                
 //                // 担当でないならばテーブルに追加しない
 //                if (isAssignedOnly()) {
@@ -1217,10 +1318,20 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                 filterPatients();
                 // 選択中の行を保存
                 // 保存した選択中の行を選択状態にする
-                int sRow = selectedRow;
-                pvtTable.getSelectionModel().addSelectionInterval(sRow, sRow);
-                // 追加した行は見えるようにスクロールする
-                showLastRow();
+//s.oh^ 2013/11/26 スクロールバーのリセット
+                //int sRow = selectedRow;
+                //pvtTable.getSelectionModel().addSelectionInterval(sRow, sRow);
+                //// 追加した行は見えるようにスクロールする
+                //showLastRow();
+                if(Project.getBoolean("receipt.pvtadd.scrollbar.reset", true)) {
+                    sRow = selectedRow;
+                    pvtTable.getSelectionModel().addSelectionInterval(sRow, sRow);
+                    showLastRow();
+                }else{
+                    selectedRow = sRow;
+                    pvtTable.getSelectionModel().addSelectionInterval(sRow, sRow);
+                }
+//s.oh$
                 
 //s.oh^ 受付連携
                 // ORCAクラウド接続
@@ -1242,6 +1353,9 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                     if(Project.getBoolean("reception.link", false)) {
                         link.receptionLink(model);
                     }
+                    if(Project.getBoolean("receipt.link", false)) {
+                        link.receiptLink(model);
+                    }
                 }
 //s.oh$
                 
@@ -1255,12 +1369,14 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                         pvt.setState(evt.getState());
                         pvt.setByomeiCount(evt.getByomeiCount());
                         pvt.setByomeiCountToday(evt.getByomeiCountToday());
+                        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "PVT_STATE", pvt.getPatientId(), String.valueOf(pvt.getState()), String.valueOf(pvt.getId()));
                         pvt.setMemo(evt.getMemo());
                     }
                     if (pvt.getPatientModel().getId() == evt.getPtPk()) {
                         String ownerUUID = evt.getOwnerUUID();
                         pvt.setStateBit(PatientVisitModel.BIT_OPEN, ownerUUID != null);
                         pvt.getPatientModel().setOwnerUUID(evt.getOwnerUUID());
+                        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "PVT_STATE", pvt.getPatientId(), String.valueOf(pvt.getState()), String.valueOf(pvt.getPatientModel().getId()), evt.getOwnerUUID());
                     }
                 }
                 for (int row = 0; row < tableDataList.size(); ++row) {
@@ -1297,11 +1413,13 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                 if (toRemove != null) {
                     pvtTableModel.delete(toRemove);
                 }
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "PVT_DELETE", toRemove.getPatientId());
                 break;
                 
             case ChartEventModel.PVT_RENEW:
                 // 日付が変わるとCMD_RENEWが送信される。pvtListをサーバーから取得する
                 getFullPvt();
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "日付変更によるPvtListの取得");
                 break;
                 
             case ChartEventModel.PVT_MERGE:
@@ -1315,6 +1433,7 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                         int num = pvt.getNumber();
                         toMerge.setNumber(num);
                         pvtList.set(i, toMerge);
+                        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "PVT_MERGE", toMerge.getPatientId());
                     }
                 }
                 // tableModelに変更
@@ -1339,6 +1458,7 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                 for (PatientVisitModel pvt : pvtList) {
                     if (pvt.getPatientModel().getId() == pk) {
                         pvt.setPatientModel(pm);
+                        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "PM_MERGE", pvt.getPatientId());
                     }
                 }
                 break;

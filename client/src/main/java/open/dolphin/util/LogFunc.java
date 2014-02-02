@@ -150,11 +150,11 @@ public class LogFunc {
              a += "0";
         }
         a += Integer.toString(month);
-        if(day < 10) {
-             a += "0";
-        }
         if(fmt.equals("YYYYMM")){
             return(a);
+        }
+        if(day < 10) {
+             a += "0";
         }
         a += Integer.toString(day);
         if(fmt.equals("YYYYMMDDHHMMSS")){

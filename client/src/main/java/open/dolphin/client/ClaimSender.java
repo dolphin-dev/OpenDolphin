@@ -6,6 +6,7 @@ import open.dolphin.infomodel.*;
 import open.dolphin.message.ClaimHelper;
 import open.dolphin.message.MessageBuilder;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 import open.dolphin.util.ZenkakuUtils;
 import org.apache.log4j.Level;
 
@@ -179,10 +180,12 @@ public class ClaimSender implements IKarteSender {
             ClientContext.getClaimLogger().debug(cvt.getClaimInsutance());
         }
 
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","CLAIM",cvt.getClaimInsutance());
         claimListener.claimMessageEvent(cvt);
     }
 
     private void debug(String msg) {
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I",msg);
         if (DEBUG) {
             ClientContext.getBootLogger().debug(msg);
         }

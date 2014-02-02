@@ -1,8 +1,15 @@
 package open.dolphin.session;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.Stateless;
@@ -12,6 +19,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import open.dolphin.infomodel.*;
+import open.dolphin.mbean.KanaToAscii;
 import open.dolphin.mbean.ServletContextHolder;
 
 /**
@@ -123,9 +131,9 @@ public class PVTServiceBean {
             exist.setKanaFamilyName(patient.getKanaFamilyName());
             exist.setKanaGivenName(patient.getKanaGivenName());
             exist.setKanaName(patient.getKanaName());
-            exist.setRomanFamilyName(patient.getRomanFamilyName());
-            exist.setRomanGivenName(patient.getRomanGivenName());
-            exist.setRomanName(patient.getRomanName());
+            //exist.setRomanFamilyName(patient.getRomanFamilyName());   // ローマ字はマージしない 2013.10.25 K.Funabashi 3Line
+            //exist.setRomanGivenName(patient.getRomanGivenName());
+            //exist.setRomanName(patient.getRomanName());
 
             // 性別
             exist.setGender(patient.getGender());
@@ -233,23 +241,28 @@ public class PVTServiceBean {
             // pvt時刻が同じでキャンセルでないものは更新(merge)する
             if (test.getPvtDate().equals(pvt.getPvtDate()) 
                     && (test.getState() & (1<< PatientVisitModel.BIT_CANCEL)) ==0) {
-                pvt.setId(test.getId());    // pvtId, state, ownerUUID, byomeiCountは既存のものを使う
-                pvt.setState(test.getState());
-                pvt.getPatientModel().setOwnerUUID(test.getPatientModel().getOwnerUUID());
-                pvt.setByomeiCount(test.getByomeiCount());
-                pvt.setByomeiCountToday(test.getByomeiCountToday());
-                // データベースを更新
-                em.merge(pvt);
-                // 新しいもので置き換える
-                pvtList.set(i, pvt);
-                // クライアントに通知
-                String uuid = contextHolder.getServerUUID();
-                ChartEventModel msg = new ChartEventModel(uuid);
-                msg.setParamFromPvt(pvt);
-                msg.setPatientVisitModel(pvt);
-                msg.setEventType(ChartEventModel.PVT_MERGE);
-                eventServiceBean.notifyEvent(msg);
-                return 0;   // 追加０個
+//s.oh^ 2013/12/24 同時受付不具合修正
+                // 同一患者のみ
+                if(test.getPatientId() != null && pvt.getPatientId() != null && test.getPatientId().equals(pvt.getPatientId())) {
+//s.oh$
+                    pvt.setId(test.getId());    // pvtId, state, ownerUUID, byomeiCountは既存のものを使う
+                    pvt.setState(test.getState());
+                    pvt.getPatientModel().setOwnerUUID(test.getPatientModel().getOwnerUUID());
+                    pvt.setByomeiCount(test.getByomeiCount());
+                    pvt.setByomeiCountToday(test.getByomeiCountToday());
+                    // データベースを更新
+                    em.merge(pvt);
+                    // 新しいもので置き換える
+                    pvtList.set(i, pvt);
+                    // クライアントに通知
+                    String uuid = contextHolder.getServerUUID();
+                    ChartEventModel msg = new ChartEventModel(uuid);
+                    msg.setParamFromPvt(pvt);
+                    msg.setPatientVisitModel(pvt);
+                    msg.setEventType(ChartEventModel.PVT_MERGE);
+                    eventServiceBean.notifyEvent(msg);
+                    return 0;   // 追加０個
+                }
             }
         }
         // 同じ時刻のPVTがないならばPVTをデータベースに登録(persist)する
@@ -264,6 +277,64 @@ public class PVTServiceBean {
         msg.setPatientVisitModel(pvt);
         msg.setEventType(ChartEventModel.PVT_ADD);
         eventServiceBean.notifyEvent(msg);
+        
+        // 2013/07/16
+        try {
+            Properties config = new Properties();
+            sb = new StringBuilder();
+            sb.append(System.getProperty("jboss.home.dir"));
+            sb.append(File.separator);
+            sb.append("custom.properties");
+            File f = new File(sb.toString());
+            FileInputStream fin = new FileInputStream(f);
+            InputStreamReader isr = new InputStreamReader(fin, "JISAutoDetect");
+            config.load(isr);
+            isr.close();
+            if(config.getProperty("csv.output") != null) {
+                Logger.getLogger("open.dolphin").log(Level.INFO, "Output CSV : " + pvt.getPatientId());
+                sb = new StringBuilder();
+                sb.append(pvt.getPatientModel().getPatientId()).append(",");  // pid,
+                sb.append(pvt.getPatientModel().getFullName()).append(",");   // name,
+                if(config.getProperty("csv.link") == null) {
+                    sb.append(",");                                             // ,
+                }else if(config.getProperty("csv.link").equals("RF")) {
+                    sb.append(pvt.getPatientModel().getKanaName()).append(",");   // kana
+                }
+                KanaToAscii kanaToAscii = new KanaToAscii();
+                String rm = kanaToAscii.CHGKanatoASCII(pvt.getPatientModel().getKanaName(), "");
+                sb.append(rm).append(",");                                                // roman,    
+                String g = pvt.getPatientModel().getGender();
+                sb.append(ModelUtils.getGenderMFDesc(g)).append(",");           // F | M,
+                String birth = pvt.getPatientModel().getBirthday();
+                birth = birth.replaceAll("-", "");
+                sb.append(birth);                                               // yyyyMMdd
+                String line = sb.toString();
+                // File
+                sb = new StringBuilder();
+                SimpleDateFormat sdf = new SimpleDateFormat(config.getProperty("csv.file.name"));
+                sb.append(config.getProperty("csv.dir"));
+                sb.append(File.separator);
+                sb.append(sdf.format(new Date()));
+                String fileNameWithoutExt = sb.toString();
+                sb.append(".inp");
+                String tempName = sb.toString();
+                File tmp = new File(tempName);
+                FileOutputStream out = new FileOutputStream(tmp);
+                BufferedOutputStream w = new BufferedOutputStream(out);
+                w.write(line.getBytes(config.getProperty("csv.file.encoding")));
+                w.flush();
+                w.close();
+                sb = new StringBuilder();
+                sb.append(fileNameWithoutExt);
+                sb.append(".");
+                sb.append(config.getProperty("csv.file.ext"));
+                String fileName = sb.toString();
+                File dest = new File(fileName);
+                tmp.renameTo(dest);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(PVTServiceBean.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return 1;   // 追加１個
     } 

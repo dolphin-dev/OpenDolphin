@@ -8,6 +8,7 @@ import open.dolphin.client.ClientContext;
 import open.dolphin.delegater.PVTDelegater1;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  *
@@ -48,6 +49,7 @@ public final class PVTSender implements Runnable {
         PVTDelegater1 pdl = new PVTDelegater1();
         try {
             pdl.addPvt(model);
+            Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "受付：", model.getPatientId());
         } catch (Exception e) {
         }
         
@@ -71,6 +73,14 @@ public final class PVTSender implements Runnable {
             if(Project.getBoolean("reception.link", false)) {
                 link.receptionLink(model);
             }
+            if(Project.getBoolean("receipt.link", false)) {
+                link.receiptLink(model);
+            }
+//s.oh^ 2013/11/13 Claimの横流し
+            if(Project.getBoolean("receipt.claim.write", false)) {
+                link.claimWrite(pvtXml);
+            }
+//s.oh$
         }
 //s.oh$
     }
@@ -92,6 +102,8 @@ public final class PVTSender implements Runnable {
         while (thisThread==senderThread) {
             try {
                 String pvtXml = getPvt();
+                Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "ORCAからCLAIM受信");
+                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, pvtXml);
                 addPvt(pvtXml);
             } catch (InterruptedException e) {
                 ClientContext.getPvtLogger().warn("PVT Sender interrupted");

@@ -101,6 +101,22 @@ public class DiagnosisSendWrapperConverter implements IInfoModelConverter {
         }
         return ret;
     }
+    
+//minagawa^ LSC 1.4 傷病名の削除 2013/06/24
+    public List<RegisteredDiagnosisModelConverter> getDeletedDiagnosis() {
+        List<RegisteredDiagnosisModel> list = model.getDeletedDiagnosis();
+        if (list==null || list.isEmpty()) {
+            return null;
+        }
+        List<RegisteredDiagnosisModelConverter> ret = new ArrayList<RegisteredDiagnosisModelConverter>();
+        for (RegisteredDiagnosisModel m : list) {
+            RegisteredDiagnosisModelConverter con = new RegisteredDiagnosisModelConverter();
+            con.setModel(m);
+            ret.add(con);
+        }
+        return ret;
+    }
+//minagawa$    
 
     @Override
     public void setModel(IInfoModel model) {

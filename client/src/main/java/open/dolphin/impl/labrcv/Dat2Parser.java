@@ -19,7 +19,7 @@ import open.dolphin.infomodel.NLaboModule;
 public class Dat2Parser implements LabResultParser {
 
     private String encoding = "SHIFT-JIS";
-    private boolean DEBUG=true;
+    private boolean DEBUG;
 
     public Dat2Parser() {
     }
@@ -33,8 +33,8 @@ public class Dat2Parser implements LabResultParser {
         String line;
         String curKey = null;
         NLaboModule curModule = null;
-        List<NLaboModule> allModules = new ArrayList();
-        List<NLaboImportSummary> retList = new ArrayList();
+        List<NLaboModule> allModules = new ArrayList<NLaboModule>();
+        List<NLaboImportSummary> retList = new ArrayList<NLaboImportSummary>();
 
         SimpleDateFormat defaultDF = new SimpleDateFormat(DEFAULT_DATE_FORMAT);
         SimpleDateFormat df8 = new SimpleDateFormat(DATE_FORMAT_8);
@@ -73,9 +73,7 @@ public class Dat2Parser implements LabResultParser {
                 sb.append(sampleDate).append(" ");
                 sb.append(patientName).append(" ");
                 sb.append(patientSex);
-                String msg = sb.toString();
-                ClientContext.getLaboTestLogger().debug(msg);
-                System.err.println(msg);
+                ClientContext.getLaboTestLogger().debug(sb.toString());
             }
 
             sampleDate = sampleDate.replaceAll("/", "-");
@@ -93,10 +91,6 @@ public class Dat2Parser implements LabResultParser {
                 } else if (sampleDate.length()==16) {
                     // yyyy-MM-dd HH:mm
                     date = defaultDF.parse(sampleDate);
-                    
-                } else if (sampleDate.length()==15) {
-                    // yyyy-MM-ddHH:mm
-                    date = new SimpleDateFormat("yyyy-MM-ddHH:mm").parse(sampleDate);
                 }
 
                 // yyyy-MM-dd HH:mm
@@ -310,9 +304,7 @@ public class Dat2Parser implements LabResultParser {
             sb.append(item);
             sb.append("=");
             sb.append(value);
-            String msg = sb.toString();
-            ClientContext.getLaboTestLogger().debug(msg);
-            System.err.println(msg);
+            ClientContext.getLaboTestLogger().debug(sb.toString());
         }
     }
 }

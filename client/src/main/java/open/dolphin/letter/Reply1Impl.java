@@ -23,6 +23,7 @@ import open.dolphin.helper.DBTask;
 import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
 import open.dolphin.util.AgeCalculater;
+import open.dolphin.util.Log;
 import org.apache.log4j.Level;
 
 /**
@@ -80,7 +81,10 @@ public class Reply1Impl extends AbstractChartDocument implements Letter {
         }
 
         // 日付
-        String dateStr = LetterHelper.getDateAsString(m.getConfirmed());
+//minagawa^ LSC 1.4 bug fix 文書の印刷日付 2013/06/24
+        //String dateStr = LetterHelper.getDateAsString(m.getConfirmed());
+        String dateStr = LetterHelper.getDateAsString(m.getStarted());
+//minagawa$
         LetterHelper.setModelValue(view.getConfirmed(), dateStr);
 
         // 紹介元（宛先）医療機関名
@@ -137,18 +141,39 @@ public class Reply1Impl extends AbstractChartDocument implements Letter {
     }
 
     @Override
-    public void viewToModel() {
+    // 2013/06/24
+    //public void viewToModel() {
+    public void viewToModel(boolean save) {
 
-        long savedId = model.getId();
-        model.setId(0L);
-        model.setLinkId(savedId);
-
-        Date d = new Date();
-        model.setConfirmed(d);
-        model.setRecorded(d);
-        model.setKarteBean(getContext().getKarte());
-        model.setUserModel(Project.getUserModel());
-        model.setStatus(IInfoModel.STATUS_FINAL);
+//minagawa^ LSC 1.4 bug fix 文書の印刷日付 2013/06/24
+//        long savedId = model.getId();
+//        model.setId(0L);
+//        model.setLinkId(savedId);
+//
+//        Date d = new Date();
+//        model.setConfirmed(d);
+//        model.setRecorded(d);
+//        model.setKarteBean(getContext().getKarte());
+//        model.setUserModel(Project.getUserModel());
+//        model.setStatus(IInfoModel.STATUS_FINAL);
+        
+        if (save) {
+            if (model.getId()==0L) {
+                // 新規作成で保存 日時を現時刻で再設定する
+                Date d = new Date();
+                this.model.setConfirmed(d);
+                this.model.setRecorded(d);
+                this.model.setStarted(d); 
+            } else {
+                // 修正で保存
+                Date d = new Date();
+                model.setConfirmed(d);              // 確定日
+                model.setRecorded(d);               // 記録日
+                model.setLinkId(model.getId());     // LinkId
+                model.setId(0L);                    // id=0L -> 常に新規保存 persit される、元のモデルは削除される（要変更）
+            }
+        }
+//minagawa$  
 
         // 紹介元（宛先）
         model.setClientHospital(LetterHelper.getFieldValue(view.getClientHospital()));
@@ -248,6 +273,12 @@ public class Reply1Impl extends AbstractChartDocument implements Letter {
         setEditables(true);
         setListeners();
         
+//minagawa^ LSC 1.4 bug fix : Mac JDK7 bug マックの上下キー問題 2013/06/24
+        if (ClientContext.isMac()) {
+            new MacInputFixer().fix(view.getInformedContent());
+        }
+//minagawa$          
+        
         stateMgr = new LetterStateMgr(this);
 //minagawa^ LSC Test        
         this.enter();
@@ -266,7 +297,7 @@ public class Reply1Impl extends AbstractChartDocument implements Letter {
     @Override
     public void save() {
 
-        viewToModel();
+        viewToModel(true);
 
         DBTask task = new DBTask<Boolean, Void>(getContext()) {
 
@@ -283,6 +314,7 @@ public class Reply1Impl extends AbstractChartDocument implements Letter {
             protected void succeeded(Boolean result) {
 //minagawa^ Chartの close box 押下で保存する場合、保存終了を通知しておしまい。                    
             if (boundSupport!=null) {
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "紹介患者経過報告書", "保存成功", "インスペクタの終了");
                 setChartDocDidSave(true);
                 return;
             }
@@ -292,6 +324,8 @@ public class Reply1Impl extends AbstractChartDocument implements Letter {
 //                getContext().getDocumentHistory().getDocumentHistory();
 // minagawa $
                 stateMgr.processSavedEvent();
+                
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "紹介患者経過報告書", "保存成功");
             }
         };
 
@@ -313,7 +347,7 @@ public class Reply1Impl extends AbstractChartDocument implements Letter {
             return;
         }
         
-        viewToModel();
+        viewToModel(false);
 
         StringBuilder sb = new StringBuilder();
         sb.append("PDFファイルを作成しますか?");
@@ -327,14 +361,19 @@ public class Reply1Impl extends AbstractChartDocument implements Letter {
                 null,
                 new String[]{"PDF作成", "フォーム印刷", GUIFactory.getCancelButtonText()},
                 "PDF作成");
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle("御報告書印刷"), sb.toString());
 
         if (option == 0) {
+            Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "PDF作成");
             makePDF();
         } else if (option == 1) {
+            Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "フォーム印刷");
             PageFormat pageFormat = getContext().getContext().getPageFormat();
             String name = getContext().getPatient().getFullName();
             Panel2 panel = (Panel2) this.view;
             panel.printPanel(pageFormat, 1, false, name, 0, true);
+        }else{
+            Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "取消し");
         }
     }
 
@@ -375,6 +414,7 @@ public class Reply1Impl extends AbstractChartDocument implements Letter {
                 if (err!=null) {
                     Window parent = SwingUtilities.getWindowAncestor(getContext().getFrame());
                     JOptionPane.showMessageDialog(parent, err, ClientContext.getFrameTitle("PDF作成"), JOptionPane.WARNING_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle("PDF作成"), err);
                 }
             }
         };

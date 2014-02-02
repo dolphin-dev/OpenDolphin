@@ -15,16 +15,22 @@ import open.dolphin.session.UserServiceBean;
  *
  * @author Kazushi Minagawa, Digital Globe, Inc.
  */
-@WebFilter(urlPatterns = {"/openSource/*"}, asyncSupported = true)
+@WebFilter(urlPatterns = {"/resources/*"}, asyncSupported = true)
 public class LogFilter implements Filter {
 
     private static final String USER_NAME = "userName";
     private static final String PASSWORD = "password";
     private static final String UNAUTHORIZED_USER = "Unauthorized user: ";
+
+    /*private static final String TEST_USER_ID = "1.3.6.1.4.1.9414.2.100:ehrTouch";
+    private static final String TEST_PASSWORD = "098f6bcd4621d373cade4e832627b4f6";*/
     
-    private static final String SYSAD_USER_ID = "1.3.6.1.4.1.9414.10.1:admin";
-    private static final String SYSAD_PASSWORD = "21232f297a57a5a743894a0e4a801fc3";
-    private static final String SYSAD_PATH = "system";
+    private static final String TEST_USER_ID = "1.3.6.1.4.1.9414.2.100:dolphin";    // K.Funabashi
+    private static final String TEST_PASSWORD = "098f6bcd4621d373cade4e832627b4f6";
+    
+    private static final String SYSAD_USER_ID = "1.3.6.1.4.1.9414.2.1:cloudia";
+    private static final String SYSAD_PASSWORD = "2cf069043321eeb1b146323ab3d7b819";
+    private static final String SYSAD_PATH = "hiuchi";
 
     @Inject
     private UserServiceBean userService;
@@ -52,7 +58,8 @@ public class LogFilter implements Filter {
         if (!authentication) {
             
             String requestURI = req.getRequestURI();
-            authentication = (userName.equals(SYSAD_USER_ID) && password.equals(SYSAD_PASSWORD) && requestURI.endsWith(SYSAD_PATH));
+            authentication = (userName.equals(TEST_USER_ID) && password.equals(TEST_PASSWORD));
+            authentication = authentication || (userName.equals(SYSAD_USER_ID) && password.equals(SYSAD_PASSWORD) && requestURI.endsWith(SYSAD_PATH));
             
             if (!authentication) {
                 authentication = userService.authenticate(userName, password);
@@ -81,7 +88,7 @@ public class LogFilter implements Filter {
 //minagawa^ VisitTouch logを分ける        
         String uri = wrapper.getRequestURIForLog();
         sb.append(uri);
-        if (uri.startsWith("jtouch")) {
+        if (uri.startsWith("/jtouch")) {
             Logger.getLogger("visit.touch").info(sb.toString());
         } else {
             Logger.getLogger("open.dolphin").info(sb.toString());

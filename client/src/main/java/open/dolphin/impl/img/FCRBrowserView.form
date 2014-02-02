@@ -32,7 +32,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="settingBtn" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="jScrollPane1" alignment="0" max="32767" attributes="0"/>
+                  <Component id="jScrollPane1" alignment="0" pref="738" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -59,6 +59,11 @@
   </Layout>
   <SubComponents>
     <Component class="javax.swing.JLabel" name="dirLbl">
+      <Properties>
+        <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+          <Image iconType="3" name="/open/dolphin/resources/images/about_16.gif"/>
+        </Property>
+      </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="refreshBtn">
       <Properties>

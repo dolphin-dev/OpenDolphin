@@ -21,6 +21,7 @@ public class CodeHelperSettingPanel extends AbstractSettingPanel {
     private static final String ID = "codeHelperSetting";
     private static final String TITLE = "コード";
 //minagawa^ Icon Server    
+    //private static final String ICON = "help_16.gif";
     private static final String ICON = "icon_code_helper_settings_small";
 //minagawa$    
     

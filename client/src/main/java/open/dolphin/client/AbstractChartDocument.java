@@ -7,6 +7,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import open.dolphin.util.Log;
 
 /**
  * チャートドキュメントのルートクラス。
@@ -162,5 +163,6 @@ public abstract class AbstractChartDocument implements ChartDocument {
     protected void warning(String title, String message) {
         Window parent = SwingUtilities.getWindowAncestor(getUI());
         JOptionPane.showMessageDialog(parent, message, ClientContext.getFrameTitle(title), JOptionPane.WARNING_MESSAGE);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), message);
     }
 }

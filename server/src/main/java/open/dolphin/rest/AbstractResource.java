@@ -4,6 +4,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Logger;
 import open.dolphin.infomodel.IInfoModel;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 /**
  *
@@ -24,7 +27,7 @@ public class AbstractResource {
     }
 
     protected void debug(String msg) {
-        Logger.getLogger("ope.dolphin").info(msg);
+        Logger.getLogger("open.dolphin").fine(msg);
     }
 
     protected static String getRemoteFacility(String remoteUser) {
@@ -38,5 +41,13 @@ public class AbstractResource {
         sb.append(IInfoModel.COMPOSITE_KEY_MAKER);
         sb.append(pid);
         return sb.toString();
+    }
+
+    // 2013/06/24    
+    protected static ObjectMapper getSerializeMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        mapper.configure(SerializationConfig.Feature.WRITE_NULL_MAP_VALUES, false);
+        return mapper;
     }
 }

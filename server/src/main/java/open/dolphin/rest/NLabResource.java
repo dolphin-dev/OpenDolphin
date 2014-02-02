@@ -15,6 +15,7 @@ import open.dolphin.converter.PatientLiteListConverter;
 import open.dolphin.converter.PatientModelConverter;
 import open.dolphin.infomodel.*;
 import open.dolphin.session.NLabServiceBean;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -53,6 +54,22 @@ public class NLabResource extends AbstractResource {
         
         return conv;
     }
+    
+//s.oh^ 2013/09/18 ラボデータの高速化
+    @GET
+    @Path("/module/count/{param}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getLaboTestCount(@Context HttpServletRequest servletReq, @PathParam("param") String param) {
+        
+        String pid = param;
+        String fidPid = getFidPid(servletReq.getRemoteUser(), pid);
+        
+        Long cnt = nLabServiceBean.getLaboTestCount(fidPid);
+        String val = String.valueOf(cnt);
+        
+        return val;
+    }
+//s.oh$
 
     @GET
     @Path("/item/{param}")
@@ -109,6 +126,8 @@ public class NLabResource extends AbstractResource {
         String fid = getRemoteFacility(servletReq.getRemoteUser());
         
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         NLaboModule module = mapper.readValue(json, NLaboModule.class);
        
         List<NLaboItem> items = module.getItems();
@@ -125,5 +144,18 @@ public class NLabResource extends AbstractResource {
         conv.setModel(patient);
 
         return conv;
+    }
+
+    // ラボデータの削除 2013/06/24    
+    @DELETE
+    @Path("/module/{param}")
+    public void unsubscribeTrees(@PathParam("param") String param) {
+
+        long moduleId = Long.parseLong(param);
+
+        int cnt = nLabServiceBean.deleteLabTest(moduleId);
+        
+        String cntStr = String.valueOf(cnt);
+        debug(cntStr);
     }
 }

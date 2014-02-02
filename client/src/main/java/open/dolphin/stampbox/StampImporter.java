@@ -21,6 +21,7 @@ import open.dolphin.infomodel.SubscribedTreeModel;
 import open.dolphin.project.Project;
 import open.dolphin.table.ListTableModel;
 import open.dolphin.table.StripeTableCellRenderer;
+import open.dolphin.util.Log;
 
 /**
  * StampImporter
@@ -113,6 +114,7 @@ public class StampImporter {
                             cause.getMessage(),
                             ClientContext.getFrameTitle(title),
                             JOptionPane.WARNING_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), cause.getMessage());
                 ClientContext.getBootLogger().warn(cause.getMessage());
             }
 
@@ -372,6 +374,7 @@ public class StampImporter {
                         cause.getMessage(),
                         ClientContext.getFrameTitle(title),
                         JOptionPane.WARNING_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), cause.getMessage());
                 ClientContext.getBootLogger().warn(cause.getMessage());
             }
 
@@ -469,6 +472,7 @@ public class StampImporter {
                             cause.getMessage(),
                             ClientContext.getFrameTitle(title),
                             JOptionPane.WARNING_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), cause.getMessage());
                 ClientContext.getBootLogger().warn(cause.getMessage());
             }
 

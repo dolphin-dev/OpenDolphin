@@ -1,5 +1,6 @@
 package open.dolphin.converter;
 
+import java.util.Date;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.PatientVisitModel;
 
@@ -80,6 +81,12 @@ public final class PatientVisitModelConverter implements IInfoModelConverter {
     public String getMemo() {
         return model.getMemo();
     }
+    
+//minagawa^ 予定カルテ(予定カルテ対応)
+    public Date getLastDocDate() {
+        return model.getLastDocDate();
+    }
+//minagawa$    
 
     @Override
     public void setModel(IInfoModel model) {

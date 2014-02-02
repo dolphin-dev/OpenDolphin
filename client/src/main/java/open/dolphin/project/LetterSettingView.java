@@ -38,6 +38,9 @@ public class LetterSettingView extends javax.swing.JPanel {
         onkikaRadio = new javax.swing.JRadioButton();
         jLabel3 = new javax.swing.JLabel();
         greetingsChk = new javax.swing.JCheckBox();
+        jLabel6 = new javax.swing.JLabel();
+        telephoneRadio = new javax.swing.JRadioButton();
+        noTelephoneRadio = new javax.swing.JRadioButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         printRadio = new javax.swing.JRadioButton();
@@ -65,6 +68,12 @@ public class LetterSettingView extends javax.swing.JPanel {
 
         greetingsChk.setText("入れる"); // NOI18N
 
+        jLabel6.setText("電話番号の出力:");
+
+        telephoneRadio.setText("有り");
+
+        noTelephoneRadio.setText("無し");
+
         org.jdesktop.layout.GroupLayout jPanel1Layout = new org.jdesktop.layout.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -84,7 +93,14 @@ public class LetterSettingView extends javax.swing.JPanel {
                         .addContainerGap()
                         .add(jLabel3)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(greetingsChk)))
+                        .add(greetingsChk))
+                    .add(jPanel1Layout.createSequentialGroup()
+                        .add(30, 30, 30)
+                        .add(jLabel6, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 95, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(telephoneRadio)
+                        .add(18, 18, 18)
+                        .add(noTelephoneRadio)))
                 .addContainerGap(13, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -100,6 +116,11 @@ public class LetterSettingView extends javax.swing.JPanel {
                 .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
                     .add(jLabel3)
                     .add(greetingsChk))
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                .add(jPanel1Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jLabel6)
+                    .add(telephoneRadio)
+                    .add(noTelephoneRadio))
                 .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -215,7 +236,7 @@ public class LetterSettingView extends javax.swing.JPanel {
             .add(layout.createSequentialGroup()
                 .addContainerGap()
                 .add(jPanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jPanel2, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jPanel4, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
@@ -235,17 +256,20 @@ public class LetterSettingView extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JRadioButton noPrintRadio;
+    private javax.swing.JRadioButton noTelephoneRadio;
     private javax.swing.JRadioButton noTitleRadio;
     private javax.swing.JRadioButton onjishiTitleRadio;
     private javax.swing.JRadioButton onkikaRadio;
     private javax.swing.JButton pdfBtn;
     private javax.swing.JTextField pdfFld;
     private javax.swing.JRadioButton printRadio;
+    private javax.swing.JRadioButton telephoneRadio;
     // End of variables declaration//GEN-END:variables
 
     public javax.swing.JRadioButton getNoPrintRadio() {
@@ -286,5 +310,13 @@ public class LetterSettingView extends javax.swing.JPanel {
 
     public javax.swing.JRadioButton getFontSizeSmallRadio() {
         return fontSizeSmallRadio;
+    }
+
+    public javax.swing.JRadioButton getTelephoneRadio() {
+        return telephoneRadio;
+    }
+
+    public javax.swing.JRadioButton getNoTelephoneRadio() {
+        return noTelephoneRadio;
     }
 }

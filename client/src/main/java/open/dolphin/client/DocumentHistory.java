@@ -23,6 +23,7 @@ import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.project.Project;
 import open.dolphin.table.ListTableModel;
 import open.dolphin.table.StripeTableCellRenderer;
+import open.dolphin.util.Log;
 
 /**
  * 文書履歴を取得し、表示するクラス。
@@ -624,10 +625,13 @@ public class DocumentHistory {
                 ClientContext.getImageIconArias("icon_caution"),
 //minagawa$                
                 cstOptions,"はい");
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle("削除"), msg);
 
         if (select != 0) {
+            Log.outputOperLogDlg(context, Log.LOG_LEVEL_0, "いいえ");
             return;
         }
+        Log.outputOperLogDlg(context, Log.LOG_LEVEL_0, "はい");
 
         DeleteTask task = new DeleteTask(context, m.getDocPk());
         task.execute();

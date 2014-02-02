@@ -40,6 +40,8 @@ public class TFSBrowserView extends javax.swing.JPanel {
         tfsListBtn = new javax.swing.JButton();
         tfsCloseBtn = new javax.swing.JButton();
 
+        dirLbl.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/resources/images/about_16.gif"))); // NOI18N
+
         refreshBtn.setText("更新");
 
         settingBtn.setText("設定");

@@ -13,6 +13,7 @@ import open.dolphin.converter.ChartEventModelConverter;
 import open.dolphin.infomodel.ChartEventModel;
 import open.dolphin.mbean.ServletContextHolder;
 import open.dolphin.session.ChartEventServiceBean;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -118,6 +119,8 @@ public class ChartEventResource extends AbstractResource {
 //        return String.valueOf(cnt);
         debug("putChartEvent did call");
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         ChartEventModel msg = mapper.readValue(json, ChartEventModel.class);
         int cnt = eventServiceBean.processChartEvent(msg);
         return String.valueOf(cnt);

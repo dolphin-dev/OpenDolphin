@@ -21,6 +21,7 @@ import open.dolphin.client.ClientContext;
 import open.dolphin.client.LabResultParser;
 import open.dolphin.delegater.LaboDelegater;
 import open.dolphin.infomodel.PatientLiteModel;
+import open.dolphin.util.Log;
 
 
 /**
@@ -163,6 +164,7 @@ public class NLaboTestFileTransferHandler extends TransferHandler {
                     String message = "パースできないファイルがあります。\n検査報告書フォーマットを確認してください。\n" + why;
                     String title = "ラボレシーバ";
                     JOptionPane.showMessageDialog(parent, message, ClientContext.getFrameTitle(title), JOptionPane.WARNING_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), message);
                 }
             }
         };

@@ -1,7 +1,14 @@
 package open.dolphin.session;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -10,7 +17,7 @@ import javax.persistence.PersistenceContext;
 import javax.servlet.AsyncContext;
 import open.dolphin.infomodel.*;
 import open.dolphin.mbean.ServletContextHolder;
-import open.dolphin.rest14.ChartEventResource;
+import open.dolphin.rest.ChartEventResource;
 
 /**
  * ChartEventServiceBean
@@ -84,24 +91,25 @@ public class ChartEventServiceBean {
         
         int eventType = evt.getEventType();
         
-        if (true) {
+        if (DEBUG) {
             StringBuilder sb = new StringBuilder();
             sb.append("ChartEventServiceBean: ").append(eventType).append(" will issue");
-            log(sb.toString());
+            debug(sb.toString());
         }
         
+        boolean sendEvent = true;
         switch(eventType) {
             case ChartEventModel.PVT_DELETE:
                 processPvtDeleteEvent(evt);
                 break;
             case ChartEventModel.PVT_STATE:
-                processPvtStateEvent(evt);
+                sendEvent = processPvtStateEvent(evt);
                 break;
             default:
                 return 0;
         }
         // クライアントに通知
-        notifyEvent(evt);
+        if(sendEvent) notifyEvent(evt);
 
         return 1;
     }
@@ -131,7 +139,7 @@ public class ChartEventServiceBean {
         }
     }
     
-    private void processPvtStateEvent(ChartEventModel evt) {
+    private boolean processPvtStateEvent(ChartEventModel evt) {
         
         // msgからパラメーターを取得
         String fid = evt.getFacilityId();
@@ -142,13 +150,44 @@ public class ChartEventServiceBean {
         String memo = evt.getMemo();
         String ownerUUID = evt.getOwnerUUID();
         long ptPk = evt.getPtPk();
+        
+        if((state & (1 << PatientVisitModel.BIT_NOTUPDATE)) > 0) {
+            return false;
+        }
 
         List<PatientVisitModel> pvtList = getPvtList(fid);
 
         // データベースのPatientVisitModelを更新
         PatientVisitModel pvt = em.find(PatientVisitModel.class, pvtId);
         if (pvt != null) {
-            pvt.setState(state);
+//s.oh^ 2013/08/29
+            //pvt.setState(state);
+            if(state <= 1 && pvt.getState() >= 2) {
+                if((state & (1 << PatientVisitModel.BIT_CANCEL)) == 0 && (pvt.getState() & (1 << PatientVisitModel.BIT_CANCEL)) > 0) {
+                    int status = pvt.getState();
+                    status &= ~(1 << PatientVisitModel.BIT_CANCEL);
+                    pvt.setState(status);
+                }else if((state & (1 << PatientVisitModel.BIT_TREATMENT)) == 0 && (pvt.getState() & (1 << PatientVisitModel.BIT_TREATMENT)) > 0) {
+                    int status = pvt.getState();
+                    status &= ~(1 << PatientVisitModel.BIT_TREATMENT);
+                    pvt.setState(status);
+                }else if((state & (1 << PatientVisitModel.BIT_GO_OUT)) == 0 && (pvt.getState() & (1 << PatientVisitModel.BIT_GO_OUT)) > 0) {
+                    int status = pvt.getState();
+                    status &= ~(1 << PatientVisitModel.BIT_GO_OUT);
+                    pvt.setState(status);
+                }else if((state & (1 << PatientVisitModel.BIT_HURRY)) == 0 && (pvt.getState() & (1 << PatientVisitModel.BIT_HURRY)) > 0) {
+                    int status = pvt.getState();
+                    status &= ~(1 << PatientVisitModel.BIT_HURRY);
+                    pvt.setState(status);
+                }else{
+                    log("state <= 1 && pvt.getState() >= 2 && pvt.getState() != BIT_CANCEL/BIT_TREATMENT/BIT_GO_OUT/BIT_HURRY");
+                }
+                // 正しい情報で通知するように設定
+                evt.setState(pvt.getState());
+            }else{
+                pvt.setState(state);
+            }
+//s.oh$
             pvt.setByomeiCount(byomeiCount);
             pvt.setByomeiCountToday(byomeiCountToday);
             pvt.setMemo(memo);
@@ -162,7 +201,34 @@ public class ChartEventServiceBean {
         // pvtListを更新
         for (PatientVisitModel model : pvtList) {
             if (model.getId() == pvtId) {
-                model.setState(state);
+//s.oh^ 2013/08/29
+                //model.setState(state);
+                if(state <= 1 && model.getState() >= 2) {
+                    if((state & (1 << PatientVisitModel.BIT_CANCEL)) == 0 && (model.getState() & (1 << PatientVisitModel.BIT_CANCEL)) > 0) {
+                        int status = model.getState();
+                        status &= ~(1 << PatientVisitModel.BIT_CANCEL);
+                        model.setState(status);
+                    }else if((state & (1 << PatientVisitModel.BIT_TREATMENT)) == 0 && (model.getState() & (1 << PatientVisitModel.BIT_TREATMENT)) > 0) {
+                        int status = model.getState();
+                        status &= ~(1 << PatientVisitModel.BIT_TREATMENT);
+                        model.setState(status);
+                    }else if((state & (1 << PatientVisitModel.BIT_GO_OUT)) == 0 && (model.getState() & (1 << PatientVisitModel.BIT_GO_OUT)) > 0) {
+                        int status = model.getState();
+                        status &= ~(1 << PatientVisitModel.BIT_GO_OUT);
+                        model.setState(status);
+                    }else if((state & (1 << PatientVisitModel.BIT_HURRY)) == 0 && (model.getState() & (1 << PatientVisitModel.BIT_HURRY)) > 0) {
+                        int status = model.getState();
+                        status &= ~(1 << PatientVisitModel.BIT_HURRY);
+                        model.setState(status);
+                    }else{
+                        log("state <= 1 && model.getState() >= 2 && model.getState() != BIT_CANCEL/BIT_TREATMENT/BIT_GO_OUT/BIT_HURRY");
+                    }
+                    // 正しい情報で通知するように設定
+                    evt.setState(model.getState());
+                }else{
+                    model.setState(state);
+                }
+//s.oh$
                 model.setByomeiCount(byomeiCount);
                 model.setByomeiCountToday(byomeiCountToday);
                 model.setMemo(memo);
@@ -170,6 +236,15 @@ public class ChartEventServiceBean {
                 break;
             }
         }
+//s.oh^ 2013/08/13
+        for (PatientVisitModel model : pvtList) {
+            if (model.getPatientModel().getId() == ptPk) {
+                model.setStateBit(PatientVisitModel.BIT_OPEN, ownerUUID != null);
+                model.getPatientModel().setOwnerUUID(ownerUUID);
+            }
+        }
+//s.oh$
+        return true;
     }
 
     public void start() {
@@ -294,28 +369,73 @@ public class ChartEventServiceBean {
         
         Map<String, List<PatientVisitModel>> map = contextHolder.getPvtListMap();
         
-        for (Iterator itr = map.entrySet().iterator(); itr.hasNext();) {
-            Map.Entry entry = (Map.Entry) itr.next();
-            List<PatientVisitModel> pvtList = (List<PatientVisitModel>) entry.getValue();
-            
-            List<PatientVisitModel> toRemove = new ArrayList<PatientVisitModel>();
-            for (PatientVisitModel pvt : pvtList) {
-                // BIT_SAVE_CLAIMとBIT_MODIFY_CLAIMは削除する
-                if (pvt.getStateBit(PatientVisitModel.BIT_SAVE_CLAIM) 
-                        || pvt.getStateBit(PatientVisitModel.BIT_MODIFY_CLAIM)
-                        || pvt.getStateBit(PatientVisitModel.BIT_CANCEL)) {
-                    toRemove.add(pvt);
-                }
+//s.oh^ 受付リストのクリア 2013/08/15
+        Properties config = new Properties();
+        StringBuilder sb = new StringBuilder();
+        sb.append(System.getProperty("jboss.home.dir"));
+        sb.append(File.separator);
+        sb.append("custom.properties");
+        File f = new File(sb.toString());
+        String pvtListClear = null;
+        try {
+            FileInputStream fin = new FileInputStream(f);
+            InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect");
+            config.load(r);
+            r.close();
+            pvtListClear = config.getProperty("pvtlist.clear", "false");
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(ChartEventServiceBean.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(ChartEventServiceBean.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(ChartEventServiceBean.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        if(pvtListClear != null && pvtListClear.equals("true")) {
+            List<String> fidList = new ArrayList<String>();
+            for (Iterator itr = map.entrySet().iterator(); itr.hasNext();) {
+                Map.Entry entry = (Map.Entry) itr.next();
+                List<PatientVisitModel> pvtList = (List<PatientVisitModel>) entry.getValue();
+                pvtList.clear();
+                fidList.add((String)entry.getKey());
+                log("ChartEventService: fid = " + (String)entry.getKey());
             }
-            pvtList.removeAll(toRemove);
-            
-            // クライアントに伝える。
-            String fid = (String) entry.getKey();
-            String uuid = contextHolder.getServerUUID();
-            ChartEventModel msg = new ChartEventModel(uuid);
-            msg.setFacilityId(fid);
-            msg.setEventType(ChartEventModel.PVT_RENEW);
-            notifyEvent(msg);
+            initializePvtList();
+            for(int i = 0; i < fidList.size(); i++) {
+                String fid = fidList.get(i);
+                String uuid = contextHolder.getServerUUID();
+                ChartEventModel msg = new ChartEventModel(uuid);
+                msg.setFacilityId(fid);
+                msg.setEventType(ChartEventModel.PVT_RENEW);
+                notifyEvent(msg);
+            }
+            log("ChartEventService: ServerUUID = " + contextHolder.getServerUUID());
+        }else{
+//s.oh$
+        
+            for (Iterator itr = map.entrySet().iterator(); itr.hasNext();) {
+                Map.Entry entry = (Map.Entry) itr.next();
+                List<PatientVisitModel> pvtList = (List<PatientVisitModel>) entry.getValue();
+
+                List<PatientVisitModel> toRemove = new ArrayList<PatientVisitModel>();
+                for (PatientVisitModel pvt : pvtList) {
+                    // BIT_SAVE_CLAIMとBIT_MODIFY_CLAIMは削除する
+                    if (pvt.getStateBit(PatientVisitModel.BIT_SAVE_CLAIM) 
+                            || pvt.getStateBit(PatientVisitModel.BIT_MODIFY_CLAIM)
+                            || pvt.getStateBit(PatientVisitModel.BIT_CANCEL)) {
+                        toRemove.add(pvt);
+                    }
+                }
+                pvtList.removeAll(toRemove);
+
+                // クライアントに伝える。
+                String fid = (String) entry.getKey();
+                String uuid = contextHolder.getServerUUID();
+                ChartEventModel msg = new ChartEventModel(uuid);
+                msg.setFacilityId(fid);
+                msg.setEventType(ChartEventModel.PVT_RENEW);
+                notifyEvent(msg);
+            }
         }
         log("ChartEventService: renewPvtList did done");
     }

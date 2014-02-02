@@ -12,6 +12,7 @@ import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.PatientMemoModel;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  * 患者のメモを表示し編集するクラス。
@@ -63,6 +64,12 @@ public class MemoInspector {
         // 右クリックによる編集メニューを登録する
         //memoArea.addMouseListener(new CutCopyPasteAdapter(memoArea));
         memoArea.addMouseListener(CutCopyPasteAdapter.getInstance());
+        
+//minagawa^ LSC 1.4 bug fix : Mac JDK7 bug マックの上下キー問題 2013/06/24
+        if (ClientContext.isMac()) {
+            new MacInputFixer().fix(memoArea);
+        }
+//minagawa$ 
     }
 
     /**
@@ -147,6 +154,7 @@ public class MemoInspector {
                     ddl.updatePatientMemo(patientMemoModel);
                     patientMemoModel = null;
                     context = null;
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "メモ", "保存成功。");
                 } catch (Exception e) {}
             }
         };

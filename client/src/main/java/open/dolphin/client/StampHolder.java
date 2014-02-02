@@ -93,6 +93,27 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
             };
             popup.add(copyAsTextAction);
             
+//s.oh^ 2014/01/27 スタンプのテキストコピー機能拡張
+            // copyAsTextAndPatID
+            AbstractAction copyAsTextAndOtherAction = new AbstractAction("テキストとしてコピー(患者ID含む)") {
+                @Override
+                public void actionPerformed(ActionEvent ae) {
+                    IInfoModel im = stamp.getModel();
+                    if (im instanceof BundleDolphin) {
+                        BundleDolphin bundle = (BundleDolphin)im;
+                        StringSelection ss = null;
+                        if(kartePane.getPatID() != null) {
+                            ss = new StringSelection(bundle.toString(kartePane.getPatID(), null));
+                        }else{
+                            ss = new StringSelection(bundle.toString());
+                        }
+                        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(ss, null);
+                    }
+                }
+            };
+            popup.add(copyAsTextAndOtherAction);
+//s.oh$
+            
             popup.add(mediator.getAction(GUIConst.ACTION_PASTE));
             
             // 編集可の時のみ
@@ -246,10 +267,30 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
                 sh.addItems(((BundleMed)newStamp.getModel()).getClaimItem());
                 
                 // このStampは削除する
-                kartePane.removeStamp(this);
+//s.oh^ 2013/11/26 スクロールバーのリセット
+                //kartePane.removeStamp(this);
+                kartePane.removeStamp(this, false);
+//s.oh$
                 return;
             }
         }
+        
+//s.oh^ 2014/01/27 同じ検体検査をまとめる
+        boolean mergeLabTest = Project.getBoolean(Project.KARTE_MERGE_WITH_LABTEST, false);
+        mergeLabTest = mergeLabTest && (newStamp.getModuleInfoBean().getEntity().equals(IInfoModel.ENTITY_LABO_TEST));
+        if (mergeLabTest) {
+            StampHolder sh = kartePane.findCanMergeLabTestHolder(this);
+
+            if (sh!=null) {
+                // newStampのclaimItemをshへ追加する
+                sh.addItems(((BundleDolphin)newStamp.getModel()).getClaimItem());
+                
+                // このStampは削除する
+                kartePane.removeStamp(this, false);
+                return;
+            }
+        }
+//s.oh$
         
 //s.oh^ 2013/02/22 不具合修正(同じ用法がマージされない)
         //setStamp(newStamp);

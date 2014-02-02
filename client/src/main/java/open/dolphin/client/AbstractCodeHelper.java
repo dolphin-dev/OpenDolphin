@@ -192,7 +192,11 @@ public abstract class AbstractCodeHelper {
         textPane.setSelectionStart(start);
         textPane.setSelectionEnd(end);
         textPane.replaceSelection("");
-        handler.importData(comp, tr);
+//minagawa^ Hanazono 2013/06/05
+        //handler.importData(comp, tr);
+        TransferHandler.TransferSupport support = new TransferHandler.TransferSupport(comp, tr);
+        handler.importData(support);
+//minagawa$
         closePopup();
     }
     

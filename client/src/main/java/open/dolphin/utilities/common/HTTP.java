@@ -99,7 +99,7 @@ public class HTTP extends AbstractCommonFunc {
             charset = charset.toUpperCase();
         }else{
             contentType = type;
-            charset = DEFAULT_CHARSET;
+            charset = CHARSET_DEFAULT;
         }
     }
     

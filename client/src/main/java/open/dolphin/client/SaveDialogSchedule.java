@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import open.dolphin.project.Project;
 
 /**
  * SaveDialog
@@ -20,6 +21,11 @@ public final class SaveDialogSchedule extends AbstractSaveDialog {
     
     private static final String CHK_TITLE_SEND_WHEN_SCHEDULE = "診療行為を送信する";
     private static final String TOOLTIP_DEPENDS_ON_CHECK = "診療行為の送信はチェックボックスに従います。";
+    
+//s.oh^ 2013/12/12 予定カルテのオーダー対応
+    // LabTest 送信
+    private JCheckBox sendLabtest;
+//s.oh$
 
     public SaveDialogSchedule() {
     }
@@ -86,6 +92,14 @@ public final class SaveDialogSchedule extends AbstractSaveDialog {
         if (sendEnabled && params.isSendClaim()) {
             sendClaim.doClick();
         }
+        
+//s.oh^ 2013/12/12 予定カルテのオーダー対応
+        //-------------------------------
+        // 検体検査オーダー送信
+        //-------------------------------
+        sendLabtest.setSelected(params.isSendLabtest() && params.isHasLabtest());
+        sendLabtest.setEnabled((sendEnabled && params.isHasLabtest()));
+//s.oh$
         
         checkTitle();
         
@@ -162,6 +176,18 @@ public final class SaveDialogSchedule extends AbstractSaveDialog {
         p5.add(sendClaim);
         content.add(p5);
         
+//s.oh^ 2013/12/12 予定カルテのオーダー対応
+        //---------------------------
+        // 検体検査オーダー送信ありなし
+        //---------------------------
+        sendLabtest = new JCheckBox("検体検査オーダー");
+        if (Project.getBoolean(Project.SEND_LABTEST)) {
+            JPanel p6 = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            p6.add(sendLabtest);
+            content.add(p6);
+        }
+//s.oh$
+        
         // Cancel Button
         String buttonText =  (String)UIManager.get("OptionPane.cancelButtonText");
         cancelButton = new JButton(buttonText);
@@ -235,7 +261,10 @@ public final class SaveDialogSchedule extends AbstractSaveDialog {
                 model.setTmpSave(true);                                 // 仮保存
                 model.setSendClaim(sendClaim.isSelected());             // CLAIM送信->CheckBox
                 model.setClaimDate(enterParams.getClaimDate());         // CLAIM送信日
-                model.setSendLabtest(false);                            // Lab.Test送信->false 互換性を確保..
+//s.oh^ 2013/12/12 予定カルテのオーダー対応
+                //model.setSendLabtest(false);                            // Lab.Test送信->false 互換性を確保..
+                model.setSendLabtest(sendLabtest.isSelected());         // Lab.Test送信->CheckBox
+//s.oh$
                 model.setAllowPatientRef(false);                        // MML->送信しない
                 model.setAllowClinicRef(false);                         // MML->送信しない
                 model.setSendMML(false);

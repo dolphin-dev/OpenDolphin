@@ -278,6 +278,12 @@ public class PatientServiceBean {
         List<PatientVisitModel> pvtList = eventServiceBean.getPvtList(fid);
         for (PatientVisitModel pvt : pvtList) {
             if (pvt.getPatientModel().getId() == pm.getId()) {
+//s.oh^ 2013/10/07 患者情報が正しく表示されない
+                List<HealthInsuranceModel> him = pvt.getPatientModel().getHealthInsurances();
+                if(pm.getHealthInsurances() == null) {
+                    pm.setHealthInsurances(him);
+                }
+//s.oh$
                 pvt.setPatientModel(pm);
                  // クライアントに通知
                 String uuid = eventServiceBean.getServerUUID();
@@ -353,4 +359,13 @@ public class PatientServiceBean {
     }
 
 //masuda$
+    
+    // 検索件数が1000件超過
+    public Long getPatientCount(String facilityId, String patientId) {
+        Long ret = (Long)em.createQuery("select count(*) from PatientModel p where p.facilityId=:fid and p.patientId like :pid")
+                .setParameter("fid", facilityId)
+                .setParameter("pid", patientId+"%")
+                .getSingleResult();
+        return ret;
+    }
 }

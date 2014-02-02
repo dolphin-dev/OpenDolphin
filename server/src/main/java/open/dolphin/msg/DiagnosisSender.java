@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Logger;
 import open.dolphin.infomodel.*;
 import org.apache.velocity.VelocityContext;
@@ -28,6 +29,11 @@ public class DiagnosisSender {
     private static final String TEMPLATE_NAME = "diseaseHelper.vm";
     private static final String TEMPLATE_ENC = "SHIFT_JIS";
     private static final String DORCA_UPDATED = "DORCA_UPDATED";
+    
+//s.oh^ 2013/05/10 傷病名対応
+    // 傷病名手入力時につけるコード
+    private static final String HAND_CODE = "0000999";
+//s.oh$
     
     private String host;
     private int port;
@@ -55,11 +61,33 @@ public class DiagnosisSender {
      */
     public void send(DiagnosisSendWrapper wrapper) throws Exception {
         
+//s.oh^ 2013/12/10 傷病名のCLAIM送信する／しない
+        Properties config = new Properties();
+        StringBuilder sbPath = new StringBuilder();
+        sbPath.append(System.getProperty("jboss.home.dir"));
+        sbPath.append(File.separator);
+        sbPath.append("custom.properties");
+        File f = new File(sbPath.toString());
+        FileInputStream fin = new FileInputStream(f);
+        InputStreamReader isr = new InputStreamReader(fin, "JISAutoDetect");
+        config.load(isr);
+        isr.close();
+        String claimSend = config.getProperty("diagnosis.claim.send");
+        if(claimSend != null && claimSend.equals("false")) {
+            return;
+        }
+//s.oh$
+        
         // 新規病名
         List<RegisteredDiagnosisModel> addedDiagnosis = wrapper.getAddedDiagnosis();
         
         // 更新病名
         List<RegisteredDiagnosisModel> updatedDiagnosis = wrapper.getUpdatedDiagnosis();
+        
+//minagawa^ LSC 1.4 傷病名の削除 2013/06/24
+        // 削除病名
+        List<RegisteredDiagnosisModel> deletedDiagnosis = wrapper.getDeletedDiagnosis();
+//minagawa$        
         
         // 実際にCLAIM送信する病名
         List<RegisteredDiagnosisModel> actualList = new ArrayList<RegisteredDiagnosisModel>();
@@ -75,7 +103,7 @@ public class DiagnosisSender {
             
             if (!actualList.isEmpty()) {
                 if (DEBUG) {
-                    debug("-------- Send Diagnosis List ----------------");
+                    debug("-------- Send Diagnosis List to add ----------------");
                     for (RegisteredDiagnosisModel r : actualList) {
                         debug(r.getDiagnosis());
                     }
@@ -87,13 +115,29 @@ public class DiagnosisSender {
         // detuched object のみ
         if (updatedDiagnosis!=null && updatedDiagnosis.size()>0) {
             if (DEBUG) {
-                debug("-------- Send Diagnosis List ----------------");
+                debug("-------- Send Diagnosis List to update ----------------");
                 for (RegisteredDiagnosisModel r : updatedDiagnosis) {
                     debug(r.getDiagnosis());
                 }
             }
             actualList.addAll(updatedDiagnosis);
         }
+        
+//minagawa^ LSC 1.4 傷病名の削除 2013/06/24
+        if (deletedDiagnosis!=null && deletedDiagnosis.size()>0) {
+            if (DEBUG) {
+                debug("-------- Send Diagnosis List to delete ----------------");
+                for (RegisteredDiagnosisModel r : updatedDiagnosis) {
+                    debug(r.getDiagnosis());
+                }
+            }
+            actualList.addAll(deletedDiagnosis);
+        }
+        
+        if (actualList.isEmpty()) {
+            return;
+        }
+//minagawa$
         
         // DocInfo & RD をカプセル化したアイテムを生成する
         ArrayList<DiagnosisModuleItem> moduleItems = new ArrayList<DiagnosisModuleItem>();
@@ -107,6 +151,10 @@ public class DiagnosisSender {
             docInfo.setPurpose(IInfoModel.PURPOSE_RECORD);
             docInfo.setFirstConfirmDate(ModelUtils.getDateTimeAsObject(rd.getConfirmDate()));
             docInfo.setConfirmDate(ModelUtils.getDateTimeAsObject(rd.getFirstConfirmDate()));
+            
+//s.oh^ 2013/05/10 傷病名対応
+            rd.setDiagnosisCode(HAND_CODE); // ORCAから取り込んだ場合、コードに0000999を設定する
+//s.oh$
 
             DiagnosisModuleItem mItem = new DiagnosisModuleItem();
             mItem.setDocInfo(docInfo);

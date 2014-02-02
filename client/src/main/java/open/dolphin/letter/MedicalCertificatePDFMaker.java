@@ -136,7 +136,10 @@ public class MedicalCertificatePDFMaker extends AbstractLetterPDFMaker {
 
             // 上記の通り診断する
             pTable.addCell(createNoBorderCell("上記の通り診断する。"));
-            String dateStr = getDateString(model.getConfirmed());
+//minagawa^ LSC 1.4 bug fix 文書の印刷日付 2013/06/24
+            //String dateStr = getDateString(model.getConfirmed());
+            String dateStr = getDateString(model.getStarted());
+//minagawa$  
             pTable.addCell(createNoBorderCell(dateStr));
             
             // 住所 BaseFont.getWidthPoint

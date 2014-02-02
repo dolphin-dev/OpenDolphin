@@ -98,7 +98,12 @@ public class ClientContext {
     public static boolean is5mTest() {
         return stub.is5mTest();
     }
-    
+
+ //minagawa^ Self Cert Test
+    public static boolean isSelfCertTest() {
+        return stub.isSelfCertTest();
+    }
+//minagawa$    
     
     //////////////////////////////////////////////////////////
     

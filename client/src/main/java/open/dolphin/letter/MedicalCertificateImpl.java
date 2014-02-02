@@ -22,6 +22,7 @@ import open.dolphin.delegater.LetterDelegater;
 import open.dolphin.helper.DBTask;
 import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 import org.apache.log4j.Level;
 
 /**
@@ -88,7 +89,10 @@ public class MedicalCertificateImpl extends AbstractChartDocument implements Let
         LetterHelper.setModelValue(view.getPatientAddress(), m.getPatientAddress());
 
         // 確定日
-        String dateStr = LetterHelper.getDateAsString(m.getConfirmed());
+//minagawa^ LSC 1.4 bug fix 文書の印刷日付 2013/06/24
+        //String dateStr = LetterHelper.getDateAsString(m.getConfirmed());
+        String dateStr = LetterHelper.getDateAsString(m.getStarted());
+//minagawa$
         LetterHelper.setModelValue(view.getConfirmedFld(), dateStr);
 
         // 病院住所
@@ -120,18 +124,39 @@ public class MedicalCertificateImpl extends AbstractChartDocument implements Let
     }
 
     @Override
-    public void viewToModel() {
+    // 2013/06/24
+    //public void viewToModel() {
+    public void viewToModel(boolean save) {
 
-        long savedId = model.getId();
-        model.setId(0L);
-        model.setLinkId(savedId);
-
-        Date d = new Date();
-        model.setConfirmed(d);
-        model.setRecorded(d);
-        model.setKarteBean(getContext().getKarte());
-        model.setUserModel(Project.getUserModel());
-        model.setStatus(IInfoModel.STATUS_FINAL);
+//minagawa^ LSC 1.4 bug fix 文書の印刷日付 2013/06/24
+//        long savedId = model.getId();
+//        model.setId(0L);
+//        model.setLinkId(savedId);
+//
+//        Date d = new Date();
+//        model.setConfirmed(d);
+//        model.setRecorded(d);
+//        model.setKarteBean(getContext().getKarte());
+//        model.setUserModel(Project.getUserModel());
+//        model.setStatus(IInfoModel.STATUS_FINAL);
+        
+        if (save) {
+            if (model.getId()==0L) {
+                // 新規作成で保存 日時を現時刻で再設定する
+                Date d = new Date();
+                this.model.setConfirmed(d);
+                this.model.setRecorded(d);
+                this.model.setStarted(d); 
+            } else {
+                // 修正で保存
+                Date d = new Date();
+                model.setConfirmed(d);              // 確定日
+                model.setRecorded(d);               // 記録日
+                model.setLinkId(model.getId());     // LinkId
+                model.setId(0L);                    // id=0L -> 常に新規保存 persit される、元のモデルは削除される（要変更）
+            }
+        }
+//minagawa$  
 
         // 患者情報、差し出し人側はtartでmodelに設定済
 
@@ -214,6 +239,12 @@ public class MedicalCertificateImpl extends AbstractChartDocument implements Let
         setEditables(true);
         setListeners();
         
+//minagawa^ LSC 1.4 bug fix : Mac JDK7 bug マックの上下キー問題 2013/06/24
+        if (ClientContext.isMac()) {
+            new MacInputFixer().fix(view.getInformedContent());
+        }
+//minagawa$         
+        
         stateMgr = new LetterStateMgr(this);
 //minagawa^ LSC Test        
         this.enter();
@@ -232,7 +263,7 @@ public class MedicalCertificateImpl extends AbstractChartDocument implements Let
     @Override
     public void save() {
 
-        viewToModel();
+        viewToModel(true);
 
         DBTask task = new DBTask<Boolean, Void>(getContext()) {
 
@@ -247,11 +278,21 @@ public class MedicalCertificateImpl extends AbstractChartDocument implements Let
 
             @Override
             protected void succeeded(Boolean result) {
+//minagawa^ Chartの close box 押下で保存する場合、保存終了を通知しておしまい。                    
+                // 2013/04/19
+                if (boundSupport!=null) {
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "診断書", "保存成功", "インスペクタの終了");
+                    setChartDocDidSave(true);
+                    return;
+                }
+//minagawa$                
 // minagawa 紹介状等の履歴に遷移 ^                
                 getContext().getDocumentHistory().getLetterHistory();
 //                getContext().getDocumentHistory().getDocumentHistory();
 // minagawa $
                 stateMgr.processSavedEvent();
+                
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "診断書", "保存成功");
             }
         };
 
@@ -273,7 +314,7 @@ public class MedicalCertificateImpl extends AbstractChartDocument implements Let
             return;
         }
         
-        viewToModel();
+        viewToModel(false);
 
         StringBuilder sb = new StringBuilder();
         sb.append("PDFファイルを作成しますか?");
@@ -287,14 +328,19 @@ public class MedicalCertificateImpl extends AbstractChartDocument implements Let
                 null,
                 new String[]{"PDF作成", "フォーム印刷", GUIFactory.getCancelButtonText()},
                 "PDF作成");
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle("診断書印刷"), sb.toString());
 
         if (option == 0) {
+            Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "PDF作成");
             makePDF();
         } else if (option == 1) {
+            Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "フォーム印刷");
             PageFormat pageFormat = getContext().getContext().getPageFormat();
             String name = getContext().getPatient().getFullName();
             Panel2 panel = (Panel2) this.view;
             panel.printPanel(pageFormat, 1, false, name, 0, true);
+        }else{
+            Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "取消し");
         }
     }
 
@@ -335,6 +381,7 @@ public class MedicalCertificateImpl extends AbstractChartDocument implements Let
                 if (err!=null) {
                     Window parent = SwingUtilities.getWindowAncestor(getContext().getFrame());
                     JOptionPane.showMessageDialog(parent, err, ClientContext.getFrameTitle("PDF作成"), JOptionPane.WARNING_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle("PDF作成"), err);
                 }
             }
         };

@@ -5,6 +5,7 @@ import java.util.List;
 import javax.swing.text.*;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  * KartePane の StyledDocument class。
@@ -78,6 +79,8 @@ public class KarteStyledDocument extends DefaultStyledDocument {
                 insertString(start+1, "\n", null);                           // 改行をつけないとテキスト入力制御がやりにくくなる
                 sh.setEntry(createPosition(start), createPosition(start+1)); // スタンプの開始と終了位置を生成して保存する
             }
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "スタンプの追加：", sh.getStamp().getModuleInfoBean().getEntity(), sh.getStamp().getModuleInfoBean().getStampName());
+            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, sh.getText());
             
         } catch(BadLocationException be) {
             be.printStackTrace(System.err);
@@ -112,6 +115,8 @@ public class KarteStyledDocument extends DefaultStyledDocument {
             Position stPos = createPosition(start);
             Position endPos = createPosition(start+1);
             sh.setEntry(stPos, endPos);
+            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "スタンプの復元：", sh.getStamp().getModuleInfoBean().getEntity(), sh.getStamp().getModuleInfoBean().getStampName());
+            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, sh.getText());
             
         } catch(BadLocationException be) {
             be.printStackTrace(System.err);
@@ -131,12 +136,16 @@ public class KarteStyledDocument extends DefaultStyledDocument {
 //masuda^   Stamp/Schemaをremoveするときは直後の改行も削除する
             // Stamp は一文字で表されている
             //remove(start, 1);
-            if (start < getLength() && "\n".equals(getText(start+1, 1))) {
+//s.oh^ 2013/11/26 スクロールバーのリセット
+            //if (start < getLength() && "\n".equals(getText(start+1, 1))) {
+            if (start < getLength() && "\n".equals(getText(start+1, 1)) && (start + 1) < getLength()) {
+//s.oh$
                 remove(start, 2);
             } else {
                 remove(start, 1);
             }
 //masuda$
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "スタンプの削除：", String.valueOf(start));
         } catch(BadLocationException be) {
             be.printStackTrace(System.err);
         }
@@ -160,6 +169,8 @@ public class KarteStyledDocument extends DefaultStyledDocument {
             int start = inPos.getOffset();
             insertString(start, " ", runStyle);
             sh.setEntry(createPosition(start), createPosition(start+1));
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "スタンプの追加：", sh.getStamp().getModuleInfoBean().getEntity(), String.valueOf(start), sh.getStamp().getModuleInfoBean().getStampName());
+            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, sh.getText());
         } catch(BadLocationException be) {
             be.printStackTrace(System.err);
         }
@@ -180,6 +191,7 @@ public class KarteStyledDocument extends DefaultStyledDocument {
             insertString(start, " ", runStyle);
             insertString(start+1, "\n", null);
             sc.setEntry(createPosition(start), createPosition(start+1));
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "シェーマの追加：", sc.getSchema().getExtRefModel().getUrl());
         } catch(BadLocationException be) {
             be.printStackTrace(System.err);
         }
@@ -205,6 +217,7 @@ public class KarteStyledDocument extends DefaultStyledDocument {
             
             // スタンプの開始と終了位置を生成して保存する
             sh.setEntry(createPosition(start), createPosition(start+1));
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "シェーマの追加：", sh.getSchema().getExtRefModel().getUrl());
             
         } catch(BadLocationException be) {
             be.printStackTrace(System.err);
@@ -228,6 +241,7 @@ public class KarteStyledDocument extends DefaultStyledDocument {
             insertString(start, " ", runStyle);
             insertString(start+1, "\n", null);
             sc.setEntry(createPosition(start), createPosition(start+1));
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "アタッチメントの追加：", sc.getAttachment().getUri());
             
         } catch(BadLocationException be) {
             be.printStackTrace(System.err);
@@ -252,6 +266,7 @@ public class KarteStyledDocument extends DefaultStyledDocument {
             
             // スタンプの開始と終了位置を生成して保存する
             sh.setEntry(createPosition(start), createPosition(start+1));
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "アタッチメントの復元：", sh.getAttachment().getUri());
             
         } catch(BadLocationException be) {
             be.printStackTrace(System.err);
@@ -268,6 +283,7 @@ public class KarteStyledDocument extends DefaultStyledDocument {
             setLogicalStyle("default"); // mac 2207-03-31
             int pos = kartePane.getTextPane().getCaretPosition();
             insertString(pos, text, null);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "テキストの追加：", text);
         } catch (BadLocationException e) {
             e.printStackTrace(System.err);
         }

@@ -13,6 +13,7 @@ import open.dolphin.client.ClientContext;
 import open.dolphin.client.GUIConst;
 import open.dolphin.client.ImageEntry;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  *
@@ -54,6 +55,16 @@ public class DefaultBrowser extends AbstractBrowser {
         // Base directory
         String value = properties.getProperty(PROP_BASE_DIR);
         imageBase = valueIsNotNullNorEmpty(value) ? value : null;
+        
+        String path = (imageBase != null) ? imageBase + File.separator + SETTING_FILE_NAME : SETTING_FILE_NAME;
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "設定の読込：", path);
+        Enumeration e = properties.propertyNames();
+        while (e.hasMoreElements()) {
+            String key = (String)e.nextElement();
+            String val = properties.getProperty(key);
+            if(val == null) val = "";
+            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, key, val);
+        }
     }
       
     @Override
@@ -136,6 +147,14 @@ public class DefaultBrowser extends AbstractBrowser {
 
                 // 結果は properties にセットされて返ってくるので save する
                 Project.storeProperties(properties, SETTING_FILE_NAME);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "設定の保存：", oldBase + File.separator + SETTING_FILE_NAME);
+                Enumeration e = properties.propertyNames();
+                while (e.hasMoreElements()) {
+                    String key = (String)e.nextElement();
+                    String val = properties.getProperty(key);
+                    if(val == null) val = "";
+                    Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, key, val);
+                }
 
                 // 新たに設定された値を読む
                 int newCount = columnCount();

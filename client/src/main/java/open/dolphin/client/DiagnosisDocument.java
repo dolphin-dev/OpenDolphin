@@ -15,6 +15,8 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import open.dolphin.delegater.DocumentDelegater;
@@ -29,6 +31,7 @@ import open.dolphin.stampbox.StampTreeNode;
 import open.dolphin.table.ListTableModel;
 import open.dolphin.table.StripeTableCellRenderer;
 import open.dolphin.util.BeanUtils;
+import open.dolphin.util.Log;
 import open.dolphin.util.MMLDate;
 
 /**
@@ -70,6 +73,11 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
     //private static final Color EVEN_COLOR = ClientContext.getColor("color.even");
     private static final Color ORCA_BACK = ClientContext.getColor("color.CALENDAR_BACK");
     
+//s.oh^ 2013/05/10 傷病名対応
+    // 傷病名手入力時につけるコード
+    private static final String HAND_CODE = "0000999";
+//s.oh$
+    
     private JTable diagTable;                   // 病歴テーブル
     private ListTableModel<RegisteredDiagnosisModel> tableModel; // TableModel
     private JComboBox extractionCombo;          // 抽出期間コンボ
@@ -103,6 +111,11 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
     private int diagnosisCount;
     
     private boolean DEBUG;
+    
+//minagawa^ LSC 1.4 bug fix 傷病名の削除(GUI) 2013/06/24
+    private boolean orcaDiceaseHasImported;
+    private boolean underPopup;
+//minagawa$
 
     /**
      *  Creates new DiagnosisDocument
@@ -157,6 +170,7 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
 //minagawa$            
             @Override
             public void actionPerformed(ActionEvent ae) {
+                Log.outputOperLogOper(getContext(), Log.LOG_LEVEL_0, "保存", "追加変更した傷病名をデータベースに反映します。");
                 save();
             }
         };
@@ -171,7 +185,11 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
 //minagawa$            
             @Override
             public void actionPerformed(ActionEvent ae) {
-                delete();
+                Log.outputOperLogOper(getContext(), Log.LOG_LEVEL_0, "削除", "選択した傷病名を削除します。");
+//minagawa^ LSC 1.4 傷病名の削除(ORCA送信) 2013/06/24
+                //delete();
+                delete2();
+//minagawa$                
             }
         };
         deleteAction.setEnabled(false);
@@ -209,6 +227,7 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                             String title = ClientContext.getFrameTitle("傷病名追加");
                             Component comp = getUI();
                             JOptionPane.showMessageDialog(comp, obj, title, JOptionPane.INFORMATION_MESSAGE);
+                            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, title, msg1, msg2);
                         }
                     }
                 }
@@ -226,6 +245,7 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
 //minagawa$            
             @Override
             public void actionPerformed(ActionEvent ae) {
+                Log.outputOperLogOper(getContext(), Log.LOG_LEVEL_0, "ORCA", "ORCAに登録してある病名を参照または取り込みます。");
                 viewOrca();
             }
         };
@@ -337,7 +357,11 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                         String saveOutcome = entry.getOutcome();
                         DiagnosisOutcomeModel dom = (DiagnosisOutcomeModel) value;
                         test = dom.getOutcome();
-                        test = test != null && (!test.equals("")) ? test : null;
+                        // 2013/04/22
+//minagawa^ 定例打ち合わせ                        
+                        //test = test != null && (!test.equals("")) ? test : null;
+                        test = (test != null && !test.equals("") && !test.startsWith("-")) ? test : null;
+//minagawa$                        
 
                         if (saveOutcome == null && test != null) {
                             //System.err.println("saveOutcome == null && test != null");
@@ -451,7 +475,34 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
         diagTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         diagTable.setRowSelectionAllowed(true);
         ListSelectionModel m = diagTable.getSelectionModel();
-        m.addListSelectionListener((ListSelectionListener) EventHandler.create(ListSelectionListener.class, this, "rowSelectionChanged", ""));
+ //minagawa^ LSC 1.4 bug fix 傷病名の削除(GUI) 2013/06/24
+ //       m.addListSelectionListener((ListSelectionListener) EventHandler.create(ListSelectionListener.class, this, "rowSelectionChanged", ""));
+        m.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting()) {
+                    controllActions();
+                }
+            }
+        });
+        
+        FocusListener fl = new FocusListener() {
+
+            @Override
+            public void focusGained(FocusEvent e) {
+                // 編集が開始された
+                disableActions();
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                // 編集が終了もしくは esc 
+                if (!underPopup) {
+                    controllActions();
+                }
+            }
+        };
+ //minagawa$       
 
         // Category comboBox 入力を設定する
         String[] values = ClientContext.getStringArray("diagnosis.category");
@@ -473,10 +524,18 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
         JComboBox categoryCombo = new JComboBox(categoryList);
         TableColumn column = diagTable.getColumnModel().getColumn(CATEGORY_COL);
         column.setCellEditor(new DefaultCellEditor(categoryCombo));
+//minagawa^ LSC 1.4 bug fix 傷病名の削除(GUI) 2013/06/24
+        categoryCombo.addFocusListener(fl);
+//minagawa$        
 
         // Outcome comboBox 入力を設定する
-        String[] ovalues = ClientContext.getStringArray("diagnosis.outcome");
-        String[] odescs = ClientContext.getStringArray("diagnosis.outcomeDesc");
+        // 2013/04/22
+//minagawa^ 定例打ち合わせ　ORCAに合わせる膠着        
+        //String[] ovalues = ClientContext.getStringArray("diagnosis.outcome");
+        //String[] odescs = ClientContext.getStringArray("diagnosis.outcomeDesc");
+        String[] ovalues = ClientContext.getStringArray("diagnosis.outcome2");
+        String[] odescs = ClientContext.getStringArray("diagnosis.outcomeDesc2");
+//minagawa$       
         String ocodeSys = ClientContext.getString("diagnosis.outcomeCodeSys");
         DiagnosisOutcomeModel[] outcomeList = new DiagnosisOutcomeModel[ovalues.length + 1];
         DiagnosisOutcomeModel dom = new DiagnosisOutcomeModel();
@@ -484,6 +543,7 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
         dom.setOutcomeDesc("");
         dom.setOutcomeCodeSys("");
         outcomeList[0] = dom;
+        
         for (int i = 0; i < ovalues.length; i++) {
             dom = new DiagnosisOutcomeModel();
             dom.setOutcome(ovalues[i]);
@@ -494,7 +554,9 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
         JComboBox outcomeCombo = new JComboBox(outcomeList);
         column = diagTable.getColumnModel().getColumn(OUTCOME_COL);
         column.setCellEditor(new DefaultCellEditor(outcomeCombo));
-
+//minagawa^ LSC 1.4 bug fix 傷病名の削除(GUI) 2013/06/24
+        outcomeCombo.addFocusListener(fl);
+//minagawa$        
         //
         // Start Date && EndDate Col にポップアップカレンダーを設定する
         // IME を OFF にする
@@ -503,7 +565,13 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
         column = diagTable.getColumnModel().getColumn(START_DATE_COL);
         JTextField tf = new JTextField();
         tf.addFocusListener(AutoRomanListener.getInstance());
-        PopupListener pl1 = new PopupListener(tf);
+//minagawa^ LSC 1.4 bug fix 傷病名の削除(GUI) 2013/06/24
+        tf.addFocusListener(fl);
+//minagawa$        
+//minagawa^ 定例打ち合わせ        
+        //PopupListener pl1 = new PopupListener(tf);
+        PopupListener pl1 = new PopupListener(tf, new int[]{-12, 0});
+//minagawa$        
         tf.setDocument(new RegexConstrainedDocument(datePattern));
         DefaultCellEditor de = new DefaultCellEditor(tf);
         column.setCellEditor(de);
@@ -513,8 +581,15 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
         column = diagTable.getColumnModel().getColumn(END_DATE_COL);
         tf = new JTextField();
         tf.addFocusListener(AutoRomanListener.getInstance());
+ //minagawa^ LSC 1.4 bug fix 傷病名の削除(GUI) 2013/06/24
+        tf.addFocusListener(fl);
+//minagawa$        
         tf.setDocument(new RegexConstrainedDocument(datePattern));
-        PopupListener pl2 = new PopupListener(tf);
+        // 2013/04/22
+ //minagawa^ 定例打ち合わせ       
+        //PopupListener pl2 = new PopupListener(tf);
+        PopupListener pl2 = new PopupListener(tf, new int[]{-2, 2});
+//minagawa$        
         de = new DefaultCellEditor(tf);
         column.setCellEditor(de);
         de.setClickCountToStart(clickCountToStart);
@@ -614,7 +689,9 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                     // ORCA 病名かどうか
                     boolean selectedIsOrca = true;
                     selectedIsOrca = selectedIsOrca && (obj.getStatus()!=null && obj.getStatus().equals(ORCA_RECORD));
-                    contextMenu.add(new JMenuItem(copyAction));
+//s.oh^ 2013/03/22 不要機能の削除(すぐに対応できないため)
+                    //contextMenu.add(new JMenuItem(copyAction));
+//s.oh$
                     contextMenu.add(new JMenuItem(pasteAction));
                     contextMenu.addSeparator();
                     contextMenu.add(new JMenuItem(copyAsTextAction));
@@ -691,49 +768,51 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
         return p;
     }
 
-    /**
-     * 行選択が起った時のボタン制御を行う。
-     */
-    public void rowSelectionChanged(ListSelectionEvent e) {
-
-        if (e.getValueIsAdjusting() == false) {
-
-            // CLAIM 送信をdiasabled
-            getContext().enabledAction(GUIConst.ACTION_SEND_CLAIM, false);
-
-            // 削除ボタンをコントロールする
-            // licenseCode 制御を追加
-            if (isReadOnly()) {
-                return;
-            }
-
-            // 選択された行のオブジェクトを得る
-            int row = diagTable.getSelectedRow();
-            RegisteredDiagnosisModel rd = tableModel.getObject(row);
-
-            // ヌルの場合
-            if (rd == null) {
-                deleteAction.setEnabled(false);
-                return;
-            }
-
-            // ORCA の場合
-            if (isOrcaDisease(rd)) {
-                deleteAction.setEnabled(false);
-                return;
-            }
-
-            // Dolphin の場合
-            if (!deleteAction.isEnabled()) {
-                deleteAction.setEnabled(true);
-            }
-
-            // CLAIM 送信を制御
-            boolean sendOk = true;
-            sendOk = sendOk && (getContext().isSendClaim());
-            getContext().enabledAction(GUIConst.ACTION_SEND_CLAIM, sendOk);
-        }
-    }
+//minagawa^ LSC 1.4 bug fix no use any more 傷病名の削除(GUI) 2013/06/24
+//    /**
+//     * 行選択が起った時のボタン制御を行う。
+//     */
+//    public void rowSelectionChanged(ListSelectionEvent e) {
+//
+//        if (e.getValueIsAdjusting() == false) {
+//
+//            // CLAIM 送信をdiasabled
+//            getContext().enabledAction(GUIConst.ACTION_SEND_CLAIM, false);
+//
+//            // 削除ボタンをコントロールする
+//            // licenseCode 制御を追加
+//            if (isReadOnly()) {
+//                return;
+//            }
+//
+//            // 選択された行のオブジェクトを得る
+//            int row = diagTable.getSelectedRow();
+//            RegisteredDiagnosisModel rd = tableModel.getObject(row);
+//
+//            // ヌルの場合
+//            if (rd == null) {
+//                deleteAction.setEnabled(false);
+//                return;
+//            }
+//
+//            // ORCA の場合
+//            if (isOrcaDisease(rd)) {
+//                deleteAction.setEnabled(false);
+//                return;
+//            }
+//            
+//            // Dolphin の場合
+//            if (!deleteAction.isEnabled()) {
+//                deleteAction.setEnabled(true);
+//            }
+//
+//            // CLAIM 送信を制御
+//            boolean sendOk = true;
+//            sendOk = sendOk && (getContext().isSendClaim());
+//            getContext().enabledAction(GUIConst.ACTION_SEND_CLAIM, sendOk);
+//        }
+//    }
+//minagawa$    
 
     /**
      * 抽出期間を変更した場合に再検索を行う。
@@ -751,10 +830,17 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
 
     @Override
     public void start() {
+        // GUI 初期化
         initialize();
-        // 過去病名を取得する
-        getDiagnosisHistory();
+ //minagawa^ LSC 1.4 bug fix 傷病名の削除(GUI) 2013/06/24
         //enter();
+        // menu 制御
+        super.enter(); 
+        // 過去病名を取得する
+        // background thread 終了後のAWTで
+        // addDroppedDiagnosis()を実行
+        getDiagnosisHistory();
+//minagawa$ 
     }
 
     @Override
@@ -767,7 +853,8 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
     @Override
     public void enter() {
         super.enter();
-        // pPane 病名を追加する
+        // pPaneに汎用スタンプに病名がセットされていた場合を追加する
+        // 病名<->KarteEditorの切替を想定しその都度 addDroppedDiagnosisを実行する
         addDroppedDiagnosis();
     }
 
@@ -780,7 +867,10 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
             addedDiagnosis = new ArrayList<RegisteredDiagnosisModel>(5);
         }
         addedDiagnosis.add(added);
-        controlUpdateButton();
+//minagawa^ LSC 1.4 bug fiz 傷病名の削除(GUI) 2013/06/24
+        //controlUpdateAction();
+        controllActions();
+//minagawa$        
     }
 
     private void addAllAddedList(List<RegisteredDiagnosisModel> list) {
@@ -788,7 +878,10 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
             addedDiagnosis = new ArrayList<RegisteredDiagnosisModel>(5);
         }
         addedDiagnosis.addAll(list);
-        controlUpdateButton();
+ //minagawa^ LSC 1.4 bug fiz 傷病名の削除(GUI) 2013/06/24
+        //controlUpdateAction();
+        controllActions();
+//minagawa$  
     }
 
     private boolean isOrcaDisease(RegisteredDiagnosisModel test) {
@@ -823,9 +916,14 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
             if (!updatedDiagnosis.contains(updated)) {
                 updatedDiagnosis.add(updated);
             }
-            controlUpdateButton();
+//minagawa^ LSC 1.4 bug fix 傷病名の削除(GUI) 2013/06/24
+            //controlUpdateAction();
+            controllActions();
+//minagawa$            
 
-        } else if (isDorcaDisease(updated)) {
+        } // 新規に追加された病名（まだ保存されていない）のケース
+          // addedDiagnosis に追加されているので updatedDiagnosisには入れない
+        else if (isDorcaDisease(updated)) {
             // DORCA 病名の場合 -> DORCA_UPDATED -> CLAIM送信
             //System.err.println(updated.getDiagnosis());
             updated.setStatus(DORCA_UPDATED);
@@ -848,28 +946,97 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                 updatedDiagnosis.remove(0);
             }
         }
-
-        controlUpdateButton();
+ //minagawa^ LSC 1.4 bug fix 傷病名の削除(GUI) 2013/06/24
+            //controlUpdateAction();
+            controllActions();
+//minagawa$ 
     }
-
+    
+//minagawa^ LSC 1.4 bug fix 傷病名の削除(GUI) 2013/06/24
+    private void controllActions() {
+        controllUpdateAction();
+        controllDeleteAction();
+        controllOrcaAction();
+        controllAddAction();
+    }
+//minagawa$ 
     /**
      * 更新ボタンを制御する。
      */
-    private void controlUpdateButton() {
+    // 傷病名の削除(ORCA送信) 2013/06/24
+    //private void controlUpdateButton()
+    private void controllUpdateAction() {
+        if (isReadOnly()) {
+            updateAction.setEnabled(false);
+            return;
+        }
         boolean hasAdded = (addedDiagnosis != null && addedDiagnosis.size() > 0);
         boolean hasUpdated = (updatedDiagnosis != null && updatedDiagnosis.size() > 0);
         boolean newDirty = (hasAdded || hasUpdated);
-        boolean old = isDirty();
-        if (old != newDirty) {
-            setDirty(newDirty);
-            updateAction.setEnabled(isDirty());
+//minagawa^ LSC 1.4 bug fix 傷病名の削除(GUI) 2013/06/24
+//        boolean old = isDirty();
+//        if (old != newDirty) {
+//            setDirty(newDirty);
+//            updateAction.setEnabled(isDirty());
+//        }   
+//        orcaDiceaseHasImportedで判定する 
+//        // ORCA
+//        boolean orca = (tableModel.getObjectCount()==0);
+//        if (!orcaAction.isEnabled() && orca) {
+//            orcaAction.setEnabled(orca);
+//        } 
+        setDirty(newDirty);
+        updateAction.setEnabled(isDirty());
+    }
+    
+    // 削除ボタンをコントロールする
+    private void controllDeleteAction() {
+        
+        // licenseCode 制御を追加
+        if (isReadOnly()) {
+            deleteAction.setEnabled(false);
+            return;
         }
-        // ORCA
-        boolean orca = (tableModel.getObjectCount()==0);
-        if (!orcaAction.isEnabled() && orca) {
-            orcaAction.setEnabled(orca);
+
+        // 選択された行のオブジェクトを得る
+        int row = diagTable.getSelectedRow();
+        RegisteredDiagnosisModel rd = tableModel.getObject(row);
+
+        // ヌルの場合
+        if (rd == null) {
+            deleteAction.setEnabled(false);
+            return;
+        }
+
+        // ORCA の場合
+        if (isOrcaDisease(rd)) {
+            deleteAction.setEnabled(false);
+            return;
+        }
+
+        // Dolphin の場合
+        deleteAction.setEnabled(true);
+    }
+    
+    private void controllAddAction() {
+        addAction.setEnabled(!isReadOnly());
+    }
+    
+    private void controllOrcaAction() {
+        if (isReadOnly() || orcaDiceaseHasImported) {
+            orcaAction.setEnabled(false);
+        } else {
+            orcaAction.setEnabled(true);
         }
     }
+    
+    private void disableActions() {
+        orcaAction.setEnabled(false);
+        deleteAction.setEnabled(false);
+        addAction.setEnabled(false);
+        updateAction.setEnabled(false);
+    }
+//minagawa$      
 
     /**
      * 傷病名件数を返す。
@@ -1023,6 +1190,7 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                     "疾患の開始日がありません。",
                     ClientContext.getFrameTitle("病名チェック"),
                     JOptionPane.WARNING_MESSAGE);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle("病名チェック"), "疾患の開始日がありません。");
             return false;
         }
         if (end == null) {
@@ -1031,6 +1199,7 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                     "疾患の終了日がありません。",
                     ClientContext.getFrameTitle("病名チェック"),
                     JOptionPane.WARNING_MESSAGE);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle("病名チェック"), "疾患の終了日がありません。");
             return false;
         }
         
@@ -1056,6 +1225,7 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                     sb.toString(),
                     ClientContext.getFrameTitle("病名チェック"),
                     JOptionPane.WARNING_MESSAGE);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle("病名チェック"), sb.toString());
             formatOk = false;
         }
         
@@ -1071,6 +1241,7 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                     sb.toString(),
                     ClientContext.getFrameTitle("病名チェック"),
                     JOptionPane.WARNING_MESSAGE);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle("病名チェック"), sb.toString());
             return false;
         }
         
@@ -1122,11 +1293,24 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                 rd.setConfirmed(confirmed);                     // 確定日
                 rd.setRecorded(confirmed);                      // 記録日
 
-                // DORCA || DORCA_UPDATE 病名の status は変えない
+//minagawa^ 2013/04/17 ORCAから取り込んだ病名を保存できない(副作用ありそう...)
+//              // DORCA || DORCA_UPDATE 病名の status は変えない
+//              if ((!isDorcaDisease(rd)) && (!isDorcaUpdatedDisease(rd))) {
+//                  // Status Final を設定する
+//                  rd.setStatus(IInfoModel.STATUS_FINAL);
+//              }
+//s.oh^ 2013/05/07 副作用があるため元に戻した。
+                //rd.setStatus(IInfoModel.STATUS_FINAL);
                 if ((!isDorcaDisease(rd)) && (!isDorcaUpdatedDisease(rd))) {
                     // Status Final を設定する
                     rd.setStatus(IInfoModel.STATUS_FINAL);
+//s.oh^ 2013/05/10 傷病名対応
+                }else{
+                    rd.setStatus(IInfoModel.STATUS_FINAL);
+//s.oh$
                 }
+//s.oh$
+//minagawa$
 
                 // 開始日=適合開始日 not-null
                 if (rd.getStarted() == null) {
@@ -1136,6 +1320,9 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                 // TODO トラフィック
                 rd.setPatientLiteModel(getContext().getPatient().patientAsLiteModel());
                 rd.setUserLiteModel(Project.getUserModel().getLiteModel());
+                
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "傷病名の追加：", rd.getDiagnosis());
+                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "追加する傷病名の情報：", rd.getCategoryDesc(), rd.getOutcomeDesc(), rd.getStartDate(), rd.getEndDate(), rd.getConfirmDate());
                 
                 // 転帰をチェックする
                 if (!isValidOutcome(rd)) {
@@ -1167,6 +1354,9 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                 // TODO トラフィック
                 rd.setPatientLiteModel(getContext().getPatient().patientAsLiteModel());
                 rd.setUserLiteModel(Project.getUserModel().getLiteModel());
+                
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "傷病名の更新：", rd.getDiagnosis());
+                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "更新する傷病名の情報：", rd.getCategoryDesc(), rd.getOutcomeDesc(), rd.getStartDate(), rd.getEndDate(), rd.getConfirmDate());
                 
                 // 転帰をチェックする
                 if (!isValidOutcome(rd)) {
@@ -1201,6 +1391,10 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                 }
             }
             importStampList(list2, 0);
+        // 傷病名の削除(GUI) 2013/06/24
+        } else {
+            // call されないので
+            controllActions();
         }
     }
 
@@ -1224,7 +1418,20 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
         } else {
             searchFrom = new Date(0L);
         }
-
+//minagawa^ LSC 1.4 bug fix 傷病名の削除(GUI) 2013/06/24
+        // clear
+        if (addedDiagnosis!=null && addedDiagnosis.size()>0) {
+            addedDiagnosis.clear();
+        }
+        if (updatedDiagnosis!=null && updatedDiagnosis.size()>0) {
+            updatedDiagnosis.clear();
+        }
+        orcaDiceaseHasImported=false;
+        if (tableModel.getDataProvider()!=null) {
+            tableModel.getDataProvider().clear();
+        }
+        disableActions();
+//minagawa$
         DBTask task = new DBTask<List<RegisteredDiagnosisModel>, Void>(getContext()) {
 
             @Override
@@ -1244,10 +1451,18 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                     }
                     tableModel.setDataProvider(list);
                     setDiagnosisCount(list.size());
+                    for(RegisteredDiagnosisModel rdm : list) {
+                        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "傷病名読込：", rdm.getDiagnosis(), rdm.getDiagnosisCode());
+                    }
                 } else {
                     tableModel.setDataProvider(new ArrayList<RegisteredDiagnosisModel>(2));
+                    Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "傷病名読込：", "傷病名がありません。");
+                    
                 }
-                enter();
+//minagawa^ LSC 1.4 bug fix 傷病名の削除(GUI) 2013/06/24
+                //enter();
+                addDroppedDiagnosis();
+//minagawa$                
             }
         };
 
@@ -1316,24 +1531,21 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
         return false;
     }
 
-    /**
-     * 選択された行のデータを削除する。
-     */
-    public void delete() {
-
+//minagawa^ LSC 1.4 傷病名の削除(GUI) 2013/06/24
+    public void delete2() {
+        
         // 選択された行のオブジェクトを取得する
         final int row = diagTable.getSelectedRow();
         final RegisteredDiagnosisModel model = (RegisteredDiagnosisModel)tableModel.getObject(row);
         if (model==null) {
             return;
         }
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "傷病名の削除：", model.getDiagnosis());
+        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "削除する傷病名の情報：", model.getCategoryDesc(), model.getOutcomeDesc(), model.getStartDate(), model.getEndDate(), model.getConfirmDate());
 
         // まだデータベースに登録されていないデータの場合
-        // テーブルから削除してリターンする
         if (model.getId()==0L) {
-            //----------------------------------------------------
-            // ???? addedDiagnosis.remove(model)!=valid
-            //----------------------------------------------------
             int indexToremove = -1;
             for (int i = 0; i <addedDiagnosis.size(); i++) {
                 RegisteredDiagnosisModel r = addedDiagnosis.get(i);
@@ -1342,39 +1554,102 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                     break;
                 }
             }
-
-            trace("indexToremove=" + indexToremove);
-
             if (indexToremove>=0 && indexToremove<addedDiagnosis.size()) {
                 addedDiagnosis.remove(indexToremove);
             }
             tableModel.deleteAt(row);
-            controlUpdateButton();
+            controllActions();       
             return;
         }
-
+        
         // ディタッチオブジェクトの場合はデータベースから削除する
-        // 削除の場合はその場でデータベースの更新を行う 2006-03-25
-        final List<Long> list = new ArrayList<Long>(1);
-        list.add(new Long(model.getId()));
-
+        // && 転帰を delete にして ORCA へ 送信する
+        Date confirmed = new Date();
+        final String confirmedStr = ModelUtils.getDateTimeAsString(confirmed);
+        model.setOutcome("delete");
+        model.setOutcomeDesc("delete");
+        model.setOutcomeCodeSys(ClientContext.getString("diagnosis.outcomeCodeSys"));
+        model.setEndDate(confirmedStr);
+        model.setKarteBean(getContext().getKarte());       // Karte
+        model.setUserModel(Project.getUserModel());        // Creator
+        model.setConfirmed(confirmed);                     // 確定日
+        model.setRecorded(confirmed);                      // 記録日
+        final List<RegisteredDiagnosisModel> list = new ArrayList(1);
+//s.oh^ 2014/01/28 傷病名削除不具合
+        model.setPatientLiteModel(getContext().getPatient().patientAsLiteModel());
+//s.oh$
+        list.add(model);
+        
         DBTask task = new DBTask<Void, Void>(getContext()) {
 
             @Override
             protected Void doInBackground() throws Exception {
-                DocumentDelegater ddl = new DocumentDelegater();
-                ddl.removeDiagnosis(list);
+                
+                // 送信ラッパーを生成する
+                DiagnosisSendWrapper wrapper = new DiagnosisSendWrapper();
+                wrapper.setDeletedDiagnosis(list);
+                
+                boolean sendDiagnosis = getContext().isSendClaim();
+
+                // 全てのモジュールで共通に使用するマスターのDocInfoを生成する
+                // 病名は複数あるので個々にDocInfoが必要。これはJMS側で生成する。
+                if (sendDiagnosis) {
+
+                    // 送信フラグ & 確定日
+                    wrapper.setSendClaim(true);
+                    wrapper.setConfirmDate(confirmedStr);
+
+                    // 生成目的
+                    wrapper.setTitle(IInfoModel.DEFAULT_DIAGNOSIS_TITLE);
+                    wrapper.setPurpose(IInfoModel.PURPOSE_RECORD);
+
+                    //-------------------------------------------------------------------
+                    // 2012-05 クレーム送信をJMS+MDB化: ChartImplの新規カルテモデルの生成と同じ
+                    //-------------------------------------------------------------------              
+                    // 診療科関連
+                    wrapper.setDepartment(getContext().getPatientVisit().getDeptCode());
+                    wrapper.setDepartmentDesc(getContext().getPatientVisit().getDeptName());
+
+                    // 担当医関連
+                    wrapper.setCreatorName(Project.getUserModel().getCommonName());        // 担当医名
+                    if (Project.getUserModel().getOrcaId()!=null) {
+                        wrapper.setCreatorId(Project.getUserModel().getOrcaId());          // 担当医コード: ORCA ID がある場合
+                    } else if (getContext().getPatientVisit().getDoctorId()!=null) {
+                        wrapper.setCreatorId(getContext().getPatientVisit().getDoctorId());// 担当医コード: 受付でIDがある場合
+                    } else {
+                        wrapper.setCreatorId(Project.getUserModel().getUserId());          // 担当医コード: ログインユーザーID
+                    }
+                    wrapper.setCreatorLicense(Project.getUserModel().getLicenseModel().getLicense());   // 医療資格
+
+                    // 施設関連
+                    wrapper.setFacilityName(Project.getUserModel().getFacilityModel().getFacilityName());
+                    wrapper.setJamariCode(getContext().getPatientVisit().getJmariNumber());
+
+                    // ログ情報のために追加
+                    String pid = getContext().getPatientVisit().getPatientId();
+                    wrapper.setPatientId(pid);
+                    wrapper.setPatientName(getContext().getPatient().getFullName());
+                    wrapper.setPatientGender(getContext().getPatient().getGender());
+                }
+
+                // 保存 & claimSender=server の場合はこれで送信される
+                new DocumentDelegater().postPutSendDiagnosis(wrapper);
+
+                // Clientで送信する場合を追加
+                if (Project.claimSenderIsClient() && sendDiagnosis) {
+                    IDiagnosisSender sender = new DiagnosisSender();
+                    sender.setContext(getContext());
+                    sender.prepare(list);
+                    sender.send(list);
+                }
+            
                 return null;
             }
-
+            
             @Override
             protected void succeeded(Void result) {
-                // 更新リストにある場合
-                // 更新リストから取り除く
+                // 更新リストにある場合取り除く
                 if (updatedDiagnosis != null) {
-                    //----------------------------------------------------
-                    // ???? updatedDiagnosis.remove(model)!=valid
-                    //----------------------------------------------------
                     int indexToremove = -1;
                     for (int i = 0; i <updatedDiagnosis.size(); i++) {
                         RegisteredDiagnosisModel r = updatedDiagnosis.get(i);
@@ -1384,19 +1659,109 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                         }
                     }
 
-                    trace("indexToremove=" + indexToremove);
-
                     if (indexToremove>=0 && indexToremove<updatedDiagnosis.size()) {
                         updatedDiagnosis.remove(indexToremove);
                     }
                 }
+                // tableから remove
                 tableModel.deleteAt(row);
-                controlUpdateButton();
+                
+                // action 更新
+                controllActions();
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "データベースから傷病名を削除", "削除成功。");
             }
         };
-
+        
         task.execute();
     }
+
+//    /**
+//     * 選択された行のデータを削除する。
+//     */
+//    public void delete() {
+//
+//        // 選択された行のオブジェクトを取得する
+//        final int row = diagTable.getSelectedRow();
+//        final RegisteredDiagnosisModel model = (RegisteredDiagnosisModel)tableModel.getObject(row);
+//        if (model==null) {
+//            return;
+//        }
+//
+//        // まだデータベースに登録されていないデータの場合
+//        // テーブルから削除してリターンする
+//        if (model.getId()==0L) {
+//            //----------------------------------------------------
+//            // ???? addedDiagnosis.remove(model)!=valid
+//            //----------------------------------------------------
+//            int indexToremove = -1;
+//            for (int i = 0; i <addedDiagnosis.size(); i++) {
+//                RegisteredDiagnosisModel r = addedDiagnosis.get(i);
+//                if (r==model) {
+//                    indexToremove = i;
+//                    break;
+//                }
+//            }
+//
+//            trace("indexToremove=" + indexToremove);
+//
+//            if (indexToremove>=0 && indexToremove<addedDiagnosis.size()) {
+//                addedDiagnosis.remove(indexToremove);
+//            }
+//            tableModel.deleteAt(row);
+////minagawa^ LSC 1.4 bug fix            
+//            //controlUpdateAction();
+//            controllActions();
+////minagawa$             
+//            return;
+//        }
+//
+//        // ディタッチオブジェクトの場合はデータベースから削除する
+//        // 削除の場合はその場でデータベースの更新を行う 2006-03-25
+//        final List<Long> list = new ArrayList(1);
+//        list.add(new Long(model.getId()));
+//
+//        DBTask task = new DBTask<Void, Void>(getContext()) {
+//
+//            @Override
+//            protected Void doInBackground() throws Exception {
+//                DocumentDelegater ddl = new DocumentDelegater();
+//                ddl.removeDiagnosis(list);
+//                return null;
+//            }
+//
+//            @Override
+//            protected void succeeded(Void result) {
+//                // 更新リストにある場合
+//                // 更新リストから取り除く
+//                if (updatedDiagnosis != null) {
+//                    //----------------------------------------------------
+//                    // ???? updatedDiagnosis.remove(model)!=valid
+//                    //----------------------------------------------------
+//                    int indexToremove = -1;
+//                    for (int i = 0; i <updatedDiagnosis.size(); i++) {
+//                        RegisteredDiagnosisModel r = updatedDiagnosis.get(i);
+//                        if (r==model) {
+//                            indexToremove = i;
+//                            break;
+//                        }
+//                    }
+//
+//                    trace("indexToremove=" + indexToremove);
+//
+//                    if (indexToremove>=0 && indexToremove<updatedDiagnosis.size()) {
+//                        updatedDiagnosis.remove(indexToremove);
+//                    }
+//                }
+//                tableModel.deleteAt(row);
+// //minagawa^ LSC 1.4 bug fix            
+//            //controlUpdateAction();
+//            controllActions();
+////minagawa$ 
+//            }
+//        };
+//
+//        task.execute();
+//    }
 
 //    /**
 //     * ORCAに登録されている病名を取り込む。（テーブルへ追加する）
@@ -1548,12 +1913,18 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
 
                 // 空ならリターーンするしかない
                 if (result==null || result.isEmpty()) {
-                    orcaAction.setEnabled(true);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "ORCAに傷病名が登録されていないため追加しない");
+//minagawa^ LSC 1.4 bug fix 傷病名の削除(GUI) 2013/06/24
+                    //orcaAction.setEnabled(true);
+                    orcaDiceaseHasImported = true;
+                    controllActions();
+//minagawa$                    
                     return;
                 }
 
                 // Dolphinに病名が登録されている場合は単純に参照として追加する
                 if (diagnosisCount!=0) {
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "すでに傷病名が登録されているため参照のみ");
                     refferenceAddOrca(result);
                     return;
                 }
@@ -1580,20 +1951,27 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                             JOptionPane.QUESTION_MESSAGE,
 //minagawa^ Icon Server                            
                             //ClientContext.getImageIcon("impt_32.gif"),
-                            ClientContext.getImageIconArias("icon_import"),
+                            //ClientContext.getImageIconArias("icon_import"),
+                            null,
 //minagawa$                            
                             cstOptions,
                             importYes);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle(title), msg);
 
                     if (select == 0) {
+                        Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, importYes);
                         // 取り込む -> DORCA 病名にする
                         for (RegisteredDiagnosisModel rdm : result) {
                             rdm.setStatus(DORCA_RECORD);
+                            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "ORCAから傷病名の追加：", rdm.getDiagnosis());
+                            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "ORCAから追加する傷病名の情報：", rdm.getCategoryDesc(), rdm.getOutcomeDesc(), rdm.getStartDate(), rdm.getEndDate(), rdm.getConfirmDate());
                         }
                         // 新規病名リストに追加する
                         addAllAddedList(result);
+//minagawa^ LSC 1.4 bug fix  addAllAddedListのなかでコールされる 傷病名の削除(GUI) 2013/06/24
                         // disabledにする
-                        orcaAction.setEnabled(false);
+                        //orcaAction.setEnabled(false);
+//minagawa$                        
                         extractionCombo.setEnabled(false);
                         //--------------------------------------------------------
                         // もしtableに病名レコードがあれば（+ or DnD diagCount=0 で追加）
@@ -1611,9 +1989,12 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                         }
 
                     } else if (select == 1){
+                        Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, importNo);
                         // 参照追加する
                         refferenceAddOrca(result);
-                    } 
+                    } else {
+                        Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "キャンセル");
+                    }
                 }
             }
         };
@@ -1625,7 +2006,11 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
     private void refferenceAddOrca(List<RegisteredDiagnosisModel> result) {
         //sortDiasease(result);
         tableModel.addAll(result);
-        orcaAction.setEnabled(true);
+//minagawa^ LSC 1.4 bug fix 傷病名の削除(ORCA) 2013/06/24
+        //orcaAction.setEnabled(true);
+        orcaDiceaseHasImported=true;
+        controllActions();
+//minagawa$        
     }
 
     private void sortDiasease(List<RegisteredDiagnosisModel> data) {
@@ -1688,11 +2073,20 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
 
         private JPopupMenu popup;
         private JTextField tf;
+        // 2013/04/22
+//minagawa^ 定例打ち合わせ        
+//        public PopupListener(JTextField tf) {
+//            this.tf = tf;
+//            tf.addMouseListener(PopupListener.this);
+//        }
+        private int[] range;
 
-        public PopupListener(JTextField tf) {
+        public PopupListener(JTextField tf, int[] range) {
             this.tf = tf;
+            this.range = range;
             tf.addMouseListener(PopupListener.this);
         }
+//minagawa$        
 
         @Override
         public void mousePressed(MouseEvent e) {
@@ -1708,9 +2102,30 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
 
             if (e.isPopupTrigger()) {
                 popup = new JPopupMenu();
+//minagawa^ LSC 1.4 bug fix 傷病名の削除(GUI) 2013/06/24
+                // popup すると tf の focusLost がコールされ actionがenable になるため
+                popup.addPopupMenuListener(new PopupMenuListener() {
+                    @Override
+                    public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                        underPopup=true;
+                    }
+                    @Override
+                    public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+                        underPopup=false;
+                    }
+                    @Override
+                    public void popupMenuCanceled(PopupMenuEvent e) {
+                        underPopup=false;
+                    }
+                });
+//minagawa$                
                 CalendarCardPanel cc = new CalendarCardPanel(ClientContext.getEventColorTable());
                 cc.addPropertyChangeListener(CalendarCardPanel.PICKED_DATE, this);
-                cc.setCalendarRange(new int[]{-12, 0});
+                // 2013/04/22
+//minagawa^ 定例打ち合わせ                
+                //cc.setCalendarRange(new int[]{-12, 0});
+                cc.setCalendarRange(range);
+//minagawa$                
                 popup.insert(cc, 0);
                 popup.show(e.getComponent(), e.getX(), e.getY());
             }
@@ -1850,6 +2265,9 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                 List<RegisteredDiagnosisModel> actualList = new ArrayList<RegisteredDiagnosisModel>();
                 for (RegisteredDiagnosisModel rdm : addedDiagnosis) {
                     if (isDorcaUpdatedDisease(rdm) || isPureDisease(rdm)) {
+//s.oh^ 2013/05/10 傷病名対応
+                        rdm.setDiagnosisCode(HAND_CODE); // ORCAから取り込んだ場合、コードに0000999を設定する
+//s.oh$
                         actualList.add(rdm);
                     }
                 }
@@ -1874,6 +2292,11 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                         trace(r.getDiagnosis());
                     }
                 }
+//s.oh^ 2013/05/10 傷病名対応
+                for (RegisteredDiagnosisModel rdm : updatedDiagnosis) {
+                    rdm.setDiagnosisCode(HAND_CODE); // ORCAから取り込んだ場合、コードに0000999を設定する
+                }
+//s.oh$
                 sender.prepare(updatedDiagnosis);
                 sender.send(updatedDiagnosis);
             }
@@ -1948,8 +2371,15 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
 //minagawa^ Chartの close box 押下で保存する場合、保存終了を通知しておしまい。                    
             if (boundSupport!=null) {
                 setChartDocDidSave(true);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "傷病名", "保存成功", "インスペクタの終了");
             }
 //minagawa$                
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "傷病名", "保存成功");
+            
+//s.oh^ 2013/10/25 傷病名削除されない
+            // 保存したらidを取得するように再読込
+            getDiagnosisHistory();
+//s.oh$
         }
     }
 

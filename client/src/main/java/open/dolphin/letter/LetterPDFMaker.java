@@ -3,6 +3,7 @@ package open.dolphin.letter;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -59,7 +60,10 @@ public class LetterPDFMaker extends AbstractLetterPDFMaker {
             document.add(para);
 
             // 日付
-            String dateStr = getDateString(model.getConfirmed());
+//minagawa^ LSC 1.4 bug fix 文書の印刷日付 2013/06/24
+            //String dateStr = getDateString(model.getConfirmed());
+            String dateStr = getDateString(model.getStarted());
+//minagawa$            
             para = new Paragraph(dateStr, bodyFont);
             para.setAlignment(Element.ALIGN_RIGHT);
             document.add(para);
@@ -190,7 +194,13 @@ public class LetterPDFMaker extends AbstractLetterPDFMaker {
             //document.add(pTable);
             
             // 稲葉先生のリクエスト 患者住所と電話番号を含める
-            pTable.addCell(new Phrase("住所・電話", bodyFont));
+//s.oh^ 2013/11/26 文書の電話出力対応
+            if(Project.getBoolean(Project.LETTER_TELEPHONE_OUTPUTPDF)) {
+//s.oh$
+                pTable.addCell(new Phrase("住所・電話", bodyFont));
+            }else{
+                pTable.addCell(new Phrase("住所", bodyFont));
+            }
             sb = new StringBuilder();
             // LetterModelには住所などは含まれていないのでChartから取得する-> X
             try {
@@ -208,10 +218,14 @@ public class LetterPDFMaker extends AbstractLetterPDFMaker {
                     sb.append(address);
                 }
 
-                String telephone = model.getPatientTelephone();
-                if (telephone != null && !"".equals(telephone)) {
-                    sb.append(" 電話:");
-                    sb.append(telephone);
+//s.oh^ 2013/11/26 文書の電話出力対応
+                if(Project.getBoolean(Project.LETTER_TELEPHONE_OUTPUTPDF)) {
+//s.oh$
+                    String telephone = model.getPatientTelephone();
+                    if (telephone != null && !"".equals(telephone)) {
+                        sb.append(" 電話:");
+                        sb.append(telephone);
+                    }
                 }
 
                 cell = new Cell(new Phrase(sb.toString(), bodyFont));

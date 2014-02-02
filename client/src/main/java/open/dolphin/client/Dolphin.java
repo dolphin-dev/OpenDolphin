@@ -49,6 +49,7 @@ import open.dolphin.project.ProjectStub;
 import open.dolphin.relay.PVTRelayProxy;
 import open.dolphin.server.PVTServer;
 import open.dolphin.stampbox.StampBoxPlugin;
+import open.dolphin.util.Log;
 
 /**
  * アプリケーションのメインウインドウクラス。
@@ -137,6 +138,16 @@ public class Dolphin implements MainWindow {
 
         // プロジェクトスタブを生成する
         Project.setProjectStub(new ProjectStub());
+        
+//s.oh^ Log出力対応 2013/07/04
+        Log.createLogSet(ClientContext.getSettingDirectory() + File.separator,
+                         ClientContext.getLogDirectory() + File.separator,
+                         (Project.getString("log.server.dir") == null) ? null : Project.getString("log.server.dir") + File.separator);
+        Log.setOtherName(System.getProperty("user.name"));
+        Project.getProjectStub().outputUserDefaults();
+        //Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "_/_/_/_/_/ Dolphin開始 _/_/_/_/_/");
+        Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "_/_/_/_/_/ Dolphin開始 _/_/_/_/_/");
+//s.oh$
         
         // Project作成後、Look&Feel を設定する
         stub.setupUI();
@@ -319,6 +330,7 @@ public class Dolphin implements MainWindow {
                 ClientContext.getBootLogger().fatal(fatalMsg);
                 ClientContext.getBootLogger().fatal(e.getMessage());
                 JOptionPane.showMessageDialog(null, fatalMsg, ClientContext.getFrameTitle("初期化"), JOptionPane.WARNING_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle("初期化"), fatalMsg);
                 System.exit(1);
             }
 
@@ -512,9 +524,9 @@ public class Dolphin implements MainWindow {
         stampBox.getFrame().setVisible(true);
         providers.put("stampBox", stampBox);
 
-//------------------------------
-// Mac Application Menu
-//------------------------------
+        //------------------------------
+        // Mac Application Menu
+        //------------------------------
         if (ClientContext.isMac()) {
         
             com.apple.eawt.Application fApplication = com.apple.eawt.Application.getApplication();
@@ -603,9 +615,11 @@ public class Dolphin implements MainWindow {
         
 //masuda^   すでにChart, EditorFrameが開いていた時の処理はここで行う
         if (pvt == null) {
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "カルテの表示", "PVT兵法がありません");
             return;
         }
         if (pvt.getStateBit(PatientVisitModel.BIT_CANCEL)) {
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "カルテの表示", "キャンセル済みの患者");
             return;
         }
         
@@ -630,9 +644,12 @@ public class Dolphin implements MainWindow {
             }
         }
         if (opened) {
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "カルテの表示", "既に開いている");
             Toolkit.getDefaultToolkit().beep();
             return;
         }
+        
+        Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "カルテの表示", "表示開始", pvt.getPatientId(), String.valueOf(ptId));
         
         // まだ開いていない場合
         
@@ -652,23 +669,28 @@ public class Dolphin implements MainWindow {
                 int val = JOptionPane.showOptionDialog(
                         getFrame(), msg, ClientContext.getFrameTitle("カルテオープン"),
                         JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle("カルテオープン"), msg, pvt.getPatientModel().getOwnerUUID());
 
                 switch (val) {
                     case 0:     // 閲覧のみは編集不可で所有権を設定しない
+                        Log.outputOperLogDlg(null, Log.LOG_LEVEL_0,  "閲覧のみは編集不可で所有権を設定しない");
                         readOnly = true;
                         break;
 
                     case 1:     // 強制的に編集するときは所有権横取り ロック解除
+                        Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "強制的に編集(ロック解除)", clientUUID);
                         pvt.getPatientModel().setOwnerUUID(clientUUID);
                         break;
 
                     case 2:     // キャンセル
                     case JOptionPane.CLOSED_OPTION:
+                        Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, msg, "キャンセル");
                         return; 
                 }
             } else {
                 // 誰も開いていないときは自分が所有者
                 pvt.getPatientModel().setOwnerUUID(clientUUID);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "カルテUUID", clientUUID);
             }
         }
         PluginLoader<Chart> loader = PluginLoader.load(Chart.class);
@@ -684,6 +706,7 @@ public class Dolphin implements MainWindow {
         // publish state
         scl.publishKarteOpened(pvt);
 //masuda$         
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "カルテの表示", "表示終了");
     }
 
     /**
@@ -1122,11 +1145,13 @@ public class Dolphin implements MainWindow {
             @Override
             protected void succeeded(Void result) {
                 ClientContext.getBootLogger().debug("stampTask succeeded");
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "StampTreeは正常に保存した。");
                 shutdown();
             }
 
             @Override
             protected void failed(Throwable cause) {
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "既にStampTreeが保存されている。");
 //minagawa^ First Commit Win Control
                 String test = (cause!=null && cause.getMessage()!=null) ? cause.getMessage() : null;
                 //if (cause instanceof FirstCommitWinException) {
@@ -1199,6 +1224,7 @@ public class Dolphin implements MainWindow {
                 new Object[]{msg0, msg1},
                 ClientContext.getFrameTitle(taskTitle),
                 JOptionPane.INFORMATION_MESSAGE);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(taskTitle), msg0, msg1);
     }
     
 //s.oh^ 不具合修正(一括終了時のステータスクリア)
@@ -1208,6 +1234,11 @@ public class Dolphin implements MainWindow {
         if (allChart != null && allChart.size() > 0) {
             for (ChartImpl chart : allChart) {
                 chart.publishKarteClosed();
+//s.oh^ 2013/08/13
+                try{
+                    Thread.sleep(100);
+                }catch(InterruptedException e) {}
+//s.oh$
             }
         }
     }
@@ -1230,17 +1261,21 @@ public class Dolphin implements MainWindow {
         int option = JOptionPane.showOptionDialog(
                 getFrame(), msg, title,
                 JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, title, msg);
         
         switch (option) {
             case 0:
+                Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "終了");
                 shutdown();
                 break;
                 
             case 1:
+                Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "強制書き込み");
                 syncTreeAndShutDown(treeTosave);
                 break;
                 
             case 2:
+                Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "キャンセル");
                 break;
         }
     }
@@ -1344,6 +1379,8 @@ public class Dolphin implements MainWindow {
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.WARNING_MESSAGE,
                 null, options, options[0]);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, title, msg1, msg2, msg3, msg4);
+        Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, options[option]);
 
         if (option == 1) {
             shutdown();
@@ -1351,6 +1388,8 @@ public class Dolphin implements MainWindow {
     }
 
     private void shutdown() {
+        Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "_/_/_/_/_/ Dolphin終了 _/_/_/_/_/");
+        //Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "_/_/_/_/_/ Dolphin終了 _/_/_/_/_/");
         
         // ChartEvenrHandler 終了
         try {
@@ -1484,6 +1523,7 @@ public class Dolphin implements MainWindow {
         JOptionPane.showMessageDialog(null, 
                 msg, ClientContext.getFrameTitle("医療機関コード読み込み"), 
                 JOptionPane.INFORMATION_MESSAGE);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle("医療機関コード読み込み"), msg[0], msg[1], msg[2]);
     }
     
     private void showReadFacilityCodeError(Throwable e) {
@@ -1495,6 +1535,7 @@ public class Dolphin implements MainWindow {
         JOptionPane.showMessageDialog(null, 
                 msg, ClientContext.getFrameTitle("医療機関コード読み込み"), 
                 JOptionPane.WARNING_MESSAGE);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle("医療機関コード読み込み"), msg[0], msg[1]);
     }
 
     /**
@@ -1658,6 +1699,12 @@ public class Dolphin implements MainWindow {
                 null, 
                 new String[]{change, cancel}, 
                 change);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle("LAF変更"), msg[0], msg[1]);
+        if(option == 0) {
+            Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, change);
+        }else{
+            Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, cancel);
+        }
         
         return (option==0);
     }
@@ -1668,6 +1715,7 @@ public class Dolphin implements MainWindow {
         final String msg = "LAFの設定を変更しました。再起動してください。";
         final String title = ClientContext.getFrameTitle("設定変更");
         JOptionPane.showMessageDialog(null, msg, title, JOptionPane.WARNING_MESSAGE);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, msg);
         processExit();
     }
  //masuda$   
@@ -1807,7 +1855,7 @@ public class Dolphin implements MainWindow {
     }
 
     public static void main(String[] args) {
-        String mode = (args.length==1) ? args[0] : null;
+        String mode = (args.length==1) ? args[0] : "pro";
         Dolphin.getInstance().start(mode);
     }
 }

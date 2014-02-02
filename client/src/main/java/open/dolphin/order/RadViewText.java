@@ -41,6 +41,7 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
         okBtn = new javax.swing.JButton();
         clearBtn = new javax.swing.JButton();
         deleteBtn = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
         searchTextField = new javax.swing.JTextField();
         rtCheck = new javax.swing.JCheckBox();
         countField = new javax.swing.JTextField();
@@ -55,6 +56,7 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
         setMinimumSize(new java.awt.Dimension(700, 600));
         setPreferredSize(new java.awt.Dimension(700, 600));
 
+        infoLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/resources/images/about_16.gif"))); // NOI18N
         infoLabel.setText("info"); // NOI18N
 
         setTable.setModel(new javax.swing.table.DefaultTableModel(
@@ -94,6 +96,8 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
         deleteBtn.setText("削除"); // NOI18N
         deleteBtn.setToolTipText("選択した内容を削除します。"); // NOI18N
 
+        jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/resources/images/srch_16.gif"))); // NOI18N
+
         searchTextField.setToolTipText("検索したい点数マスタ項目を入力します。"); // NOI18N
 
         rtCheck.setText("RT"); // NOI18N
@@ -128,17 +132,19 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(infoLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(techCheck)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(partCheck))
             .addComponent(jScrollPane2)
             .addComponent(jScrollPane1)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(searchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(28, 28, 28)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(rtCheck))
                     .addComponent(stampNameField))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -149,7 +155,7 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
                         .addComponent(partBtn)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel4)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(countField, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(0, 39, Short.MAX_VALUE)
@@ -180,6 +186,7 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
                     .addComponent(stampNameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
                     .addComponent(searchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(countField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4)
@@ -197,6 +204,7 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
     private javax.swing.JTextField countField;
     private javax.swing.JButton deleteBtn;
     private javax.swing.JLabel infoLabel;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;

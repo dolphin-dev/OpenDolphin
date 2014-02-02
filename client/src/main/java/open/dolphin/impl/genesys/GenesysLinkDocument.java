@@ -7,6 +7,7 @@ package open.dolphin.impl.genesys;
 import java.awt.BorderLayout;
 import javax.swing.BorderFactory;
 import open.dolphin.client.AbstractChartDocument;
+import open.dolphin.client.GUIConst;
 import open.dolphin.project.Project;
 
 /**
@@ -39,6 +40,12 @@ public class GenesysLinkDocument extends AbstractChartDocument {
 
     @Override
     public void stop() {
+    }
+    
+    @Override
+    public void enter() {
+        super.enter();
+        getContext().enabledAction(GUIConst.ACTION_NEW_DOCUMENT, false);
     }
     
     private void initialize() {

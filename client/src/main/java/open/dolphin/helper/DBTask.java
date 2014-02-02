@@ -11,6 +11,7 @@ import javax.swing.SwingWorker;
 import open.dolphin.client.BlockGlass;
 import open.dolphin.client.Chart;
 import open.dolphin.client.ClientContext;
+import open.dolphin.util.Log;
 
 /**
  * @author Kazushi Minagawa, Digital Globe, Inc.
@@ -90,6 +91,7 @@ public abstract class DBTask<T, V> extends javax.swing.SwingWorker {
         }
         Window parent = SwingUtilities.getWindowAncestor(context.getFrame());
         JOptionPane.showMessageDialog(parent, why.toString(), ClientContext.getFrameTitle(TITLE), JOptionPane.WARNING_MESSAGE);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(TITLE), why.toString(), (cause != null && cause.getMessage() != null) ? cause.getMessage() : e.getMessage());
     }
 
     protected void succeeded(T result) {

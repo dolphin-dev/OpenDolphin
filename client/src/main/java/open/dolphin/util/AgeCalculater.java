@@ -87,6 +87,52 @@ public class AgeCalculater {
                 days++;
             }
             days--;
+            
+//s.oh^ 2013/06/10 月齢計算
+            String[] birth = mmlBirthday.split("-");
+            if(birth != null && birth.length == 3) {
+                years = gc2.get(Calendar.YEAR) - Integer.parseInt(birth[0]);
+                month = (gc2.get(Calendar.MONTH) + 1) - Integer.parseInt(birth[1]);
+                days = gc2.get(Calendar.DAY_OF_MONTH) - Integer.parseInt(birth[2]);
+                if(days < 0) {
+                    month = month - 1;
+                }
+                if(month < 0) {
+                    years = years - 1;
+                    month = month + 12;
+                }
+                int nowMonth = gc2.get(Calendar.MONTH) + 1;
+                if(gc2.get(Calendar.DAY_OF_MONTH) > Integer.parseInt(birth[2])) {
+                    days = gc2.get(Calendar.DAY_OF_MONTH) - Integer.parseInt(birth[2]);
+                }else if(gc2.get(Calendar.DAY_OF_MONTH) == Integer.parseInt(birth[2])) {
+                    days = 0;
+                }else{
+                    if(nowMonth == 2) {
+                        if(gc2.get(Calendar.YEAR) % 4 == 0) {
+                            if(gc2.get(Calendar.YEAR) % 400 == 0) {
+                                days = 29 - Integer.parseInt(birth[2]);
+                                days = days + gc2.get(Calendar.DAY_OF_MONTH);
+                            }else if(gc2.get(Calendar.YEAR) % 100 == 0) {
+                                days = 28 - Integer.parseInt(birth[2]);
+                                days = days + gc2.get(Calendar.DAY_OF_MONTH);
+                            }else{
+                                days = 29 - Integer.parseInt(birth[2]);
+                                days = days + gc2.get(Calendar.DAY_OF_MONTH);
+                            }
+                        }else{
+                            days = 28 - Integer.parseInt(birth[2]);
+                            days = days + gc2.get(Calendar.DAY_OF_MONTH);
+                        }
+                    }else if(nowMonth == 1 || nowMonth == 3 || nowMonth == 5 || nowMonth == 7 || nowMonth == 8 || nowMonth == 10 || nowMonth == 12) {
+                        days = 31 - Integer.parseInt(birth[2]);
+                        days = days + gc2.get(Calendar.DAY_OF_MONTH);
+                    }else{
+                        days = 30 - Integer.parseInt(birth[2]);
+                        days = days + gc2.get(Calendar.DAY_OF_MONTH);
+                    }
+                }
+            }
+//s.oh$
 
             return new int[]{years, month, days};
 

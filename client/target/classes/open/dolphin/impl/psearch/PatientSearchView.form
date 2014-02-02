@@ -26,7 +26,9 @@
                       <Component id="sortItem" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="autoIme" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="148" max="32767" attributes="0"/>
+                      <EmptySpace pref="118" max="32767" attributes="0"/>
+                      <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="keywordFld" min="-2" pref="188" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="tmpKarteButton" min="-2" max="-2" attributes="0"/>
@@ -44,6 +46,7 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="jLabel2" alignment="0" min="-2" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="keywordFld" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="countLbl" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -91,6 +94,8 @@
       <Properties>
         <Property name="toolTipText" type="java.lang.String" value="&#x60a3;&#x8005;&#x6c0f;&#x540d;&#x3001;&#x96fb;&#x8a71;&#x756a;&#x53f7;&#x3001;ID&#x7b49;&#x306e;&#x4e00;&#x90e8;&#x3001;&#x53f3;&#x30af;&#x30ea;&#x30c3;&#x30af;&#x3067;&#x6765;&#x9662;&#x65e5;&#x3092;&#x5165;&#x529b;&#x3057;&#x307e;&#x3059;&#x3002;"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel2">
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel1">
       <Properties>

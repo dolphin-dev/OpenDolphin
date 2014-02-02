@@ -16,9 +16,11 @@ import org.apache.log4j.Level;
  */
 public class DefaultStampTreeXmlBuilder {
     
-    private static final String[] MATCHES = new String[] { "<", ">", "&", "'","\""};
+    //private static final String[] MATCHES = new String[] { "<", ">", "&", "'","\""};
+    private static final String[] MATCHES = new String[] { "&", "<", ">", "'","\""};
     
-    private static final String[] REPLACES = new String[] { "&lt;", "&gt;", "&amp;" ,"&apos;", "&quot;"};
+    //private static final String[] REPLACES = new String[] { "&lt;", "&gt;", "&amp;" ,"&apos;", "&quot;"};
+    private static final String[] REPLACES = new String[] { "&amp;" ,"&lt;", "&gt;", "&apos;", "&quot;"};
     
     /** Control staffs */
     private LinkedList<StampTreeNode> linkedList;

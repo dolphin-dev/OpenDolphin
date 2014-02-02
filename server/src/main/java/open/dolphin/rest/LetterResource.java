@@ -11,6 +11,7 @@ import open.dolphin.converter.LetterModuleListConverter;
 import open.dolphin.infomodel.LetterModule;
 import open.dolphin.infomodel.LetterModuleList;
 import open.dolphin.session.LetterServiceBean;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -35,6 +36,8 @@ public class LetterResource extends AbstractResource {
     public String putLetter(String json) throws IOException {
         
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         LetterModule model = mapper.readValue(json, LetterModule.class);
 
         Long pk = letterServiceBean.saveOrUpdateLetter(model);

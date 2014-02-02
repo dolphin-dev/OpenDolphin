@@ -63,6 +63,12 @@ public class GUIConst {
     public static final String ACTION_INSERT_STAMP = "insertStamp";
     public static final String ACTION_SELECT_INSURANCE = "selectInsurance";
     public static final String ACTION_CHANGE_NUM_OF_DATES_ALL = "changeNumOfDatesAll";
+//s.oh^ テキストの挿入 2013/08/12
+    public static final String ACTION_SOAPANE_INSERTTEXT_DIR = "soapane.inserttext.dir";
+    public static final String ACTION_PPANE_INSERTTEXT_DIR = "ppane.inserttext.dir";
+//s.oh$
+    public static final String ACTION_OTHERPROCESS_ICON = "otherprocessicon.link";
+
     
     public static final String ACTION_SIZE = "size";
     public static final String ACTION_FONT_LARGER = "fontLarger";

@@ -12,10 +12,12 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import open.dolphin.client.AbstractChartDocument;
 import open.dolphin.client.ClientContext;
+import open.dolphin.client.GUIFactory;
 import open.dolphin.client.NameValuePair;
 import open.dolphin.delegater.LaboDelegater;
 import open.dolphin.helper.DBTask;
 import open.dolphin.infomodel.*;
+import open.dolphin.project.Project;
 import open.dolphin.table.ListTableModel;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -78,6 +80,9 @@ public class LaboTestBean extends AbstractChartDocument {
     private JButton printPdfBtn;    // ラボデータPDFの印刷
 //s.oh$
     
+    // ラボデータの削除 2013/06/24
+    private List<NLaboModule> modules;
+    
     public LaboTestBean() {
         setTitle(TITLE);
     }
@@ -99,7 +104,7 @@ public class LaboTestBean extends AbstractChartDocument {
 //        this.extractionMenu = extractionMenu;
 //    }
 //minagawa$
-    public void createTable(List<NLaboModule> modules) {
+    public void createTable(List<NLaboModule> moduleList) {
 
         // 現在のデータをクリアする
         if (tableModel != null && tableModel.getDataProvider() != null) {
@@ -116,6 +121,12 @@ public class LaboTestBean extends AbstractChartDocument {
         for (int col = 1; col < header.length; col++) {
             header[col] = "";
         }
+//minagawa^ LSC 1.4 bug fix ラボデータの削除 2013/06/24
+        if (modules!=null) {
+            modules.clear();
+        }
+        modules = moduleList;
+//minagawa$        
 
         // 結果がゼロであれば返る
         if (modules == null || modules.isEmpty()) {
@@ -127,7 +138,12 @@ public class LaboTestBean extends AbstractChartDocument {
         }
 
         // 検体採取日の降順なので昇順にソートする
-        Collections.sort(modules, new SampleDateComparator());
+//s.oh^ 2013/06/13 カラムの並び順
+        //Collections.sort(modules, new SampleDateComparator());
+        if(!Project.getBoolean("labtest.column.newest.left", false)) {
+            Collections.sort(modules, new SampleDateComparator());
+        }
+//s.oh$
 
         // テスト項目全てに対応する rowObject を生成する
         List<LabTestRowObject> dataProvider = new ArrayList<LabTestRowObject>();
@@ -226,6 +242,65 @@ public class LaboTestBean extends AbstractChartDocument {
         tableModel.setDataProvider(dataProvider);
         
         //printBtn.setEnabled(true);
+//minagawa^ LSC 1.4 bug fix ラボデータの削除 2013/06/24
+        table.getTableHeader().addMouseListener(new MouseListener() {
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                maybeShowPopup(e);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                maybeShowPopup(e);
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+            }
+            
+            private void maybeShowPopup(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    int index = table.getTableHeader().columnAtPoint(e.getPoint());
+                    if (index==0) {
+                        return;
+                    }
+                    final NLaboModule toDelete = modules.get(index-1);
+                    JPopupMenu popup = new JPopupMenu();
+                    popup.add(new AbstractAction("削 除") {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            String date = toDelete.getSampleDate().replaceAll(" 00:00", "");
+                            StringBuilder sb = new StringBuilder();
+                            sb.append(date).append(" の検査を削除しますか？").append("\n");
+                            sb.append("この操作は取り消せません。");
+                            String msg = sb.toString();
+                            String[] options = {GUIFactory.getCancelButtonText(),"削 除"};
+                            int val = JOptionPane.showOptionDialog(
+                                getUI(), msg, ClientContext.getFrameTitle("検体検査削除"),
+                                JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+                            switch(val) {
+                                case 0:
+                                    break;
+                                case 1:
+                                    deleteLabTest(toDelete.getId());
+                                    break;
+                            }
+                        }
+                    });
+                    popup.show(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+        });
+//minagawa$        
     }
 
     /**
@@ -322,6 +397,13 @@ public class LaboTestBean extends AbstractChartDocument {
                 if (row < 0 ) {
                     return;
                 }
+                
+//s.oh^ 2013/10/08 ラボテスト
+                int[] selecteds = table.getSelectedRows();
+                if(selecteds == null || selecteds.length <= 0) {
+                    return;
+                }
+//s.oh$
 
                 JPopupMenu contextMenu = new JPopupMenu();
                 contextMenu.add(new JMenuItem(copyLatestAction));
@@ -399,7 +481,14 @@ public class LaboTestBean extends AbstractChartDocument {
         for (int i = 0; i < numRows; i++) {
             LabTestRowObject rdm = tableModel.getObject(rowsSelected[i]);
             if (rdm != null) {
-                sb.append(rdm.toClipboardLatest()).append("\n");
+//s.oh^ 2013/06/13 カラムの並び順
+                //sb.append(rdm.toClipboardLatest()).append("\n");
+                if(!Project.getBoolean("labtest.column.newest.left", false)) {
+                    sb.append(rdm.toClipboardLatest()).append("\n");
+                }else{
+                    sb.append(rdm.toClipboardLatestReverse()).append("\n");
+                }
+//s.oh$
             }
         }
         if (sb.length() > 0) {
@@ -439,16 +528,16 @@ public class LaboTestBean extends AbstractChartDocument {
 
             @Override
             protected List<NLaboModule> doInBackground() throws Exception {
-                List<NLaboModule> modules = ldl.getLaboTest(pid, firstResult, getMaxResult());
-                return modules;
+                List<NLaboModule> result = ldl.getLaboTest(pid, firstResult, getMaxResult());
+                return result;
             }
 
             @Override
-            protected void succeeded(List<NLaboModule> modules) {
-                int moduleCount = modules != null ? modules.size() : 0;
+            protected void succeeded(List<NLaboModule> result) {
+                int moduleCount = result != null ? result.size() : 0;
                 // 全件表示修正^
                 //countField.setText(String.valueOf(moduleCount));
-                createTable(modules);
+                createTable(result);
             }
         };
 
@@ -459,63 +548,124 @@ public class LaboTestBean extends AbstractChartDocument {
     // 全件表示修正^
     private void firstSearch() {
 
+//s.oh^ 2013/09/18 ラボデータの高速化
+//        final String pid = getContext().getPatient().getPatientId();
+//        ldl = new LaboDelegater();
+//
+//        DBTask task = new DBTask<List<NLaboModule>, Void>(getContext()) {
+//
+//            @Override
+//            protected List<NLaboModule> doInBackground() throws Exception {
+//                // 全件取得する maxResult=1000
+//                List<NLaboModule> modules = ldl.getLaboTest(pid, 0, 1000);
+//                return modules;
+//            }
+//
+//            @Override
+//            protected void succeeded(List<NLaboModule> modules) {
+//                
+//                // 全件数
+//                int moduleCount = modules != null ? modules.size() : 0;
+//                
+//                // ComboBox へ表示するItemの数
+//                int itemCount = moduleCount/getMaxResult();
+//                if (moduleCount%getMaxResult()!=0) {
+//                    itemCount+=1;
+//                }
+//                
+//                // Loopしてcomboboxへ加える
+//                for (int i=0; i < itemCount; i++) {
+//                    int firstIndex = i*getMaxResult();
+//                    int lastIndex = firstIndex+getMaxResult()-1;
+//                    if (lastIndex>(moduleCount-1)) {
+//                        lastIndex = moduleCount-1;
+//                    }
+//                    StringBuilder sb = new StringBuilder();
+//                    if (i!=0) {
+//                        sb.append(String.valueOf(firstIndex+1));
+//                        sb.append("~");
+//                    }
+//                    sb.append(String.valueOf(lastIndex+1));
+//                    sb.append("回分");
+//                    String name = sb.toString();
+//                    String value = String.valueOf(firstIndex);
+//                    NameValuePair item = new NameValuePair(name, value);
+//                    extractionCombo.addItem(item);
+//                }
+//                countField.setText(String.valueOf(moduleCount));
+//                
+//                // 最初の６回分を表示させる
+//                int cnt = moduleCount>=getMaxResult() ? getMaxResult() : moduleCount;
+//                List<NLaboModule> list = new ArrayList(cnt);
+//                for (int i=0; i <cnt; i++) {
+//                    list.add(modules.get(i));
+//                }
+//                createTable(list);
+//            }
+//        };
+//
+//        task.execute();
+        // 全件数
+        String pid = getContext().getPatient().getPatientId();
+        ldl = new LaboDelegater();
+        int moduleCount = Integer.parseInt(ldl.getLaboTestCount(pid));
+
+        // ComboBox へ表示するItemの数
+        int itemCount = moduleCount/getMaxResult();
+        if (moduleCount%getMaxResult()!=0) {
+            itemCount+=1;
+        }
+
+        // Loopしてcomboboxへ加える
+        for (int i=0; i < itemCount; i++) {
+            int firstIndex = i*getMaxResult();
+            int lastIndex = firstIndex+getMaxResult()-1;
+            if (lastIndex>(moduleCount-1)) {
+                lastIndex = moduleCount-1;
+            }
+            StringBuilder sb = new StringBuilder();
+            if (i!=0) {
+                sb.append(String.valueOf(firstIndex+1));
+                sb.append("~");
+            }
+            sb.append(String.valueOf(lastIndex+1));
+            sb.append("回分");
+            String name = sb.toString();
+            String value = String.valueOf(firstIndex);
+            NameValuePair item = new NameValuePair(name, value);
+            extractionCombo.addItem(item);
+        }
+        countField.setText(String.valueOf(moduleCount));
+//s.oh$
+    }
+    
+//minagawa^ LSC 1.4 bug fix ラボデータの削除 2013/06/24
+    private void deleteLabTest(final long moduleId) {
+
         final String pid = getContext().getPatient().getPatientId();
         ldl = new LaboDelegater();
 
-        DBTask task = new DBTask<List<NLaboModule>, Void>(getContext()) {
+        DBTask task = new DBTask<Integer, Void>(getContext()) {
 
             @Override
-            protected List<NLaboModule> doInBackground() throws Exception {
-                // 全件取得する maxResult=1000
-                List<NLaboModule> modules = ldl.getLaboTest(pid, 0, 1000);
-                return modules;
+            protected Integer doInBackground() throws Exception {
+                int result = ldl.deleteLabTest(moduleId);
+                return new Integer(result);
             }
 
             @Override
-            protected void succeeded(List<NLaboModule> modules) {
-                
-                // 全件数
-                int moduleCount = modules != null ? modules.size() : 0;
-                
-                // ComboBox へ表示するItemの数
-                int itemCount = moduleCount/getMaxResult();
-                if (moduleCount%getMaxResult()!=0) {
-                    itemCount+=1;
+            protected void succeeded(Integer result) {
+                if (extractionCombo.getSelectedIndex()==0) {
+                    searchLaboTest(0);
+                } else {
+                    extractionCombo.setSelectedIndex(0);
                 }
-                
-                // Loopしてcomboboxへ加える
-                for (int i=0; i < itemCount; i++) {
-                    int firstIndex = i*getMaxResult();
-                    int lastIndex = firstIndex+getMaxResult()-1;
-                    if (lastIndex>(moduleCount-1)) {
-                        lastIndex = moduleCount-1;
-                    }
-                    StringBuilder sb = new StringBuilder();
-                    if (i!=0) {
-                        sb.append(String.valueOf(firstIndex+1));
-                        sb.append("~");
-                    }
-                    sb.append(String.valueOf(lastIndex+1));
-                    sb.append("回分");
-                    String name = sb.toString();
-                    String value = String.valueOf(firstIndex);
-                    NameValuePair item = new NameValuePair(name, value);
-                    extractionCombo.addItem(item);
-                }
-                countField.setText(String.valueOf(moduleCount));
-                
-                // 最初の６回分を表示させる
-                int cnt = moduleCount>=getMaxResult() ? getMaxResult() : moduleCount;
-                List<NLaboModule> list = new ArrayList(cnt);
-                for (int i=0; i <cnt; i++) {
-                    list.add(modules.get(i));
-                }
-                createTable(list);
             }
         };
 
         task.execute();
     }
+//minagawa$    
 
     /**
      * 検査結果テーブルで選択された行（検査項目）の折れ線グラフを生成する。

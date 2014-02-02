@@ -3,10 +3,12 @@ package open.dolphin.delegater;
 import java.io.BufferedReader;
 import java.util.ArrayList;
 import javax.ws.rs.core.MediaType;
-import open.dolphin.converter14.UserModelConverter;
+import open.dolphin.converter.UserModelConverter;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.UserList;
 import open.dolphin.infomodel.UserModel;
+import open.dolphin.util.Log;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
@@ -29,7 +31,8 @@ public final class UserDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/user/"+userPK;
-
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
         // GET
         ClientRequest request = getRequest(path, userPK, password);
         request.accept(MediaType.APPLICATION_JSON);
@@ -38,9 +41,17 @@ public final class UserDelegater extends BusinessDelegater {
 
         // UserModel
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         UserModel user = mapper.readValue(br, UserModel.class);
         br.close();
         
+        //20130225
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","INFO",user.getUserId()+"/"+user.getCommonName()+"/"+user.getFacilityModel().getFacilityName());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
 //        if (false) {
 //            System.err.println(user.getUserId());
 //            System.err.println(user.getCommonName());
@@ -54,7 +65,8 @@ public final class UserDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/user/"+userPK;
-
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
@@ -63,8 +75,14 @@ public final class UserDelegater extends BusinessDelegater {
 
         // UserModel
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         UserModel user = mapper.readValue(br, UserModel.class);
         br.close();
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
 //        if (false) {
 //            System.err.println(user.getUserId());
@@ -79,7 +97,7 @@ public final class UserDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/user";
-        
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
@@ -88,8 +106,14 @@ public final class UserDelegater extends BusinessDelegater {
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         UserList list = mapper.readValue(br, UserList.class);
         br.close();
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // List
         return (ArrayList)list.getList();
@@ -99,13 +123,15 @@ public final class UserDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/user";
-        
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         // Converter
         UserModelConverter conv = new UserModelConverter();
         conv.setModel(userModel);
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -113,10 +139,17 @@ public final class UserDelegater extends BusinessDelegater {
         ClientRequest request = getRequest(path);
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.post(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
 
         // Count
         String entityStr = getString(response);
         int cnt = Integer.parseInt(entityStr);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RET",String.valueOf(cnt));
+        
         return cnt;
     }
     
@@ -124,6 +157,7 @@ public final class UserDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/user";
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Converter
         UserModelConverter conv = new UserModelConverter();
@@ -131,6 +165,8 @@ public final class UserDelegater extends BusinessDelegater {
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -138,10 +174,17 @@ public final class UserDelegater extends BusinessDelegater {
         ClientRequest request = getRequest(path);
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.put(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
 
         // Count
         String entityStr = getString(response);
         int cnt = Integer.parseInt(entityStr);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RET",String.valueOf(cnt));
+        
         return cnt;
     }
     
@@ -149,10 +192,17 @@ public final class UserDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/user/"+uid;
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // DELETE
         ClientRequest request = getRequest(path);
         ClientResponse<String> response = request.delete(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RET",String.valueOf(1));
         
         // Count
         return 1;
@@ -162,6 +212,7 @@ public final class UserDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/user/facility";
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Converter
         UserModelConverter conv = new UserModelConverter();
@@ -169,6 +220,8 @@ public final class UserDelegater extends BusinessDelegater {
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -177,9 +230,16 @@ public final class UserDelegater extends BusinessDelegater {
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.put(String.class);
 
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         // Count
         String entityStr = getString(response);
         int cnt = Integer.parseInt(entityStr);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RET",String.valueOf(cnt));
+        
         return cnt;
     }
 }

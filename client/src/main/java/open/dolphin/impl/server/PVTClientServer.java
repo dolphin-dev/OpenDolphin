@@ -10,6 +10,7 @@ import java.util.Date;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.MainWindow;
 import open.dolphin.infomodel.UserModel;
+import open.dolphin.project.Project;
 import org.apache.log4j.Level;
 
 /**

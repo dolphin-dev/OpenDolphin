@@ -19,6 +19,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import open.dolphin.client.*;
 import open.dolphin.delegater.LaboDelegater;
+import open.dolphin.impl.lbtest.LaboTestPanel;
 import open.dolphin.impl.pvt.WatingListImpl;
 import open.dolphin.infomodel.ChartEventModel;
 import open.dolphin.infomodel.PatientLiteModel;
@@ -27,6 +28,7 @@ import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.project.Project;
 import open.dolphin.table.ListTableModel;
 import open.dolphin.table.StripeTableCellRenderer;
+import open.dolphin.util.Log;
 
 /**
  * LabTestImporter
@@ -130,10 +132,7 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
                     ClientContext.getFrameTitle(getName()),
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE,
-//minagawa^ Icon server                    
-                    //ClientContext.getImageIcon("about_32.gif"));
-                    ClientContext.getImageIconArias("icon_info"));
-//minagawa$            
+                    ClientContext.getImageIcon("about_32.gif"));
             
             if (option != JOptionPane.YES_OPTION) {
                 return;
@@ -162,6 +161,15 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
         getContext().openKarte(pvt);
     }
     
+//s.oh^ 2013/09/20 ラボレシーバを表示
+    public void openLaboTest() {
+        if(selectedLabo == null) return;
+        PatientModel patient = selectedLabo.getPatient();
+        if(patient == null) return;
+        LaboTestPanel labo = new LaboTestPanel(patient.getPatientId());
+        labo.start();
+    }
+//s.oh^
     
     /**
      * 検索結果件数を設定しステータスパネルへ表示する。
@@ -321,6 +329,7 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
                     String message = sb.toString();
                     String title = "ラボレシーバ";
                     JOptionPane.showMessageDialog(parent, message, ClientContext.getFrameTitle(title), JOptionPane.WARNING_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), message);
                 }
             }
         };
@@ -358,7 +367,24 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
 
                 for (NLaboImportSummary summary : modules) {
 
-                    PatientModel pm = laboDelegater.putNLaboModule(summary.getModule());
+//s.oh^ 2013/08/29
+                    //PatientModel pm = laboDelegater.putNLaboModule(summary.getModule());
+                    PatientModel pm = null;
+                    try {
+                        pm = laboDelegater.putNLaboModule(summary.getModule());
+                    } catch (Exception ex) {
+                        String why = ex.getMessage();
+                        Window parent = SwingUtilities.getWindowAncestor(getUI());
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("登録できないファイルがあります").append("\n");
+                        sb.append("検査結果ファイルに誤りがある可能性があります。");
+                        String message = sb.toString();
+                        String title = "ラボレシーバ";
+                        JOptionPane.showMessageDialog(parent, message, ClientContext.getFrameTitle(title), JOptionPane.WARNING_MESSAGE);
+                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), message, why);
+                        pm = null;
+                    }
+//s.oh$
 
                     if (pm != null) {
                         summary.setPatient(pm);
@@ -460,7 +486,10 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
                 if (e.getClickCount() == 2) {
                     NLaboImportSummary lab = getTableModel().getObject(view.getTable().getSelectedRow());
                     if (lab != null && lab.getPatient()!=null) {
-                        openKarte();
+//s.oh^ 2013/09/20 ラボレシーバを表示
+                        //openKarte();
+                        openLaboTest();
+//s.oh^
                     }
                 }
             }
@@ -491,8 +520,12 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
                     int selected = table.getSelectedRow();
 
                     if (row == selected && obj != null) {
-                        String pop1 = ClientContext.getString("watingList.popup.openKarte");
-                        contextMenu.add(new JMenuItem(new ReflectAction(pop1, NLaboTestImporter.this, "openKarte")));
+//s.oh^ 2013/09/20 ラボレシーバを表示
+                        //String pop1 = ClientContext.getString("watingList.popup.openKarte");
+                        //contextMenu.add(new JMenuItem(new ReflectAction(pop1, NLaboTestImporter.this, "openKarte")));
+                        String pop1 = "ラボデータを表示";
+                        contextMenu.add(new JMenuItem(new ReflectAction(pop1, NLaboTestImporter.this, "openLaboTest")));
+//s.oh$
                     }
                     contextMenu.show(e.getComponent(), e.getX(), e.getY());
                 }
@@ -530,9 +563,14 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
         view = new NLabTestImportView();
         setUI(view);
 
-        String[] columnNames = new String[]{"ラボ", "患者ID", "カナ", "カルテ・カナ", "性別", "カルテ・性別", "検体採取日", "項目数", "登録", "状態"};
-        String[] propNames = new String[]{"laboCode", "patientId", "patientName", "karteKanaName", "patientSex", "karteSex", "sampleDate", "numOfTestItems", "result", null};
-        int[] columnWidth = new int[]{50, 120, 120, 120, 50, 70, 110, 50, 40,20};
+//s.oh^ 2013/09/20 ラボレシーバを表示
+        //String[] columnNames = new String[]{"ラボ", "患者ID", "カナ", "カルテ・カナ", "性別", "カルテ・性別", "検体採取日", "項目数", "登録", "状態"};
+        //String[] propNames = new String[]{"laboCode", "patientId", "patientName", "karteKanaName", "patientSex", "karteSex", "sampleDate", "numOfTestItems", "result", null};
+        //int[] columnWidth = new int[]{50, 120, 120, 120, 50, 70, 110, 50, 40,20};
+        String[] columnNames = new String[]{"ラボ", "患者ID", "カナ", "カルテ・カナ", "性別", "カルテ・性別", "検体採取日", "項目数", "登録"};
+        String[] propNames = new String[]{"laboCode", "patientId", "patientName", "karteKanaName", "patientSex", "karteSex", "sampleDate", "numOfTestItems", "result"};
+        int[] columnWidth = new int[]{50, 120, 120, 120, 50, 70, 110, 50, 40};
+//s.oh$
 
         tableModel = new ListTableModel<NLaboImportSummary>(
                 columnNames, 0, propNames, null);
@@ -714,6 +752,11 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
                     setIcon(null);
                 }
                 setText("");
+//s.oh^ 2013/08/29
+            } else if (col == stateColumn) {
+                setIcon(null);
+                setText("");
+//s.oh$
             } else {
                 setIcon(null);
                 setText(value == null ? "" : value.toString());

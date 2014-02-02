@@ -11,7 +11,10 @@ import open.dolphin.converter.PatientListConverter;
 import open.dolphin.converter.PatientModelConverter;
 import open.dolphin.infomodel.PatientList;
 import open.dolphin.infomodel.PatientModel;
+import static open.dolphin.rest.AbstractResource.CAMMA;
+import static open.dolphin.rest.AbstractResource.getRemoteFacility;
 import open.dolphin.session.PatientServiceBean;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -24,7 +27,6 @@ public class PatientResource extends AbstractResource {
 
     @Inject
     private PatientServiceBean patientServiceBean;
-    
 
     /** Creates a new instance of PatientsResource */
     public PatientResource() {
@@ -118,6 +120,25 @@ public class PatientResource extends AbstractResource {
 
         return conv;
     }
+    
+//minagawa^ 仮保存カルテ取得対応
+    @GET
+    @Path("/documents/status")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PatientListConverter getDocumentsByStatus(@Context HttpServletRequest servletReq) {
+
+        String fid = getRemoteFacility(servletReq.getRemoteUser());
+        
+        List<PatientModel> result = patientServiceBean.getTmpKarte(fid);
+        PatientList list = new PatientList();
+        list.setList(result);
+        
+        PatientListConverter conv = new PatientListConverter();
+        conv.setModel(list);
+
+        return conv;
+    } 
+//minagawa$
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -127,6 +148,8 @@ public class PatientResource extends AbstractResource {
         String fid = getRemoteFacility(servletReq.getRemoteUser());
         
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         PatientModel patient = mapper.readValue(json, PatientModel.class);
         
         patient.setFacilityId(fid);
@@ -146,6 +169,8 @@ public class PatientResource extends AbstractResource {
         String fid = getRemoteFacility(servletReq.getRemoteUser());
         
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         PatientModel patient = mapper.readValue(json, PatientModel.class);
 
         patient.setFacilityId(fid);
@@ -155,5 +180,20 @@ public class PatientResource extends AbstractResource {
         debug(pkStr);
 
         return pkStr;
+    }
+    
+    // 検索件数が1000件超過
+    @GET
+    @Path("/count/{param}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getPatientCount(@Context HttpServletRequest servletReq, @PathParam("param") String param) {
+        
+        String fid = getRemoteFacility(servletReq.getRemoteUser());
+        String pid = param;
+        
+        Long cnt = patientServiceBean.getPatientCount(fid, pid);
+        String val = String.valueOf(cnt);
+        
+        return val;
     }
 }

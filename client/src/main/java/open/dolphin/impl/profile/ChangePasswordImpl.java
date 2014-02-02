@@ -18,6 +18,7 @@ import open.dolphin.helper.SimpleWorker;
 import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
 import open.dolphin.util.HashUtil;
+import open.dolphin.util.Log;
 import org.apache.log4j.Logger;
 
 /**
@@ -548,6 +549,7 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
                             SUCCESS_MESSAGE,
                             ClientContext.getFrameTitle(getName()),
                             JOptionPane.INFORMATION_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(getName()), SUCCESS_MESSAGE);
                 }
 
                 @Override
@@ -561,6 +563,7 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
                                 cause.getMessage(),
                                 ClientContext.getFrameTitle(getName()),
                                 JOptionPane.WARNING_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(getName()), cause.getMessage());
                     logger.warn("ChangePassword failed");
                     logger.warn(cause.getCause());
                     logger.warn(cause.getMessage());

@@ -5,17 +5,22 @@ import java.awt.event.*;
 import java.beans.EventHandler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.event.*;
@@ -27,13 +32,17 @@ import open.dolphin.helper.SimpleWorker;
 import open.dolphin.helper.UserDocumentHelper;
 import open.dolphin.helper.WindowSupport;
 import open.dolphin.impl.genesys.GenesysLinkDocument;
+import open.dolphin.impl.img.DefaultBrowserEx;
+import open.dolphin.impl.server.PVTKanaToAscii;
 import open.dolphin.infomodel.*;
 import open.dolphin.plugin.PluginLister;
 import open.dolphin.plugin.PluginLoader;
 import open.dolphin.project.Project;
 import open.dolphin.util.AgeCalculater;
 import open.dolphin.util.GUIDGenerator;
+import open.dolphin.util.Log;
 import open.dolphin.util.MMLDate;
+import open.dolphin.utilities.utility.OtherProcessLink;
 import org.apache.log4j.Level;
 
 /**
@@ -732,6 +741,50 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         insBtn.setBorderPainted(true);
         insBtn.setMargin(new Insets(3,3,3,3));
         toolBar.add(insBtn);
+        
+//s.oh^ テキストの挿入 2013/08/12
+        if(Project.getString(GUIConst.ACTION_SOAPANE_INSERTTEXT_DIR, "").length() > 0) {
+            toolBar.addSeparator();
+            JButton insertSOATextBtn = new JButton();
+            insertSOATextBtn.setAction(mediator.getActions().get("insertSOAText"));
+            insertSOATextBtn.setText(null);
+            insertSOATextBtn.setToolTipText("所見欄にテキストを追加します。");
+            insertSOATextBtn.setMargin(new Insets(3,3,3,3));
+            insertSOATextBtn.setFocusable(false);
+            insertSOATextBtn.setBorderPainted(true);
+            toolBar.add(insertSOATextBtn);
+        }
+        
+        if(Project.getString(GUIConst.ACTION_PPANE_INSERTTEXT_DIR, "").length() > 0) {
+            toolBar.addSeparator();
+            JButton insertPTextBtn = new JButton();
+            insertPTextBtn.setAction(mediator.getActions().get("insertPText"));
+            insertPTextBtn.setText(null);
+            insertPTextBtn.setToolTipText("算定欄にテキストを追加します。");
+            insertPTextBtn.setMargin(new Insets(3,3,3,3));
+            insertPTextBtn.setFocusable(false);
+            insertPTextBtn.setBorderPainted(true);
+            toolBar.add(insertPTextBtn);
+        }
+//s.oh$
+        
+//s.oh^ 他プロセス連携(アイコン) 2013/10/21
+        if(Project.getBoolean(GUIConst.ACTION_OTHERPROCESS_ICON, false)) {
+            toolBar.addSeparator();
+            int num = Project.getInt("otherprocessicon.link.num", 0);
+            for(int i = 1; i < num+1; i++) {
+                String KEY_DEF = "otherprocessicon" + String.valueOf(i) + ".link";
+                JButton linkBtn = new JButton();
+                linkBtn.setAction(mediator.getActions().get("otherProcessIcon" + String.valueOf(i) + "Link"));
+                linkBtn.setText(null);
+                linkBtn.setToolTipText(Project.getString(KEY_DEF + ".tooltip", ""));
+                linkBtn.setMargin(new Insets(3,3,3,3));
+                linkBtn.setFocusable(false);
+                linkBtn.setBorderPainted(true);
+                toolBar.add(linkBtn);
+            }
+        }
+//s.oh$
 
         // Document プラグインのタブを生成する
         tabbedPane = loadDocuments();
@@ -815,8 +868,11 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             public void windowClosed(WindowEvent e) {
                 // リストから削除し状態変化を通知する
                 if (allCharts.remove(ChartImpl.this)) {
-                    ChartEventHandler scl = ChartEventHandler.getInstance();
-                    scl.publishKarteClosed(ChartImpl.this.getPatientVisit());
+                // 2013/07/18
+//minagawa^ LSC red flag                  
+//                    ChartEventHandler scl = ChartEventHandler.getInstance();
+//                    scl.publishKarteClosed(ChartImpl.this.getPatientVisit());
+//minagawa$                     
                 }
             }
 
@@ -954,7 +1010,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         }
         
 //s.oh^ ジェネシス連携
-        String name = Project.getString("genesys.browser.title");
+        String name = Project.getString("genesys.browser.tab");
         if(name != null && name.length() > 0) {
             ChartDocument plugin = new GenesysLinkDocument();
             tab.addTab(plugin.getTitle(), plugin.getIconInfo(this), plugin.getUI());
@@ -2087,6 +2143,20 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         }      
     }
     
+//s.oh^ 他プロセス連携(アイコン) 2013/10/21
+    public void otherProcessIcon1Link() {
+        DefaultBrowserEx.otherProcess("otherprocess1icon.link", this, Project.getString("otherprocess1icon.link.path"), Project.getString("otherprocess1icon.link.param"), null);
+    }
+    
+    public void otherProcessIcon2Link() {
+        DefaultBrowserEx.otherProcess("otherprocess2icon.link", this, Project.getString("otherprocess2icon.link.path"), Project.getString("otherprocess2icon.link.param"), null);
+    }
+    
+    public void otherProcessIcon3Link() {
+        DefaultBrowserEx.otherProcess("otherprocess3icon.link", this, Project.getString("otherprocess3icon.link.path"), Project.getString("otherprocess3icon.link.param"), null);
+    }
+//s.oh$
+    
     // 未保存の文書が全て保存されるのを待って stopを実行するリスナ
     class DirtySaveController implements PropertyChangeListener {
         
@@ -2273,9 +2343,40 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             stop();
         }
     }
-
+    
+// 2013/07/18
+//minagawa^ moved here due to the flag suspicious    
     @Override
     public void stop() {
+        
+        SwingWorker worker = new SwingWorker<Integer, Void>() {
+
+            @Override
+            protected Integer doInBackground() throws Exception {
+                
+                ChartEventHandler scl = ChartEventHandler.getInstance();
+                int cnt = scl.publishKarteClosedInWorkerThread(ChartImpl.this.getPatientVisit());
+                return new Integer(cnt);
+            }
+            
+            @Override
+            protected void done() {
+                try {
+                    Integer cnt = get();
+                } catch (Exception e) {
+                    ClientContext.getBootLogger().warn("カルテクローズの通知に失敗。");
+                    e.printStackTrace(System.err);
+                }
+                // ともかく終了させる
+                doStop();
+            }
+        };
+        worker.execute();
+    }
+
+    private void doStop() {
+//minagawa$        
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "インスペクタの終了");
         if (beeperHandle != null) {
             boolean b = beeperHandle.cancel(true);
             if (DEBUG) {

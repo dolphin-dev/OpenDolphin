@@ -233,7 +233,7 @@ public final class NewKarteDialog {
         JPanel ip = new JPanel(new BorderLayout(9, 0));
         ip.setBorder(BorderFactory.createTitledBorder(SELECT_INS));
         ip.add(insuranceList, BorderLayout.CENTER);
-//minagawa^ IconServer        
+//minagawa^ Icon Server        
         //ip.add(new JLabel(ClientContext.getImageIcon("addbk_32.gif")), BorderLayout.WEST);
         ip.add(new JLabel(ClientContext.getImageIconArias("icon_health_insurance")), BorderLayout.WEST);
 //minagawa$    

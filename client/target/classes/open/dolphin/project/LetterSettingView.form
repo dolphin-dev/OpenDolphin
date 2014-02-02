@@ -33,7 +33,7 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
-              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Component id="jPanel2" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jPanel4" min="-2" max="-2" attributes="0"/>
@@ -75,6 +75,14 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="greetingsChk" min="-2" max="-2" attributes="0"/>
                       </Group>
+                      <Group type="102" alignment="0" attributes="0">
+                          <EmptySpace min="-2" pref="30" max="-2" attributes="0"/>
+                          <Component id="jLabel6" min="-2" pref="95" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="telephoneRadio" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace type="separate" max="-2" attributes="0"/>
+                          <Component id="noTelephoneRadio" min="-2" max="-2" attributes="0"/>
+                      </Group>
                   </Group>
                   <EmptySpace pref="13" max="32767" attributes="0"/>
               </Group>
@@ -94,6 +102,12 @@
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="jLabel3" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="greetingsChk" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="jLabel6" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="telephoneRadio" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="noTelephoneRadio" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="32767" attributes="0"/>
               </Group>
@@ -129,6 +143,21 @@
         <Component class="javax.swing.JCheckBox" name="greetingsChk">
           <Properties>
             <Property name="text" type="java.lang.String" value="&#x5165;&#x308c;&#x308b;" noResource="true"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="jLabel6">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="&#x96fb;&#x8a71;&#x756a;&#x53f7;&#x306e;&#x51fa;&#x529b;:"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JRadioButton" name="telephoneRadio">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="&#x6709;&#x308a;"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JRadioButton" name="noTelephoneRadio">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="&#x7121;&#x3057;"/>
           </Properties>
         </Component>
       </SubComponents>

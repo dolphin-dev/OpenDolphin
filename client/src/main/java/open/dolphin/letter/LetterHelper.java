@@ -23,12 +23,22 @@ public class LetterHelper {
         if (value != null) {
             tf.setText(value);
         }
+//s.oh^ 2013/10/07 紹介状不具合
+        else{
+            tf.setText("");
+        }
+//s.oh$
     }
 
     protected static void setModelValue(JTextArea ta, String value) {
         if (value != null) {
             ta.setText(value);
         }
+//s.oh^ 2013/10/07 紹介状不具合
+        else{
+            ta.setText("");
+        }
+//s.oh$
     }
 
     protected static void setModelValue(JLabel lbl, String value) {

@@ -24,8 +24,8 @@ public class TransferAction implements ActionListener {
     
     @Override
     public void actionPerformed(ActionEvent e) {
-//minagawa^ Paste problem        
-//handler.importData(comp, tr);
+//minagawa^ Paste problem 2013/04/14 不具合修正(スタンプが消える)
+//        handler.importData(comp, tr);
         TransferHandler.TransferSupport support = new TransferHandler.TransferSupport(comp, tr);
         handler.importData(support);
 //minagawa$        

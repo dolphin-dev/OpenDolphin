@@ -89,10 +89,10 @@ public class SimpleCanvas extends javax.swing.JDialog {
         colorBtn.setMinimumSize(new java.awt.Dimension(32, 29));
         colorBtn.setPreferredSize(new java.awt.Dimension(32, 29));
 
-        undoBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/undo_32.png"))); // NOI18N
+        undoBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/undo_24.gif"))); // NOI18N
         undoBtn.setToolTipText("やり直しをします。");
 
-        clearBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/empty_32.png"))); // NOI18N
+        clearBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/remov_24.gif"))); // NOI18N
         clearBtn.setToolTipText("クリアします。");
 
         canvasPanel.setBackground(new java.awt.Color(255, 255, 255));
@@ -107,7 +107,7 @@ public class SimpleCanvas extends javax.swing.JDialog {
 
         cancelBtn.setText("取消し");
 
-        selectBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/move_32.png"))); // NOI18N
+        selectBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/move_24.gif"))); // NOI18N
         selectBtn.setToolTipText("図形を選択し移動します。");
 
         openPathBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/PolyLineOff.gif"))); // NOI18N

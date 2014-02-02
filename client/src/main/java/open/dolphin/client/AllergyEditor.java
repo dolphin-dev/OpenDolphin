@@ -11,6 +11,7 @@ import javax.swing.event.DocumentListener;
 import open.dolphin.infomodel.AllergyModel;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.SimpleDate;
+import open.dolphin.util.Log;
 
 /**
  * アレルギデータを編集するエディタクラス。
@@ -58,6 +59,7 @@ public class AllergyEditor {
             String[] tmp = dateStr.split("-");
             if(dateStr.length() != 10 || tmp.length != 3) {
                 JOptionPane.showMessageDialog(null, "同定日が正しく入力されていません。（例：2000-01-31）", ClientContext.getString("productString"), JOptionPane.INFORMATION_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "同定日が正しく入力されていません。（例：2000-01-31）");
                 return;
             }
             model.setIdentifiedDate(dateStr);

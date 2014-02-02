@@ -13,6 +13,7 @@ import open.dolphin.infomodel.HealthInsuranceModel;
 import open.dolphin.infomodel.PatientVisitList;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.session.PVTServiceBean;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -73,6 +74,8 @@ public class PVTResource extends AbstractResource {
     public String postPvt(@Context HttpServletRequest servletReq, String json) throws IOException {
         
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         PatientVisitModel model = mapper.readValue(json, PatientVisitModel.class);
 
         // 関係構築
@@ -117,7 +120,9 @@ public class PVTResource extends AbstractResource {
 
         String[] params = param.split(CAMMA);
         long pvtPK = Long.parseLong(params[0]);
-        String memo = params[1];
+        // ステータス連携
+        //String memo = params[1];
+        String memo = (params != null && params.length>1) ? params[1] : "";   // chg funabashi （空白対応）
 
         int cnt = pVTServiceBean.updateMemo(pvtPK, memo);
         String cntStr = String.valueOf(cnt);

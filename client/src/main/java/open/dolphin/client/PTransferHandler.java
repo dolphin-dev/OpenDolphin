@@ -20,6 +20,7 @@ import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.project.Project;
 import open.dolphin.stampbox.StampTreeNode;
 import open.dolphin.stampbox.TreeInfo;
+import open.dolphin.util.Log;
 
 /**
  * KartePaneTransferHandler
@@ -42,7 +43,7 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
     public PTransferHandler(KartePane pPane) {
         this.pPane = pPane;
     }
-//minagawa^ Paste problem
+//minagawa^ Paste problem 2013/04/14 不具合修正(スタンプが消える)
 //    @Override
 //    public boolean importData(JComponent c, Transferable tr) {
 //
@@ -83,7 +84,6 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
 //
 //        return false;
 //    }
-//minagawa$    
     @Override
     public boolean importData(TransferHandler.TransferSupport support) {
         
@@ -121,6 +121,7 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
         }
         return false;
     }
+//minagawa$    
     
     // Create a Transferable implementation that contains the
     // selected text.
@@ -167,7 +168,7 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
         source = null;
     }
 
-//minagawa^ Paste problem
+//minagawa^ Paste problem 2013/04/14 不具合修正(スタンプが消える)
     /**
      * インポート可能かどうかを返す。
      */
@@ -216,6 +217,12 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
      * @return 成功した時 true
      */
     private boolean doStampInfoDrop(StampTreeNode droppedNode) {
+        Chart chart = null;
+        ChartDocument doc = pPane.getParent();
+        if(doc instanceof KarteEditor) {
+            chart = ((KarteEditor)doc).getContext();
+        }
+        Log.outputOperLogOper(chart, Log.LOG_LEVEL_0, "スタンプボックス → P", "スタンプボックスからのスタンプ追加");
         
         try {
             // 葉の場合
@@ -234,9 +241,11 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
                     // contextへ追加（エクスポートしておく）
                     if(stampInfo.getStampName().equals("エディタから発行...")) {
                         JOptionPane.showMessageDialog(null, "エディタから発行する場合は直接傷病名タブへ追加してください。", ClientContext.getString("productString"), JOptionPane.INFORMATION_MESSAGE);
+                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "エディタから発行する場合は直接傷病名タブへ追加してください。");
                     }else{
                         pPane.getParent().getContext().addDroppedDiagnosis(stampInfo);
                         showDiagnosisAddedMessage(stampInfo.getStampName());
+                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "病名の追加", stampInfo.getStampName());
                     }
                 }
                 return true;
@@ -254,9 +263,9 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
             Enumeration e = droppedNode.preorderEnumeration();
             
             // 種類別のリストに別ける
-            ArrayList<ModuleInfoBean> textList = new ArrayList(2);
-            ArrayList<ModuleInfoBean> stamptList = new ArrayList(2);
-            ArrayList<ModuleInfoBean> diagList = new ArrayList(2);
+            ArrayList<ModuleInfoBean> textList = new ArrayList<ModuleInfoBean>(2);
+            ArrayList<ModuleInfoBean> stamptList = new ArrayList<ModuleInfoBean>(2);
+            ArrayList<ModuleInfoBean> diagList = new ArrayList<ModuleInfoBean>(2);
             
             while (e.hasMoreElements()) {
                 StampTreeNode node = (StampTreeNode)e.nextElement();
@@ -282,7 +291,10 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
             }
             
             // カルテのテンプレートかどうかはpathで病名があるかどうか
-            boolean hasDisease = (!diagList.isEmpty());
+//s.oh^ 2013/08/12 パスの傷病名対応
+            //boolean hasDisease = (!diagList.isEmpty());
+            boolean hasDisease = true;
+//s.oh$
             boolean template = pathTree && hasDisease;
             
             // まとめてデータベースからフェッチしインポートする
@@ -321,6 +333,7 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
                 }
                 // message
                 showDiagnosisAddedMessage(sb.toString());
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "追加した病名", sb.toString());
             }
             
             return true;
@@ -336,10 +349,17 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
      * @param tr Transferable
      * @return インポートに成功した時 true
      */
-//minagawa^ Paste problem    
+//minagawa^ Paste problem 2013/04/14 不具合修正(スタンプが消える)
     //private boolean doStampDrop(OrderList list) {
     private boolean doStampDrop(OrderList list, boolean drop) {    
 //minagawa$        
+        Chart chart = null;
+        ChartDocument doc = pPane.getParent();
+        if(doc instanceof KarteEditor) {
+            chart = ((KarteEditor)doc).getContext();
+        }
+        Log.outputOperLogOper(chart, Log.LOG_LEVEL_0, "P → P", "カルテからのスタンプ追加");
+        
         try {
             // スタンプのリストを取得する
             ModuleModel[] stamps = list.orderList;
@@ -349,8 +369,9 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
             }
             // dragggされたスタンプがあるときdroppした数を設定する
             // これで同じpane内でのDnDを判定している
-//minagawa^ Paste problem            
             if (pPane.getDraggedCount() > 0 && pPane.getDrragedStamp() != null) {
+//minagawa^ Paste problem 2013/04/14 不具合修正(スタンプが消える)
+//                pPane.setDroppedCount(stamps.length);
                 if (drop) {
                     pPane.setDroppedCount(stamps.length);
                 } else {
@@ -358,8 +379,8 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
                     pPane.setDroppedCount(0);
                     pPane.setDrragedStamp(null);  
                 }
-            }
-//minagawa$            
+//minagawa$                  
+            } 
             return true;
         } catch (Exception e) {
             e.printStackTrace(System.err);
@@ -418,11 +439,19 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
     
     private void showDiagnosisAddedMessage(String dicease) {
         
-        boolean show = Project.getBoolean("show.diagnosis.added.message", true);
+//s.oh^ 2013/08/12 パスの傷病名対応
+        //boolean show = Project.getBoolean("show.diagnosis.added.message", true);
+        boolean show = true;
+//s.oh$
         
         if (show) {
-            JLabel msg1 = new JLabel("下記を傷病名タブに追加しました。");
-            JLabel msg2 = new JLabel(dicease);
+//s.oh^ 2013/08/12 パスの傷病名対応
+            //JLabel msg1 = new JLabel("下記を傷病名タブに追加しました。");
+            //JLabel msg2 = new JLabel(dicease);
+            JLabel msg1 = new JLabel("傷病名を追加しました。");
+            JLabel msg2 = new JLabel("傷病名タブを開いて、保存してください。");
+            JLabel msg3 = new JLabel(dicease);
+//s.oh$
             final JCheckBox cb = new JCheckBox("今後このメッセージを表示しない");
             cb.setFont(new Font("Dialog", Font.PLAIN, 10));
             cb.addActionListener(new ActionListener() {
@@ -433,7 +462,10 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
             });
             
             JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(pPane.getParent().getUI()),
-                    new Object[]{msg1,msg2,cb},
+//s.oh^ 2013/08/12 パスの傷病名対応
+                    //new Object[]{msg1,msg2,msg3,cb},
+                    new Object[]{msg1,msg2,msg3},
+//s.oh$
                     ClientContext.getFrameTitle("パススタンプ"),
                     JOptionPane.INFORMATION_MESSAGE,
 //minagawa^ Icon Server                    

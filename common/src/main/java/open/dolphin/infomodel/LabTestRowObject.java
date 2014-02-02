@@ -249,4 +249,40 @@ public class LabTestRowObject implements Serializable, Comparable {
 
         return sb.toString();
     }
+    
+//s.oh^ 2013/06/13 カラムの並び順
+    public String toClipboardLatestReverse() {
+
+        if (values==null || values.isEmpty()) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(itemName);
+
+        int last = values.size() -1;
+        LabTestValueObject test = null;
+        for(int i = 0; i < last; i++) {
+            test = values.get(i);
+            if (test!=null && test.getValue()!=null) {
+                break;
+            }
+        }
+
+        if (test == null) {
+            return null;
+        }
+
+        sb.append(",").append(test.getValue());
+        if (test.getOut()!=null) {
+            sb.append(",").append(test.getOut());
+        }
+        if (unit!=null) {
+            sb.append(",").append(unit);
+        }
+        sb.append(",").append(test.getSampleDate());
+
+        return sb.toString();
+    }
+//s.oh$
 }

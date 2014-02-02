@@ -6,16 +6,25 @@ package open.dolphin.letter;
 
 import com.lowagie.text.Element;
 import java.awt.Color;
+import java.awt.Desktop;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
+import java.net.URI;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.print.Doc;
 import javax.print.DocFlavor;
 import javax.print.DocPrintJob;
@@ -30,8 +39,12 @@ import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
 import javax.print.attribute.standard.Copies;
 import javax.print.attribute.standard.MediaSizeName;
+import javax.swing.ImageIcon;
+import javax.swing.JPanel;
+import open.dolphin.client.ClientContext;
 import open.dolphin.client.KartePaneDumper_2;
 import open.dolphin.impl.lbtest.LaboTestOutputPDF;
+import open.dolphin.infomodel.AttachmentModel;
 import open.dolphin.infomodel.BundleDolphin;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.SchemaModel;
@@ -51,6 +64,7 @@ public class KartePDFImpl2 {
     private static final String COMPONENT_ELEMENT_NAME = "component";
     private static final String STAMP_HOLDER = "stampHolder";
     private static final String SCHEMA_HOLDER = "schemaHolder";
+    private static final String ATTACHMENT_HOLDER = "attachmentHolder"; // Attachment追加
     private static final int TT_SECTION = 0;
     private static final int TT_PARAGRAPH = 1;
     private static final int TT_CONTENT = 2;
@@ -72,8 +86,10 @@ public class KartePDFImpl2 {
     private static final String NAME_NAME = "name";
     private static final String LOGICAL_STYLE_NAME = "logicalStyle";
     private static final String PROGRESS_COURSE_NAME = "kartePane";
-    private static final String[] REPLACES = new String[] { "<", ">", "&", "'" ,"\""};
-    private static final String[] MATCHES = new String[] { "&lt;", "&gt;", "&amp;", "&apos;", "&quot;" };
+    //private static final String[] REPLACES = new String[] { "<", ">", "&", "'" ,"\""};
+    private static final String[] REPLACES = new String[] { "&", "<", ">", "'" ,"\""};
+    //private static final String[] MATCHES = new String[] { "&lt;", "&gt;", "&amp;", "&apos;", "&quot;" };
+    private static final String[] MATCHES = new String[] { "&amp;", "&lt;", "&gt;", "&apos;", "&quot;" };
     private static final String NAME_STAMP_HOLDER = "name=\"stampHolder\"";
 
     /**
@@ -286,7 +302,14 @@ public class KartePDFImpl2 {
         int r = 0;
         int g = 0;
         int b = 0;
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+        //int fontSize = 12;
+        String textSize = Project.getString(Project.KARTE_PRINT_PDF_TEXTSIZE);
         int fontSize = 12;
+        if(textSize != null && textSize.length() >= 1 && !textSize.startsWith("0")) {
+            fontSize = Integer.parseInt(textSize);
+        }
+//s.oh$
         int style = style = 0;
         
         // 特殊文字を戻す
@@ -310,7 +333,14 @@ public class KartePDFImpl2 {
         
         // size 属性を設定する
         if (size != null) {
-            fontSize = Integer.parseInt(size);
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+            //fontSize = Integer.parseInt(size);
+            int diffSize = Integer.parseInt(size) - 12;
+            fontSize = fontSize + diffSize;
+            if(fontSize <= 0) {
+                fontSize = 1;
+            }
+//s.oh$
             //StyleConstants.setFontSize(atts, Integer.parseInt(size));
         }
         
@@ -360,7 +390,15 @@ public class KartePDFImpl2 {
                 if(stamp != null && stamp[idx].getModel() instanceof BundleDolphin) {
                     BundleDolphin bd = (BundleDolphin)stamp[idx].getModel();
                     //PDF_MARKER.addKartePDFData(bd.toString(), align, PDF_MARKER.getBodyFontSize(), com.lowagie.text.Font.NORMAL, new Color(0,0,0));
-                    pdfMarker.addData(bd.toString(), pdfMarker.getBodyFontSize(), com.lowagie.text.Font.NORMAL, new Color(0,0,0));
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+                    //pdfMarker.addData(bd.toString(), pdfMarker.getBodyFontSize(), com.lowagie.text.Font.NORMAL, new Color(0,0,0));
+                    String textSize = Project.getString(Project.KARTE_PRINT_PDF_TEXTSIZE);
+                    int fontSize = pdfMarker.getBodyFontSize();
+                    if(textSize != null && textSize.length() >= 1 && !textSize.startsWith("0")) {
+                        fontSize = Integer.parseInt(textSize);
+                    }
+                    pdfMarker.addData(bd.toString(), fontSize, com.lowagie.text.Font.NORMAL, new Color(0,0,0));
+//s.oh$
                 }
             } else if (name != null && name.equals(SCHEMA_HOLDER)) {
                 int idx = Integer.parseInt(number);
@@ -368,7 +406,28 @@ public class KartePDFImpl2 {
                 if(schema != null) {
                     //Image img = new Image.getInstance(schema[idx].getJpegByte());
                     //PDF_MARKER.addKartePDFImage(schema[idx].getJpegByte(), align);
-                    pdfMarker.addImage(schema[idx].getJpegByte());
+//s.oh^ 2013/03/27 不具合修正(保存前のシェーマが作成されない)
+                    //pdfMarker.addImage(schema[idx].getJpegByte());
+                    if(schema[idx].getJpegByte() != null) {
+                        pdfMarker.addImage(schema[idx].getJpegByte());
+                    }else{
+                        int maxImageWidth = ClientContext.getInt("image.max.width");
+                        int maxImageHeight = ClientContext.getInt("image.max.height");
+                        Dimension maxSImageSize = new Dimension(maxImageWidth, maxImageHeight);
+                        ImageIcon icon = schema[idx].getIcon();
+                        icon = adjustImageSize(icon, maxSImageSize);
+                        byte[] jpegByte = getJPEGByte(icon.getImage());
+                        pdfMarker.addImage(jpegByte);
+                    }
+//s.oh$
+                }
+            // Attachment追加
+            } else if (name != null && name.equals(ATTACHMENT_HOLDER)) {
+                int idx = Integer.parseInt(number);
+                AttachmentModel[] attachments = pdfSOA.getAttachment();
+                AttachmentModel attachment = (attachments != null && attachments.length > idx) ? attachments[idx] : null;
+                if(attachment != null) {
+                    startContent(null, null, null, null, null, "添付：" + attachment.getTitle() + "(" + attachment.getContentType() + ")");
                 }
             }
         } catch (Exception e) {
@@ -689,6 +748,16 @@ cell = new PdfPCell(para);
             }catch (PrintException e) {
                 e.printStackTrace();
             }
+//s.oh^ 2013/06/24 印刷対応
+        }else if(Project.getBoolean(Project.KARTE_PRINT_SHOWPDF)) {
+            File file = new File(pdfFileName);
+            URI uri = file.toURI();
+            try {
+                Desktop.getDesktop().browse(uri);
+            } catch (IOException ex) {
+                Logger.getLogger(KartePDFImpl2.class.getName()).log(Level.SEVERE, null, ex);
+            }
+//s.oh$
         }else{
             // ダイアログ表示(プロパティ等は選択できない)
             PrintRequestAttributeSet pras = new HashPrintRequestAttributeSet();
@@ -719,4 +788,47 @@ cell = new PdfPCell(para);
         }
     }
 //s.oh$
+    
+    private ImageIcon adjustImageSize(ImageIcon icon, Dimension dim) {
+
+        if ((icon.getIconHeight() > dim.height) ||
+                (icon.getIconWidth() > dim.width)) {
+            Image img = icon.getImage();
+            float hRatio = (float) icon.getIconHeight() / dim.height;
+            float wRatio = (float) icon.getIconWidth() / dim.width;
+            int h,w;
+            if (hRatio > wRatio) {
+                h = dim.height;
+                w = (int) (icon.getIconWidth() / hRatio);
+            } else {
+                w = dim.width;
+                h = (int) (icon.getIconHeight() / wRatio);
+            }
+            img = img.getScaledInstance(w, h, Image.SCALE_SMOOTH);
+            return new ImageIcon(img);
+        } else {
+            return icon;
+        }
+    }
+    
+    private byte[] getJPEGByte(Image image) {
+
+        byte[] ret = null;
+
+        try {
+            Dimension d = new Dimension(image.getWidth(null), image.getHeight(null));
+            BufferedImage bf = new BufferedImage(d.width, d.height, BufferedImage.TYPE_INT_RGB);
+            Graphics g = bf.getGraphics();
+            g.setColor(Color.white);
+            g.drawImage(image, 0, 0, d.width, d.height, null);
+
+            ByteArrayOutputStream bo = new ByteArrayOutputStream();
+            ImageIO.write(bf, "jpeg", bo);
+            ret = bo.toByteArray();
+
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
+        }
+        return ret;
+    }
 }

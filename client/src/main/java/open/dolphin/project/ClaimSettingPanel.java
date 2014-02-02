@@ -23,6 +23,7 @@ public class ClaimSettingPanel extends AbstractSettingPanel {
     private static final String ID = "claimSetting";
     private static final String TITLE = "レセコン";
 //minagawa^ Icon Server    
+    //private static final String ICON = "calc_16.gif";
     private static final String ICON = "icon_claim_settings_small";
 //minagawa$    
     
@@ -115,7 +116,8 @@ public class ClaimSettingPanel extends AbstractSettingPanel {
         bindAddress.setToolTipText("複数ネットワークカードがある場合、受付受信サーバのバインドアドレスを入力してください");
         
 //minagawa^ 定期的チェック
-        pvtTimerCheck = GUIFactory.createCheckBox("受付を定期チェエクする（旧モード）", null);
+        //pvtTimerCheck = GUIFactory.createCheckBox("受付を定期チェックする（旧モード）", null);
+        pvtTimerCheck = GUIFactory.createCheckBox("受付を定期チェックする", null);
 //minagawa$          
         
         // CLAIM（請求）送信情報
@@ -268,7 +270,10 @@ public class ClaimSettingPanel extends AbstractSettingPanel {
         sendClaimNo.addActionListener(al);
         
 //Server-ORCA連携^
-        claimConnectionIsServer.setEnabled(true);
+        // ASPは Client-ORCA 接続のみ
+        if (ClientContext.isOpenDolphin()) {
+            claimConnectionIsServer.setEnabled(false);
+        }
         ActionListener al2 = new ActionListener() {
 
             @Override
@@ -462,7 +467,8 @@ public class ClaimSettingPanel extends AbstractSettingPanel {
             setClaim01(Project.getBoolean(Project.CLAIM_01));
             
 //minagawa^ 受付の定期チェック（旧モード）              
-            setPvtTimerCheck(Project.getBoolean(Project.PVT_TIMER_CHECK));
+            //setPvtTimerCheck(Project.getBoolean(Project.PVT_TIMER_CHECK));
+            setPvtTimerCheck(Project.getBoolean(Project.PVT_TIMER_CHECK, true));
 //minagawa$              
         }
         

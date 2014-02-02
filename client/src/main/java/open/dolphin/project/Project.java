@@ -123,6 +123,9 @@ public class Project  {
     public static final String KARTE_AUTO_CLOSE_AFTER_SAVE = "karte.auto.close";
     public static final String KARTE_AGE_TO_NEED_MONTH = "ageToNeedMonth";
     public static final String KARTE_MERGE_RP_WITH_SAME_ADMIN = "merge.rp.with.sameAdmin";
+//s.oh^ 2014/01/27 同じ検体検査をまとめる
+    public static final String KARTE_MERGE_WITH_LABTEST = "merge.with.labtest";
+//s.oh$
     
     public static final String KARTE_PDF_SEND_AT_SAVE = "karte.pdf.send.at.save";
     public static final String KARTE_PDF_SEND_DIRECTORY = "karte.pdf.send.directory";
@@ -130,6 +133,13 @@ public class Project  {
 //s.oh^ 2013/02/07 印刷対応
     public static final String KARTE_PRINT_DIRECT = "karte.print.direct";
     public static final String KARTE_PRINT_PDF = "karte.print.pdf";
+//s.oh^ 2013/06/24 印刷対応
+    public static final String KARTE_PRINT_SHOWPDF = "karte.print.showpdf";
+//s.oh$
+//s.oh$
+//s.oh^ 2013/09/12 PDF印刷文字サイズ
+    public static final String KARTE_PRINT_PDF_TEXTSIZE = "karte.print.pdf.textsize";
+    public static final String LABO_PRINT_SHOWPDF = "labo.print.showpdf";
 //s.oh$
 
     // Stamp
@@ -155,6 +165,9 @@ public class Project  {
     public static final String PLAIN_PRINT_PATIENT_NAME = "plain.print.patinet.name";
     public static final String LOCATION_PDF = "pdfStore"; // PDF 出力ディレクトリー
     public static final String SHINDANSYO_FONT_SIZE = "sindansyo.font.size";
+//s.oh^ 2013/11/26 文書の電話出力対応
+    public static final String LETTER_TELEPHONE_OUTPUTPDF = "letter.telephone.outputpdf";
+//s.oh$
 
     // 医療資格
     private static final String LICENSE_DOCTOR = "doctor";

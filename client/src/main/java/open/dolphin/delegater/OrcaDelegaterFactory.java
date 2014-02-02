@@ -1,6 +1,7 @@
 package open.dolphin.delegater;
 
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  *
@@ -30,10 +31,13 @@ public class OrcaDelegaterFactory {
         try {
             return Class.forName(clsName).newInstance();
         } catch (InstantiationException ex) {
+            Log.outputFuncLog(Log.LOG_LEVEL_0,"I",System.err.toString());
             ex.printStackTrace(System.err);
         } catch (IllegalAccessException ex) {
+            Log.outputFuncLog(Log.LOG_LEVEL_0,"I",System.err.toString());
             ex.printStackTrace(System.err);
         } catch (ClassNotFoundException ex) {
+            Log.outputFuncLog(Log.LOG_LEVEL_0,"I",System.err.toString());
             ex.printStackTrace(System.err);
         }
         return null;

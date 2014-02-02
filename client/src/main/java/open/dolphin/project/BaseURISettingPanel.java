@@ -23,6 +23,7 @@ public class BaseURISettingPanel extends AbstractSettingPanel {
     private static final String ID = "hostSetting";
     private static final String TITLE = "サーバ";
 //minagawa^ Icon Server    
+    //private static final String ICON = "ntwrk_16.gif";
     private static final String ICON = "icon_server_settings_small";
 //minagawa$    
     
@@ -137,7 +138,7 @@ public class BaseURISettingPanel extends AbstractSettingPanel {
         });
         
         // DolphinPro 以外は disabled
-        baseURIField.setEnabled(true);
+        baseURIField.setEnabled(ClientContext.isDolphinPro());
         
         // aacount
         // aacount登録ボタンがクリックされたら自身をPropertyChangeListener にし
@@ -259,8 +260,14 @@ public class BaseURISettingPanel extends AbstractSettingPanel {
             // userId設定する
             setUserId(stub.getUserId());
             
-            // baseURI を設定する
-            setBaseURI(stub.getServerURI());
+            // baseURI を設定する OpenDolphinと5m test は URI を表示しない
+            if (ClientContext.isOpenDolphin()) {
+                setBaseURI("cloud.open.dolphin");
+            } else if (ClientContext.is5mTest()) {
+                setBaseURI("test.open.dolphin.pro");
+            } else {
+                setBaseURI(stub.getServerURI());
+            }
         }
         
         /**

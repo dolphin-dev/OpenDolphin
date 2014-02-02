@@ -41,7 +41,7 @@ public final class RpEditor extends AbstractStampEditor {
     private static final String[] SR_COLUMN_NAMES = {"種別", "コード", "名 称", "単位", "点数", "薬価基準"};
     private static final String[] SR_METHOD_NAMES = {"getSlot", "getSrycd", "getName", "getTaniname", "getTen","getYakkakjncd"};
     private static final int[] SR_COLUMN_WIDTH = {10, 50, 200, 10, 10, 10};
-    private static final int SR_NUM_ROWS = 0;
+    private static final int SR_NUM_ROWS = 20;
 
     private static final String[] ADMIN_CODE_REGEXP = {"","0010001","0010002","0010003","0010004","(0010005|0010007)","0010006","0010008","0010009","001"};
 
@@ -374,6 +374,11 @@ public final class RpEditor extends AbstractStampEditor {
 
                     case TT_LETTER_SEARCH:
                         result = dao.getTensuMasterByName(StringTool.hiraganaToKatakana(text), d, view.getPartialChk().isSelected());
+//s.oh^ 2013/11/08 傷病名検索不具合
+                        if(result == null || result.size() <= 0) {
+                            result = dao.getTensuMasterByName(text, d, view.getPartialChk().isSelected());
+                        }
+//s.oh$
                         break;
                 }
 

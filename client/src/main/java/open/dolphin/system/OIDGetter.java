@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.util.concurrent.ExecutionException;
 import javax.swing.*;
 import open.dolphin.client.ClientContext;
+import open.dolphin.util.Log;
 
 /**
  * OIDRequester
@@ -177,6 +178,7 @@ public class OIDGetter extends JPanel {
             Window myParent = SwingUtilities.getWindowAncestor(OIDGetter.this);
             String title = ClientContext.getFrameTitle(TASK_TITLE);
             JOptionPane.showMessageDialog(myParent, SUCCESS_NOTE, title, JOptionPane.INFORMATION_MESSAGE);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, title, SUCCESS_NOTE);
             setHelloReply(result);
         }
         
@@ -185,6 +187,7 @@ public class OIDGetter extends JPanel {
             Window myParent = SwingUtilities.getWindowAncestor(OIDGetter.this);
             String title = ClientContext.getFrameTitle(TASK_TITLE);
             JOptionPane.showMessageDialog(myParent, errMsg, title, JOptionPane.WARNING_MESSAGE);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, errMsg);
             setHelloReply(null);
         }
     }

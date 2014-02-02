@@ -3,6 +3,7 @@ package open.dolphin.session;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
@@ -25,6 +26,9 @@ public class NLabServiceBean {
     private static final String QUERY_ITEM_BY_MID_ORDERBY_SORTKEY = "from NLaboItem l where l.laboModule.id=:mid order by l.sortKey";
     private static final String QUERY_ITEM_BY_FIDPID_ITEMCODE = "from NLaboItem l where l.patientId=:fidPid and l.itemCode=:itemCode order by l.sampleDate desc";
     private static final String QUERY_INSURANCE_BY_PATIENT_PK = "from HealthInsuranceModel h where h.patient.id=:pk";
+//s.oh^ 2013/09/18 ラボデータの高速化
+    private static final String QUERY_MODULECOUNT_BY_FIDPID = "select count(*) from NLaboModule l where l.patientId=:fidPid";
+//s.oh$
 
     private static final String PK = "pk";
     private static final String FIDPID = "fidPid";
@@ -196,6 +200,15 @@ public class NLabServiceBean {
         }
         return ret;
     }
+    
+//s.oh^ 2013/09/18 ラボデータの高速化
+    public Long getLaboTestCount(String fidPid) {
+        Long ret = (Long)em.createQuery(QUERY_MODULECOUNT_BY_FIDPID)
+                .setParameter(FIDPID, fidPid)
+                .getSingleResult();
+        return ret;
+    }
+//s.oh$
 
 
     /**
@@ -220,5 +233,14 @@ public class NLabServiceBean {
                           .getResultList();
 
         return ret;
+    }
+   
+    // ラボデータの削除 2013/06/24
+    public int deleteLabTest(long id) {
+        //Logger.getLogger("open.dolphin").info("Lab module to detele is " + id);
+        NLaboModule target = em.find(NLaboModule.class,id);
+        em.remove(target);
+        Logger.getLogger("open.dolphin").info("Lab module deleted " + id);
+        return 1;
     }
 }

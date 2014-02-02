@@ -21,6 +21,7 @@ import open.dolphin.client.ClientContext;
 import open.dolphin.client.ImageEntry;
 import open.dolphin.exception.DolphinException;
 import open.dolphin.helper.FileListTransferable;
+import open.dolphin.util.Log;
 
 /**
  * SchemaHolderTransferHandler
@@ -228,6 +229,7 @@ public class ImageTableTransferHandler extends TransferHandler {
                     String message = "ファイルをコピーできません。\n" + ex.getMessage();
                     String title = ClientContext.getFrameTitle(context.getTitle());
                     JOptionPane.showMessageDialog(parent, message, title, JOptionPane.WARNING_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, message);
                 }
             }
         };

@@ -47,18 +47,20 @@
                       <Component id="stampNameField" max="32767" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
+                      <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="searchTextField" min="-2" pref="209" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="28" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="rtBtn" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="partialChk" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="150" max="32767" attributes="0"/>
+              <EmptySpace pref="39" max="32767" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="1" attributes="0">
                       <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" max="-2" attributes="0"/>
                       <Component id="countField" min="-2" pref="64" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="1" attributes="0">
@@ -94,6 +96,7 @@
               </Group>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="jLabel3" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="searchTextField" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="countField" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel4" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -156,34 +159,24 @@
     <Component class="javax.swing.JButton" name="okCntBtn">
       <Properties>
         <Property name="toolTipText" type="java.lang.String" value="&#x50b7;&#x75c5;&#x540d;&#x3092;&#x30ab;&#x30eb;&#x30c6;&#x306b;&#x5c55;&#x958b;&#x3057;&#x7d99;&#x7d9a;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
-        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[29, 29]"/>
-        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="okBtn">
       <Properties>
         <Property name="toolTipText" type="java.lang.String" value="&#x50b7;&#x75c5;&#x540d;&#x3092;&#x30ab;&#x30eb;&#x30c6;&#x306b;&#x5c55;&#x958b;&#x3057;&#x7d42;&#x4e86;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
-        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[29, 29]"/>
-        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="clearBtn">
       <Properties>
         <Property name="toolTipText" type="java.lang.String" value="&#x30c6;&#x30fc;&#x30d6;&#x30eb;&#x306e;&#x5185;&#x5bb9;&#x3092;&#x30af;&#x30ea;&#x30a2;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
-        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[29, 29]"/>
-        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="deleteBtn">
       <Properties>
         <Property name="toolTipText" type="java.lang.String" value="&#x9078;&#x629e;&#x3057;&#x305f;&#x50b7;&#x75c5;&#x540d;&#x3092;&#x524a;&#x9664;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
-        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-          <Dimension value="[29, 29]"/>
-        </Property>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel3">
     </Component>
     <Component class="javax.swing.JTextField" name="searchTextField">
       <Properties>

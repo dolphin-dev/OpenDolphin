@@ -12,6 +12,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import open.dolphin.client.ClientContext;
+import open.dolphin.util.Log;
 
 /**
  *
@@ -258,6 +259,18 @@ public class UserDocumentHelper {
         String[] options = {"いいえ", "番号振り", "はい"};
         int selected = JOptionPane.showOptionDialog(parent, message, title,
                 JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, title, message);
+        switch(selected) {
+            case 0:
+                Log.outputOperLogDlg(parent, Log.LOG_LEVEL_0, "いいえ");
+                break;
+            case 1:
+                Log.outputOperLogDlg(parent, Log.LOG_LEVEL_0, "番号振り");
+                break;
+            case 2:
+                Log.outputOperLogDlg(parent, Log.LOG_LEVEL_0, "はい");
+                break;
+        }
         return selected;
     }
 }

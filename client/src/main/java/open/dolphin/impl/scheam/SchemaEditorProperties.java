@@ -6,6 +6,7 @@ import java.util.Properties;
 import javax.swing.ImageIcon;
 import open.dolphin.impl.scheam.schemahelper.SchemaUtils;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  * SchemaEditor で使われる変数を一括管理する
@@ -353,6 +354,7 @@ public class SchemaEditorProperties {
         prefs.putInt(PN_FONT_SIZE, fontSize);
 */
 //masuda$
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "シェーマプロパティ", "保存成功。");
     }
     /**
      * canvasView, toolView の表示位置を計算して設定する

@@ -490,11 +490,13 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
                 popup.add(myMenu);
             } else {
 //s.oh^ 2013/03/15 不具合修正(テキストスタンプを追加できない)
-                //JComponent comp = getCurrentComponent();
-                //if (comp == null) {
-                //    comp = kartePane.getTextPane();
-                //}
-                JComponent comp = kartePane.getTextPane();
+             //minagawa^ LSC 1.4 bug fix 元へ返す... テキストスタンプが所見欄にしか張り付かない 2013/06/24
+                JComponent comp = getCurrentComponent();
+                if (comp == null) {
+                    comp = kartePane.getTextPane();
+                }
+                //JComponent comp = kartePane.getTextPane();
+             //minagawa$   
 //s.oh$
                 TransferHandler handler = comp.getTransferHandler();
                 StmapTreePopupBuilder builder = new StmapTreePopupBuilder();

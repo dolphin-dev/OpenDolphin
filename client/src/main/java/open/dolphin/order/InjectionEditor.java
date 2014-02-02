@@ -242,6 +242,8 @@ public final class InjectionEditor extends AbstractStampEditor {
         int techCnt = 0;
         int other = 0;
         boolean noTech = view.getNoChargeChk().isSelected();
+        // .334問題 2013/06/24
+        boolean dot334 = (getClassCode()!=null && getClassCode().endsWith("334"));
 
         List<MasterItem> itemList = tableModel.getDataProvider();
 
@@ -255,13 +257,15 @@ public final class InjectionEditor extends AbstractStampEditor {
             }
         }
 
+//minagawa^ LSC 1.4  bug fix .334 .334問題 2013/06/24
         // 何かあればOK
-        if (noTech) {
+        if (noTech || dot334) {
             setIsValid = setIsValid && (other > 0 );
-        } else {
+        } else {            
             setIsValid = setIsValid && (techCnt > 0);
             setIsValid = setIsValid && (other > 0 );
         }
+//minagawa$        
 
         // ButtonControl
         view.getClearBtn().setEnabled(!setIsEmpty);
@@ -363,6 +367,11 @@ public final class InjectionEditor extends AbstractStampEditor {
 
                     case TT_LETTER_SEARCH:
                         result = dao.getTensuMasterByName(StringTool.hiraganaToKatakana(text), d, view.getPartialChk().isSelected());
+//s.oh^ 2013/11/08 傷病名検索不具合
+                        if(result == null || result.size() <= 0) {
+                            result = dao.getTensuMasterByName(text, d, view.getPartialChk().isSelected());
+                        }
+//s.oh$
                         break;
 
                     case TT_SHINKU_SERACH:

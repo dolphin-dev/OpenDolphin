@@ -40,6 +40,8 @@ public class DefaultBrowserViewEx extends javax.swing.JPanel {
         otherProcess2Btn = new javax.swing.JButton();
         otherProcess3Btn = new javax.swing.JButton();
 
+        dirLbl.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/resources/images/about_16.gif"))); // NOI18N
+
         refreshBtn.setText("更新");
 
         settingBtn.setText("設定");
@@ -82,7 +84,7 @@ public class DefaultBrowserViewEx extends javax.swing.JPanel {
                         .add(refreshBtn)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(settingBtn))
-                    .add(jScrollPane1))
+                    .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 738, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -105,10 +107,10 @@ public class DefaultBrowserViewEx extends javax.swing.JPanel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel dirLbl;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton otherProcess1Btn;
     private javax.swing.JButton otherProcess2Btn;
     private javax.swing.JButton otherProcess3Btn;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton refreshBtn;
     private javax.swing.JButton settingBtn;
     private javax.swing.JTable table;

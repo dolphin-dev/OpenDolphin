@@ -8,9 +8,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
-import open.dolphin.converter14.DocumentModelConverter;
-import open.dolphin.converter14.InteractionCodeListConverter;
+import open.dolphin.converter.DocumentModelConverter;
+import open.dolphin.converter.InteractionCodeListConverter;
 import open.dolphin.infomodel.*;
+import open.dolphin.util.Log;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
@@ -29,12 +31,17 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         
         // PATH
         String path = "/orca/facilitycode";
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.TEXT_PLAIN);
         ClientResponse<String> response = request.get(String.class);
         
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.TEXT_PLAIN);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         // String
         return getString(response);
     }
@@ -50,6 +57,7 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         StringBuilder sb = new StringBuilder();
         sb.append("/orca/interaction");
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Wrapper
         List<String> codes1 = new ArrayList<String>(drug1);
@@ -64,6 +72,8 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -75,9 +85,15 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         // Wrapper
         BufferedReader br = getReader(response);
         mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         DrugInteractionList result = mapper.readValue(br, DrugInteractionList.class);
         br.close();
         
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         // List
         return result.getList();
     }
@@ -99,6 +115,7 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         sb.append(shinku).append(CAMMA).append(now);
         String path = sb.toString();
         //System.err.println(path);
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
@@ -108,9 +125,15 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         TensuList result = mapper.readValue(br, TensuList.class);
         br.close();
-        
+
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         // List
         return result.getList();
     }
@@ -123,7 +146,7 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         sb.append("/orca/tensu/name/");
         sb.append(name).append(CAMMA).append(now).append(CAMMA).append(String.valueOf(partialMatch));
         String path = sb.toString();
-        
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
@@ -132,8 +155,15 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         TensuList result = mapper.readValue(br, TensuList.class);
         br.close();
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // List
         return result.getList();
@@ -147,7 +177,7 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         sb.append("/orca/tensu/code/");
         sb.append(regExp).append(CAMMA).append(now);
         String path = sb.toString();
-        
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
@@ -156,8 +186,15 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         TensuList result = mapper.readValue(br, TensuList.class);
         br.close();
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // List
         return result.getList();
@@ -171,6 +208,7 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         sb.append("/orca/tensu/ten/");
         sb.append(ten).append(CAMMA).append(now);
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
@@ -180,9 +218,15 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         TensuList result = mapper.readValue(br, TensuList.class);
         br.close();
         
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         // List
         return result.getList();
     }
@@ -196,6 +240,7 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         sb.append(name).append(CAMMA).append(now);
         sb.append(CAMMA).append(String.valueOf(partialMatch));
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
@@ -205,8 +250,15 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         DiseaseList result = mapper.readValue(br, DiseaseList.class);
         br.close();
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // List
         return result.getList();
@@ -219,6 +271,7 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
     public String getGeneralName(String code) throws Exception {
         // PATH
         String path = "/orca/general/" + code;
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
@@ -228,8 +281,15 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         CodeNamePack result = mapper.readValue(br, CodeNamePack.class);
         br.close();
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         return result.getName();
     }
@@ -244,6 +304,7 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         StringBuilder sb = new StringBuilder();
         sb.append("/orca/inputset");
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
@@ -253,8 +314,15 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         OrcaInputCdList result = mapper.readValue(br, OrcaInputCdList.class);
         br.close();
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // List
         return (ArrayList<OrcaInputCd>)result.getList();
@@ -275,6 +343,7 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         sb.append(CAMMA);
         sb.append(inputSetInfo.getStampName());
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
@@ -284,6 +353,8 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         ModuleList result = mapper.readValue(br, ModuleList.class);
         br.close();
         
@@ -297,6 +368,11 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
             m.setBeanBytes(null);
             ret.add(m);
         }
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // List
         return ret;
@@ -319,6 +395,7 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         sb.append(CAMMA);
         sb.append(String.valueOf(ascend));
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
@@ -328,8 +405,15 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         RegisteredDiagnosisList result = mapper.readValue(br, RegisteredDiagnosisList.class);
         br.close();
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // List
         return (ArrayList<RegisteredDiagnosisModel>)result.getList();
@@ -345,6 +429,7 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         sb.append(CAMMA);
         sb.append(String.valueOf(asc));
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
@@ -354,8 +439,15 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         RegisteredDiagnosisList result = mapper.readValue(br, RegisteredDiagnosisList.class);
         br.close();
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // List
         return (ArrayList<RegisteredDiagnosisModel>)result.getList();
@@ -382,6 +474,7 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         StringBuilder sb = new StringBuilder();
         sb.append("/karte/claim");
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Converter
         DocumentModelConverter conv = new DocumentModelConverter();
@@ -389,6 +482,8 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -397,6 +492,10 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.put(String.class);
 
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         // PK
         String entityStr = getString(response);
         int cnt = Integer.parseInt(entityStr);

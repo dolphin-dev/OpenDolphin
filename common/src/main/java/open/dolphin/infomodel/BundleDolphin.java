@@ -114,6 +114,56 @@ public class BundleDolphin extends ClaimBundle {
         return buf.toString();
     }
 
+//s.oh^ 2014/01/27 スタンプのテキストコピー機能拡張
+    public String toString(String patID, String title) {
+        
+        StringBuilder buf = new StringBuilder();
+        
+        buf.append(patID).append("\n");
+        if(title != null) buf.append(title).append("\n");
+        
+        // order name
+        buf.append(orderName).append("\n");
+        ClaimItem[] items = getClaimItem();
+        int len = items.length;
+        ClaimItem item;
+        String number;
+        
+        for (int i = 0; i < len; i++) {
+            item = items[i];
+            
+            // item name
+            buf.append("・").append(item.getName());
+            
+            // item number
+            number = item.getNumber();
+            if (number != null) {
+                buf.append("　").append(number);
+                if (item.getUnit() != null) {
+                    buf.append(item.getUnit());
+                }
+            }
+            buf.append("\n");
+        }
+        
+        // bundleNumber
+        if (! bundleNumber.equals("1")) {
+            buf.append("X　").append(bundleNumber).append("\n");
+        }
+        
+        // admMemo
+        if (adminMemo != null) {
+            buf.append(adminMemo).append("\n");
+        }
+        
+        // bundleMemo
+        if (memo != null) {
+            buf.append(memo).append("\n");
+        }
+        
+        return buf.toString();
+    }
+//s.oh$
 
     @Override
     protected Object clone() throws CloneNotSupportedException {

@@ -51,6 +51,7 @@ import open.dolphin.plugin.PluginLoader;
 import open.dolphin.project.Project;
 import open.dolphin.util.BeanUtils;
 import open.dolphin.util.HashUtil;
+import open.dolphin.util.Log;
 import org.apache.log4j.Logger;
 
 /**
@@ -107,6 +108,10 @@ public class KartePane implements DocumentListener, MouseListener,
     private ComponentHolder[] drragedStamp;
     private int draggedCount;
     private int droppedCount;
+    
+//s.oh^ 2014/01/27 スタンプのテキストコピー機能拡張
+    private String patID;
+//s.oh$
     
     Logger logger;
 
@@ -324,6 +329,12 @@ public class KartePane implements DocumentListener, MouseListener,
 
         // Editable Property を設定する
         setEditableProp(editable);
+        
+//minagawa^ LSC 1.4 bug fix : Mac JDK7 bug マックの上下キー問題 2013/06/24
+        if (editable && ClientContext.isMac()) {
+            new MacInputFixer().fix(textPane);
+        }
+//minagawa$  
     }
 
     /**
@@ -665,6 +676,21 @@ public class KartePane implements DocumentListener, MouseListener,
                         }
                     }
                     
+//s.oh^ 2014/01/27 同じ検体検査をまとめる
+                    if (!selfDrag && entity.equals(IInfoModel.ENTITY_LABO_TEST) && Project.getBoolean(Project.KARTE_MERGE_WITH_LABTEST, false)) {
+                        StampHolder sh = findCanMergeLabTest(stamp);
+                        
+                        if (sh!=null) {
+                            BundleDolphin lab = (BundleDolphin)sh.getStamp().getModel();
+                            ClaimItem[] items = ((BundleDolphin)stamp.getModel()).getClaimItem();
+                            sh.addItems(items);
+                            drop = false;
+                            textPane.revalidate();
+                            textPane.repaint();
+                        }
+                    }
+//s.oh$
+                    
                     if (drop) {
                         StampHolder h = new StampHolder(KartePane.this, stamp);
                         h.setTransferHandler(new StampHolderTransferHandler(KartePane.this, h));
@@ -985,6 +1011,7 @@ public class KartePane implements DocumentListener, MouseListener,
                                       "画像のメタデータが取得できず、読み込むことができません。",
                                       ClientContext.getFrameTitle("画像インポート"),
                                       JOptionPane.WARNING_MESSAGE);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle("画像インポート"), "画像のメタデータが取得できず、読み込むことができません。");
     }
     
     private boolean showMaxSizeMessage() {
@@ -1028,6 +1055,12 @@ public class KartePane implements DocumentListener, MouseListener,
                             ClientContext.getImageIconArias("icon_info"),
 //minagawa$                            
                             new String[]{"縮小する", "取消す"}, "縮小する");
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle(title), msg1.getText(), msg2.getText(), cb.getText(), String.valueOf(cb.isSelected()));
+        if(option == 0) {
+            Log.outputOperLogDlg(getParent(), Log.LOG_LEVEL_0, "縮小する");
+        }else{
+            Log.outputOperLogDlg(getParent(), Log.LOG_LEVEL_0, "取消す");
+        }
         return option == 0 ? true : false;
     }
     
@@ -1037,6 +1070,7 @@ public class KartePane implements DocumentListener, MouseListener,
                                       "選択した画像を読むことができるリーダが存在しません。",
                                       ClientContext.getFrameTitle("画像インポート"),
                                       JOptionPane.WARNING_MESSAGE);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle("画像インポート"), "選択した画像を読むことができるリーダが存在しません。");
     }
 
     /**
@@ -1307,7 +1341,11 @@ public class KartePane implements DocumentListener, MouseListener,
                 int index = fileName.lastIndexOf(".");
                 String ext = null;
                 if (index>=0) {
-                    ext = fileName.substring(index+1).toLowerCase();
+//minagawa^ 大文字拡張子のバグ修正
+                    // 2013/04/19
+                    //ext = fileName.substring(index+1).toLowerCase();
+                    ext = fileName.substring(index+1);
+//minagawa$
                 }
                 // 拡張子を除き添付ファイルの場合のタイトルの初期値にする
                 fileName = fileName.substring(0, index);
@@ -1779,7 +1817,10 @@ public class KartePane implements DocumentListener, MouseListener,
      * このペインからスタンプを削除する。
      * @param sh 削除するスタンプのホルダ
      */
-    public void removeStamp(StampHolder sh) {
+//s.oh^ 2013/11/26 スクロールバーのリセット
+    //public void removeStamp(StampHolder sh) {
+    public void removeStamp(StampHolder sh, boolean savePos) {
+//s.oh$
         //getDocument().removeStamp(sh.getStartPos(), 2);
 //masuda^   editableの場合のみ削除
         if (!getTextPane().isEditable()) {
@@ -1788,7 +1829,10 @@ public class KartePane implements DocumentListener, MouseListener,
 //masuda$
         KarteStyledDocument doc = getDocument();
         Element root = doc.getDefaultRootElement();
-        deleteStamp(root, sh);
+//s.oh^ 2013/11/26 スクロールバーのリセット
+        //deleteStamp(root, sh);
+        deleteStamp(root, sh, savePos);
+//s.oh$
     }
 
     /**
@@ -1798,7 +1842,10 @@ public class KartePane implements DocumentListener, MouseListener,
     public void removeStamp(StampHolder[] sh) {
         if (sh != null && sh.length > 0) {
             for (int i = 0; i < sh.length; i++) {
-                removeStamp(sh[i]);
+//s.oh^ 2013/11/26 スクロールバーのリセット
+                //removeStamp(sh[i]);
+                removeStamp(sh[i], false);
+//s.oh$
             }
         }
     }
@@ -1851,12 +1898,25 @@ public class KartePane implements DocumentListener, MouseListener,
         }
 
         String numStr = String.valueOf(number);
+//minagawa^ Hanazono 2013/06/05
+//        for (StampHolder sh : list) {
+//            ModuleModel module = sh.getStamp();
+//            BundleMed med = (BundleMed)module.getModel();
+//            med.setBundleNumber(numStr);
+//            sh.setStamp(module);
+//        }
         for (StampHolder sh : list) {
             ModuleModel module = sh.getStamp();
-            BundleMed med = (BundleMed)module.getModel();
-            med.setBundleNumber(numStr);
-            sh.setStamp(module);
+            IInfoModel model = module.getModel();
+            if (model!=null && (model instanceof BundleMed)) {
+                BundleMed med = (BundleMed)model;
+                if (med.getClassCode().startsWith("21")) {// changed 12>-2
+                    med.setBundleNumber(numStr);
+                    sh.setStamp(module);
+                }
+            }
         }
+//minagawa$
         this.setDirty(true);
         this.getTextPane().validate();
         this.getTextPane().repaint();
@@ -1971,7 +2031,10 @@ public class KartePane implements DocumentListener, MouseListener,
         return hasSelection;
     }
     
-    private void deleteStamp(Element element, StampHolder sh){
+//s.oh^ 2013/11/26 スクロールバーのリセット
+    //private void deleteStamp(Element element, StampHolder sh){
+    private void deleteStamp(Element element, StampHolder sh, boolean savePos){
+//s.oh$
 
         if (element==null) {
             return;
@@ -1994,6 +2057,9 @@ public class KartePane implements DocumentListener, MouseListener,
                     Object attObject = atts.getAttribute(nextName);
                     if (attObject!=null && (attObject==sh)) {
                         getDocument().removeStamp(start, end);
+//s.oh^ 2013/11/26 スクロールバーのリセット
+                        if(savePos && textPane != null) textPane.setCaretPosition(start);
+//s.oh$
                         deleted = true;
                         break;
                     }
@@ -2004,7 +2070,10 @@ public class KartePane implements DocumentListener, MouseListener,
         int cnt = element.getElementCount();
         for (int i = 0; i < cnt; i++) {
             Element e = element.getElement(i);
-            deleteStamp(e, sh);
+//s.oh^ 2013/11/26 スクロールバーのリセット
+            //deleteStamp(e, sh);
+            deleteStamp(e, sh, savePos);
+//s.oh$
         }
     }
     
@@ -2076,4 +2145,77 @@ public class KartePane implements DocumentListener, MouseListener,
         
         return found;
     }
+    
+//s.oh^ 2014/01/27 同じ検体検査をまとめる
+    /**
+     * 検体検査でマージ可能な最初の処方Stampを返す。
+     * @param test
+     * @return 処方Stamp
+     */
+    public StampHolder findCanMergeLabTest(ModuleModel target) {
+        
+        StampHolder found=null;
+
+        List <StampHolder> rps = this.getDocument().getStampHoldersToMatch(IInfoModel.ENTITY_LABO_TEST);
+        if (!rps.isEmpty()) {
+
+            // stampしようとしている stamp
+            BundleDolphin targetLab = (BundleDolphin)target.getModel();
+
+            // 処方リストをイテレートし、最初に見つかったものへまとめる
+            for (StampHolder sh : rps) {
+                
+                BundleDolphin lab = (BundleDolphin)sh.getStamp().getModel();
+                //if (lab.canMerge(targetMed)) {
+                    found = sh;
+                    break;
+                //}
+            }
+        }
+        
+        return found;
+    }
+    
+    /**
+     * 検体検査でマージ可能な最初の処方Stampを返す。
+     * @param test
+     * @return 処方Stamp
+     */
+    public StampHolder findCanMergeLabTestHolder(StampHolder target) {
+        
+        StampHolder found=null;
+        List <StampHolder> rps = this.getDocument().getStampHoldersToMatch(IInfoModel.ENTITY_LABO_TEST);
+        if (!rps.isEmpty()) {
+
+            // stampしようとしている stamp
+            BundleDolphin targetLab = (BundleDolphin)target.getStamp().getModel();
+
+            // 処方リストをイテレートし、最初に見つかったものへまとめる
+            for (StampHolder sh : rps) {
+                
+                if (sh==target) {
+                    continue;
+                }
+                
+                BundleDolphin lab = (BundleDolphin)sh.getStamp().getModel();
+                //if (lab.canMerge(targetMed)) {
+                    found = sh;
+                    break;
+                //}
+            }
+        }
+        
+        return found;
+    }
+//s.oh$
+    
+//s.oh^ 2014/01/27 スタンプのテキストコピー機能拡張
+    public void setPatID(String patID) {
+        this.patID = patID;
+    }
+    
+    public String getPatID() {
+        return patID;
+    }
+//s.oh$
 }

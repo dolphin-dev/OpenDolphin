@@ -11,6 +11,7 @@ import open.dolphin.client.ClientContext;
 import open.dolphin.client.GUIConst;
 import open.dolphin.exception.DolphinException;
 import open.dolphin.infomodel.UserModel;
+import open.dolphin.util.Log;
 
 /**
  * プロジェクト情報管理クラス。
@@ -22,14 +23,24 @@ public final class ProjectStub implements java.io.Serializable {
     // デフォルトのプロジェクト名
     private final String DEFAULT_PROJECT_NAME = "OpenDolphin";
     
+    // OpenDolphin 
+    private final String OPEN_DOLPHIN_URI = "http://localhost:8080";
+    
+//minagawa^  Celf Sert Test
+    private final String OPEN_DOLPHIN_SELF_CERT_URI = "https://localhost:443";
+//minagawa$    
+    
+    // 5分間テストの Server URI
+    private final String TEST_5M_URI = "http://dolphinpro.lscc.co.jp:8080";
+    
     // OpenDolphin のデフォルト施設ID
     private final String DEFAULT_FACILITY_ID = "1.3.6.1.4.1.9414.10.1";
     
     // OpenDolphinPRO のデフォルト施設ID
-    private final String DEFAULT_FACILITY_ID_PRO = "1.3.6.1.4.1.9414.10.1";
+    private final String DEFAULT_FACILITY_ID_PRO = "1.3.6.1.4.1.9414.70.1";
     
     // REST context
-    private final String REST_BASE_RESOURCE = "/dolphin/openSource/14";
+    private final String REST_BASE_RESOURCE = "/dolphin/openSource";
 
     // 有効な設定ファイルかどうか
     private boolean valid;
@@ -65,8 +76,10 @@ public final class ProjectStub implements java.io.Serializable {
             applicationDefaults.load(bin);
             bin.close();
             
-            // このバージョンからServer-ORCA接続をデフォルトにする
-            applicationDefaults.put("claim.sender", "server");
+            // ASPの場合はClaimConnection==clientにする
+            if (ClientContext.isOpenDolphin()) {
+                applicationDefaults.put("claim.sender", "client");
+            }
 
             // User Default を生成する
             userDefaults = new Properties(applicationDefaults);
@@ -122,6 +135,17 @@ public final class ProjectStub implements java.io.Serializable {
             
         } catch (IOException e) {
             e.printStackTrace(System.err);
+        }
+    }
+    
+    public void outputUserDefaults() {
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "設定の読込：", "user-defaults.properties");
+        Enumeration e = userDefaults.propertyNames();
+        while (e.hasMoreElements()) {
+            String key = (String)e.nextElement();
+            String val = userDefaults.getProperty(key);
+            if(val == null) val = "";
+            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, key, val);
         }
     }
 
@@ -220,14 +244,35 @@ public final class ProjectStub implements java.io.Serializable {
     public String getBaseURI() {
 
         if (baseURI==null) {
-            StringBuilder sb = new StringBuilder();
-            String test = getServerURI();
-            if (test != null) {
-                if (test.endsWith("/")) {
-                    int len = test.length();
-                    test = test.substring(0, len-1);
+            
+            if (ClientContext.isOpenDolphin()) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(OPEN_DOLPHIN_URI);
+                sb.append(REST_BASE_RESOURCE);
+                baseURI = sb.toString();
+                
+            } else if (ClientContext.isDolphinPro()) {
+                StringBuilder sb = new StringBuilder();
+                String test = getServerURI();
+                if (test != null) {
+                    if (test.endsWith("/")) {
+                        int len = test.length();
+                        test = test.substring(0, len-1);
+                    }
+                    sb.append(test);
+                    sb.append(REST_BASE_RESOURCE);
+                    baseURI = sb.toString();
                 }
-                sb.append(test);
+                
+            } else if (ClientContext.is5mTest()) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(TEST_5M_URI);
+                sb.append(REST_BASE_RESOURCE);
+                baseURI = sb.toString();
+            
+            } else if (ClientContext.isSelfCertTest()) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(OPEN_DOLPHIN_SELF_CERT_URI);
                 sb.append(REST_BASE_RESOURCE);
                 baseURI = sb.toString();
             }
@@ -395,6 +440,14 @@ public final class ProjectStub implements java.io.Serializable {
                 }
             }
             File target = new File(parent, "user-defaults.properties");
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "設定の保存：", target.getPath());
+            Enumeration e = toSave.propertyNames();
+            while (e.hasMoreElements()) {
+                String key = (String)e.nextElement();
+                String val = toSave.getProperty(key);
+                if(val == null) val = "";
+                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, key, val);
+            }
             fout = new BufferedOutputStream(new FileOutputStream(target));
             toSave.store(fout, "1.0");
 

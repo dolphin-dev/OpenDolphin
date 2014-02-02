@@ -2,8 +2,11 @@ package open.dolphin.delegater;
 
 //import com.ning.http.client.SimpleAsyncHttpClient;
 import java.io.IOException;
+import java.net.URL;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
@@ -12,14 +15,15 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.ws.rs.core.MediaType;
+import open.dolphin.client.ChartEventHandler;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.Dolphin;
-import open.dolphin.converter14.ChartEventModelConverter;
+import open.dolphin.converter.ChartEventModelConverter;
 import open.dolphin.infomodel.ChartEventModel;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.nio.client.DefaultHttpAsyncClient;
 import org.apache.http.nio.conn.ClientAsyncConnectionManager;
@@ -28,6 +32,7 @@ import org.apache.http.nio.conn.scheme.AsyncSchemeRegistry;
 import org.apache.http.nio.conn.ssl.SSLLayeringStrategy;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
@@ -56,6 +61,10 @@ public class ChartEventDelegater extends BusinessDelegater {
     
     //private static AsyncScheme asyncScheme;
     private DefaultHttpAsyncClient httpAsyncClient;
+    
+//minagawa^ 2013/08/29
+    private ExecutorService asyncExecutor;
+//minagawa$
     
 //    static {
 //        try {
@@ -119,9 +128,12 @@ public class ChartEventDelegater extends BusinessDelegater {
         // Converter
         ChartEventModelConverter conv = new ChartEventModelConverter();
         conv.setModel(evt);
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",evt.getIssuerUUID());
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -129,6 +141,11 @@ public class ChartEventDelegater extends BusinessDelegater {
         ClientRequest request = getRequest(PUT_EVENT_PATH);
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.put(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // cnt
         String entityStr = getString(response);
@@ -186,11 +203,35 @@ public class ChartEventDelegater extends BusinessDelegater {
 //                System.out.println("cancelled"); 
 //            } 
 //        });
+        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "REQ", request.toString());
+        if(Project.getUserModel() != null) {
+            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "PRM", MediaType.APPLICATION_JSON,  Project.getUserModel().getUserId(), Project.getUserModel().getPassword(), (ChartEventHandler.getInstance() == null) ? "null" : ChartEventHandler.getInstance().getClientUUID());
+        }
         
         Future<HttpResponse> future = getHttpAsyncClient().execute(request, null);
         
         return future;
     }
+    
+//minagawa^ 2013/08/29
+    public Future<DResponse> subscribe2() throws Exception {
+        StringBuilder sb = new StringBuilder();
+        sb.append(Project.getBaseURI());
+        sb.append(SUBSCRIBE_PATH);
+        String path = sb.toString();
+        if (asyncExecutor==null) {
+            asyncExecutor = Executors.newSingleThreadExecutor();
+        }
+        
+        DRequest request = new DRequest(new URL(path));
+        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "REQ", request.toString());
+        if(Project.getUserModel() != null) {
+            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "PRM", Project.getUserModel().getUserId(), Project.getUserModel().getPassword(), (ChartEventHandler.getInstance() == null) ? "null" : ChartEventHandler.getInstance().getClientUUID());
+        }
+        Future<DResponse> future = asyncExecutor.submit(request);
+        return future;
+    }
+//minagawa$
     
     @Override
     protected void debug(int status, String entity) {
@@ -205,7 +246,10 @@ public class ChartEventDelegater extends BusinessDelegater {
             return httpAsyncClient;
         }
         
-        if (!ClientContext.isOpenDolphin()) {
+//minagawa^            
+            //if (!ClientContext.isOpenDolphin()) {
+            if (!ClientContext.isSelfCertTest()) {
+//minagawa$ 
             try {
                 httpAsyncClient = new DefaultHttpAsyncClient();
                 HttpParams params = httpAsyncClient.getParams();
@@ -213,6 +257,7 @@ public class ChartEventDelegater extends BusinessDelegater {
                 HttpConnectionParams.setSoTimeout(params, Integer.MAX_VALUE);
                 httpAsyncClient.start();
             } catch (Exception e) {
+                Log.outputFuncLog(Log.LOG_LEVEL_0,"E",System.err.toString());
                 e.printStackTrace(System.err);
             }
             
@@ -271,6 +316,7 @@ public class ChartEventDelegater extends BusinessDelegater {
                 httpAsyncClient.start();
 
             } catch (Exception e) {
+                Log.outputFuncLog(Log.LOG_LEVEL_0,"E",System.err.toString());
                 e.printStackTrace(System.err);
             }
         }

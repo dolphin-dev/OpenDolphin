@@ -134,46 +134,69 @@ public class BundleMed extends BundleDolphin {
     // 用法用量でまとめる事が可能か
     //---------------------------------------------
     public boolean canMerge(BundleMed other) {
-        
+
+//minagawa^ LSC 1.4 bug fix 同一用法まとめる 2013/06/24
+//        if (other==null) {
+//            return false;
+//        }
+//       
+//        // 内用薬のみを含むかどうか
+//        ClaimItem[] items = this.getClaimItem();
+//        boolean hasNaiyo = (items!=null && items.length>0);
+//        if (hasNaiyo) {
+//            for (ClaimItem item : items) {
+//                if (item.getYkzKbn()==null || (!item.getYkzKbn().equals(ClaimConst.YKZ_KBN_NAIYO))) {
+//                    hasNaiyo = false;
+//                    break;
+//                }
+//            }
+//        }
+//        
+//        if (!hasNaiyo) {
+//            return false;
+//        }
+//        
+//        // Other 内用薬のみを含むかどうか
+//        hasNaiyo = (other.getClaimItem()!=null && other.getClaimItem().length>0);
+//        items = other.getClaimItem();
+//        if (hasNaiyo) {
+//            for (ClaimItem item : items) {
+//                if (item.getYkzKbn()==null || (!item.getYkzKbn().equals(ClaimConst.YKZ_KBN_NAIYO))) {
+//                    hasNaiyo = false;
+//                    break;
+//                }
+//            }
+//        }
+//        
+//        if (!hasNaiyo) {
+//            return false;
+//        } 
         if (other==null) {
             return false;
         }
-        
-        // 内用のみ
-        ClaimItem[] items = this.getClaimItem();
-        boolean hasNaiyo = (items!=null && items.length>0);
-        if (hasNaiyo) {
-            for (ClaimItem item : items) {
-                if (item.getYkzKbn()==null || (!item.getYkzKbn().equals(ClaimConst.YKZ_KBN_NAIYO))) {
-                    hasNaiyo = false;
-                    break;
-                }
-            }
-        }
-        
-        if (!hasNaiyo) {
+        if (this.getClassCode()==null ||                // 診療区分なし
+            this.getClassCode().startsWith("22") ||     // 頓服
+            this.getClassCode().startsWith("23")) {     // 外用
             return false;
         }
-        
-        // Other 内用のみ
-        hasNaiyo = (other.getClaimItem()!=null && other.getClaimItem().length>0);
-        items = other.getClaimItem();
-        if (hasNaiyo) {
-            for (ClaimItem item : items) {
-                if (item.getYkzKbn()==null || (!item.getYkzKbn().equals(ClaimConst.YKZ_KBN_NAIYO))) {
-                    hasNaiyo = false;
-                    break;
-                }
-            }
-        }
-        
-        if (!hasNaiyo) {
+        if (other.getClassCode()==null ||                // 診療区分なし
+            other.getClassCode().startsWith("22") ||     // 頓服
+            other.getClassCode().startsWith("23")) {     // 外用
             return false;
         }
+//miura^ test 院内と院外がまとまるのを防ぐ 211 and 212 のケース 2013/07/22
+        if (!this.getClassCode().startsWith("21") || !other.getClassCode().startsWith("21") || !this.getClassCode().equals(other.getClassCode())) {
+            return false;
+        }
+//miura$
         
+        if (!this.hasNaiyoOnly() || !other.hasNaiyoOnly()) {
+            return false;
+        }
+//minagawa$        
         // 仮定
         boolean canMerge = true;
-        
+
         canMerge = canMerge && (getAdminCode()!=null && getBundleNumber()!=null);
         canMerge = canMerge && (other!=null && other.getAdminCode()!=null && other.getBundleNumber()!=null);
         if (canMerge) {
@@ -196,4 +219,35 @@ public class BundleMed extends BundleDolphin {
             }
         }
     }
+    
+//minagawa^  LSC 1.4 bug fix 処方日数の一括変更が可能かどうかを返す 処方日数の一括変更 2013/06/24
+    public boolean canChangeNum() {
+        
+        if (this.getClassCode()==null ||                // 診療区分なし
+            this.getClassCode().startsWith("22") ||     // 頓服
+            this.getClassCode().startsWith("23")) {     // 外用
+            return false;
+        }
+        
+        // 内用もしくは臨時処方がここへ来る
+        // 内用薬のみを含むかどうか
+        return hasNaiyoOnly();
+    }
+    
+    // 内用薬のみを含むかどうか
+    private boolean hasNaiyoOnly() {
+        
+        ClaimItem[] items = this.getClaimItem();
+        boolean naiyoOnly = (items!=null && items.length>0);
+        if (naiyoOnly) {
+            for (ClaimItem item : items) {
+                if (item.getYkzKbn()==null || (!item.getYkzKbn().equals(ClaimConst.YKZ_KBN_NAIYO))) {
+                    naiyoOnly = false;
+                    break;
+                }
+            }
+        }
+        return naiyoOnly;
+    }
+//minagawa$    
 }

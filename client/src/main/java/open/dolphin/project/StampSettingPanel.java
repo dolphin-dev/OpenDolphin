@@ -20,6 +20,7 @@ public class StampSettingPanel extends AbstractSettingPanel {
     private static final String ID = "stampSetting";
     private static final String TITLE = "スタンプ";
 //minagawa^ Icon Server    
+    //private static final String ICON = "lgicn_16.gif";
     private static final String ICON = "icon_stamp_settings_small";
 //minagawa$    
     
@@ -40,6 +41,9 @@ public class StampSettingPanel extends AbstractSettingPanel {
 //minagawa^ LSC Test
     private JCheckBox showStampNameOnKarte;
 //minagawa$    
+//s.oh^ 2014/01/27 同じ検体検査をまとめる
+    private JCheckBox mergeWithLabTest;
+//s.oh$
     
     private StampModel model;
     private boolean ok = true;
@@ -104,6 +108,9 @@ public class StampSettingPanel extends AbstractSettingPanel {
 //minagawa^ LSC Test
         showStampNameOnKarte = new JCheckBox("カルテ展開時にスタンプ名を表示する");
 //minagawa$        
+//s.oh^ 2014/01/27 同じ検体検査をまとめる
+        mergeWithLabTest = new JCheckBox("同じ検体検査をまとめる");
+//s.oh$
         
         // Button Group
         ButtonGroup bg = new ButtonGroup();
@@ -141,18 +148,18 @@ public class StampSettingPanel extends AbstractSettingPanel {
         label = new JLabel("錠剤の場合:", SwingConstants.RIGHT);
         gbb.add(label, 0, row, 1, 1, GridBagConstraints.EAST);
         gbb.add(createUnitFieldPanel(defaultZyozaiNum, "T"), 1, row, 1, 1, GridBagConstraints.WEST);
-        row++;
+        //row++;
         label = new JLabel("水薬の場合:", SwingConstants.RIGHT);
-        gbb.add(label, 0, row, 1, 1, GridBagConstraints.EAST);
-        gbb.add(createUnitFieldPanel(defaultMizuyakuNum, "ml"), 1, row, 1, 1, GridBagConstraints.WEST);
+        gbb.add(label, 2, row, 1, 1, GridBagConstraints.EAST);
+        gbb.add(createUnitFieldPanel(defaultMizuyakuNum, "ml"), 3, row, 1, 1, GridBagConstraints.WEST);
         row++;
         label = new JLabel("散薬の場合:", SwingConstants.RIGHT);
         gbb.add(label, 0, row, 1, 1, GridBagConstraints.EAST);
         gbb.add(createUnitFieldPanel(defaultSanyakuNum, "g"), 1, row, 1, 1, GridBagConstraints.WEST);
-        row++;
+        //row++;
         label = new JLabel("カプセルの場合:", SwingConstants.RIGHT);
-        gbb.add(label, 0, row, 1, 1, GridBagConstraints.EAST);
-        gbb.add(createUnitFieldPanel(defaultCapsuleNum, "カプセル"), 1, row, 1, 1, GridBagConstraints.WEST);
+        gbb.add(label, 2, row, 1, 1, GridBagConstraints.EAST);
+        gbb.add(createUnitFieldPanel(defaultCapsuleNum, "カプセル"), 3, row, 1, 1, GridBagConstraints.WEST);
         row++;
         label = new JLabel("処方日数:", SwingConstants.RIGHT);
         gbb.add(label, 0, row, 1, 1, GridBagConstraints.EAST);
@@ -180,6 +187,13 @@ public class StampSettingPanel extends AbstractSettingPanel {
         row = 0;
         gbb.add(masterItemColoring, 0, row, 2, 1, GridBagConstraints.WEST);
         stampPanel.add(gbb.getProduct());
+        
+//s.oh^ 2014/01/27 同じ検体検査をまとめる
+        gbb = new GridBagBuilder("検体検査");
+        row = 0;
+        gbb.add(mergeWithLabTest, 0, row, 1, 1, GridBagConstraints.WEST);
+        stampPanel.add(gbb.getProduct());
+//s.oh$
 
         getUI().setLayout(new BorderLayout());
 //s.oh^ 機能改善
@@ -239,7 +253,9 @@ public class StampSettingPanel extends AbstractSettingPanel {
 //minagawa^ LSC Test
         showStampNameOnKarte.setSelected(model.isShowStampName());
 //minagawa$        
-
+//s.oh^ 2014/01/27 同じ検体検査をまとめる
+        mergeWithLabTest.setSelected(model.isMergeWithLabTest());
+//s.oh$
         // この設定画面は常に有効状態である
         setState(AbstractSettingPanel.State.VALID_STATE);
     }
@@ -269,6 +285,9 @@ public class StampSettingPanel extends AbstractSettingPanel {
 //minagawa^ LSC Test
         model.setShowStampName(showStampNameOnKarte.isSelected());
 //minagawa$        
+//s.oh^ 2014/01/27 同じ検体検査をまとめる
+        model.setMergeWithLabTest(mergeWithLabTest.isSelected());
+//s.oh$
     }
 
     /**
@@ -291,6 +310,9 @@ public class StampSettingPanel extends AbstractSettingPanel {
 //minagawa^ LSC Test
         private boolean showStampName;
 //minagawa$        
+//s.oh^ 2014/01/27 同じ検体検査をまとめる
+        private boolean mergeWithLabTest;
+//s.oh$
 
         /**
          * ProjectStub から populate する。
@@ -337,6 +359,10 @@ public class StampSettingPanel extends AbstractSettingPanel {
 //minagawa^ LSC Test
             setShowStampName(Project.getBoolean("karte.show.stampName"));
 //minagawa$
+            
+//s.oh^ 2014/01/27 同じ検体検査をまとめる
+            setMergeWithLabTest(Project.getBoolean(Project.KARTE_MERGE_WITH_LABTEST));
+//s.oh&
         }
 
         /**
@@ -387,6 +413,10 @@ public class StampSettingPanel extends AbstractSettingPanel {
 //minagawa^ LSC Test
             Project.setBoolean("karte.show.stampName", isShowStampName());
 //minagawa$            
+            
+//s.oh^ 2014/01/27 同じ検体検査をまとめる
+            Project.setBoolean(Project.KARTE_MERGE_WITH_LABTEST, isMergeWithLabTest());
+//s.oh$
         }
 
         public boolean isReplaceStamp() {
@@ -484,6 +514,16 @@ public class StampSettingPanel extends AbstractSettingPanel {
             showStampName = b;
         }
 //minagawa$        
+        
+//s.oh^ 2014/01/27 同じ検体検査をまとめる
+        public boolean isMergeWithLabTest() {
+            return mergeWithLabTest;
+        }
+        
+        public void setMergeWithLabTest(boolean b) {
+            mergeWithLabTest = b;
+        }
+//s.oh$
     }
 
     private JPanel createUnitFieldPanel(JTextField tf, String unit) {

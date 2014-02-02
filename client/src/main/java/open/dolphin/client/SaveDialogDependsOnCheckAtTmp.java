@@ -322,7 +322,9 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
     private void controlButton() {
         okButton.setEnabled((enterParams.getEnterOption()!=SaveParamsM.SCHEDULE_SCHEDULE));
         tmpButton.setEnabled(true);
-        setFocus(okButton);
+//s.oh^ 2013/06/10 入力不具合修正
+        //setFocus(okButton);
+//s.oh$
     }
     
     private void setFocus(final JComponent c) {

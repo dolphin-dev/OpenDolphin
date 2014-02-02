@@ -50,8 +50,10 @@ public class KartePDFMaker extends AbstractPDFMaker {
     private static final String TEXT_NAME = "text";
     private static final String NAME_NAME = "name";
     private static final String PROGRESS_COURSE_NAME = "kartePane";
-    private static final String[] REPLACES = new String[]{"<", ">", "&", "'", "\""};
-    private static final String[] MATCHES = new String[]{"&lt;", "&gt;", "&amp;", "&apos;", "&quot;"};
+    //private static final String[] REPLACES = new String[]{"<", ">", "&", "'", "\""};
+    private static final String[] REPLACES = new String[]{"&", "<", ">", "'", "\""};
+    //private static final String[] MATCHES = new String[]{"&lt;", "&gt;", "&amp;", "&apos;", "&quot;"};
+    private static final String[] MATCHES = new String[]{"&amp;", "&lt;", "&gt;", "&apos;", "&quot;"};
 
     private static final int KARTE_FONT_SIZE = 9;
     private static final int STAMP_FONT_SIZE = 8;

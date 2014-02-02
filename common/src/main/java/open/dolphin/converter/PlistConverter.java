@@ -57,7 +57,7 @@ public final class PlistConverter {
     private static final String STRING_QUOT = "\"";
     private static final String STRING_APOS = "'";
     
-    private static SimpleDateFormat ISO_DF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    //private static SimpleDateFormat ISO_DF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     private static final String ARRAY_BYTE = "[B";
 
@@ -299,7 +299,7 @@ public final class PlistConverter {
             writer.write(key);
             writer.write(KEY_END);
             writer.write(DATE_START);
-            writer.write(ISO_DF.format(value));
+            writer.write(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(value));
             writer.write(DATE_END);
         }
     }

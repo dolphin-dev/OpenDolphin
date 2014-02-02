@@ -33,6 +33,7 @@ import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.PriscriptionModel;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  *
@@ -250,13 +251,16 @@ public class PrescriptionMaker {
                     // 使用期間の日付チェックエラー
                     ret = 1;
                     JOptionPane.showMessageDialog(prePanel, chkTarget.getName() + errMsg, errTitle, JOptionPane.ERROR_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, errTitle, chkTarget.getName() + errMsg);
                     chkTarget.requestFocus();
                 } else if ((delivery != null) && period.before(delivery)) {
                     JOptionPane.showMessageDialog(prePanel, chkTarget.getName() + "に交付年月日より前の日が入力されています。", errTitle, JOptionPane.ERROR_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, errTitle, chkTarget.getName() + "に交付年月日より前の日が入力されています。");
                     chkTarget.requestFocus();
                     ret = 1;
                 } else if (period.before(now)) {
                     JOptionPane.showMessageDialog(prePanel, chkTarget.getName() + "に今日より前の日が入力されています。", errTitle, JOptionPane.ERROR_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, errTitle, chkTarget.getName() + "に今日より前の日が入力されています。");
                     chkTarget.requestFocus();
                     ret = 1;
                 }
@@ -440,6 +444,7 @@ public class PrescriptionMaker {
                         } catch (IOException ex) {
                             ex.printStackTrace(System.err);
                             JOptionPane.showMessageDialog(chart.getFrame(), ex.getMessage(), "処方せん出力エラー", JOptionPane.ERROR_MESSAGE);
+                            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "処方せん出力エラー", ex.getMessage());
                         }
                     }
                 } catch (InterruptedException ex) {
@@ -447,6 +452,7 @@ public class PrescriptionMaker {
                 } catch (ExecutionException ex) {
                     ex.printStackTrace(System.err);
                     JOptionPane.showMessageDialog(chart.getFrame(), ex.getMessage(), "処方せん出力エラー", JOptionPane.ERROR_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "処方せん出力エラー", ex.getMessage());
                 }
             }
         };

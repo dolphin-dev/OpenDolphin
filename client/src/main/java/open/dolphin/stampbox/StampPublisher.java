@@ -25,6 +25,7 @@ import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.IStampTreeModel;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  * StampTreePublisher
@@ -578,6 +579,7 @@ public class StampPublisher {
                         "スタンプを公開しました。",
                         ClientContext.getFrameTitle(title),
                         JOptionPane.INFORMATION_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(title), "スタンプを公開しました。");
                 stop();
 
             }
@@ -592,12 +594,15 @@ public class StampPublisher {
                     sb.append("整合性を保ため、再ログインし、改めて実行してください。");
                     dispErr = sb.toString();
                 } else {
-                    dispErr = cause.getMessage();
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("スタンプツリーの保存に失敗しました。");
+                    dispErr = sb.toString();
                 }
                 JOptionPane.showMessageDialog(dialog,
                             dispErr,
                             ClientContext.getFrameTitle(title),
                             JOptionPane.WARNING_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), cause.getMessage(), dispErr);
             }
 
             @Override
@@ -665,10 +670,7 @@ public class StampPublisher {
                 ClientContext.getFrameTitle(title),
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.INFORMATION_MESSAGE,
-//minagawa^ Icon server                
-                //ClientContext.getImageIcon("sinfo_32.gif"));
-                ClientContext.getImageIconArias("icon_caution"));
-//minagawa$        
+                ClientContext.getImageIcon("sinfo_32.gif"));
         
         if (option != JOptionPane.YES_OPTION) {
             return;
@@ -704,7 +706,11 @@ public class StampPublisher {
             @Override
             protected Void doInBackground() throws Exception {
                 StampDelegater sdl = new StampDelegater();
-                sdl.cancelPublishedTree(stmpTree);
+//s.oh^ 2013/10/11 スタンプ公開時のエラー
+                //sdl.cancelPublishedTree(stmpTree);
+                String version = sdl.cancelPublishedTree(stmpTree);
+                stmpTree.setVersionNumber(version);
+//s.oh$
                 return null;
             }
             
@@ -714,6 +720,7 @@ public class StampPublisher {
                             "公開を取り消しました。",
                             ClientContext.getFrameTitle(title),
                             JOptionPane.INFORMATION_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(title), "公開を取り消しました。");
                 stop();
             }
             
@@ -723,6 +730,7 @@ public class StampPublisher {
                             cause.getMessage(),
                             ClientContext.getFrameTitle(title),
                             JOptionPane.WARNING_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), cause.getMessage());
             }
 
             @Override

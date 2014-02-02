@@ -30,6 +30,7 @@ import open.dolphin.table.ListTableModel;
 import open.dolphin.table.ListTableSorter;
 import open.dolphin.table.StripeTableCellRenderer;
 import open.dolphin.util.AgeCalculater;
+import open.dolphin.util.Log;
 import open.dolphin.util.StringTool;
 
 /**
@@ -637,9 +638,6 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
 
         // 来院日
         pvt.setPvtDate(ModelUtils.getDateTimeAsString(new Date()));
-//        GregorianCalendar gc = new GregorianCalendar();
-//        gc.add(Calendar.DAY_OF_MONTH,1);
-//        pvt.setPvtDate(ModelUtils.getDateTimeAsString(gc.getTime()));
 
         final PatientVisitModel fPvt = pvt;
 
@@ -680,6 +678,8 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
      * @param text キーワード
      */
     private void find(String text) {
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "患者検索", text);
         
         // 全角スペースをkill
         text = text.replaceAll("　", " ");
@@ -788,8 +788,10 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
 //minagawa$
                     
                     tableModel.setDataProvider(list);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "患者数：", String.valueOf(list.size()));
                 } else {
                     tableModel.clear();
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "患者数：", "0");
                 }
                 updateStatusLabel();
             }
@@ -858,6 +860,7 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
         boolean sorted = true;
         for (int i=0; i < COLUMN_NAMES.length; i++) {
             if (sorter.getSortingStatus(i)==0) {
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "ソート済み", String.valueOf(i));
                 sorted = false;
                 break;
             }
@@ -867,6 +870,7 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
 
             switch (sortItem) {
                 case 0:
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "患者IDでソート");
                     Comparator c = new Comparator<PatientModel>() {
 
                         @Override
@@ -877,6 +881,7 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
                     Collections.sort(list, c);
                     break;
                 case 1:
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "患者カナでソート");
                   Comparator c2 = new Comparator<PatientModel>() {
 
                     @Override

@@ -19,6 +19,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.text.Position;
 import open.dolphin.infomodel.AttachmentModel;
+import open.dolphin.util.Log;
 
 /**
  * AttachmentModelをkartePaneに表示するホルダークラス。
@@ -102,6 +103,7 @@ public class AttachmentHolder extends AbstractComponentHolder implements Compone
             AbstractAction titleAction = new AbstractAction("タイトル編集") {
                 @Override
                 public void actionPerformed(ActionEvent ae) {
+                    Log.outputOperLogDlg(kartePane.getParent(), Log.LOG_LEVEL_0, "タイトル編集");
                     changeTitle();
                 }
             };
@@ -113,6 +115,7 @@ public class AttachmentHolder extends AbstractComponentHolder implements Compone
             AbstractAction action = new AbstractAction("開く") {
                 @Override
                 public void actionPerformed(ActionEvent ae) {
+                    Log.outputOperLogDlg(kartePane.getParent(), Log.LOG_LEVEL_0, "開く");
                     edit();
                 }
             };

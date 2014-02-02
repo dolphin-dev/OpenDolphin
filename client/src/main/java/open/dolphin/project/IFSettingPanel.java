@@ -16,6 +16,7 @@ public class IFSettingPanel extends AbstractSettingPanel {
     private static final String ID = "ifSetting";
     private static final String TITLE = "リレー等";
 //minagawa^ Icon Server    
+    //private static final String ICON = "ntwrk_16.gif";
     private static final String ICON = "icon_interface_settings_small";
 //minagawa$    
     
@@ -275,7 +276,10 @@ public class IFSettingPanel extends AbstractSettingPanel {
         val = val.replaceAll("_", "");
         if (val.equals("utf8")) {
             view.getPvtRelayView().getPvtRelayUTF8Radio().setSelected(true);
-        } else if (val.equals("shiftjis")) {
+//s.oh^ 2013/11/12 受付リレー不具合
+        //} else if (val.equals("shiftjis")) {
+        } else if (val.equals("shiftjis") || val.equals("Shift_JIS")) {
+//s.oh$
             view.getPvtRelayView().getPvtRelaySHIFTJISRadio().setSelected(true);
         } else if (val.equals("eucjp")) {
             view.getPvtRelayView().getPvtRelayEUCRadio().setSelected(true);
@@ -317,7 +321,10 @@ public class IFSettingPanel extends AbstractSettingPanel {
         if (view.getPvtRelayView().getPvtRelayUTF8Radio().isSelected()) {
             stub.setString(Project.PVT_RELAY_ENCODING, "utf8");
         } else if (view.getPvtRelayView().getPvtRelaySHIFTJISRadio().isSelected()) {
-            stub.setString(Project.PVT_RELAY_ENCODING, "shiftjis");
+//s.oh^ 2013/11/12 受付リレー不具合
+            //stub.setString(Project.PVT_RELAY_ENCODING, "shiftjis");
+            stub.setString(Project.PVT_RELAY_ENCODING, "Shift_JIS");
+//s.oh$
         } else if (view.getPvtRelayView().getPvtRelayEUCRadio().isSelected()) {
             stub.setString(Project.PVT_RELAY_ENCODING, "eucjp");
         }

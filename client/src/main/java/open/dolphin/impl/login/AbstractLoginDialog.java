@@ -16,6 +16,7 @@ import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.File;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +40,7 @@ import open.dolphin.helper.SimpleWorker;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.project.Project;
 import open.dolphin.project.ProjectSettingDialog;
+import open.dolphin.util.Log;
 import open.dolphin.utilities.common.CommonDefImpl;
 import open.dolphin.utilities.control.RssReaderPane;
 import open.dolphin.utilities.utility.HttpConnect;
@@ -116,6 +118,7 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
     protected void showMessageDialog(String msg) {
         String title = dialog.getTitle();
         JOptionPane.showMessageDialog(null, msg, title, JOptionPane.WARNING_MESSAGE);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, msg);
     }
     
     /**
@@ -225,6 +228,7 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
         sb.append("ユーザーIDまたはパスワードが違います。");
         String msg = sb.toString();
         showMessageDialog(msg);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, msg);
         ClientContext.getPart11Logger().warn(msg);
     }
 
@@ -235,6 +239,7 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
         sb.append("アプリケーションを終了します。");
         String msg = sb.toString();
         showMessageDialog(msg);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, msg);
         ClientContext.getPart11Logger().warn(msg);
     }
     

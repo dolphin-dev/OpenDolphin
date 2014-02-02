@@ -13,6 +13,7 @@ import open.dolphin.infomodel.RoleModel;
 import open.dolphin.infomodel.UserList;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.session.UserServiceBean;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -67,6 +68,8 @@ public class UserResource extends AbstractResource {
         debug(fid);
         
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         UserModel model = mapper.readValue(json, UserModel.class);
 
         model.getFacilityModel().setFacilityId(fid);
@@ -90,6 +93,8 @@ public class UserResource extends AbstractResource {
     public String putUser(String json) throws IOException {
         
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         UserModel model = mapper.readValue(json, UserModel.class);
         
         // 関係を構築する
@@ -121,6 +126,8 @@ public class UserResource extends AbstractResource {
     public String putFacility(String json) throws IOException {
         
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         UserModel model = mapper.readValue(json, UserModel.class);
 
         int result = userServiceBean.updateFacility(model);

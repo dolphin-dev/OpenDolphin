@@ -47,15 +47,17 @@
                       <Component id="stampNameField" max="32767" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
+                      <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="searchTextField" min="-2" pref="209" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="28" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="rtBtn" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="1" attributes="0">
                   <Group type="102" alignment="1" attributes="0">
-                      <EmptySpace min="0" pref="39" max="32767" attributes="0"/>
+                      <EmptySpace min="0" pref="55" max="32767" attributes="0"/>
                       <Component id="deleteBtn" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="clearBtn" min="-2" max="-2" attributes="0"/>
@@ -68,9 +70,9 @@
                       <Component id="partialChk" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="32767" attributes="0"/>
                       <Component id="jLabel4" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="countField" min="-2" pref="64" max="-2" attributes="0"/>
-                      <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                   </Group>
               </Group>
           </Group>
@@ -96,6 +98,7 @@
               </Group>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="jLabel3" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="searchTextField" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="countField" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel4" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -111,8 +114,10 @@
   <SubComponents>
     <Component class="javax.swing.JLabel" name="infoLabel">
       <Properties>
+        <Property name="icon" type="javax.swing.Icon" noResource="true" editor="org.netbeans.modules.form.editors2.IconEditor">
+          <Image iconType="3" name="/open/dolphin/resources/images/about_16.gif"/>
+        </Property>
         <Property name="text" type="java.lang.String" value="&#x50b7;&#x75c5;&#x540d;" noResource="true"/>
-        <Property name="name" type="java.lang.String" value="infoLabel" noResource="true"/>
       </Properties>
     </Component>
     <Container class="javax.swing.JScrollPane" name="jScrollPane1">
@@ -179,6 +184,8 @@
         <Property name="text" type="java.lang.String" value="&#x524a;&#x9664;" noResource="true"/>
         <Property name="toolTipText" type="java.lang.String" value="&#x9078;&#x629e;&#x3057;&#x305f;&#x50b7;&#x75c5;&#x540d;&#x3092;&#x524a;&#x9664;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="jLabel3">
     </Component>
     <Component class="javax.swing.JTextField" name="searchTextField">
       <Properties>

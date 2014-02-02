@@ -34,6 +34,12 @@ public interface CommonDefImpl {
     public static final String REQUESTMETHOD_GET = "GET";
     public static final String REQUESTMETHOD_POST = "POST";
     public static final String PROTOCOL_HTTP = "http";
-    public static final String DEFAULT_CHARSET = "UTF-8";
+    public static final String CHARSET_DEFAULT = "UTF-8";
+    
+    // SocketConnect
+    public static final String CHARSET_SHIFTJIS = "Shift_JIS";
+    
+    // ORCA
+    public static final String ORCAAPI_VER_47 = "47";
 }
 

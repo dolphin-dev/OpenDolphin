@@ -4,13 +4,15 @@ import java.io.BufferedReader;
 import java.util.Collection;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
-import open.dolphin.converter14.PatientModelConverter;
+import open.dolphin.converter.PatientModelConverter;
 import open.dolphin.dto.PatientSearchSpec;
 import open.dolphin.infomodel.HealthInsuranceModel;
 import open.dolphin.infomodel.PVTHealthInsuranceModel;
 import open.dolphin.infomodel.PatientList;
 import open.dolphin.infomodel.PatientModel;
 import open.dolphin.util.BeanUtils;
+import open.dolphin.util.Log;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
@@ -45,6 +47,8 @@ public final class  PatientDelegater extends BusinessDelegater {
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -68,7 +72,7 @@ public final class  PatientDelegater extends BusinessDelegater {
         
         // PATH
         String path = ID_RESOURCE;
-        
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
@@ -77,9 +81,16 @@ public final class  PatientDelegater extends BusinessDelegater {
         // PatientModel
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         PatientModel patient = mapper.readValue(br, PatientModel.class);
         br.close();
 
+        //20130225
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         return patient;
     }
     
@@ -116,15 +127,24 @@ public final class  PatientDelegater extends BusinessDelegater {
         }
 
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
         ClientResponse<String> response = request.get(String.class);
         
+        //20130225
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         PatientList list = mapper.readValue(br, PatientList.class);
         br.close();
         
@@ -150,6 +170,7 @@ public final class  PatientDelegater extends BusinessDelegater {
         
         // PATH
         String path = BASE_RESOURCE;
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Converter
         PatientModelConverter conv = new PatientModelConverter();
@@ -157,6 +178,8 @@ public final class  PatientDelegater extends BusinessDelegater {
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -164,6 +187,12 @@ public final class  PatientDelegater extends BusinessDelegater {
         ClientRequest request = getRequest(path);
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.put(String.class);
+        
+        //20130225
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // Count
         String entityStr = getString(response);
@@ -184,6 +213,8 @@ public final class  PatientDelegater extends BusinessDelegater {
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         PatientList list = mapper.readValue(br, PatientList.class);
         br.close();
         
@@ -217,6 +248,7 @@ public final class  PatientDelegater extends BusinessDelegater {
                     PVTHealthInsuranceModel hModel = (PVTHealthInsuranceModel)BeanUtils.xmlDecode(model.getBeanBytes());
                     patient.addPvtHealthInsurance(hModel);
                 } catch (Exception e) {
+                    Log.outputFuncLog(Log.LOG_LEVEL_0,"E",e.toString());
                     e.printStackTrace(System.err);
                 }
             }

@@ -95,6 +95,13 @@ public class KarteViewer2 extends KarteViewer {
         pPane = new KartePane();
         pPane.setTextPane(kp2.getPTextPane());
         pPane.setRole(IInfoModel.ROLE_P);
+    
+//s.oh^ 2014/01/27 スタンプのテキストコピー機能拡張
+        if(getContext() != null && getContext().getPatient() != null) {
+            soaPane.setPatID(getContext().getPatient().getPatientId());
+            pPane.setPatID(getContext().getPatient().getPatientId());
+        }
+//s.oh$
         
         setUI(kp2);
     }

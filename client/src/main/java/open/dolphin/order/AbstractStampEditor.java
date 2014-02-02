@@ -16,6 +16,7 @@ import open.dolphin.infomodel.ClaimItem;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.TensuMaster;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 import open.dolphin.util.ZenkakuUtils;
 
 /**
@@ -785,6 +786,7 @@ public abstract class AbstractStampEditor {
         Window parent = SwingUtilities.getWindowAncestor(getView());
         String title = ClientContext.getFrameTitle("マスタ検索");
         JOptionPane.showMessageDialog(parent, message, title, JOptionPane.WARNING_MESSAGE);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, msg0, msg1);
     }
 
     protected void alertSearchError(String err) {
@@ -796,6 +798,7 @@ public abstract class AbstractStampEditor {
         Window parent = SwingUtilities.getWindowAncestor(getView());
         String title = ClientContext.getFrameTitle("マスタ検索");
         JOptionPane.showMessageDialog(parent, message, title, JOptionPane.WARNING_MESSAGE);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, msg0, msg1);
     }
 
     protected Boolean ipOk() {

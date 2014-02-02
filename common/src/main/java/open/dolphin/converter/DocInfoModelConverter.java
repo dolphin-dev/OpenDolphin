@@ -202,6 +202,12 @@ public final class DocInfoModelConverter implements IInfoModelConverter {
         return model.getPatientGender();
     }
     
+//minagawa^ CLAIM送信(予定カルテ対応)
+    public Date getClaimDate() {
+        return model.getClaimDate();
+    }
+//minagawa$    
+    
     // CLAIM送信フラグ
     public boolean getSendClaim() {
         return model.isSendClaim();

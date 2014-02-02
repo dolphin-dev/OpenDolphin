@@ -1,4 +1,4 @@
-2013-04-16　皆川和史　ライフサイエンスコンピューティング（株）  
+2014-02-01　皆川和史、王勝偉　ライフサイエンスコンピューティング（株）  
 
 １．ライセンス  
 ・OpenDolphinのライセンスは GNU GPL3 です。  
@@ -10,11 +10,11 @@
 また Takayoshi KimuraさんのJBoss as7 へのポーティングを使用させていただきました。  
 
 ２．開発環境  
-・jdk 1.7.0_17  
-・NetBeans 7.3  
+・jdk 1.7.0_51  
+・NetBeans 7.3.1  
 ・maven 3.0.3  
 ・JavaEE 6  
-・JBoss-7.1.1.Final  
+・JBoss-7.1.2.Final  
 
 ３．依存性  
 OpenDolphinは、maven でプロジェクト管理を行っています。  

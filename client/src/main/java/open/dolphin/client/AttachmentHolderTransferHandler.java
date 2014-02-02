@@ -55,7 +55,7 @@ public class AttachmentHolderTransferHandler extends TransferHandler implements 
     }
 
     @Override
-//minagawa^ Paste problem    
+//minagawa^ Paste problem 2013/04/14 不具合修正(スタンプが消える)
 //    public boolean canImport(JComponent c, DataFlavor[] flavors) {
 //        return false;
 //    }

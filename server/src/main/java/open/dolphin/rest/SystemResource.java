@@ -8,6 +8,7 @@ import javax.ws.rs.core.MediaType;
 import open.dolphin.infomodel.RoleModel;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.session.SystemServiceBean;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -15,7 +16,7 @@ import org.codehaus.jackson.map.ObjectMapper;
  *
  * @author kazushi
  */
-@Path("/system")
+@Path("/hiuchi")
 public class SystemResource {
     
     @Inject
@@ -36,6 +37,8 @@ public class SystemResource {
     public void addFacilityAdmin(String json) throws IOException {
         
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         UserModel user = mapper.readValue(json, UserModel.class);
 
         // 関係を構築する

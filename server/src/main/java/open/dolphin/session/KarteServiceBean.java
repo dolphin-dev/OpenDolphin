@@ -1,5 +1,9 @@
 package open.dolphin.session;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 import javax.annotation.Resource;
 import javax.ejb.Stateless;
@@ -601,26 +605,45 @@ public class KarteServiceBean {
     
     // JMS+MDB
     public void sendDocument(DocumentModel document) {
-        
-        Connection conn = null;
+//s.oh^ 2014/01/23 ORCAとの接続対応
+        Properties config = new Properties();
+        StringBuilder sb = new StringBuilder();
+        sb.append(System.getProperty("jboss.home.dir"));
+        sb.append(File.separator);
+        sb.append("custom.properties");
+        File f = new File(sb.toString());
         try {
-            conn = connectionFactory.createConnection();
-            Session session = conn.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
+            FileInputStream fin = new FileInputStream(f);
+            InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect");
+            config.load(r);
+            r.close();
+        } catch (IOException ex) {
+            ex.printStackTrace(System.err);
+            return;
+        }
+        String claimConn = config.getProperty("claim.conn");
+        if(claimConn != null && claimConn.equals("server")) {
+//s.oh$
+            Connection conn = null;
+            try {
+                conn = connectionFactory.createConnection();
+                Session session = conn.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
 
-            ObjectMessage msg = session.createObjectMessage(document);
-            MessageProducer producer = session.createProducer(queue);
-            producer.send(msg);
-            
+                ObjectMessage msg = session.createObjectMessage(document);
+                MessageProducer producer = session.createProducer(queue);
+                producer.send(msg);
 
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-            throw new RuntimeException(e.getMessage());
 
-        } finally {
-            if(conn != null) {
-                try {
-                    conn.close();
-                } catch (JMSException e) { 
+            } catch (Exception e) {
+                e.printStackTrace(System.err);
+                throw new RuntimeException(e.getMessage());
+
+            } finally {
+                if(conn != null) {
+                    try {
+                        conn.close();
+                    } catch (JMSException e) { 
+                    }
                 }
             }
         }
@@ -843,10 +866,29 @@ public class KarteServiceBean {
      */
     public List<Long> postPutSendDiagnosis(DiagnosisSendWrapper wrapper) {
         
+//minagawa^ LSC 1.4 傷病名の削除 2013/06/24
+        int cnt = 0;
+        
+        // 削除
+        if (wrapper.getDeletedDiagnosis()!=null) {
+            
+            List<RegisteredDiagnosisModel> deletedList = wrapper.getDeletedDiagnosis();
+            
+            for (RegisteredDiagnosisModel bean : deletedList) {
+                // ORCAの病名をインポート、Dolphinに登録しないで削除==0Lを除く
+                if (bean.getId()!=0L) {
+                    RegisteredDiagnosisModel delete = (RegisteredDiagnosisModel)em.find(RegisteredDiagnosisModel.class, bean.getId());
+                    em.remove(delete);
+                    cnt++;
+                }
+            }
+        }
+//minagawa$        
+        
         // 更新
         if (wrapper.getUpdatedDiagnosis()!=null) {
             
-            int cnt = 0;
+            //int cnt = 0;
             List<RegisteredDiagnosisModel> updateList = wrapper.getUpdatedDiagnosis();
             
             for (RegisteredDiagnosisModel bean : updateList) {
@@ -871,30 +913,49 @@ public class KarteServiceBean {
         // CLAIM送信
         //-------------------------------------------------------------
         if (wrapper.getSendClaim() && wrapper.getConfirmDate()!=null) {
-            
-            Connection conn = null;
+//s.oh^ 2014/01/23 ORCAとの接続対応
+            Properties config = new Properties();
+            StringBuilder sb = new StringBuilder();
+            sb.append(System.getProperty("jboss.home.dir"));
+            sb.append(File.separator);
+            sb.append("custom.properties");
+            File f = new File(sb.toString());
             try {
-                conn = connectionFactory.createConnection();
-                Session session = conn.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
+                FileInputStream fin = new FileInputStream(f);
+                InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect");
+                config.load(r);
+                r.close();
+            } catch (IOException ex) {
+                ex.printStackTrace(System.err);
+                throw new RuntimeException(ex.getMessage());
+            }
+            String claimConn = config.getProperty("claim.conn");
+            if(claimConn != null && claimConn.equals("server")) {
+//s.oh$
+                Connection conn = null;
+                try {
+                    conn = connectionFactory.createConnection();
+                    Session session = conn.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
 
-                ObjectMessage msg = session.createObjectMessage(wrapper);
-                MessageProducer producer = session.createProducer(queue);
-                producer.send(msg);
+                    ObjectMessage msg = session.createObjectMessage(wrapper);
+                    MessageProducer producer = session.createProducer(queue);
+                    producer.send(msg);
 
-            } catch (Exception e) {
-                e.printStackTrace(System.err);
-                throw new RuntimeException(e.getMessage());
+                } catch (Exception e) {
+                    e.printStackTrace(System.err);
+                    throw new RuntimeException(e.getMessage());
 
-            } 
-            finally {
-                if(conn != null)
-                {
-                    try
+                } 
+                finally {
+                    if(conn != null)
                     {
-                    conn.close();
-                    }
-                    catch (JMSException e)
-                    { 
+                        try
+                        {
+                        conn.close();
+                        }
+                        catch (JMSException e)
+                        { 
+                        }
                     }
                 }
             }

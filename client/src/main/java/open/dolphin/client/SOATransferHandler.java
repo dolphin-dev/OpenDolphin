@@ -22,6 +22,7 @@ import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.SchemaModel;
 import open.dolphin.stampbox.StampTreeNode;
+import open.dolphin.util.Log;
 
 /**
  * KartePaneTransferHandler
@@ -55,8 +56,8 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
     }
 
     @Override
-//minagawa^ Paste problem    
-//public boolean importData(JComponent c, Transferable tr) {
+//minagawa^ Paste problem 2013/04/14 不具合修正(スタンプが消える)
+//    public boolean importData(JComponent c, Transferable tr) {
     public boolean importData(TransferHandler.TransferSupport support) {
 
 //        JTextPane tc = (JTextPane)c;
@@ -115,7 +116,8 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
                 String data = (String)tr.getTransferData(nixFileDataFlavor);
                 return doFileDropNix(data);
             }
-        } catch (UnsupportedFlavorException | IOException ufe) {
+        } catch (UnsupportedFlavorException ufe) {
+        } catch (IOException ioe) {
         }
 
         return false;
@@ -166,7 +168,7 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
         shouldRemove = false;
         source = null;
     }
-//minagawa^ Paste problem
+//minagawa^ Paste problem 2013/04/14 不具合修正(スタンプが消える)
 //    @Override
 //    public boolean canImport(JComponent c, DataFlavor[] flavors) {
 //        JTextPane tc = (JTextPane) c;
@@ -182,6 +184,7 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
         ok = ok && hasFlavor(support.getDataFlavors());
         return ok;
     }
+//minagawa$
 
     /**
      * Flavorリストのなかに受け入れられものがあるかどうかを返す。
@@ -254,8 +257,8 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
             Enumeration e = droppedNode.preorderEnumeration();
 //minagawa^ LSC Test            
             //ArrayList<ModuleInfoBean> addList = new ArrayList<ModuleInfoBean>(5);
-            ArrayList<ModuleInfoBean> textList = new ArrayList(5);
-            ArrayList<ModuleInfoBean> soaList = new ArrayList(5);
+            ArrayList<ModuleInfoBean> textList = new ArrayList<ModuleInfoBean>(5);
+            ArrayList<ModuleInfoBean> soaList = new ArrayList<ModuleInfoBean>(5);
 //            String role = null;
             while (e.hasMoreElements()) {
                 StampTreeNode node = (StampTreeNode) e.nextElement();
@@ -304,6 +307,12 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
      * @return
      */
     private boolean doSchemaDrop(SchemaList list) {
+        Chart chart = null;
+        ChartDocument doc = soaPane.getParent();
+        if(doc instanceof KarteEditor) {
+            chart = ((KarteEditor)doc).getContext();
+        }
+        Log.outputOperLogOper(chart, Log.LOG_LEVEL_0, "SOA → SOA", "カルテからのシェーマ追加");
         
         try {
             // Schemaリストを取得する
@@ -344,6 +353,12 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
      * Dropされたイメージをインポートする。
      */
     private boolean doImageEntryDrop(ImageEntry entry) {
+        Chart chart = null;
+        ChartDocument doc = soaPane.getParent();
+        if(doc instanceof KarteEditor) {
+            chart = ((KarteEditor)doc).getContext();
+        }
+        Log.outputOperLogOper(chart, Log.LOG_LEVEL_0, "シェーマ等画像の追加");
         
         try {
             soaPane.imageEntryDropped(entry);

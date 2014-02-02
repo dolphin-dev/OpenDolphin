@@ -165,7 +165,10 @@ public class Reply2PDFMaker extends AbstractLetterPDFMaker {
             //document.add(new Paragraph("　"));
 
             // 日付
-            String dateStr = getDateString(model.getConfirmed());
+//minagawa^ LSC 1.4 bug fix 文書の印刷日付 2013/06/24
+            //String dateStr = getDateString(model.getConfirmed());
+            String dateStr = getDateString(model.getStarted());
+//minagawa$  
             para = new Paragraph(dateStr, bodyFont);
             para.setAlignment(Element.ALIGN_RIGHT);
             document.add(para);

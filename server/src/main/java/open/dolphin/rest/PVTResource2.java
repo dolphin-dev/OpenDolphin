@@ -14,6 +14,7 @@ import open.dolphin.infomodel.PatientVisitList;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.session.ChartEventServiceBean;
 import open.dolphin.session.PVTServiceBean;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -64,6 +65,8 @@ public class PVTResource2 extends AbstractResource {
 //
 //        return cntStr;   
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         PatientVisitModel model = mapper.readValue(json, PatientVisitModel.class);
 
         // 関係構築

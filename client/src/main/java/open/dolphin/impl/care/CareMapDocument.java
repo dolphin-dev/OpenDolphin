@@ -20,6 +20,7 @@ import open.dolphin.infomodel.AppointmentModel;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  * CareMap Document.
@@ -243,7 +244,7 @@ public final class CareMapDocument extends AbstractChartDocument {
         });
         
         // 予約表テーブルを生成する
- //minagawa^ IconServer       
+ //minagawa^ Icon Server       
         //updateAppoBtn = new JButton(ClientContext.getImageIcon("save_16.gif"));
         updateAppoBtn = new JButton(ClientContext.getImageIconArias("icon_save_small"));
  //minagawa$       
@@ -788,9 +789,11 @@ public final class CareMapDocument extends AbstractChartDocument {
                 setDirty(false);
 //minagawa^ Chartの close box 押下で保存する場合、保存終了を通知しておしまい。                    
             if (myBoundSupport!=null) {
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "治療履歴", "保存成功", "インスペクタの終了");
                 setChartDocDidSave(true);
             }
 //minagawa$                
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "治療履歴", "保存成功");
             }
         };
         

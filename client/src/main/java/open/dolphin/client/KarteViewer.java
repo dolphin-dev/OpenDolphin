@@ -192,10 +192,21 @@ public class KarteViewer extends AbstractChartDocument implements Comparable {
         KarteStyledDocument pdoc = (KarteStyledDocument)pPane.getTextPane().getDocument();
         pdumper.dump(pdoc);
         if(dumper != null && pdumper != null) {
+//s.oh^ 2013/06/14 自費の場合、印刷時に文言を付加する
+            //KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
+            //                                      getContext().getPatient().getPatientId(), getContext().getPatient().getFullName(),
+            //                                      timeStampLabel.getText(),
+            //                                      new Date(), dumper, pdumper);
+            StringBuilder sbTitle = new StringBuilder();
+            sbTitle.append(timeStampLabel.getText());
+            if(getModel().getDocInfoModel().getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
+                sbTitle.append("（自費）");
+            }
             KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
                                                   getContext().getPatient().getPatientId(), getContext().getPatient().getFullName(),
-                                                  timeStampLabel.getText(),
+                                                  sbTitle.toString(),
                                                   new Date(), dumper, pdumper);
+//s.oh$
             String path = pdf.create();
             KartePDFImpl2.printPDF(path);
         }

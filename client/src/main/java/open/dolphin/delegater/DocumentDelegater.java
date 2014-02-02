@@ -1,10 +1,5 @@
 package open.dolphin.delegater;
 
-import open.dolphin.converter14.PatientMemoModelConverter;
-import open.dolphin.converter14.DocumentModelConverter;
-import open.dolphin.converter14.DiagnosisSendWrapperConverter;
-import open.dolphin.converter14.RegisteredDiagnosisListConverter;
-import open.dolphin.converter14.ObservationListConverter;
 import java.io.BufferedReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -15,11 +10,14 @@ import javax.swing.ImageIcon;
 import javax.ws.rs.core.MediaType;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.GUIConst;
+import open.dolphin.converter.*;
 import open.dolphin.dto.DocumentSearchSpec;
 import open.dolphin.dto.ImageSearchSpec;
 import open.dolphin.dto.ModuleSearchSpec;
 import open.dolphin.infomodel.*;
 import open.dolphin.util.BeanUtils;
+import open.dolphin.util.Log;
+import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
@@ -52,14 +50,21 @@ public final class DocumentDelegater extends BusinessDelegater {
         sb.append(new SimpleDateFormat(DATE_TIME_FORMAT_REST).format(fromDate));
         String path = sb.toString();
         
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
         ClientResponse<String> response = request.get(String.class);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         BufferedReader br = getReader(response);
 
         // KarteBean
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         KarteBean karte = mapper.readValue(br, KarteBean.class);
         br.close();
         
@@ -81,6 +86,17 @@ public final class DocumentDelegater extends BusinessDelegater {
      */
     public long putKarte(DocumentModel karteModel) throws Exception {
         
+        //20130228
+        //karteModel.getDocInfoModel().getTitle();
+        //Log.outputFuncLog(Log.LOG_LEVEL_3,"X", karteModel.getDocInfoModel().getPatientId());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I",karteModel.getDocInfoModel().getTitle());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I", karteModel.getDocInfoModel().getDocType());
+        //Log.outputFuncLog(Log.LOG_LEVEL_3,"I", karteModel.getDocInfoModel().getAssignedDoctorName());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I", karteModel.getDocInfoModel().getConfirmDateTrimTime());
+        //Log.outputFuncLog(Log.LOG_LEVEL_3,"X", karteModel.getDocInfoModel().getFirstConfirmDateTrimTime());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I", karteModel.getDocInfoModel().getHealthInsuranceDesc());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I", karteModel.getDocInfoModel().getDepartmentDesc());
+        
         // 確定日、適合開始日、記録日、ステータスを
         // DocInfo から DocumentModel(KarteEntry) に移す
         karteModel.toPersist();
@@ -88,12 +104,16 @@ public final class DocumentDelegater extends BusinessDelegater {
         // PATH
         String path = "/karte/document";
         
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
         // Converter
         DocumentModelConverter conv = new DocumentModelConverter();
         conv.setModel(karteModel);
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -101,6 +121,10 @@ public final class DocumentDelegater extends BusinessDelegater {
         ClientRequest request = getRequest(path);
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.post(String.class);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
 
         // PK
         String entityStr = getString(response);
@@ -119,12 +143,16 @@ public final class DocumentDelegater extends BusinessDelegater {
         sb.append("/karte/document/pvt/").append(pvtPK).append(CAMMA).append(state);
         String path = sb.toString();
         
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
         // Converter
         DocumentModelConverter conv = new DocumentModelConverter();
         conv.setModel(karteModel);
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -132,6 +160,10 @@ public final class DocumentDelegater extends BusinessDelegater {
         ClientRequest request = getRequest(path);
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.post(String.class);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
 
         // PK
         String entityStr = getString(response);
@@ -155,15 +187,22 @@ public final class DocumentDelegater extends BusinessDelegater {
         }
         String path = sb.toString();
         path = path.substring(0, path.length()-1);
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
         ClientResponse<String> response = request.get(String.class);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         DocumentList result = mapper.readValue(br, DocumentList.class);
         br.close();
         
@@ -236,15 +275,22 @@ public final class DocumentDelegater extends BusinessDelegater {
         sb.append(CAMMA);
         sb.append(spec.isIncludeModifid());
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
         ClientResponse<String> response = request.get(String.class);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         DocInfoList result = mapper.readValue(br, DocInfoList.class);
         br.close();
         
@@ -259,15 +305,22 @@ public final class DocumentDelegater extends BusinessDelegater {
         sb.append("/odletter/list/");
         sb.append(spec.getKarteId());
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
         ClientResponse<String> response = request.get(String.class);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         LetterModuleList result = mapper.readValue(br, LetterModuleList.class);
         br.close();
        
@@ -281,16 +334,23 @@ public final class DocumentDelegater extends BusinessDelegater {
                 docInfo.setDocType(IInfoModel.DOCTYPE_LETTER);
                 docInfo.setDocId(String.valueOf(module.getId()));
                 docInfo.setConfirmDate(module.getConfirmed());
-                docInfo.setFirstConfirmDate(module.getConfirmed());
+//minagawa^ LSC 1.4 bug fix 文書の印刷日付 2013/06/24
+                //docInfo.setFirstConfirmDate(module.getConfirmed());
+                docInfo.setFirstConfirmDate(module.getStarted());
+//minagawa$                
                 sb = new StringBuilder();
                 if (module.getTitle()!=null) {
                     sb.append(module.getTitle());
+                    Log.outputFuncLog(Log.LOG_LEVEL_3,"I",module.getTitle());
                 } else if(module.getLetterType().equals(IInfoModel.CONSULTANT)) {
                     sb.append(TITLE_REPLY).append(module.getClientHospital());
+                    Log.outputFuncLog(Log.LOG_LEVEL_3,"I",TITLE_REPLY,module.getClientHospital());
                 } else if (module.getLetterType().equals(IInfoModel.CLIENT)) {
                     sb.append(TITLE_LETTER).append(module.getConsultantHospital());
+                    Log.outputFuncLog(Log.LOG_LEVEL_3,"I",TITLE_LETTER,module.getClientHospital());
                 } else if (module.getLetterType().equals(IInfoModel.MEDICAL_CERTIFICATE)) {
                     sb.append(TITLE_CERTIFICATE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_3,"I",TITLE_CERTIFICATE);
                 }
                 docInfo.setTitle(sb.toString());
                 docInfo.setHandleClass(module.getHandleClass());
@@ -298,6 +358,7 @@ public final class DocumentDelegater extends BusinessDelegater {
                 ret.add(docInfo);
             }
         } else {
+            Log.outputFuncLog(Log.LOG_LEVEL_0,"E","parse no results");
             System.err.println("parse no results");
         }
 
@@ -320,13 +381,20 @@ public final class DocumentDelegater extends BusinessDelegater {
         sb.append("/karte/document/");
         sb.append(pk);
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // DELETE
         ClientRequest request = getRequest(path);
         ClientResponse<String> response = request.delete(String.class);
         
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         if (response.getStatus()/100 != 2) {
             String err = "文書が他から参照されている等の理由により、削除できませんでした。";
+            Log.outputFuncLog(Log.LOG_LEVEL_0,"E",err);
+            
             ClientContext.getDelegaterLogger().warn(err);
             throw new RuntimeException(err);
         }
@@ -334,6 +402,8 @@ public final class DocumentDelegater extends BusinessDelegater {
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         StringList result = mapper.readValue(br, StringList.class);
         br.close();
 
@@ -352,6 +422,7 @@ public final class DocumentDelegater extends BusinessDelegater {
         sb.append("/karte/document/");
         sb.append(docInfo.getDocPk());
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // body
         byte[] data = docInfo.getTitle().getBytes(UTF8);
@@ -360,6 +431,11 @@ public final class DocumentDelegater extends BusinessDelegater {
         ClientRequest request = getRequest(path);
         request.body(MediaType.TEXT_PLAIN, data);
         ClientResponse<String> response = request.put(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.TEXT_PLAIN,docInfo.getTitle());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // Count
         String entityStr = getString(response);
@@ -395,11 +471,17 @@ public final class DocumentDelegater extends BusinessDelegater {
         }
 
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
         ClientResponse<String> response = request.get(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         if (false) {
             String test = getString(response);
@@ -409,6 +491,8 @@ public final class DocumentDelegater extends BusinessDelegater {
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         ModuleListList result = mapper.readValue(br, ModuleListList.class);
         br.close();
         
@@ -582,12 +666,16 @@ public final class DocumentDelegater extends BusinessDelegater {
         // PATH
         String path = "/karte/diagnosis/claim";
         
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
         // Converter
         DiagnosisSendWrapperConverter conv = new DiagnosisSendWrapperConverter();
         conv.setModel(wrapper);
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -596,6 +684,11 @@ public final class DocumentDelegater extends BusinessDelegater {
         request.body(MediaType.APPLICATION_JSON, data);   // UTF-8
         ClientResponse<String> response = request.post(String.class);
 
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         // PK list
         String entityStr = getString(response);
         if (entityStr!=null) {
@@ -613,6 +706,7 @@ public final class DocumentDelegater extends BusinessDelegater {
 
         // PATH
         String path = "/karte/diagnosis";
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Wrapper
         RegisteredDiagnosisList list = new RegisteredDiagnosisList();
@@ -624,6 +718,8 @@ public final class DocumentDelegater extends BusinessDelegater {
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -631,6 +727,11 @@ public final class DocumentDelegater extends BusinessDelegater {
         ClientRequest request = getRequest(path);
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.post(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // PK list
         String entityStr = getString(response);
@@ -646,6 +747,7 @@ public final class DocumentDelegater extends BusinessDelegater {
 
         // PATH
         String path = "/karte/diagnosis";
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Wrapper
         RegisteredDiagnosisList list = new RegisteredDiagnosisList();
@@ -657,6 +759,8 @@ public final class DocumentDelegater extends BusinessDelegater {
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -665,6 +769,11 @@ public final class DocumentDelegater extends BusinessDelegater {
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.put(String.class);
 
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         // Count
         String entityStr = getString(response);
         return Integer.parseInt(entityStr);
@@ -681,10 +790,15 @@ public final class DocumentDelegater extends BusinessDelegater {
         }
         String path = sb.toString();
         path = path.substring(0, path.length()-1);
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // DELETE
         ClientRequest request = getRequest(path);
         ClientResponse<String> response = request.delete(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // Check
         checkStatus(response);
@@ -707,15 +821,23 @@ public final class DocumentDelegater extends BusinessDelegater {
         sb.append(new SimpleDateFormat(DATE_TIME_FORMAT_REST).format(fromDate)).append(CAMMA);
         sb.append(activeOnly);
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
         ClientResponse<String> response = request.get(String.class);
         
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         RegisteredDiagnosisList result = mapper.readValue(br, RegisteredDiagnosisList.class);
         br.close();
 
@@ -728,6 +850,7 @@ public final class DocumentDelegater extends BusinessDelegater {
 
         // PATH
         String path = "/karte/observations";
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Wrapper
         ObservationList list = new ObservationList();
@@ -739,6 +862,8 @@ public final class DocumentDelegater extends BusinessDelegater {
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -746,6 +871,11 @@ public final class DocumentDelegater extends BusinessDelegater {
         ClientRequest request = getRequest(path);
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.post(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         
         // PK list
         String entityStr = getString(response);
@@ -762,6 +892,7 @@ public final class DocumentDelegater extends BusinessDelegater {
 
         // PATH
         String path = "/karte/observations/";
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Wrapper
         ObservationList list = new ObservationList();
@@ -773,6 +904,8 @@ public final class DocumentDelegater extends BusinessDelegater {
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -780,6 +913,12 @@ public final class DocumentDelegater extends BusinessDelegater {
         ClientRequest request = getRequest(path);
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.put(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         
         // Count
         String entityStr = getString(response);
@@ -797,10 +936,16 @@ public final class DocumentDelegater extends BusinessDelegater {
         }
         String path = sb.toString();
         path = path.substring(0, path.length()-1);
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // DELETE
         ClientRequest request = getRequest(path);
         ClientResponse<String> response = request.delete(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         
         // Check
         checkStatus(response);
@@ -815,6 +960,7 @@ public final class DocumentDelegater extends BusinessDelegater {
 
         // PATH
         String path = "/karte/memo";
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Converter
         PatientMemoModelConverter conv = new PatientMemoModelConverter();
@@ -822,6 +968,8 @@ public final class DocumentDelegater extends BusinessDelegater {
         
         // JSON
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         String json = mapper.writeValueAsString(conv);
         byte[] data = json.getBytes(UTF8);
         
@@ -829,6 +977,12 @@ public final class DocumentDelegater extends BusinessDelegater {
         ClientRequest request = getRequest(path);
         request.body(MediaType.APPLICATION_JSON, data);
         ClientResponse<String> response = request.put(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         
         // Count
         String entityStr = getString(response);
@@ -859,11 +1013,18 @@ public final class DocumentDelegater extends BusinessDelegater {
         }
 
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
 
         // GET
         ClientRequest request = getRequest(path);
         request.accept(MediaType.APPLICATION_JSON);
         ClientResponse<String> response = request.get(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         
         if (false) {
             String test = getString(response);
@@ -873,6 +1034,8 @@ public final class DocumentDelegater extends BusinessDelegater {
         // Wrapper
         BufferedReader br = getReader(response);
         ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         AppoListList result = mapper.readValue(br, AppoListList.class);
         br.close();
         
@@ -909,10 +1072,16 @@ public final class DocumentDelegater extends BusinessDelegater {
         sb.append(CAMMA);
         sb.append(state);
         String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // PUT
         ClientRequest request = getRequest(path);
         ClientResponse<String> response = request.put(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
         
         // Check
         checkStatus(response);

@@ -2,7 +2,9 @@ package open.dolphin.impl.scheam;
 
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
@@ -218,6 +220,11 @@ public class SchemaEditorImpl implements SchemaEditor {
 
         // 持ってきた SchemaModel の Image を BufferedImage に変換してセット
         BufferedImage srcImage = SchemaUtils.imageToBufferedImage(model.getIcon());
+//s.oh^ 2013/03/29 シェーマで大きすぎる画像の対応(有効にするために以下のコメントを外す)
+        //if(srcImage.getWidth() > MAX_WIDTH || srcImage.getHeight() > MAX_HEIGHT) {
+        //    srcImage = SchemaUtils.imageToBufferedImage(adjustImageSize(model.getIcon(), new Dimension(MAX_WIDTH, MAX_HEIGHT)));
+        //}
+//s.oh$
         canvas.setBaseImage(srcImage);
 
         // canvas と tool の View (JFrame) を作る
@@ -530,5 +537,27 @@ public class SchemaEditorImpl implements SchemaEditor {
     public void recomputeViewBounds(BufferedImage baseImage) {
         properties.recomputeViewBounds(canvasView, toolView, baseImage);
         canvasView.repaint(); // 明示的に描いておかないと，正方形の画像だったら repaint されない
+    }
+    
+    private ImageIcon adjustImageSize(ImageIcon icon, Dimension dim) {
+
+        if ((icon.getIconHeight() > dim.height) ||
+                (icon.getIconWidth() > dim.width)) {
+            Image img = icon.getImage();
+            float hRatio = (float) icon.getIconHeight() / dim.height;
+            float wRatio = (float) icon.getIconWidth() / dim.width;
+            int h,w;
+            if (hRatio > wRatio) {
+                h = dim.height;
+                w = (int) (icon.getIconWidth() / hRatio);
+            } else {
+                w = dim.width;
+                h = (int) (icon.getIconHeight() / wRatio);
+            }
+            img = img.getScaledInstance(w, h, Image.SCALE_SMOOTH);
+            return new ImageIcon(img);
+        } else {
+            return icon;
+        }
     }
 }

@@ -18,6 +18,7 @@ import open.dolphin.helper.SimpleWorker;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  * ログインダイアログ　クラス。
@@ -28,6 +29,7 @@ public class LoginDialog extends AbstractLoginDialog {
     
     private LoginPanel view;
     private StateMgr stateMgr;
+    private boolean loginFlag;
 
     
     /** Creates new LoginService */
@@ -36,6 +38,12 @@ public class LoginDialog extends AbstractLoginDialog {
     
     @Override
     protected void tryLogin() {
+        
+        if(loginFlag) {
+            return;
+        }else{
+            loginFlag = true;
+        }
         
         // User 情報を取得するためのデリゲータを得る
         if (userDlg == null) {
@@ -60,6 +68,10 @@ public class LoginDialog extends AbstractLoginDialog {
                 String fid = Project.getFacilityId();
                 String uid = view.getUserIdField().getText().trim();
                 String password = new String(view.getPasswordField().getPassword());
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "ログインを開始します... ");
+                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "ユーザーID：", uid);
+                Log.outputFuncLog(Log.LOG_LEVEL_4, Log.FUNCTIONLOG_KIND_INFORMATION, "パスワード：", password);
+                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "医療機関ID：", fid);
                 UserModel userModel = userDlg.login(fid, uid, password);
                 return userModel;
             }
@@ -68,7 +80,6 @@ public class LoginDialog extends AbstractLoginDialog {
             protected void succeeded(UserModel userModel) {
                 
                 if (userModel!=null) { 
-                    
                     // 5分間テストの場合、有効期間をテストする
                     if (isTestUser(userModel) && isExpired(userModel)) {
                         // 評価終了
@@ -83,6 +94,7 @@ public class LoginDialog extends AbstractLoginDialog {
                         sb.append(time).append(":");
                         sb.append(userModel.getUserId()).append(" がログインしました");
                         ClientContext.getPart11Logger().info(sb.toString());
+                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, sb.toString());
 
                         //----------------------------------
                         // ユーザモデルを ProjectStub へ保存する
@@ -102,6 +114,7 @@ public class LoginDialog extends AbstractLoginDialog {
                         showTryOutError();
                         setResult(LoginStatus.NOT_AUTHENTICATED);
                     }
+                    loginFlag = false;
                 }
             }
             
@@ -114,11 +127,13 @@ public class LoginDialog extends AbstractLoginDialog {
                 if (tryCount <= maxTryCount) {
                     //showMessageDialog(cause.getMessage());
                     showMessageDialog("ログイン情報が間違っています");
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "ログイン情報が間違っています");
 
                 } else {
                     showTryOutError();
                     setResult(LoginStatus.NOT_AUTHENTICATED);
                 }
+                loginFlag = false;
             }
         };
         

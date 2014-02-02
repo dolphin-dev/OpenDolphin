@@ -15,6 +15,7 @@ import javax.swing.*;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.GUIFactory;
 import open.dolphin.plugin.PluginLoader;
+import open.dolphin.util.Log;
 import org.apache.log4j.Logger;
 
 /**
@@ -402,11 +403,14 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
         dialog.setVisible(false);
         dialog.dispose();
         notifyResult();
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "設定の保存");
     }
 
     public void doCancel() {
         dialog.setVisible(false);
         dialog.dispose();
         notifyResult();
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "設定の保存キャンセル");
     }
 }

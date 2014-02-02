@@ -20,6 +20,7 @@ import open.dolphin.helper.SimpleWorker;
 import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
 import open.dolphin.util.GUIDGenerator;
+import open.dolphin.util.Log;
 import org.apache.log4j.Logger;
 
 /**
@@ -474,6 +475,7 @@ public class StampTree extends JTree implements TreeModelListener {
                                 buf.toString(),
                                 ClientContext.getFrameTitle(STAMP_SAVE_TASK_NAME),
                                 JOptionPane.INFORMATION_MESSAGE);
+                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(STAMP_SAVE_TASK_NAME), buf.toString());
                     }
                 });
             }
@@ -503,6 +505,10 @@ public class StampTree extends JTree implements TreeModelListener {
         stampModel.setUserId(Project.getUserModel().getId());               // userId
         stampModel.setEntity(stampInfo.getEntity());                        // entity
         stampModel.setStampBytes(getXMLBytes(stampToReplcae.getModel()));   // XML
+        
+//s.oh^ 2013/11/08 スタンプ置換不具合
+        stampInfo.setStampMemo(constractToolTip(stampToReplcae));           // Tooltip
+//s.oh$
 
         worker = new SimpleWorker<String, Void>() {
 
@@ -1091,6 +1097,7 @@ public class StampTree extends JTree implements TreeModelListener {
                 message,
                 ClientContext.getFrameTitle(title),
                 JOptionPane.WARNING_MESSAGE);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), message);
     }
         
     /**
@@ -1193,6 +1200,7 @@ public class StampTree extends JTree implements TreeModelListener {
                         ClientContext.getFrameTitle(taskTitle),
                         JOptionPane.INFORMATION_MESSAGE
                         );
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(taskTitle), msg0, msg1);
             return;
         }
         

@@ -16,6 +16,7 @@ import open.dolphin.infomodel.StampModel;
 import open.dolphin.project.Project;
 import open.dolphin.stampbox.StampTreeNode;
 import open.dolphin.util.BeanUtils;
+import open.dolphin.util.Log;
 
 /**
  * StampHolderTransferHandler
@@ -97,14 +98,18 @@ public class StampHolderTransferHandler extends TransferHandler implements IKart
                  JOptionPane.QUESTION_MESSAGE, 
                  null, 
                  new String[]{replace, cancel}, replace);
+         Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "スタンプ Drag and Drop", "スタンプを置き換えますか?");
          
          if (option == 0) {
+             Log.outputOperLogDlg(pPane.getParent(), Log.LOG_LEVEL_0, replace);
              replaceStamp(target, stampInfo);
+         }else{
+             Log.outputOperLogDlg(pPane.getParent(), Log.LOG_LEVEL_0, cancel);
          }
     }
 
     @Override
- //minagawa^ Paste problem   
+//minagawa^ Paste problem 2013/04/14 不具合修正(スタンプが消える)
     //public boolean importData(JComponent c, Transferable tr) {
     public boolean importData(TransferHandler.TransferSupport support) {    
 
@@ -120,7 +125,7 @@ public class StampHolderTransferHandler extends TransferHandler implements IKart
             try {
                 droppedNode = (StampTreeNode) tr.getTransferData(LocalStampTreeNodeTransferable.localStampTreeNodeFlavor);
                 
-            } catch (UnsupportedFlavorException | IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace(System.err);
                 return false;
             }
@@ -160,7 +165,10 @@ public class StampHolderTransferHandler extends TransferHandler implements IKart
         if (action == MOVE &&
                 context.getDrragedStamp() != null &&
                 context.getDraggedCount() == context.getDroppedCount()) {
-            context.removeStamp(test); // TODO 
+//s.oh^ 2013/11/26 スクロールバーのリセット
+            //context.removeStamp(test); // TODO 
+            context.removeStamp(test, false);
+//s.oh$
         }
         context.setDrragedStamp(null);
         context.setDraggedCount(0);
@@ -170,7 +178,7 @@ public class StampHolderTransferHandler extends TransferHandler implements IKart
     /**
      * インポート可能かどうかを返す。
      */
-//minagawa^ Paste problem    
+//minagawa^ Paste problem 2013/04/14 不具合修正(スタンプが消える)
 //   @Override
 //    public boolean canImport(JComponent c, DataFlavor[] flavors) {
 //        StampHolder test = (StampHolder) c;
@@ -210,7 +218,10 @@ public class StampHolderTransferHandler extends TransferHandler implements IKart
         if (action == MOVE) {
             KartePane kartePane = sh.getKartePane();
             if (kartePane.getTextPane().isEditable()) {
-                kartePane.removeStamp(sh);
+//s.oh^ 2013/11/26 スクロールバーのリセット
+                //kartePane.removeStamp(sh);
+                kartePane.removeStamp(sh, true);
+//s.oh$
             }
         }
     }

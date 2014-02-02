@@ -73,7 +73,8 @@ public class BundleTransferHandler extends TransferHandler implements IKarteTran
                 tc.replaceSelection(str);
                 return true;
             }
-        } catch (UnsupportedFlavorException | IOException ufe) {
+        } catch (UnsupportedFlavorException ufe) {
+        } catch (IOException ioe) {
         }
         
         return false;
@@ -159,8 +160,9 @@ public class BundleTransferHandler extends TransferHandler implements IKarteTran
                     tc.replaceSelection(bd.toString());
                 }
             }
+            
             return true;
-        } catch (UnsupportedFlavorException | IOException e) {        
+        } catch (Exception e) {
             e.printStackTrace(System.err);
         }
         return false;
