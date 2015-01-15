@@ -51,6 +51,16 @@ public class XmlReadWrite extends XML {
     /**
      * 要素の数の取得
      * @param ele 要素
+     * @param tag 要素値
+     * @return 要素数
+     */
+    public int getEleNum(Element ele, String tag) {
+        return getElementNum(ele, tag);
+    }
+    
+    /**
+     * 要素の数の取得
+     * @param ele 要素
      * @return 要素数
      */
     public int getEleNum(Element ele) {

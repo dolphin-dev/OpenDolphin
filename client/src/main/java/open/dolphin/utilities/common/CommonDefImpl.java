@@ -38,8 +38,5 @@ public interface CommonDefImpl {
     
     // SocketConnect
     public static final String CHARSET_SHIFTJIS = "Shift_JIS";
-    
-    // ORCA
-    public static final String ORCAAPI_VER_47 = "47";
 }
 

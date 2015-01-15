@@ -49,6 +49,8 @@ public class InjectionViewText extends javax.swing.JPanel implements IInjectionV
         searchResultTable = new javax.swing.JTable();
         noChargeChk = new javax.swing.JCheckBox();
         partialChk = new javax.swing.JCheckBox();
+        numberCombo = new javax.swing.JComboBox();
+        numberComobo = new javax.swing.JLabel();
 
         setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 12, 11, 11));
         setMaximumSize(new java.awt.Dimension(1024, 768));
@@ -119,6 +121,14 @@ public class InjectionViewText extends javax.swing.JPanel implements IInjectionV
         partialChk.setText("部分一致"); // NOI18N
         partialChk.setToolTipText("部分一致検索をします。"); // NOI18N
 
+        numberCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" }));
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/order/Bundle"); // NOI18N
+        numberCombo.setToolTipText(bundle.getString("InjectionViewText.numberCombo.toolTipText")); // NOI18N
+        numberCombo.setName("numberCombo"); // NOI18N
+
+        numberComobo.setText(bundle.getString("InjectionViewText.numberComobo.text")); // NOI18N
+        numberComobo.setName("numberComobo"); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -131,6 +141,10 @@ public class InjectionViewText extends javax.swing.JPanel implements IInjectionV
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(infoLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(numberComobo)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(numberCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(noChargeChk)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(techChk))
@@ -169,8 +183,10 @@ public class InjectionViewText extends javax.swing.JPanel implements IInjectionV
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(techChk)
-                            .addComponent(noChargeChk))
-                        .addGap(10, 10, 10))
+                            .addComponent(noChargeChk)
+                            .addComponent(numberCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(numberComobo))
+                        .addGap(6, 6, 6))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(infoLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)))
@@ -207,6 +223,8 @@ public class InjectionViewText extends javax.swing.JPanel implements IInjectionV
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JCheckBox noChargeChk;
+    private javax.swing.JComboBox numberCombo;
+    private javax.swing.JLabel numberComobo;
     private javax.swing.JButton okBtn;
     private javax.swing.JButton okCntBtn;
     private javax.swing.JCheckBox partialChk;
@@ -323,5 +341,17 @@ public class InjectionViewText extends javax.swing.JPanel implements IInjectionV
     public javax.swing.JCheckBox getPartialChk() {
         return partialChk;
     }
+
+    @Override
+    public javax.swing.JComboBox getNumberCombo() {
+        return numberCombo;
+    }
+
+//s.oh^ 2014/10/22 Icon表示
+    @Override
+    public javax.swing.JLabel getSearchLabel() {
+        return jLabel3;
+    }
+//s.oh$
 
 }

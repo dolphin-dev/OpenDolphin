@@ -23,6 +23,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import open.dolphin.common.OrcaConnect;
 import open.dolphin.converter.*;
 import open.dolphin.infomodel.*;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -968,7 +969,10 @@ public class OrcaResource {
         
         StringBuilder sb1 = new StringBuilder();
         if (true) {
-            sb1.append("select inputcd,suryo1,kaisu from tbl_inputset where hospnum=? and setcd=? order by setseq");
+//s.oh^ 2014/04/01 ORCAセット有効期限対応
+            //sb1.append("select inputcd,suryo1,kaisu from tbl_inputset where hospnum=? and setcd=? order by setseq");
+            sb1.append("select inputcd,suryo1,kaisu,yukostymd,yukoedymd from tbl_inputset where hospnum=? and setcd=? order by setseq");
+//s.oh$
             sql1 = sb1.toString();
         } else {
             sb1.append("select inputcd,suryo1,kaisu from tbl_inputset where setcd=? order by setseq");
@@ -1004,6 +1008,12 @@ public class OrcaResource {
             ResultSet rs = ps1.executeQuery();
             
             ArrayList<OrcaInputSet> list = new ArrayList<OrcaInputSet>();
+                
+//s.oh^ 2014/04/01 ORCAセット有効期限対応
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+            String strtoday = sdf.format(new Date());
+            int today = Integer.parseInt(strtoday);
+//s.oh$
 
             while (rs.next()) {
                
@@ -1033,7 +1043,20 @@ public class OrcaResource {
                 debug("getSuryo1 = " + String.valueOf(inputSet.getSuryo1()));
                 debug("getKaisu = " + String.valueOf(inputSet.getKaisu()));
                 
-                list.add(inputSet);
+//s.oh^ 2014/04/01 ORCAセット有効期限対応
+                //list.add(inputSet);
+                String strst = rs.getString(4);
+                String stred = rs.getString(5);
+                debug("st = " + strst);
+                debug("ed = " + stred);
+                int st = Integer.parseInt(strst);
+                int ed = Integer.parseInt(stred);
+                if(st <= today && today <= ed) {
+                    list.add(inputSet);
+                }else{
+                    continue;
+                }
+//s.oh$
             }
             
             rs.close();
@@ -1082,6 +1105,9 @@ public class OrcaResource {
                             String name = rs2.getString(2);
                             String number = String.valueOf(inputSet.getSuryo1());
                             String unit = rs2.getString(3);
+////s.oh^ 2014/06/24 ORCAセットの改善
+//                            String ykz = rs2.getString(4);
+////s.oh$
                             
                             debug("code = " + code);
                             debug("kbn = " + kbn);
@@ -1094,6 +1120,9 @@ public class OrcaResource {
                             item.setName(name);
                             item.setNumber(number);
                             item.setClassCodeSystem(ClaimConst.SUBCLASS_CODE_ID);
+////s.oh^ 2014/06/24 ORCAセットの改善
+//                            item.setYkzKbn(ykz);
+////s.oh$
                             
                             if (code.startsWith(ClaimConst.SYUGI_CODE_START)) {
                                 //
@@ -1111,6 +1140,11 @@ public class OrcaResource {
                                 }
                                 
                                 if (bundle != null) {
+//s.oh^ 2014/03/31 スタンプ回数対応
+                                    if(inputSet.getKaisu() > 0) {
+                                        bundle.setBundleNumber(String.valueOf(inputSet.getKaisu()));
+                                    }
+//s.oh$
                                     bundle.addClaimItem(item);
                                 } 
                             
@@ -1136,6 +1170,11 @@ public class OrcaResource {
                                 }
                                 
                                 if (bundle != null) {
+//s.oh^ 2014/03/31 スタンプ回数対応
+                                    if(inputSet.getKaisu() > 0) {
+                                        bundle.setBundleNumber(String.valueOf(inputSet.getKaisu()));
+                                    }
+//s.oh$
                                     bundle.addClaimItem(item);
                                 }
                                 
@@ -1158,6 +1197,11 @@ public class OrcaResource {
                                 }
                                 
                                 if (bundle != null) {
+//s.oh^ 2014/03/31 スタンプ回数対応
+                                    if(inputSet.getKaisu() > 0) {
+                                        bundle.setBundleNumber(String.valueOf(inputSet.getKaisu()));
+                                    }
+//s.oh$
                                     bundle.addClaimItem(item);
                                 }
                                 
@@ -1203,6 +1247,11 @@ public class OrcaResource {
                                 }
                                 
                                 if (bundle != null) {
+//s.oh^ 2014/03/31 スタンプ回数対応
+                                    if(inputSet.getKaisu() > 0) {
+                                        bundle.setBundleNumber(String.valueOf(inputSet.getKaisu()));
+                                    }
+//s.oh$
                                     bundle.addClaimItem(item);
                                 }
 
@@ -1217,6 +1266,11 @@ public class OrcaResource {
                                     }
                                 }
                                 if (bundle != null) {
+//s.oh^ 2014/03/31 スタンプ回数対応
+                                    if(inputSet.getKaisu() > 0) {
+                                        bundle.setBundleNumber(String.valueOf(inputSet.getKaisu()));
+                                    }
+//s.oh$
                                     bundle.addClaimItem(item);
                                 }
                             }
@@ -1421,7 +1475,8 @@ public class OrcaResource {
         }
         
         sb = new StringBuilder();
-        sb.append("select sryymd,khnbyomeicd,utagaiflg,syubyoflg,tenkikbn,tenkiymd,byomei from tbl_ptbyomei where ");
+        //sb.append("select sryymd,khnbyomeicd,utagaiflg,syubyoflg,tenkikbn,tenkiymd,byomei from tbl_ptbyomei where ");
+        sb.append("select sryymd,khnbyomeicd,utagaiflg,syubyoflg,tenkikbn,tenkiymd,byomei,sryka from tbl_ptbyomei where "); // 診療科追加
         if (ascend) {
             if (hospNum > 0) {
                 sb.append("hospnum=? and ptid=? and sryymd >= ? and sryymd <= ? and dltflg!=? order by sryymd");
@@ -1481,6 +1536,10 @@ public class OrcaResource {
                 
                 // 疾患名
                 ord.setDiagnosis(rs.getString(7));
+                
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+                ord.setDepartment(rs.getString(8));
+//s.oh$
                 
                 // 制御のための Status
                 ord.setStatus("ORCA");
@@ -1564,11 +1623,18 @@ public class OrcaResource {
         }
 
         sb = new StringBuilder();
-        sb.append("select sryymd,khnbyomeicd,utagaiflg,syubyoflg,tenkikbn,tenkiymd,byomei from tbl_ptbyomei where ");
+        //sb.append("select sryymd,khnbyomeicd,utagaiflg,syubyoflg,tenkikbn,tenkiymd,byomei from tbl_ptbyomei where ");
+        sb.append("select sryymd,khnbyomeicd,utagaiflg,syubyoflg,tenkikbn,tenkiymd,byomei,sryka from tbl_ptbyomei where "); // 診療科追加
         if (hospNum > 0) {
-            sb.append("hospnum=? and ptid=? and tenkikbn=? and dltflg!=? order by sryymd");
+//s.oh^ 2014/03/18 ORCAから傷病名の取込
+            //sb.append("hospnum=? and ptid=? and tenkikbn=? and dltflg!=? order by sryymd");
+            sb.append("hospnum=? and ptid=? and dltflg!=? order by sryymd");
+//s.oh$
         } else {
-            sb.append("ptid=? and tenkikbn=? and dltflg!=? order by sryymd");
+//s.oh^ 2014/03/18 ORCAから傷病名の取込
+            //sb.append("ptid=? and tenkikbn=? and dltflg!=? order by sryymd");
+            sb.append("ptid=? and dltflg!=? order by sryymd");
+//s.oh$
         }
         if (!asc) {
             sb.append(" desc");
@@ -1583,12 +1649,18 @@ public class OrcaResource {
             if (hospNum > 0) {
                 pt.setInt(1, hospNum);
                 pt.setInt(2, Integer.parseInt(ptid));   // 元町皮膚科
-                pt.setString(3, " ");
-                pt.setString(4, "1");
+//s.oh^ 2014/03/18 ORCAから傷病名の取込
+                //pt.setString(3, " ");
+                //pt.setString(4, "1");
+                pt.setString(3, "1");
+//s.oh$
             } else {
                 pt.setInt(1, Integer.parseInt(ptid));   // 元町皮膚科
-                pt.setString(2, " ");
-                pt.setString(3, "1");
+//s.oh^ 2014/03/18 ORCAから傷病名の取込
+                //pt.setString(2, " ");
+                //pt.setString(3, "1");
+                pt.setString(2, "1");
+//s.oh$
             }
             ResultSet rs = pt.executeQuery();
             collection = new ArrayList<RegisteredDiagnosisModel>();
@@ -1617,6 +1689,10 @@ public class OrcaResource {
 
                 // 疾患名
                 ord.setDiagnosis(rs.getString(7));
+                
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+                ord.setDepartment(rs.getString(8));
+//s.oh$
 
                 // 制御のための Status
                 ord.setStatus("ORCA");
@@ -1647,6 +1723,48 @@ public class OrcaResource {
 
         return null;
     }
+    
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+    @GET
+    @Path("/deptinfo")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getDeptInfo() {
+        String ret = "";
+        try {
+            // custom.properties から 保健医療機関コードとJMARIコードを読む
+            Properties config = new Properties();
+            // コンフィグファイルを読み込む
+            StringBuilder sb = new StringBuilder();
+            sb.append(System.getProperty("jboss.home.dir"));
+            sb.append(File.separator);
+            sb.append("custom.properties");
+            File f = new File(sb.toString());
+            FileInputStream fin = new FileInputStream(f);
+            InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect");
+            config.load(r);
+            r.close();
+            String ip = config.getProperty("orca.orcaapi.ip", config.getProperty("claim.host"));
+            String port = config.getProperty("orca.orcaapi.port", "8000");
+            String id = config.getProperty("orca.id", "ormaster");
+            String password = config.getProperty("orca.password", "ormaster123");
+            if(ip != null) {
+                OrcaConnect orcaApi = new OrcaConnect(ip, port, id, password, null);
+                SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
+                ret = orcaApi.getDepartmentInfo(sf.format(new Date()));
+                log(ret);
+                ret = ret.replaceAll("\\<.*?>", ",");
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(OrcaResource.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(OrcaResource.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(OrcaResource.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return ret;
+    }
+//s.oh$
     
     // ORCA カテゴリ
     private void storeSuspectedDiagnosis(RegisteredDiagnosisModel rdm, String test) {

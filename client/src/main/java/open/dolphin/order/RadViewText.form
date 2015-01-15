@@ -35,6 +35,10 @@
           <Group type="102" attributes="0">
               <Component id="infoLabel" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="32767" attributes="0"/>
+              <Component id="numberLabel" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="numberCombo" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
               <Component id="techCheck" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="partCheck" min="-2" max="-2" attributes="0"/>
@@ -64,7 +68,7 @@
                       <Component id="countField" min="-2" pref="64" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
-                      <EmptySpace min="0" pref="39" max="32767" attributes="0"/>
+                      <EmptySpace min="0" pref="55" max="32767" attributes="0"/>
                       <Component id="deleteBtn" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="clearBtn" min="-2" max="-2" attributes="0"/>
@@ -85,6 +89,8 @@
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="partCheck" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="techCheck" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="numberCombo" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="numberLabel" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -108,7 +114,7 @@
                   <Component id="partialChk" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jScrollPane2" pref="273" max="32767" attributes="0"/>
+              <Component id="jScrollPane2" pref="269" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -191,11 +197,6 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel3">
-      <Properties>
-        <Property name="icon" type="javax.swing.Icon" noResource="true" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/open/dolphin/resources/images/srch_16.gif"/>
-        </Property>
-      </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="searchTextField">
       <Properties>
@@ -249,6 +250,36 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="&#x90e8;&#x5206;&#x4e00;&#x81f4;" noResource="true"/>
         <Property name="toolTipText" type="java.lang.String" value="&#x90e8;&#x5206;&#x4e00;&#x81f4;&#x691c;&#x7d22;&#x3092;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JComboBox" name="numberCombo">
+      <Properties>
+        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+          <StringArray count="10">
+            <StringItem index="0" value="1"/>
+            <StringItem index="1" value="2"/>
+            <StringItem index="2" value="3"/>
+            <StringItem index="3" value="4"/>
+            <StringItem index="4" value="5"/>
+            <StringItem index="5" value="6"/>
+            <StringItem index="6" value="7"/>
+            <StringItem index="7" value="8"/>
+            <StringItem index="8" value="9"/>
+            <StringItem index="9" value="10"/>
+          </StringArray>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/Bundle.properties" key="RadViewText.numberCombo.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="name" type="java.lang.String" value="numberCombo" noResource="true"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="numberLabel">
+      <Properties>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/Bundle.properties" key="RadViewText.numberLabel.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="name" type="java.lang.String" value="numberLabel" noResource="true"/>
       </Properties>
     </Component>
   </SubComponents>

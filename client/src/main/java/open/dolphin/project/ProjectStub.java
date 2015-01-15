@@ -5,6 +5,7 @@ import java.awt.Rectangle;
 import java.beans.XMLDecoder;
 import java.beans.XMLEncoder;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Properties;
 import open.dolphin.client.ClientContext;
@@ -23,15 +24,15 @@ public final class ProjectStub implements java.io.Serializable {
     // デフォルトのプロジェクト名
     private final String DEFAULT_PROJECT_NAME = "OpenDolphin";
     
-    // OpenDolphin 
+    // OpenDolphin
     private final String OPEN_DOLPHIN_URI = "http://localhost:8080";
     
-//minagawa^  Celf Sert Test
+//minagawa^  Self Cert Test
     private final String OPEN_DOLPHIN_SELF_CERT_URI = "https://localhost:443";
 //minagawa$    
     
     // 5分間テストの Server URI
-    private final String TEST_5M_URI = "http://dolphinpro.lscc.co.jp:8080";
+    private final String TEST_5M_URI = "http://localhost:8080";
     
     // OpenDolphin のデフォルト施設ID
     private final String DEFAULT_FACILITY_ID = "1.3.6.1.4.1.9414.10.1";
@@ -62,6 +63,14 @@ public final class ProjectStub implements java.io.Serializable {
     
     /** ヒロクリニック 医療機関基本情報(ORCA登録) */
     private String basicInfo;
+    
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+    private ArrayList<String> deptInfo;
+//s.oh$
+    
+//s.oh^ 2014/07/08 クラウド0対応
+    private boolean cloudZero;
+//s.oh$
 
     /**
      * ProjectStub を生成する。
@@ -71,10 +80,10 @@ public final class ProjectStub implements java.io.Serializable {
         try {
             // デフォルトプロパティを読み込む
             InputStream in = ClientContext.getResourceAsStream("Defaults.properties");
-            BufferedInputStream bin = new BufferedInputStream(in);
-            applicationDefaults = new Properties();
-            applicationDefaults.load(bin);
-            bin.close();
+            try (BufferedInputStream bin = new BufferedInputStream(in)) {
+                applicationDefaults = new Properties();
+                applicationDefaults.load(bin);
+            }
             
             // ASPの場合はClaimConnection==clientにする
             if (ClientContext.isOpenDolphin()) {
@@ -102,10 +111,10 @@ public final class ProjectStub implements java.io.Serializable {
             if (f.exists()) {
                 FileInputStream fin = new FileInputStream(f);
                 InputStreamReader inr = new InputStreamReader(fin, "JISAutoDetect");
-                BufferedReader br = new BufferedReader(inr);
-                customDefaults = new Properties();
-                customDefaults.load(br);
-                br.close();
+                try (BufferedReader br = new BufferedReader(inr)) {
+                    customDefaults = new Properties();
+                    customDefaults.load(br);
+                }
 
                 // UserDefaultへ設定する
                 Enumeration e = customDefaults.propertyNames();
@@ -172,7 +181,7 @@ public final class ProjectStub implements java.io.Serializable {
 
     /**
      * プロジェクト名を返す。
-     * @return プロジェクト名 (Dolphin ASP, HOT, MAIKO, HANIWA ... etc)
+     * @param projectName
      */
     public void setName(String projectName) {
         setString(Project.PROJECT_NAME, projectName);
@@ -206,7 +215,7 @@ public final class ProjectStub implements java.io.Serializable {
 
     /**
      * ログイン画面用のFacilityIDを設定する。
-     * @param ログイン画面に表示するFacilityID
+     * @param val
      */
     public void setFacilityId(String val) {
         setString(Project.FACILITY_ID, val);
@@ -222,7 +231,7 @@ public final class ProjectStub implements java.io.Serializable {
 
     /**
      * ログイン画面用のUserIDを設定する。
-     * @param ログイン画面に表示するUserId
+     * @param val
      */
     public void setUserId(String val) {
         setString(Project.USER_ID, val);
@@ -270,11 +279,13 @@ public final class ProjectStub implements java.io.Serializable {
                 sb.append(REST_BASE_RESOURCE);
                 baseURI = sb.toString();
             
+//minagawa^  Self Cert Test
             } else if (ClientContext.isSelfCertTest()) {
                 StringBuilder sb = new StringBuilder();
                 sb.append(OPEN_DOLPHIN_SELF_CERT_URI);
                 sb.append(REST_BASE_RESOURCE);
                 baseURI = sb.toString();
+//minagawa$
             }
         }
         return baseURI;
@@ -743,5 +754,25 @@ public final class ProjectStub implements java.io.Serializable {
     public void setBasicInfo(String basicInfo) {
         this.basicInfo = basicInfo;
     }
+    
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+    public ArrayList<String> getDeptInfo() {
+        return deptInfo;
+    }
+    
+    public void setDeptInfo(ArrayList<String> info) {
+        this.deptInfo = info;
+    }
+//s.oh$
+    
+//s.oh^ 2014/07/08 クラウド0対応
+    public boolean isCloudZero() {
+        return cloudZero;
+    }
+    
+    public void setCloudZero(boolean cloudZero) {
+        this.cloudZero = cloudZero;
+    }
+//s.oh$
 
 }

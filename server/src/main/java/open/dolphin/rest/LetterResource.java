@@ -3,6 +3,8 @@ package open.dolphin.rest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -39,6 +41,8 @@ public class LetterResource extends AbstractResource {
         // 2013/06/24
         mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         LetterModule model = mapper.readValue(json, LetterModule.class);
+        
+        Logger.getLogger("open.dolphin").log(Level.INFO, "LinkID : {0}, PatID : {1}", new Object[]{String.valueOf(model.getLinkId()), model.getPatientId()});
 
         Long pk = letterServiceBean.saveOrUpdateLetter(model);
 

@@ -1,10 +1,13 @@
 package open.dolphin.impl.img;
 
 import java.awt.Desktop;
+import java.awt.Window;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.DirectoryStream;
@@ -16,6 +19,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.ProgressMonitor;
 import javax.swing.SwingWorker;
@@ -26,6 +30,7 @@ import open.dolphin.client.ClientContext;
 import open.dolphin.client.ImageEntry;
 import open.dolphin.helper.ImageHelper;
 import open.dolphin.infomodel.PatientModel;
+import open.dolphin.util.Log;
 import org.apache.log4j.Level;
 
 /**
@@ -82,6 +87,12 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
     protected boolean imageOrPDFIsExist;
     
     protected int imgCounter;
+    
+    protected String nowLocation;
+    
+//s.oh^ 2014/05/07 PDF・画像タブの改善
+    protected boolean scanning;
+//s.oh$
     
     public AbstractBrowser() {
         DEBUG = (ClientContext.getBootLogger().getLevel()==Level.DEBUG);
@@ -293,12 +304,24 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
      * 患者フォルダをスキャンする。
      */
     protected void scan(String imgLoc) {
+        
+//s.oh^ 2014/05/07 PDF・画像タブの改善
+        if(scanning) {
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "scan実行中のため再度実行しない");
+            return;
+        }
+        scanning = true;
+//s.oh$
 
         //String imgLoc = getImgLocation();
+        imgCounter = 0;
 
         if (valueIsNullOrEmpty(imgLoc)) {
             tableModel.clear();
             this.setImageOrPDFIsExist(false);
+//s.oh^ 2014/05/07 PDF・画像タブの改善
+            scanning = false;
+//s.oh$
             return;
         }
 
@@ -312,6 +335,9 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
         if (!Files.exists(imageDir) || !Files.isDirectory(imageDir)) {
             tableModel.clear();
             this.setImageOrPDFIsExist(false);
+//s.oh^ 2014/05/07 PDF・画像タブの改善
+            scanning = false;
+//s.oh$
             return;
         }  
 ////        List<File> allFiles = new ArrayList<File>();
@@ -342,6 +368,9 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
         if (paths.isEmpty()) {
             tableModel.clear();
             this.setImageOrPDFIsExist(false);
+//s.oh^ 2014/05/07 PDF・画像タブの改善
+            scanning = false;
+//s.oh$
             return;
         }
         setImageOrPDFIsExist(true);
@@ -433,8 +462,20 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
                     URL url = uri.toURL();
                     String pathStr = path.toAbsolutePath().toString();
                     String fileName = path.getFileName().toString();
+                    if(fileName.endsWith("Thumbs.db")) {
+                        continue;
+                    }
                     //File f = path.toFile();
-                    long last = Files.getLastModifiedTime(path).toMillis();
+//s.oh^ 2014/05/07 PDF・画像タブの改善
+                    //long last = Files.getLastModifiedTime(path).toMillis();
+                    long last = 0;
+                    try{
+                        Files.getLastModifiedTime(path).toMillis();
+                    }catch(IOException e) {
+                        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_WARNING, "ファイルが素材しない", e.toString());
+                        continue;
+                    }
+//s.oh$
 
                     debug(uri, url, pathStr, fileName);
                     
@@ -465,7 +506,10 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
                     // 拡張子のないファイル ToDo
                     String suffix = getSuffix(fileName);
                     if (suffix == null) {
-                        continue;
+//s.oh^ 2014/07/29 PDF・画像タブの改善
+                        //continue;
+                        suffix = "unnone";
+//s.oh$
                     }
 
                     boolean found = false;
@@ -474,7 +518,11 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
                     for (int i = 0; i < ACCEPT_IMAGE_TYPES.length; i++) {
                         if (ACCEPT_IMAGE_TYPES[i].equals(suffix)) {
 //minagawa^ jdk7                           
-                            BufferedImage image =  ImageIO.read(Files.newInputStream(path));
+//s.oh^ 2014/05/07 PDF・画像タブの改善
+                            //BufferedImage image =  ImageIO.read(Files.newInputStream(path));
+                            InputStream is = Files.newInputStream(path);
+                            BufferedImage image =  ImageIO.read(is);
+//s.oh$
 //s.oh^ 2013/03/15 不具合修正(表示できない画像対応)
                             //image = ImageHelper.getFirstScaledInstance(image, MAX_IMAGE_SIZE);
                             //ImageIcon icon = new ImageIcon(image);
@@ -487,6 +535,12 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
                             }else{
                                 image = ImageHelper.getFirstScaledInstance(image, MAX_IMAGE_SIZE);
                                 icon = new ImageIcon(image);
+//s.oh^ 2014/02/24 PDF・画像ファイルの解放
+                                image.flush();
+//s.oh$
+//s.oh^ 2014/05/07 PDF・画像タブの改善
+                                is.close();
+//s.oh$
                             }
 //s.oh$
 
@@ -573,6 +627,9 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
                 } catch (InterruptedException | ExecutionException ex) {
                     ex.printStackTrace(System.err);
                 }
+//s.oh^ 2014/05/07 PDF・画像タブの改善
+                scanning = false;
+//s.oh$
             }
         };
         
@@ -597,6 +654,20 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
     
         worker.execute();
     }
+    
+//s.oh^ 2014/05/07 PDF・画像タブの改善
+    protected boolean isScanning(Window parent, String msg) {
+        if(scanning) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("読み込み中のため、");
+            sb.append(msg);
+            JOptionPane.showMessageDialog(parent, sb.toString(), "読み込み中...", JOptionPane.WARNING_MESSAGE);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "読み込み中...", sb.toString());
+            return true;
+        }
+        return false;
+    }
+//s.oh$
 
     protected abstract String getImgLocation();
 
@@ -617,6 +688,10 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
         } catch (Exception ex) {
             ClientContext.getBootLogger().warn(ex);
         }
+    }
+    
+    protected String getNowLocation() {
+        return nowLocation;
     }
     
     @Override
@@ -640,4 +715,19 @@ public abstract class AbstractBrowser extends AbstractChartDocument {
     public JTable getTable() {
         return table;
     }
+    
+//s.oh^ 2014/07/29 PDF・画像タブの改善
+    protected String checkDirName(String location, String name) {
+        File dir = new File(location, name);
+        if(dir.exists()) {
+            for(int i = 2; i < 10000; i++) {
+                dir = new File(location, String.format("%s（%d）", name, i));
+                if(!dir.exists()) {
+                    break;
+                }
+            }
+        }
+        return dir.getName();
+    }
+//s.oh$
 }

@@ -35,9 +35,20 @@ public class PatientInfoDocument extends AbstractChartDocument {
     private static final String TITLE = "患者情報";
     
     // 患者属性名
+//s.oh^ 2014/08/29 患者情報の追加
+    //private static final String[] PATIENT_ATTRS = { 
+    //    "患者 ID", "氏  名", "カナ", "ローマ字 *","性  別", "生年月日", "国  籍 *", "婚姻状況 *", "郵便番号", "住  所", "電  話", "携帯電話 *", "電子メール *"
+    //};
+    //private static final String[] PATIENT_ATTRS_TEMP = { 
+    //    "患者 ID", "氏  名", "カナ", "ローマ字","性  別", "生年月日", "国  籍", "婚姻状況", "郵便番号", "住  所", "電  話", "携帯電話", "電子メール"
+    //};
     private static final String[] PATIENT_ATTRS = { 
-        "患者 ID", "氏  名", "カナ", "ローマ字 *","性  別", "生年月日", "国  籍 *", "婚姻状況 *", "郵便番号", "住  所", "電  話", "携帯電話 *", "電子メール *"
+        "患者 ID", "氏  名", "カナ", "ローマ字 *","性  別", "生年月日", "国  籍 *", "婚姻状況 *", "郵便番号", "住  所", "電  話", "携帯電話 *", "電子メール *", "ケアマネ *", "訪問看護ステーション *", "デイサービス *", "調剤薬局 *", "キーパーソン *", "訪問入浴 *"
     };
+    private static final String[] PATIENT_ATTRS_TEMP = { 
+        "患者 ID", "氏  名", "カナ", "ローマ字","性  別", "生年月日", "国  籍", "婚姻状況", "郵便番号", "住  所", "電  話", "携帯電話", "電子メール", "ケアマネ", "訪問看護ステーション", "デイサービス", "調剤薬局", "キーパーソン", "訪問入浴"
+    };
+//s.oh$
 
 //minagawa^ Icon Server    
     // Info アイコン
@@ -50,7 +61,10 @@ public class PatientInfoDocument extends AbstractChartDocument {
     private static final String[] COLUMN_NAMES = { "項   目", "値" };
     
     // 編集可能な行
-    private static final int[] EDITABLE_ROWS = {3, 6, 7, 11, 12};
+//s.oh^ 2014/08/29 患者情報の追加
+    //private static final int[] EDITABLE_ROWS = {3, 6, 7, 11, 12};
+    private static final int[] EDITABLE_ROWS = {3, 6, 7, 11, 12, 13, 14, 15, 16, 17, 18};
+//s.oh$
  
 //minagawa^ Icon Server     
     // 保存アイコン
@@ -389,7 +403,12 @@ public class PatientInfoDocument extends AbstractChartDocument {
             for (int col = 0; col < numColumns; col++) {
                 Object o = pTable.getValueAt(rowsSelected[i], col);
                 if (o!=null) {
-                    s.append(o.toString());
+                    //s.append(o.toString());
+                    if(col == 0 && i < rowsSelected.length && rowsSelected[i] < PATIENT_ATTRS_TEMP.length) {
+                        s.append(PATIENT_ATTRS_TEMP[rowsSelected[i]]);
+                    }else{
+                        s.append(o.toString());
+                    }
                 }
                 s.append(",");
             }
@@ -542,6 +561,26 @@ public class PatientInfoDocument extends AbstractChartDocument {
                         ret = patient.getEmail();
                         break;
                         
+//s.oh^ 2014/08/29 患者情報の追加
+                    case 13:
+                        ret = patient.getReserve1();
+                        break;
+                    case 14:
+                        ret = patient.getReserve2();
+                        break;
+                    case 15:
+                        ret = patient.getReserve3();
+                        break;
+                    case 16:
+                        ret = patient.getReserve4();
+                        break;
+                    case 17:
+                        ret = patient.getReserve5();
+                        break;
+                    case 18:
+                        ret = patient.getReserve6();
+                        break;
+//s.oh$
                 }
             }
             return ret;
@@ -604,6 +643,33 @@ public class PatientInfoDocument extends AbstractChartDocument {
                     patient.setEmail(strValue);
                     stateMgr.processDirtyEvent();
                     break;
+                    
+//s.oh^ 2014/08/29 患者情報の追加
+                case 13:
+                    patient.setReserve1(strValue);
+                    stateMgr.processDirtyEvent();
+                    break;
+                case 14:
+                    patient.setReserve2(strValue);
+                    stateMgr.processDirtyEvent();
+                    break;
+                case 15:
+                    patient.setReserve3(strValue);
+                    stateMgr.processDirtyEvent();
+                    break;
+                case 16:
+                    patient.setReserve4(strValue);
+                    stateMgr.processDirtyEvent();
+                    break;
+                case 17:
+                    patient.setReserve5(strValue);
+                    stateMgr.processDirtyEvent();
+                    break;
+                case 18:
+                    patient.setReserve6(strValue);
+                    stateMgr.processDirtyEvent();
+                    break;
+//s.oh$
             }
         }
     }

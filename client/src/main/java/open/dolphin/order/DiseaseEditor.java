@@ -4,6 +4,10 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -15,6 +19,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
+import javax.swing.text.JTextComponent;
 import open.dolphin.client.AutoKanjiListener;
 import open.dolphin.client.AutoRomanListener;
 import open.dolphin.client.ClientContext;
@@ -55,6 +60,10 @@ public final class DiseaseEditor extends AbstractStampEditor {
 
     private ListTableModel<DiseaseEntry> searchResultModel;
 
+////s.oh^ 2014/07/11 スタンプエディタのフォーカス制御
+//    private boolean editCellStart;
+//    private boolean editCellEnter;
+////s.oh$
 
     @Override
     public JPanel getView() {
@@ -405,7 +414,96 @@ public final class DiseaseEditor extends AbstractStampEditor {
         // 疾患名
         TableColumn column = table.getColumnModel().getColumn(NAME_COL);
         JTextField nametf = new JTextField();
-        nametf.addFocusListener(AutoKanjiListener.getInstance());
+//s.oh^ 2014/02/24 スタンプ内項目削除不具合
+        //nametf.addFocusListener(AutoKanjiListener.getInstance());
+        FocusListener flRoman = new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                Object source = e.getSource();
+                if (source != null && source instanceof JTextComponent) {
+                    JTextComponent tc = (JTextComponent) source;
+                    if (tc.getInputContext() != null) {
+                        tc.getInputContext().setCharacterSubsets(null);
+                    }
+                }
+                view.getDeleteBtn().setEnabled(false);
+                view.getClearBtn().setEnabled(false);
+////s.oh^ 2014/07/11 スタンプエディタのフォーカス制御
+//                editCellStart = true;
+////s.oh$
+            }
+            @Override
+            public void focusLost(FocusEvent e) {
+                if(view.getSetTable().isEditing()) {
+                    view.getSetTable().getCellEditor().stopCellEditing();
+                }
+                int row = view.getSetTable().getSelectedRow();
+                if (tableModel.getObject(row)!= null) {
+                    view.getDeleteBtn().setEnabled(true);
+                } else {
+                    view.getDeleteBtn().setEnabled(false);
+                }
+                view.getClearBtn().setEnabled(!setIsEmpty);
+////s.oh^ 2014/07/11 スタンプエディタのフォーカス制御
+//                if(editCellStart && editCellEnter) {
+//                    view.getSearchTextField().requestFocus();
+//                }
+//                editCellStart = false;
+//                editCellEnter = false;
+////s.oh$
+            }
+        };
+        FocusListener flKanji = new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (ClientContext.isWin()) {
+                    Object source = e.getSource();
+                    if (source != null && source instanceof JTextComponent) {
+                        JTextComponent tc = (JTextComponent) source;
+                        if (tc.getInputContext() != null) {
+                            tc.getInputContext().setCompositionEnabled(true);
+                        }
+                    }
+                }
+                view.getDeleteBtn().setEnabled(false);
+                view.getClearBtn().setEnabled(false);
+////s.oh^ 2014/07/11 スタンプエディタのフォーカス制御
+//                editCellStart = true;
+////s.oh$
+            }
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (ClientContext.isWin()) {
+                    Object source = e.getSource();
+                    if (source != null && source instanceof JTextComponent) {
+                        JTextComponent tc = (JTextComponent) source;
+                        if (tc.getInputContext() != null) {
+                            tc.getInputContext().setCompositionEnabled(false);
+                        }
+                    }
+                }else{
+                    if(view.getSetTable().isEditing()) {
+                        view.getSetTable().getCellEditor().stopCellEditing();
+                    }
+                }
+                int row = view.getSetTable().getSelectedRow();
+                if (tableModel.getObject(row)!= null) {
+                    view.getDeleteBtn().setEnabled(true);
+                } else {
+                    view.getDeleteBtn().setEnabled(false);
+                }
+                view.getClearBtn().setEnabled(!setIsEmpty);
+////s.oh^ 2014/07/11 スタンプエディタのフォーカス制御
+//                if(editCellStart && editCellEnter) {
+//                    view.getSearchTextField().requestFocus();
+//                }
+//                editCellStart = false;
+//                editCellEnter = false;
+////s.oh$
+            }
+        };
+        nametf.addFocusListener(flKanji);
+//s.oh$
         DefaultCellEditor nameEditor = new DefaultCellEditor(nametf);
         int clickCountToStart = Project.getInt("diagnosis.table.clickCountToStart", 1);
         nameEditor.setClickCountToStart(clickCountToStart);
@@ -414,10 +512,44 @@ public final class DiseaseEditor extends AbstractStampEditor {
         // 病名エイリアス
         column = table.getColumnModel().getColumn(ALIAS_COL);
         JTextField aliastf = new JTextField();
-        aliastf.addFocusListener(AutoRomanListener.getInstance()); // alias 
+//s.oh^ 2014/02/24 スタンプ内項目削除不具合
+        //aliastf.addFocusListener(AutoRomanListener.getInstance()); // alias 
+        aliastf.addFocusListener(flRoman); // alias 
+//s.oh$
         DefaultCellEditor aliasEditor = new DefaultCellEditor(aliastf);
         aliasEditor.setClickCountToStart(clickCountToStart);
         column.setCellEditor(aliasEditor);
+        
+////s.oh^ 2014/07/11 スタンプエディタのフォーカス制御
+//        nametf.addKeyListener(new KeyListener() {
+//            @Override
+//            public void keyTyped(KeyEvent e) {}
+//            @Override
+//            public void keyPressed(KeyEvent e) {
+//                if(e.getKeyCode() == KeyEvent.VK_ENTER && editCellStart) {
+//                    editCellEnter = true;
+//                }else{
+//                    editCellEnter = false;
+//                }
+//            }
+//            @Override
+//            public void keyReleased(KeyEvent e) {}
+//        });
+//        aliastf.addKeyListener(new KeyListener() {
+//            @Override
+//            public void keyTyped(KeyEvent e) {}
+//            @Override
+//            public void keyPressed(KeyEvent e) {
+//                if(e.getKeyCode() == KeyEvent.VK_ENTER && editCellStart) {
+//                    editCellEnter = true;
+//                }else{
+//                    editCellEnter = false;
+//                }
+//            }
+//            @Override
+//            public void keyReleased(KeyEvent e) {}
+//        });
+////s.oh$
         
         // 列幅設定
         int[] columnWidth = new int[]{20, 135, 135};
@@ -490,23 +622,53 @@ public final class DiseaseEditor extends AbstractStampEditor {
 
             @Override
             public void insertUpdate(DocumentEvent e) {
-                if (view.getRtBtn().isSelected()) {
-                    search(view.getSearchTextField().getText().trim(),false);
-                }
+//s.oh^ 2014/04/14 RT検索改善
+                //if (view.getRtBtn().isSelected()) {
+                //    search(view.getSearchTextField().getText().trim(), false);
+                //}
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (view.getRtBtn().isSelected()) {
+                            search(view.getSearchTextField().getText().trim(), false);
+                        }
+                    }
+                });
+//s.oh$
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                if (view.getRtBtn().isSelected()) {
-                    search(view.getSearchTextField().getText().trim(),false);
-                }
+//s.oh^ 2014/04/14 RT検索改善
+                //if (view.getRtBtn().isSelected()) {
+                //    search(view.getSearchTextField().getText().trim(), false);
+                //}
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (view.getRtBtn().isSelected()) {
+                            search(view.getSearchTextField().getText().trim(), false);
+                        }
+                    }
+                });
+//s.oh$
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                if (view.getRtBtn().isSelected()) {
-                    search(view.getSearchTextField().getText().trim(),false);
-                }
+//s.oh^ 2014/04/14 RT検索改善
+                //if (view.getRtBtn().isSelected()) {
+                //    search(view.getSearchTextField().getText().trim(), false);
+                //}
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (view.getRtBtn().isSelected()) {
+                            search(view.getSearchTextField().getText().trim(), false);
+                        }
+                    }
+                });
+//s.oh$
             }
         };
         searchTextField = view.getSearchTextField();
@@ -549,7 +711,12 @@ public final class DiseaseEditor extends AbstractStampEditor {
         // OK & 連続ボタン
         view.getOkCntBtn().setEnabled(false);
 //minagawa^ Icon Server
-        view.getOkCntBtn().setIcon(ClientContext.getImageIconArias("icon_gear_small"));
+        if(editorButtonTypeIsIcon()) {
+            view.getOkCntBtn().setIcon(ClientContext.getImageIconArias("icon_gear_small"));
+        }
+//s.oh^ 2014/10/22 Icon表示
+        view.getSearchLabel().setIcon(ClientContext.getImageIconArias("icon_search_small"));
+//s.oh$
 //minagawa$          
         view.getOkCntBtn().addActionListener(new ActionListener() {
             @Override
@@ -563,7 +730,9 @@ public final class DiseaseEditor extends AbstractStampEditor {
         // OK ボタン
         view.getOkBtn().setEnabled(false);
 //minagawa^ Icon Server
-        view.getOkBtn().setIcon(ClientContext.getImageIconArias("icon_accept_small"));
+        if(editorButtonTypeIsIcon()) {
+            view.getOkBtn().setIcon(ClientContext.getImageIconArias("icon_accept_small"));
+        }
 //minagawa$         
         view.getOkBtn().addActionListener(new ActionListener() {
             @Override
@@ -577,7 +746,9 @@ public final class DiseaseEditor extends AbstractStampEditor {
         // 削除ボタン
         view.getDeleteBtn().setEnabled(false);
 //minagawa^ Icon Server
-        view.getDeleteBtn().setIcon(ClientContext.getImageIconArias("icon_delete_small"));
+        if(editorButtonTypeIsIcon()) {
+            view.getDeleteBtn().setIcon(ClientContext.getImageIconArias("icon_delete_small"));
+        }
 //minagawa$        
         view.getDeleteBtn().addActionListener(new ActionListener() {
             @Override
@@ -595,7 +766,9 @@ public final class DiseaseEditor extends AbstractStampEditor {
         // クリアボタン
         view.getClearBtn().setEnabled(false);
 //minagawa^ Icon Server
-        view.getClearBtn().setIcon(ClientContext.getImageIconArias("icon_clear_small"));
+        if(editorButtonTypeIsIcon()) {
+            view.getClearBtn().setIcon(ClientContext.getImageIconArias("icon_clear_small"));
+        }
 //minagawa$        
         view.getClearBtn().addActionListener(new ActionListener() {
             @Override

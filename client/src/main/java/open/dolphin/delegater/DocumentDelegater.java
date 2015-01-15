@@ -988,6 +988,64 @@ public final class DocumentDelegater extends BusinessDelegater {
         String entityStr = getString(response);
         return Integer.parseInt(entityStr);
     }
+    
+//s.oh^ 2014/04/03 サマリー対応
+    public PatientFreeDocumentModel getPatientFreeDocument(String id) throws Exception {
+        
+        // PATH
+        String path = "/karte/freedocument/" + id;
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, path);
+        
+        // GET
+        ClientRequest request = getRequest(path);
+        request.accept(MediaType.APPLICATION_JSON);
+        ClientResponse<String> response = request.get(String.class);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
+        BufferedReader br = getReader(response);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        PatientFreeDocumentModel freeDoc = mapper.readValue(br, PatientFreeDocumentModel.class);
+        br.close();
+        
+        return freeDoc;
+    }
+    
+    public int updatePatientFreeDocument(PatientFreeDocumentModel pfdm) throws Exception {
+
+        // PATH
+        String path = "/karte/freedocument";
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
+        // Converter
+        PatientFreeDocumentModelConverter conv = new PatientFreeDocumentModelConverter();
+        conv.setModel(pfdm);
+        
+        // JSON
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        String json = mapper.writeValueAsString(conv);
+        byte[] data = json.getBytes(UTF8);
+        
+        // PUT
+        ClientRequest request = getRequest(path);
+        request.body(MediaType.APPLICATION_JSON, data);
+        ClientResponse<String> response = request.put(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
+        
+        // Count
+        String entityStr = getString(response);
+        return Integer.parseInt(entityStr);
+    }
+//s.oh$
 
     //-------------------------------------------------------------------------
     
@@ -1086,4 +1144,98 @@ public final class DocumentDelegater extends BusinessDelegater {
         // Check
         checkStatus(response);
     }
+    
+//s.oh^ 2014/07/22 一括カルテPDF出力
+    public List<DocumentModel> getAllDocument(String pk) throws Exception {
+
+        // PATH
+        StringBuilder sb = new StringBuilder();
+        sb.append("/karte/docinfo/all/");
+        sb.append(pk);
+        String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
+        // GET
+        ClientRequest request = getRequest(path);
+        request.accept(MediaType.APPLICATION_JSON);
+        ClientResponse<String> response = request.get(String.class);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
+        // Wrapper
+        BufferedReader br = getReader(response);
+        ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        DocumentList result = mapper.readValue(br, DocumentList.class);
+        br.close();
+        
+        // List
+        List<DocumentModel> list = result.getList();
+
+        for (DocumentModel doc : list) {
+            Collection<ModuleModel> mc = doc.getModules();
+            if (mc != null && (!mc.isEmpty())) {
+                for (ModuleModel module : mc) {
+                    module.setModel((InfoModel) BeanUtils.xmlDecode(module.getBeanBytes()));
+                }
+            }
+
+            // JPEG byte をアイコンへ戻す
+            Collection<SchemaModel> sc = doc.getSchema();
+            if (sc != null && (!sc.isEmpty())) {
+                for (SchemaModel schema : sc) {
+                    ImageIcon icon = new ImageIcon(schema.getJpegByte());
+                    schema.setIcon(icon);
+                }
+            }
+            
+            // Attachmentアイコンを設定する
+            Collection<AttachmentModel> atts = doc.getAttachment();
+            if (atts != null && (!atts.isEmpty())) {
+                for (AttachmentModel am : atts) {
+                    ImageIcon icon = ClientContext.getImageIconArias("icon_attachment");
+                    am.setIcon(icon);
+                }
+            }
+        }
+        return list;
+    }
+//s.oh$
+    
+//s.oh^ 2014/08/20 添付ファイルの別読
+    public AttachmentModel getAttachment(long id) throws Exception {
+
+        // PATH
+        StringBuilder sb = new StringBuilder();
+        sb.append("/karte/attachment/");
+        sb.append(id);
+        String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
+        // GET
+        ClientRequest request = getRequest(path);
+        request.accept(MediaType.APPLICATION_JSON);
+        ClientResponse<String> response = request.get(String.class);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
+        // Wrapper
+        BufferedReader br = getReader(response);
+        ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        AttachmentModel result = mapper.readValue(br, AttachmentModel.class);
+        br.close();
+        
+        ImageIcon icon = ClientContext.getImageIconArias("icon_attachment");
+        result.setIcon(icon);
+        
+        return result;
+    }
+//s.oh$
 }

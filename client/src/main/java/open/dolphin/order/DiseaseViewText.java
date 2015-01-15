@@ -140,7 +140,7 @@ public class DiseaseViewText extends javax.swing.JPanel implements IDiseaseView 
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 55, Short.MAX_VALUE)
+                        .addGap(0, 39, Short.MAX_VALUE)
                         .addComponent(deleteBtn)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(clearBtn)
@@ -295,5 +295,12 @@ public class DiseaseViewText extends javax.swing.JPanel implements IDiseaseView 
     public javax.swing.JCheckBox getPartialChk() {
         return partialChk;
     }
+
+//s.oh^ 2014/10/22 Icon表示
+    @Override
+    public javax.swing.JLabel getSearchLabel() {
+        return jLabel3;
+    }
+//s.oh$
 
 }

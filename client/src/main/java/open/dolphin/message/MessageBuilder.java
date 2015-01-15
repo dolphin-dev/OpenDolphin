@@ -3,6 +3,7 @@ package open.dolphin.message;
 import java.io.*;
 import open.dolphin.client.ClientContext;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 import org.apache.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
@@ -97,11 +98,14 @@ public final class MessageBuilder {
             
             // このスタンプのテンプレートファイルを得る
             String tFile;
+//s.oh^ 2014/03/13 傷病名削除診療科対応
             if (Project.getBoolean(Project.CLAIM_01)) {
                 tFile = name + "_01.vm";
             } else {
                 tFile = name + ".vm";
             }
+//            tFile = name + "_02.vm";
+//s.oh$
             logger.debug("template file = " + tFile);
             
             // Merge する
@@ -119,6 +123,7 @@ public final class MessageBuilder {
             
         } catch (Exception e) {
             logger.warn(e);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, e.toString());
         }
         
         return ret;

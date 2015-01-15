@@ -2,11 +2,15 @@ package open.dolphin.delegater;
 
 import java.io.BufferedReader;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import javax.ws.rs.core.MediaType;
 import open.dolphin.converter.UserModelConverter;
+import open.dolphin.infomodel.ActivityModel;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.UserList;
 import open.dolphin.infomodel.UserModel;
+import open.dolphin.project.Project;
 import open.dolphin.util.Log;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -242,4 +246,69 @@ public final class UserDelegater extends BusinessDelegater {
         
         return cnt;
     }
+    
+//s.oh^ 2014/07/08 クラウド0対応
+    public ActivityModel[] fetchActivities() throws Exception {
+        
+        // 集計終了 現在まで
+        GregorianCalendar gcTo = new GregorianCalendar();
+        
+        // 開始日　（当月の１日）
+        int year = gcTo.get(Calendar.YEAR);
+        int month = gcTo.get(Calendar.MONTH);
+        
+        // PATH
+        int numMonth = Project.getInt("activities.numMonth", 3);
+        StringBuilder sb = new StringBuilder();
+        sb.append("/hiuchi/activity/");
+        sb.append(year).append(CAMMA).append(month).append(CAMMA).append(numMonth);
+        String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
+        // GET
+        //ResteasyWebTarget target = getWebTarget(path);
+        //ActivityModel[] am = target.request(MediaType.APPLICATION_JSON).get(ActivityModel[].class);
+        ClientRequest request = getRequest(path);
+        request.accept(MediaType.APPLICATION_JSON);
+        ClientResponse<String> response = request.get(String.class);
+        
+        // Wrapper
+        BufferedReader br = getReader(response);
+        ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        ActivityModel[] am = mapper.readValue(br, ActivityModel[].class);
+        br.close();
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
+        return am;
+    }
+    
+    public int checkLicense(String uid) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        sb.append("/hiuchi/license");
+        String path = sb.toString();
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
+        // body
+        byte[] data = uid.getBytes(UTF8);
+        
+        // PUT
+        ClientRequest request = getRequest(path);
+        request.body(MediaType.TEXT_PLAIN, data);
+        ClientResponse<String> response = request.post(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.TEXT_PLAIN,uid);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
+        // Count
+        String entityStr = getString(response);
+        return Integer.parseInt(entityStr);
+    }
+//s.oh$
 }

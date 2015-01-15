@@ -2,25 +2,22 @@ package open.dolphin.client;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Rectangle;
 import java.awt.event.*;
 import java.io.File;
-import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.*;
 import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.delegater.OrcaRestDelegater;
 import open.dolphin.helper.DBTask;
 import open.dolphin.hiro.PrescriptionMaker;
-import open.dolphin.impl.lbtest.LaboTestOutputPDF;
 import open.dolphin.infomodel.DocInfoModel;
 import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.infomodel.IInfoModel;
@@ -485,8 +482,8 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
         
 //s.oh^ 2013/06/13 カルテ履歴が複数の場合、カルテ削除メニューを無効
     if(karteList != null) {
-        boolean canEdit = isReadOnly() ? false : true;
-        boolean singleSelected = (karteList.size() == 1) ? true : false;
+        boolean canEdit = !isReadOnly();
+        boolean singleSelected = (karteList.size() == 1);
         getContext().enabledAction(GUIConst.ACTION_DELETE, (!showModified && canEdit && singleSelected));
     }
 //s.oh$
@@ -503,9 +500,14 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
                     int totalHeight = 0;
                     for (KarteViewer view : karteList) {
                         int w = view.panel2.getPreferredSize().width;
+                       
 //s.oh^ 2013/03/28 入力行が一行の場合に文字が全部表示されない。
-                        //int h = view.getActualHeight() + 30;
-                        int h = view.getActualHeight() + KARTE_OFFSET_HEIGHT;
+                       //int h = view.getActualHeight() + 30;
+//s.oh^ 2014/06/02 複数カルテ表示時に全部表示されない
+                        //int h = view.getActualHeight() + KARTE_OFFSET_HEIGHT;
+                        int offset = (view.getModel().getModules() != null) ? view.getModel().getModules().size() * 20 : 0;
+                        int h = view.getActualHeight() + KARTE_OFFSET_HEIGHT + offset;
+//s.oh$
 //s.oh$
                         totalHeight += h;
                         view.panel2.setPreferredSize(new Dimension(w, h));
@@ -680,7 +682,45 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
             return;
         }
 
+//s.oh^ 2014/06/17 複数カルテ修正制御
+        for (KarteEditor karte : KarteEditor.getAllKarte()) {
+            if(karte.getContext().getPatient().getId() == getContext().getPatient().getId()) {
+                if(!karte.checkModify()) {
+                    return;
+                }
+            }
+        }
+//s.oh$
+        
         String docType = getBaseKarte().getModel().getDocInfoModel().getDocType();
+//s.oh^ 2014/08/21 修正時にアラート表示
+        if(Project.getBoolean(Project.KARTE_SHOW_MODIFY_MSG)) {
+            Calendar c1 = Calendar.getInstance();
+            c1.setTime(new Date());
+            Calendar c2 = Calendar.getInstance();
+            c2.setTime(getBaseKarte().getModel().getStarted());
+            if(c1.get(Calendar.YEAR) != c2.get(Calendar.YEAR) || c1.get(Calendar.MONTH) != c2.get(Calendar.MONTH) || c1.get(Calendar.DATE) != c2.get(Calendar.DATE)) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日");
+                StringBuilder msg = new StringBuilder();
+                msg.append(sdf.format(c2.getTime()));
+                msg.append("に作成したカルテを修正しますか？");
+                String[] btn = new String[]{"はい", GUIFactory.getCancelButtonText()};
+                int option = JOptionPane.showOptionDialog(
+                        getContext().getFrame(),
+                        msg.toString(),
+                        "カルテ修正",
+                        JOptionPane.DEFAULT_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        btn,
+                        btn[1]);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "カルテ修正", msg.toString());
+                if(option != 0) {
+                    return;
+                }
+            }
+        }
+//s.oh$
 
         ChartImpl chart = (ChartImpl) getContext();
         String deptName = getContext().getPatientVisit().getDeptName();
@@ -709,6 +749,9 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
         if (params.isOpenFrame()) {
             EditorFrame editorFrame = new EditorFrame();
             editorFrame.setChart(getContext());
+//s.oh^ 2014/06/17 複数カルテ修正制御
+            editor.setEditorFrame(editorFrame);
+//s.oh$
             editorFrame.setKarteEditor(editor);
             editorFrame.start();
         } else {
@@ -861,41 +904,85 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
         KarteViewer2 karte = null;
         KartePaneDumper_2 dumper = null;
         KartePaneDumper_2 pdumper = null;
-        if(getSelectedKarte() instanceof KarteViewer2) {
-            karte = (KarteViewer2)getSelectedKarte();
-            dumper = new KartePaneDumper_2();
-            pdumper = new KartePaneDumper_2();
-            KarteStyledDocument doc = (KarteStyledDocument)karte.getSOAPane().getTextPane().getDocument();
-            dumper.dump(doc);
-            KarteStyledDocument pdoc = (KarteStyledDocument)karte.getPPane().getTextPane().getDocument();
-            pdumper.dump(pdoc);
-        }
-        if(karte != null && dumper != null && pdumper != null) {
-//s.oh^ 2013/06/14 自費の場合、印刷時に文言を付加する
-            //KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
-            //                                      karte.getContext().getPatient().getPatientId(), karte.getContext().getPatient().getFullName(),
-            //                                      karte.getTimeStampLabel().getText(),
-            //                                      new Date(), dumper, pdumper);
-            StringBuilder sbTitle = new StringBuilder();
-            sbTitle.append(karte.getTimeStampLabel().getText());
-            if(getSelectedKarte().getModel().getDocInfoModel().getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
-                sbTitle.append("（自費）");
+        ArrayList<String> paths = new ArrayList<>(0);
+//s.oh^ 2014/03/19 カルテの選択印刷
+        if(Project.getBoolean(Project.KARTE_PRINT_MULTI) && !Project.getBoolean(Project.KARTE_PRINT_SHOWPDF)) {
+            int id = 0;
+            for(KarteViewer view : karteList) {
+                String docNo = String.format("%04d", id++);
+                if(view instanceof KarteViewer2) {
+                    karte = (KarteViewer2)view;
+                    dumper = new KartePaneDumper_2();
+                    pdumper = new KartePaneDumper_2();
+                    KarteStyledDocument doc = (KarteStyledDocument)karte.getSOAPane().getTextPane().getDocument();
+                    dumper.dump(doc);
+                    KarteStyledDocument pdoc = (KarteStyledDocument)karte.getPPane().getTextPane().getDocument();
+                    pdumper.dump(pdoc);
+                }
+                if(karte != null && dumper != null && pdumper != null) {
+                    StringBuilder sbTitle = new StringBuilder();
+                    sbTitle.append(karte.getTimeStampLabel().getText());
+                    if(getSelectedKarte().getModel().getDocInfoModel().getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
+                        sbTitle.append("（自費）");
+                    }
+                    KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
+                                                          karte.getContext().getPatient().getPatientId(), karte.getContext().getPatient().getFullName(),
+                                                          sbTitle.toString(),
+                                                          new Date(), dumper, pdumper, docNo);
+                    paths.add(pdf.create());
+                }
+                karte = null;
+                dumper = null;
+                pdumper = null;
             }
-            KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
-                                                  karte.getContext().getPatient().getPatientId(), karte.getContext().getPatient().getFullName(),
-                                                  sbTitle.toString(),
-                                                  new Date(), dumper, pdumper);
+        }else{
 //s.oh$
-            String path = pdf.create();
-            //File file = new File(path);
-            //if(file.exists()) {
-            //    try {
-            //        Desktop.getDesktop().print(file);
-            //    } catch (IOException ex) {
-            //        Logger.getLogger(KarteDocumentViewer.class.getName()).log(Level.SEVERE, null, ex);
-            //    }
-            //}
-            KartePDFImpl2.printPDF(path);
+            if(getSelectedKarte() instanceof KarteViewer2) {
+                karte = (KarteViewer2)getSelectedKarte();
+                dumper = new KartePaneDumper_2();
+                pdumper = new KartePaneDumper_2();
+                KarteStyledDocument doc = (KarteStyledDocument)karte.getSOAPane().getTextPane().getDocument();
+                dumper.dump(doc);
+                KarteStyledDocument pdoc = (KarteStyledDocument)karte.getPPane().getTextPane().getDocument();
+                pdumper.dump(pdoc);
+            }
+            if(karte != null && dumper != null && pdumper != null) {
+//s.oh^ 2013/06/14 自費の場合、印刷時に文言を付加する
+                //KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
+                //                                      karte.getContext().getPatient().getPatientId(), karte.getContext().getPatient().getFullName(),
+                //                                      karte.getTimeStampLabel().getText(),
+                //                                      new Date(), dumper, pdumper);
+                StringBuilder sbTitle = new StringBuilder();
+                sbTitle.append(karte.getTimeStampLabel().getText());
+                if(getSelectedKarte().getModel().getDocInfoModel().getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
+                    sbTitle.append("（自費）");
+                }
+                KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
+                                                      karte.getContext().getPatient().getPatientId(), karte.getContext().getPatient().getFullName(),
+                                                      sbTitle.toString(),
+                                                      new Date(), dumper, pdumper, null);
+//s.oh$
+                paths.add(pdf.create());
+                //File file = new File(path);
+                //if(file.exists()) {
+                //    try {
+                //        Desktop.getDesktop().print(file);
+                //    } catch (IOException ex) {
+                //        Logger.getLogger(KarteDocumentViewer.class.getName()).log(Level.SEVERE, null, ex);
+                //    }
+                //}
+            }
+        }
+        if(paths.size() > 0) {
+            KartePDFImpl2.printPDF(paths);
+        }
+        if(!Project.getBoolean(Project.KARTE_PRINT_SHOWPDF)) {
+            for(String path : paths) {
+                File file = new File(path);
+                if(file.exists()) {
+                    file.delete();
+                }
+            }
         }
     }
 //s.oh$
@@ -1191,26 +1278,29 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
                     tmpKarte = true;
                 }
             }
-            boolean newOk = canEdit && (!tmpKarte) ? true : false;
-//minagawa^ 予定カルテ            (予定カルテ対応)
-            if (!newOk) {
-                List<DocInfoModel> list = getContext().getKarte().getDocInfoList();
-                if(list != null) {
-                    boolean allTmp = true;
-                    for (DocInfoModel dinfo : list) {
-                        if (!dinfo.getStatus().equals(IInfoModel.STATUS_TMP)) {
-                            allTmp = false;
-                            break;
-                        }
-                    }
-                    if (allTmp) {
-                        newOk = true;
-                    }
-                }else{
-                    newOk = true;
-                }
-            }
-//minagawa$            
+//s.oh^ 2014/10/24 新規カルテメニューの制御
+//            boolean newOk = canEdit && (!tmpKarte) ? true : false;
+////minagawa^ 予定カルテ            (予定カルテ対応)
+//            if (!newOk && canEdit) {
+//                List<DocInfoModel> list = getContext().getKarte().getDocInfoList();
+//                if(list != null) {
+//                    boolean allTmp = true;
+//                    for (DocInfoModel dinfo : list) {
+//                        if (!dinfo.getStatus().equals(IInfoModel.STATUS_TMP)) {
+//                            allTmp = false;
+//                            break;
+//                        }
+//                    }
+//                    if (allTmp) {
+//                        newOk = true;
+//                    }
+//                }else{
+//                    newOk = true;
+//                }
+//            }
+////minagawa$            
+            boolean newOk = canEdit;
+//s.oh$
             getContext().enabledAction(GUIConst.ACTION_NEW_KARTE, newOk);        // 新規カルテ
             getContext().enabledAction(GUIConst.ACTION_NEW_DOCUMENT, canEdit);   // 新規文書
             getContext().enabledAction(GUIConst.ACTION_MODIFY_KARTE, canEdit);   // 修正
@@ -1220,7 +1310,11 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
             boolean singleSelected = (karteList.size() == 1) ? true : false;
             getContext().enabledAction(GUIConst.ACTION_DELETE, (!showModified && canEdit && singleSelected));
 //s.oh$
-            getContext().enabledAction(GUIConst.ACTION_PRINT, true);             // 印刷
+//s.oh^ 2014/08/19 ID権限
+            //getContext().enabledAction(GUIConst.ACTION_PRINT, true);             // 印刷
+            getContext().enabledAction(GUIConst.ACTION_PRINT, !Project.isOtherCare());
+            getContext().enabledAction(GUIConst.ACTION_PRINTER_SETUP, !Project.isOtherCare());
+//s.oh$
             getContext().enabledAction(GUIConst.ACTION_ASCENDING, true);         // 昇順
             getContext().enabledAction(GUIConst.ACTION_DESCENDING, true);        // 降順
             getContext().enabledAction(GUIConst.ACTION_SHOW_MODIFIED, true);     // 修正履歴表示

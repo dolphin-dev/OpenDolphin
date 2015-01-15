@@ -422,6 +422,15 @@ public class DocumentHistory {
                 deleteRow();
             }
         };
+        
+//s.oh^ 2014/04/03 文書の複製
+        final AbstractAction copyDocAction = new AbstractAction("複製") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                copyDoc();
+            }
+        };
+//s.oh$
 
         // 右クリックコピー
         view.getTable().addMouseListener(new MouseAdapter() {
@@ -436,12 +445,35 @@ public class DocumentHistory {
                     JPopupMenu pop = new JPopupMenu();
                     JMenuItem item2 = new JMenuItem(copyAction);
                     pop.add(item2);
+//s.oh^ 2014/04/02 閲覧権限の制御
+                    if(context.isReadOnly()) {
+                        copyAction.setEnabled(false);
+                    }
+//s.oh$
+                    
+//s.oh^ 2014/04/03 文書の複製
+                    if(extractionContent == IInfoModel.DOCTYPE_LETTER) {
+                        JMenuItem itemCopyDoc = new JMenuItem(copyDocAction);
+                        copyDocAction.setEnabled(context.isShowDocument(0));
+                        pop.add(itemCopyDoc);
+//s.oh^ 2014/04/02 閲覧権限の制御
+                        if(context.isReadOnly()) {
+                            copyDocAction.setEnabled(false);
+                        }
+//s.oh$
+                    }
+//s.oh$
 
                     if (Project.getBoolean("allow.delete.letter", false) &&
                             extractionContent.equals(IInfoModel.DOCTYPE_LETTER)) {
                         pop.addSeparator();
                         JMenuItem item3 = new JMenuItem(deleteAction);
                         pop.add(item3);
+//s.oh^ 2014/04/02 閲覧権限の制御
+                        if(context.isReadOnly()) {
+                            deleteAction.setEnabled(false);
+                        }
+//s.oh$
                     }
 
                     pop.show(e.getComponent(), e.getX(), e.getY());
@@ -484,6 +516,13 @@ public class DocumentHistory {
 
         // 抽出機関 ComboBox を生成する
         extractionCombo = view.getExtractCombo();
+        
+//s.oh^ 2014/08/19 ID権限
+        if(Project.isOtherCare()) {
+            contentCombo.setEnabled(false);
+            extractionCombo.setEnabled(false);
+        }
+//s.oh$
 
         // 件数フィールドを生成する
         countField = view.getCntLbl();
@@ -636,6 +675,12 @@ public class DocumentHistory {
         DeleteTask task = new DeleteTask(context, m.getDocPk());
         task.execute();
     }
+    
+//s.oh^ 2014/04/03 文書の複製
+    public void copyDoc() {
+        context.getChartMediator().sendToChain("copyDocument");
+    }
+//s.oh$
 
     /**
      * キーボード入力をブロックするリスナクラス。
@@ -868,10 +913,11 @@ public class DocumentHistory {
                         // 自賠責
                         setBackground(JIBAISEKI_INSURANCE_COLOR);
                         
-                    } else if (Project.getBoolean("docHistory.coloring.jihi") && info.getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
+                    }                 
+                    else if (Project.getBoolean("docHistory.coloring.jihi") && info.getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
                         // 自費
                         setBackground(SELF_INSURANCE_COLOR);   
-                    } 
+                    }                 
 //                    else if ((row & (1)) == 0) {
 //                        setBackground(DEFAULT_EVENN_COLOR);
 //                    } else {

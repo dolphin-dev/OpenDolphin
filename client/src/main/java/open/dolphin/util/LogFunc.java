@@ -98,7 +98,7 @@ public class LogFunc {
             System.out.println("-Start-------------");
              while ((str = b.readLine()) != null) {
                    filewriter.write(str+System.getProperty("line.separator"));
-                   System.out.println(str);
+                   //System.out.println(str);
             }
             System.out.println("-End-----------------");
         }catch(IOException ex){

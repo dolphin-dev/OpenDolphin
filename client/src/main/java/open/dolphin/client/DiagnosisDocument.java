@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -19,6 +21,7 @@ import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
+import javax.xml.parsers.ParserConfigurationException;
 import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.delegater.OrcaDelegater;
 import open.dolphin.delegater.OrcaDelegaterFactory;
@@ -33,6 +36,9 @@ import open.dolphin.table.StripeTableCellRenderer;
 import open.dolphin.util.BeanUtils;
 import open.dolphin.util.Log;
 import open.dolphin.util.MMLDate;
+import open.dolphin.utilities.utility.XmlReadWrite;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 /**
  * DiagnosisDocument
@@ -116,6 +122,10 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
     private boolean orcaDiceaseHasImported;
     private boolean underPopup;
 //minagawa$
+    
+//s.oh^ 2014/04/08 傷病名対応
+    private boolean saveOnly;
+//s.oh$
 
     /**
      *  Creates new DiagnosisDocument
@@ -674,7 +684,7 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                 if (!e.isPopupTrigger()) {
                     return;
                 }
-
+                
                 int row = diagTable.rowAtPoint(e.getPoint());
                 RegisteredDiagnosisModel obj = tableModel.getObject(row);
                 int selected = diagTable.getSelectedRow();
@@ -701,6 +711,12 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                     pasteAction.setEnabled(canPaste());
                     deleteAction.setEnabled(!selectedIsOrca);
                 }
+                
+//s.oh^ 2014/04/02 閲覧権限の制御
+                if(isReadOnly()) {
+                    deleteAction.setEnabled(false);
+                }
+//s.oh$
                 
                 contextMenu.show(e.getComponent(), e.getX(), e.getY());
 //minagawa$                
@@ -730,6 +746,13 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
         p.add(new JLabel("抽出期間(過去)"));
         NameValuePair[] extractionObjects = ClientContext.getNameValuePair("diagnosis.combo.period");
         extractionCombo = new JComboBox(extractionObjects);
+//s.oh^ 2014/08/13 コントロールサイズ調整
+        String nimbus = "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
+        String laf = UIManager.getLookAndFeel().getClass().getName();
+        if(!laf.equals(nimbus)) {
+            extractionCombo.setPreferredSize(new Dimension(80, 20));
+        }
+//s.oh$
         int currentDiagnosisPeriod = Project.getInt(Project.DIAGNOSIS_PERIOD, 0);
         int selectIndex = NameValuePair.getIndex(String.valueOf(currentDiagnosisPeriod), extractionObjects);
         extractionCombo.setSelectedIndex(selectIndex);
@@ -1108,6 +1131,31 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
 
         if (sm != null) {
             RegisteredDiagnosisModel module = (RegisteredDiagnosisModel) BeanUtils.xmlDecode(sm.getStampBytes());
+            
+//s.oh^ 2014/04/08 傷病名対応
+            boolean added = false;
+            if(tableModel != null && tableModel.getRowCount() > 0) {
+                for(int i = 0; i < tableModel.getRowCount(); i++) {
+                    RegisteredDiagnosisModel model = tableModel.getObject(i);
+                    if(module.getDiagnosis().equals(model.getDiagnosis())) {
+                        SimpleDateFormat frmt = new SimpleDateFormat("yyyy-MM-dd");
+                        String today = frmt.format(new Date());
+                        String started = frmt.format(model.getStarted());
+                        if(today.equals(started)) {
+                            added = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if(added) {
+                String title = "傷病名追加";
+                String msg = "既に「" + module.getDiagnosis() + "」が登録されているため追加できません。";
+                JOptionPane.showMessageDialog(getContext().getFrame(), msg, title, JOptionPane.INFORMATION_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, title, msg);
+                return;
+            }
+//s.oh$
 
             // 今日の日付を疾患開始日として設定する
             GregorianCalendar gc = new GregorianCalendar();
@@ -1123,6 +1171,21 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
             } else {
                 tableModel.addObject(module);
             }
+            
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+            String deptCode = null;
+            String deptName = null;
+            if(getContext().getPatientVisit() != null && getContext().getPatientVisit().getDeptCode() != null && getContext().getPatientVisit().getDeptName() != null) {
+                deptCode = getContext().getPatientVisit().getDeptCode();
+                deptName = getContext().getPatientVisit().getDeptName();
+            }else if(Project.getUserModel() != null && Project.getUserModel().getDepartmentModel() != null && Project.getUserModel().getDepartmentModel().getDepartment() != null && Project.getUserModel().getDepartmentModel().getDepartmentDesc() != null) {
+                deptCode = Project.getUserModel().getDepartmentModel().getDepartment();
+                deptName = Project.getUserModel().getDepartmentModel().getDepartmentDesc();
+            }else{
+            }
+            module.setDepartment(deptCode);
+            module.setDepartmentDesc(deptName);
+//s.oh$
 
             // row を選択する
             diagTable.getSelectionModel().setSelectionInterval(row, row);
@@ -1278,6 +1341,19 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
         String confirmedStr = ModelUtils.getDateTimeAsString(confirmed);
         
         boolean go = true;
+        
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+        String deptCode = null;
+        String deptName = null;
+        if(getContext().getPatientVisit() != null && getContext().getPatientVisit().getDeptCode() != null && getContext().getPatientVisit().getDeptName() != null) {
+            deptCode = getContext().getPatientVisit().getDeptCode();
+            deptName = getContext().getPatientVisit().getDeptName();
+        }else if(Project.getUserModel() != null && Project.getUserModel().getDepartmentModel() != null && Project.getUserModel().getDepartmentModel().getDepartment() != null && Project.getUserModel().getDepartmentModel().getDepartmentDesc() != null) {
+            deptCode = Project.getUserModel().getDepartmentModel().getDepartment();
+            deptName = Project.getUserModel().getDepartmentModel().getDepartmentDesc();
+        }else{
+        }
+//s.oh$
 
         if (addedDiagnosis != null && addedDiagnosis.size() > 0) {
 
@@ -1321,6 +1397,30 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                 rd.setPatientLiteModel(getContext().getPatient().patientAsLiteModel());
                 rd.setUserLiteModel(Project.getUserModel().getLiteModel());
                 
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+//                if(rd.getDepartment() != null && rd.getDepartmentDesc() == null) {
+//                    if(Project.getDeptInfo() == null || Project.getDeptInfo().size() <= 0) {
+//                        JOptionPane.showMessageDialog(getContext().getFrame(), "ORCAから診療科の取得に失敗したため、診療科は保存されません。", "傷病名の保存", JOptionPane.INFORMATION_MESSAGE);
+//                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "ORCAから診療科の取得に失敗したため、診療科は保存されません。", "傷病名の保存");
+//                    }else{
+//                        for(int i = 0; i < Project.getDeptInfo().size(); i++) {
+//                            String tmp = Project.getDeptInfo().get(i);
+//                            if(tmp.equals(rd.getDepartment())) {
+//                                rd.setDepartmentDesc(Project.getDeptInfo().get(i+1));
+//                                break;
+//                            }
+//                        }
+//                    }
+//                }else if(rd.getDepartment() != null && rd.getDepartmentDesc() != null) {
+//                    // 既に傷病名に登録されているため何もしない
+//                }else{
+//                    rd.setDepartment(deptCode);
+//                    rd.setDepartmentDesc(deptName);
+//                }
+                rd.setDepartment(deptCode);
+                rd.setDepartmentDesc(deptName);
+//s.oh$
+                
                 Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "傷病名の追加：", rd.getDiagnosis());
                 Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "追加する傷病名の情報：", rd.getCategoryDesc(), rd.getOutcomeDesc(), rd.getStartDate(), rd.getEndDate(), rd.getConfirmDate());
                 
@@ -1355,6 +1455,29 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                 rd.setPatientLiteModel(getContext().getPatient().patientAsLiteModel());
                 rd.setUserLiteModel(Project.getUserModel().getLiteModel());
                 
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+//                if(rd.getDepartment() != null && rd.getDepartmentDesc() == null) {
+//                    if(Project.getDeptInfo() == null || Project.getDeptInfo().size() <= 0) {
+//                        JOptionPane.showMessageDialog(getContext().getFrame(), "ORCAから診療科の取得に失敗したため、診療科は保存されません。", "傷病名の保存", JOptionPane.INFORMATION_MESSAGE);
+//                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "ORCAから診療科の取得に失敗したため、診療科は保存されません。", "傷病名の保存");
+//                    }else{
+//                        for(int i = 0; i < Project.getDeptInfo().size(); i++) {
+//                            String tmp = Project.getDeptInfo().get(i);
+//                            if(tmp.equals(rd.getDepartment())) {
+//                                rd.setDepartmentDesc(Project.getDeptInfo().get(i+1));
+//                            }
+//                        }
+//                    }
+//                }else if(rd.getDepartment() != null && rd.getDepartmentDesc() != null) {
+//                    // 既に傷病名に登録されているため何もしない
+//                }else{
+//                    rd.setDepartment(deptCode);
+//                    rd.setDepartmentDesc(deptName);
+//                }
+                rd.setDepartment(deptCode);
+                rd.setDepartmentDesc(deptName);
+//s.oh$
+                
                 Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "傷病名の更新：", rd.getDiagnosis());
                 Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "更新する傷病名の情報：", rd.getCategoryDesc(), rd.getOutcomeDesc(), rd.getStartDate(), rd.getEndDate(), rd.getConfirmDate());
                 
@@ -1371,7 +1494,10 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
         }
 
         DocumentDelegater ddl = new DocumentDelegater();
-        DiagnosisPutTask task = new DiagnosisPutTask(confirmedStr, getContext(), addedDiagnosis, updatedDiagnosis, sendDiagnosis, ddl);
+//s.oh^ 2014/04/08 傷病名対応
+        //DiagnosisPutTask task = new DiagnosisPutTask(confirmedStr, getContext(), addedDiagnosis, updatedDiagnosis, sendDiagnosis, ddl);
+        DiagnosisPutTask task = new DiagnosisPutTask(confirmedStr, getContext(), addedDiagnosis, updatedDiagnosis, (saveOnly) ? false : sendDiagnosis, ddl);
+//s.oh$
         task.execute();
     }
     
@@ -1541,6 +1667,49 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
             return;
         }
         
+//s.oh^ 2014/04/08 傷病名対応
+        String yes = "はい";
+        String no = "いいえ";
+        String title = "傷病名削除";
+        Object[] options = new Object[]{yes, no};
+        String msg = "この傷病名を削除しますか？　\n" + model.getDiagnosisName();
+        int select = JOptionPane.showOptionDialog(
+                getContext().getFrame(),
+                msg,
+                title,
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                options,
+                no);
+        if(select != 0) {
+            return;
+        }
+//s.oh$
+        
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+//        if(model.getDepartment() == null || model.getDepartmentDesc() == null) {
+//            if(Project.getDeptInfo() != null && Project.getDeptInfo().size() > 0) {
+//                Object[] deptNames = Project.getDeptInfo().toArray();
+//                Object dept = JOptionPane.showInputDialog(getContext().getFrame(), "診療科を選択してください。", "傷病名の削除", JOptionPane.INFORMATION_MESSAGE, null, deptNames, deptNames[0]);
+//                if(dept == null || dept.toString().length() <= 0) {
+//                    //JOptionPane.showMessageDialog(getContext().getFrame(), "", "傷病名の削除", JOptionPane.INFORMATION_MESSAGE);
+//                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "診療科を選択してください", "傷病名の削除", "キャンセルを押されました");
+//                    return;
+//                }
+//                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "診療科を選択してください", "傷病名の削除", dept.toString());
+//                String[] deptInfo = dept.toString().split(":");
+//                model.setDepartment(deptInfo[0]);
+//                model.setDepartmentDesc(deptInfo[1]);
+//            }else{
+//                JOptionPane.showMessageDialog(getContext().getFrame(), "ORCAから診療科の取得に失敗したため、ログインユーザーの診療科で送信されます。", "傷病名の削除", JOptionPane.INFORMATION_MESSAGE);
+//                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "ORCAから診療科の取得に失敗したため、ログインユーザーの診療科で送信されます。", "傷病名の削除");
+//                model.setDepartment(Project.getUserModel().getDepartmentModel().getDepartment());
+//                model.setDepartmentDesc(Project.getUserModel().getDepartmentModel().getDepartmentDesc());
+//            }
+//        }
+//s.oh$
+        
         Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "傷病名の削除：", model.getDiagnosis());
         Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "削除する傷病名の情報：", model.getCategoryDesc(), model.getOutcomeDesc(), model.getStartDate(), model.getEndDate(), model.getConfirmDate());
 
@@ -1569,7 +1738,9 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
         model.setOutcome("delete");
         model.setOutcomeDesc("delete");
         model.setOutcomeCodeSys(ClientContext.getString("diagnosis.outcomeCodeSys"));
-        model.setEndDate(confirmedStr);
+//s.oh^ 2014/01/28 傷病名削除不具合
+        //model.setEndDate(confirmedStr);
+//s.oh$
         model.setKarteBean(getContext().getKarte());       // Karte
         model.setUserModel(Project.getUserModel());        // Creator
         model.setConfirmed(confirmed);                     // 確定日
@@ -1589,7 +1760,10 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                 DiagnosisSendWrapper wrapper = new DiagnosisSendWrapper();
                 wrapper.setDeletedDiagnosis(list);
                 
-                boolean sendDiagnosis = getContext().isSendClaim();
+//s.oh^ 2014/03/13 傷病名削除診療科対応(送信しないように変更)
+                //boolean sendDiagnosis = getContext().isSendClaim();
+                boolean sendDiagnosis = false;
+//s.oh$
 
                 // 全てのモジュールで共通に使用するマスターのDocInfoを生成する
                 // 病名は複数あるので個々にDocInfoが必要。これはJMS側で生成する。
@@ -1965,6 +2139,21 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                             rdm.setStatus(DORCA_RECORD);
                             Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "ORCAから傷病名の追加：", rdm.getDiagnosis());
                             Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "ORCAから追加する傷病名の情報：", rdm.getCategoryDesc(), rdm.getOutcomeDesc(), rdm.getStartDate(), rdm.getEndDate(), rdm.getConfirmDate());
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+//                            ArrayList<String> deptInfo = Project.getDeptInfo();
+//                            if(deptInfo != null && deptInfo.size() > 0) {
+//                                for(int i = 0; i < deptInfo.size(); i++) {
+//                                    String[] dept = deptInfo.get(i).split(":");
+//                                    if(dept.length == 2) {
+//                                        if(rdm.getDepartment().equals(dept[0])) {
+//                                            rdm.setDepartmentDesc(dept[1]);
+//                                            break;
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "ORCAから追加した傷病名の診療科情報：", rdm.getDepartment(), rdm.getDepartmentDesc());
+//s.oh$
                         }
                         // 新規病名リストに追加する
                         addAllAddedList(result);
@@ -1987,6 +2176,16 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                             //sortDiasease(result);
                             tableModel.setDataProvider(result);
                         }
+                        
+//s.oh^ 2014/04/08 傷病名対応
+                        //JOptionPane.showMessageDialog(getContext().getFrame(), "取り込みが完了しました、傷病名を保存してください。", "傷病名の取り込み", JOptionPane.INFORMATION_MESSAGE);
+                        //Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "傷病名の取り込み", "取り込みが完了しました、傷病名を保存してください。");
+                        saveOnly = true;
+                        save();
+                        saveOnly = false;
+                        JOptionPane.showMessageDialog(getContext().getFrame(), "傷病名を保存しています。", "傷病名の取り込み", JOptionPane.INFORMATION_MESSAGE);
+                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "傷病名の取り込み", "傷病名を保存しています。");
+//s.oh$
 
                     } else if (select == 1){
                         Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, importNo);
@@ -2278,6 +2477,9 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                             trace(r.getDiagnosis());
                         }
                     }
+//s.oh^ 2014/11/11 傷病名送信順番の変更
+                    Collections.sort(actualList, new DiagnosisSendComparator());
+//s.oh$
                     sender.prepare(actualList);
                     sender.send(actualList);
                 }
@@ -2286,6 +2488,7 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
             // 更新された病名を CLAIM 送信する
             // detuched object のみ
             if (sendClaim && updatedDiagnosis != null && updatedDiagnosis.size() > 0) {
+                List<RegisteredDiagnosisModel> actualList = new ArrayList<RegisteredDiagnosisModel>();
                 if (DEBUG) {
                     trace("-------- Send Diagnosis List ----------------");
                     for (RegisteredDiagnosisModel r : updatedDiagnosis) {
@@ -2295,10 +2498,16 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
 //s.oh^ 2013/05/10 傷病名対応
                 for (RegisteredDiagnosisModel rdm : updatedDiagnosis) {
                     rdm.setDiagnosisCode(HAND_CODE); // ORCAから取り込んだ場合、コードに0000999を設定する
+                    actualList.add(rdm);
                 }
 //s.oh$
-                sender.prepare(updatedDiagnosis);
-                sender.send(updatedDiagnosis);
+//s.oh^ 2014/11/11 傷病名送信順番の変更
+                //sender.prepare(updatedDiagnosis);
+                //sender.send(updatedDiagnosis);
+                Collections.sort(actualList, new DiagnosisSendComparator());
+                sender.prepare(actualList);
+                sender.send(actualList);
+//s.oh$
             }
         }
                
@@ -2417,6 +2626,10 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
                 //setForeground(table.getForeground());
                 if (isOrcaDisease(rd)) {
                     setBackground(ORCA_BACK);
+                    if(isSelected) {
+                        setBackground(table.getSelectionBackground());
+                        setForeground(table.getSelectionForeground());
+                    }
                 }
 
 //                } else {
@@ -2442,4 +2655,45 @@ public final class DiagnosisDocument extends AbstractChartDocument implements Pr
             return this;
         }
     }
+    
+//s.oh^ 2014/11/11 傷病名送信順番の変更
+    class DiagnosisSendComparator implements Comparator {
+        public DiagnosisSendComparator() {}
+
+        @Override
+        public int compare(Object o1, Object o2) {
+            if(o1 == null && o2 == null) {
+                return 0;
+            }else if(o1 == null) {
+                return 1;
+            }else if(o2 == null) {
+                return -1;
+            }
+            RegisteredDiagnosisModel val1 = (RegisteredDiagnosisModel)o1;
+            RegisteredDiagnosisModel val2 = (RegisteredDiagnosisModel)o2;
+            if(val1.getDiagnosisOutcomeModel() == null && val2.getDiagnosisOutcomeModel() == null) {
+                return 0;
+            }else if(val1.getDiagnosisOutcomeModel() == null) {
+                return 1;
+            }else if(val2.getDiagnosisOutcomeModel() == null) {
+                return -1;
+            }
+            if(val1.getDiagnosisCategoryModel() == null && val2.getDiagnosisCategoryModel() == null) {
+                return 0;
+            }else if(val1.getDiagnosisCategoryModel() == null) {
+                return 1;
+            }else if(val2.getDiagnosisCategoryModel() == null) {
+                return -1;
+            }
+            if(val1.getEnded() == null && val2.getEnded() == null) {
+                return 0;
+            }else if(val1.getEnded() == null) {
+                return 1;
+            }else if(val2.getEnded() == null) {
+                return -1;
+            }
+            return 0;
+        }
+    }
+//s.oh$
 }

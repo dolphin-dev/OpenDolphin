@@ -39,6 +39,9 @@ public final class MasterItem implements java.io.Serializable {
     
     private String bundleNumber;
     
+//s.oh^ 2014/08/08 スタンプ編集制御
+    private String srysyukbn;
+//s.oh$
     
     /**
      * Creates new MasterItem
@@ -193,4 +196,14 @@ public final class MasterItem implements java.io.Serializable {
     public void setBundleNumber(String bundleNumber) {
         this.bundleNumber = bundleNumber;
     }
+    
+//s.oh^ 2014/08/08 スタンプ編集制御
+    public String getSrysyukbn() {
+        return srysyukbn;
+    }
+    
+    public void setSrysyukbn(String srysyukbn) {
+        this.srysyukbn = srysyukbn;
+    }
+//s.oh$
 }

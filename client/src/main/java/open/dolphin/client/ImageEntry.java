@@ -170,4 +170,26 @@ public class ImageEntry implements Serializable {
     public void setDirectrory(boolean directrory) {
         this.directrory = directrory;
     }
+    
+//s.oh^ 2014/05/07 PDF・画像タブの改善
+    public ImageEntry copy() {
+        ImageEntry entry = new ImageEntry();
+        entry.setConfirmDate(this.getConfirmDate());
+        entry.setContentType(this.getContentType());
+        entry.setDicomFileIsSOP(this.isDicomFileIsSOP());
+        entry.setDirectrory(this.isDirectrory());
+        entry.setFileName(this.getFileName());
+        entry.setHeight(this.getHeight());
+        entry.setId(this.getId());
+        entry.setImageIcon(this.getImageIcon());
+        entry.setLastModified(this.getLastModified());
+        entry.setMedicalRole(this.getMedicalRole());
+        entry.setNumImages(this.getNumImages());
+        entry.setPath(this.getPath());
+        entry.setTitle(this.getTitle());
+        entry.setUrl(this.getUrl());
+        entry.setWidth(this.getWidth());
+        return entry;
+    }
+//s.oh$
 }

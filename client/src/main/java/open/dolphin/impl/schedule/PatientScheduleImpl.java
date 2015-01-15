@@ -412,6 +412,23 @@ public class PatientScheduleImpl extends AbstractMainComponent {
         }
         
         view.getKeywordFld().setEditable(false);
+        
+        String method = ageDisplay ? AGE_METHOD[0] : AGE_METHOD[1];
+        ListTableModel tModel = getTableModel();
+        tModel.setProperty(method, ageColumn);
+        List<ColumnSpec> columnSpecs = columnHelper.getColumnSpecs();
+        for (int i = 0; i < columnSpecs.size(); i++) {
+            ColumnSpec cs = columnSpecs.get(i);
+            String test = cs.getMethod();
+            if (test.toLowerCase().endsWith("birthday")) {
+                cs.setMethod(method);
+                break;
+            }
+        }
+        
+//s.oh^ 2014/04/16 メニュー制御
+        view.getTable().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+//s.oh$
     }
 
     /**
@@ -479,7 +496,10 @@ public class PatientScheduleImpl extends AbstractMainComponent {
         };
         view.getClaimChk().setAction(claimAction);
         view.getClaimChk().setToolTipText("カルテの作成と同時にORCAへ送信します。");
-        claimAction.setEnabled(Project.claimSenderIsServer());
+//s.oh^ 2014/04/02 閲覧権限の制御
+        //claimAction.setEnabled(Project.claimSenderIsServer());
+        claimAction.setEnabled((Project.isReadOnly()) ? false : Project.claimSenderIsServer());
+//s.oh$
         view.getClaimChk().setVisible(Project.claimSenderIsServer());
     }
 
@@ -662,7 +682,10 @@ public class PatientScheduleImpl extends AbstractMainComponent {
         }
         for (PatientVisitModel pvt : list) {
             if (pvt.getLastDocDate()==null) {
-                applyRpAction.setEnabled(true);
+//s.oh^ 2014/04/02 閲覧権限の制御
+                //applyRpAction.setEnabled(true);
+                applyRpAction.setEnabled(!Project.isReadOnly());
+//s.oh$
                 break;
             }
         }   

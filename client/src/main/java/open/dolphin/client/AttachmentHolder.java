@@ -18,6 +18,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.text.Position;
+import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.infomodel.AttachmentModel;
 import open.dolphin.util.Log;
 
@@ -57,6 +58,15 @@ public class AttachmentHolder extends AbstractComponentHolder implements Compone
     public void edit() {
         FileOutputStream outputFile;
         try {
+//s.oh^ 2014/08/20 添付ファイルの別読
+            //byte[] data = attachment.getBytes();
+            DocumentDelegater ddl = new DocumentDelegater();
+            try {
+                AttachmentModel tmp = ddl.getAttachment(attachment.getId());
+                attachment.setBytes(tmp.getBytes());
+            } catch (Exception ex) {
+            }
+//s.oh$
             // Contentを表示する
             byte[] data = attachment.getBytes();
             ByteBuffer buf = ByteBuffer.wrap(data);

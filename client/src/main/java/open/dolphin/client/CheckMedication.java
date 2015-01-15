@@ -182,9 +182,11 @@ public class CheckMedication {
                 BundleDolphin bundle = (BundleDolphin) stamp.getModel();
                 bundleList.add(bundle);
                 ClaimItem[] ci = bundle.getClaimItem();
-                for (ClaimItem c : ci) {
-                    if (ClaimConst.YAKUZAI == Integer.valueOf(c.getClassCode())) {
-                        drugCodeNameMap.put(c.getCode(), c.getName());
+                if(ci != null) {
+                    for (ClaimItem c : ci) {
+                        if (c.getClassCode() != null && ClaimConst.YAKUZAI == Integer.valueOf(c.getClassCode())) {
+                            drugCodeNameMap.put(c.getCode(), c.getName());
+                        }
                     }
                 }
             }

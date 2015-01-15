@@ -1,6 +1,7 @@
 package open.dolphin.client;
 
 //import com.ning.http.client.Response;
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.BufferedReader;
@@ -31,9 +32,10 @@ import org.codehaus.jackson.map.ObjectMapper;
  * オリジナル Git Hub Masuda-Naika OpenDolphin-2.3.8m
  * PropertyChange systemへ変更
  */
-public class ChartEventHandler  {
+public class ChartEventHandler implements PropertyChangeListener {
     
     public static final String CHART_EVENT_PROP = "chartEventModelProp";
+    public static final String CHART_EVENT_RETRY = "chartEventRetry";
     
     // プロパティ
     private ChartEventModel model;
@@ -60,6 +62,8 @@ public class ChartEventHandler  {
     
     private PropertyChangeSupport boundSupport;
     
+    private boolean retryChartEvent;
+    
     private static final ChartEventHandler instance = new ChartEventHandler();
     
     private boolean DEBUG;
@@ -77,6 +81,9 @@ public class ChartEventHandler  {
     }
     
     private void init() {
+//s.oh^ 2014/10/03 排他処理のID表示
+        Dolphin.getInstance().setClientUUID(Project.getUserId() + ":" + Dolphin.getInstance().getClientUUID());
+//s.oh$
         clientUUID = Dolphin.getInstance().getClientUUID();
         orcaId = Project.getUserModel().getOrcaId();
         deptCode = Project.getUserModel().getDepartmentModel().getDepartment();
@@ -86,6 +93,17 @@ public class ChartEventHandler  {
         jmariCode = Project.getString(Project.JMARI_CODE);
         facilityId = Project.getFacilityId();
         boundSupport = new PropertyChangeSupport(this);
+        boundSupport.addPropertyChangeListener(this);
+    }
+
+    public boolean isRetryChartEvent() {
+        return retryChartEvent;
+    }
+
+    public void setRetryChartEvent(boolean retryChartEvent) {
+        boolean old = this.retryChartEvent;
+        this.retryChartEvent = retryChartEvent;
+        boundSupport.firePropertyChange(CHART_EVENT_RETRY, old, retryChartEvent);
     }
     
     public void addPropertyChangeListener(PropertyChangeListener l) {
@@ -146,6 +164,17 @@ public class ChartEventHandler  {
         
         publish(evt);
     }
+    
+//s.oh^ 2014/10/14 診察終了後のメモ対応
+    public void publishPvtMemo(PatientVisitModel pvt) {
+        
+        ChartEventModel evt = new ChartEventModel(clientUUID);
+        evt.setParamFromPvt(pvt);
+        evt.setEventType(ChartEventModel.PVT_MEMO);
+        
+        publish(evt);
+    }
+//s.oh$
     
     public void publishKarteOpened(PatientVisitModel pvt) {
         
@@ -228,6 +257,22 @@ public class ChartEventHandler  {
         listenTask.stop();
         thread.interrupt();
         thread = null;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if(evt.getPropertyName().equals(CHART_EVENT_RETRY)) {
+            boolean newVal = (boolean)evt.getNewValue();
+            if(newVal) {
+                stop();
+                exec = null;
+                listenTask = null;
+                try{
+                    Thread.sleep(retryTime);
+                }catch(InterruptedException ex) {}
+                start();
+            }
+        }
     }
 
     // Commetでサーバーと同期するスレッド
@@ -323,6 +368,7 @@ public class ChartEventHandler  {
                     DResponse response = future.get();
                     if (response != null) {
                         exec.execute(new RemoteOnEventTask2(response));
+                        retryCnt = 0;
                     }
                 } catch (Exception e) {
                     System.err.print("future exception");
@@ -337,17 +383,19 @@ public class ChartEventHandler  {
                             Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_WARNING, "同期通信に異常が発生したため、アプリを再起動してください。");
                         }else{
                             if(Project.getBoolean("subscribe.retry.restart", false)) {
-                                listenTask.stop();
-                                thread.interrupt();
-                                thread = null;
-                                
-                                exec = Executors.newSingleThreadExecutor();
-                                listenTask = new EventListenTask2();
-                                thread = new Thread(listenTask, "ChartEvent Listen Task");
-                                thread.setPriority(Thread.NORM_PRIORITY);
-                                thread.start();
-                                
+//                                listenTask.stop();
+//                                thread.interrupt();
+//                                thread = null;
+//                                
+//                                exec = Executors.newSingleThreadExecutor();
+//                                listenTask = new EventListenTask2();
+//                                thread = new Thread(listenTask, "ChartEvent Listen Task");
+//                                thread.setPriority(Thread.NORM_PRIORITY);
+//                                thread.start();
+                                setRetryChartEvent(true);
+                                isRunning = false;
                                 Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_WARNING, "同期通信に異常が発生したためsubscribeをリスタート。");
+                                break;
                             }
                             try{
                                 Thread.sleep(retryTime);
@@ -517,6 +565,7 @@ public class ChartEventHandler  {
                 
             } catch (Exception e) {
                 e.printStackTrace(System.err);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, e.toString());
             }         
         }        
 //minagawa$

@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Font;
 import javax.swing.*;
 import open.dolphin.client.ClientContext;
+import open.dolphin.impl.xronos.XronosLinkDocument;
+import open.dolphin.project.Project;
 
 /**
  * WatingListView改
@@ -15,6 +17,10 @@ public class WatingListView extends JPanel {
     private JButton kutuBtn;
     private JLabel pvtInfoLbl;
     private RowTipsTable pvtTable;
+    
+//s.oh^ Xronos連携
+    private JButton xronosBtn;
+//s.oh$
 
     public WatingListView() {
 
@@ -34,7 +40,19 @@ public class WatingListView extends JPanel {
         pvtInfoLbl.setAlignmentY(BOTTOM_ALIGNMENT);
         panel.add(pvtInfoLbl);
         panel.add(Box.createHorizontalGlue());
-
+        
+//s.oh^ Xronos連携
+        if(Project.getBoolean(XronosLinkDocument.KEY_XRONOSBROWSER_LINK)) {
+            xronosBtn = new JButton();
+            xronosBtn.setIcon(ClientContext.getImageIconArias("icon_xronos"));
+            //xronosBtn.setToolTipText("Xronos起動");
+            xronosBtn.setToolTipText(Project.getString("xronos.browser.tooltip"));
+            xronosBtn.setAlignmentY(BOTTOM_ALIGNMENT);
+            panel.add(xronosBtn);
+            panel.add(Box.createHorizontalGlue());
+        }
+//s.oh$
+        
 	JLabel underGoLbl = new JLabel();
 //minagawa^ Icon Server         
 	//underGoLbl.setIcon(ClientContext.getImageIcon("apps_16.gif"));
@@ -81,4 +99,10 @@ public class WatingListView extends JPanel {
     public JLabel getPvtInfoLbl() {
         return pvtInfoLbl;
     }
+    
+//s.oh^ Xronos連携
+    public JButton getXronosBtn() {
+        return xronosBtn;
+    }
+//s.oh$
 }

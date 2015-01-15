@@ -29,6 +29,9 @@ public final class ChangeNumDatesDialog {
         String pattern = "^[1-9][0-9]*$";
         RegexConstrainedDocument numReg = new RegexConstrainedDocument(pattern);
         view.getNumDatesFld().setDocument(numReg);
+//s.oh^ 不具合修正
+        view.getNumDatesFld().enableInputMethods(false);
+//s.oh$
 
         // OK button
         chagneBtn = new JButton("変更");

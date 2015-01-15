@@ -114,9 +114,12 @@ public class CodeHelperSettingPanel extends AbstractSettingPanel {
      */
     private void initComponents() {
         
-        ctrlMask = new JRadioButton("コントロール");
-        String str = ClientContext.isMac() ? "アップル" : "メタ";
-        metaMask = new JRadioButton(str);
+        ctrlMask = new JRadioButton("コントロール(Windows)");
+//s.oh^ 2014/07/01 コードタブの文言変更
+        //String str = ClientContext.isMac() ? "コマンド(Mac)" : "メタ";
+        //metaMask = new JRadioButton(str);
+        metaMask = new JRadioButton("メタ(Mac)");
+//s.oh$
         text = new JTextField(5);
         path = new JTextField(5);
         general = new JTextField(5);
@@ -155,14 +158,21 @@ public class CodeHelperSettingPanel extends AbstractSettingPanel {
         // 修飾キー
         //
         GridBagBuilder gbl;
-        if (ClientContext.isMac()) {
-            gbl = new GridBagBuilder("修飾キー + リターン = 補完ポップアップ");
-        } else {
-            gbl = new GridBagBuilder("修飾キー + スペース = 補完ポップアップ");
-        }
+//s.oh^ 2014/07/01 コードタブの文言変更
+        //if (ClientContext.isMac()) {
+        //    gbl = new GridBagBuilder("修飾キー + リターン = 補完ポップアップ");
+        //} else {
+        //    gbl = new GridBagBuilder("修飾キー + スペース = 補完ポップアップ");
+        //}
+        gbl = new GridBagBuilder("補完ポップアップ");
+//s.oh$
         
         gbl.add(new JLabel("修飾キー:"),  0, 0, GridBagConstraints.EAST);
         gbl.add(GUIFactory.createRadioPanel(new JRadioButton[]{ctrlMask,metaMask}), 1, 0, GridBagConstraints.CENTER);
+//s.oh^ 2014/07/01 コードタブの文言変更
+        gbl.add(new JLabel("Windows：コントロールキー ＋ スペースキー"), 0, 1, 3, 1, GridBagConstraints.EAST);
+        gbl.add(new JLabel("Mac：コントロールキー ＋ リターンキー"), 0, 2, 3, 1, GridBagConstraints.EAST);
+//s.oh$
         JPanel keyBind = gbl.getProduct();
         
         //

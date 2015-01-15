@@ -332,7 +332,10 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
         Object obj = getChain();
         if (obj instanceof DiagnosisDocument) {
             diagnosis = (DiagnosisDocument) obj;
-            enabled = true;
+//s.oh^ 2014/04/16 メニュー制御
+            //enabled = true;
+            enabled = !chart.isReadOnly();
+//s.oh$
         }
         
         if (!enabled) {

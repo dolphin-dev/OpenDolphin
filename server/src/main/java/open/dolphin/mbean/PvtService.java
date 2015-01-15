@@ -325,6 +325,12 @@ public class PvtService implements PvtServiceMBean {
             PVTBuilder builder = new PVTBuilder();
             builder.parse(r);
             PatientVisitModel model = builder.getProduct();
+            
+//s.oh^ 2014/03/13 ORCA患者登録対応
+            if(model == null) {
+                return -1;
+            }
+//s.oh$
 
             // 関係構築
             model.setFacilityId(FACILITY_ID);

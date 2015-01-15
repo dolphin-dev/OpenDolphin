@@ -106,6 +106,14 @@ public class NLabParser implements LabResultParser {
                 ClientContext.getLaboTestLogger().warn(e);
                 throw new IOException(e.getMessage());
             }
+            
+//s.oh^ 2014/10/02 ラボデータ透析前後対応
+            if(data.length >= 8 && data[7] != null && !data[7].isEmpty()) {
+                if(data[7].equals("1") || data[7].equals("2")) {
+                    sampleDate = sampleDate.replaceFirst(" 00:00", " 00:0" + data[7]);
+                }
+            }
+//s.oh$
 
             //---------------------------------------------
             // 検査箋（検査モジュール）のキー
@@ -295,7 +303,8 @@ public class NLabParser implements LabResultParser {
         }
 
         reader.close();
-
+        
+//s.oh^ 2014/05/29 DATフォーマット改善
         // サマリを生成する
         for (NLaboModule module : allModules) {
             NLaboImportSummary summary = new NLaboImportSummary();
@@ -308,9 +317,126 @@ public class NLabParser implements LabResultParser {
             summary.setModule(module);
             retList.add(summary);
         }
+        //createSummary(allModules, retList);
+//s.oh$
         
         return retList;
     }
+    
+//s.oh^ 2014/05/29 DATフォーマット改善
+    private void createSummary(List<NLaboModule> allModules, List<NLaboImportSummary> retList) {
+        for(NLaboModule module : allModules) {
+            boolean dialysis1 = false;
+            boolean dialysis2 = false;
+            if(module.getItems() != null) {
+                for(NLaboItem item : module.getItems()) {
+                    if(item.getDialysis() != null && item.getDialysis().equals("1")) {
+                        dialysis1 = true;
+                    }else if(item.getDialysis() != null && item.getDialysis().equals("2")) {
+                        dialysis2 = true;
+                    }
+                }
+            }
+            
+            if(dialysis1 && dialysis2) {
+                NLaboModule module1 = copyNLaboModule(module, "1");
+                NLaboImportSummary summary1 = new NLaboImportSummary();
+                summary1.setLaboCode(module1.getLaboCenterCode());
+                summary1.setPatientId(module1.getPatientId());
+                summary1.setPatientName(module1.getPatientName());
+                summary1.setPatientSex(module1.getPatientSex());
+                summary1.setSampleDate(module1.getSampleDate());
+                summary1.setNumOfTestItems(String.valueOf(module1.getItems().size()));
+                summary1.setModule(module1);
+                retList.add(summary1);
+
+                NLaboModule module2 = copyNLaboModule(module, "2");
+                NLaboImportSummary summary2 = new NLaboImportSummary();
+                summary2.setLaboCode(module2.getLaboCenterCode());
+                summary2.setPatientId(module2.getPatientId());
+                summary2.setPatientName(module2.getPatientName());
+                summary2.setPatientSex(module2.getPatientSex());
+                summary2.setSampleDate(module2.getSampleDate());
+                summary2.setNumOfTestItems(String.valueOf(module2.getItems().size()));
+                summary2.setModule(module2);
+                retList.add(summary2);
+            }else if(dialysis1 || dialysis2) {
+                NLaboModule newModule = copyNLaboModule(module, (dialysis1 == true) ? "1" : "2");
+                NLaboImportSummary summary = new NLaboImportSummary();
+                summary.setLaboCode(newModule.getLaboCenterCode());
+                summary.setPatientId(newModule.getPatientId());
+                summary.setPatientName(newModule.getPatientName());
+                summary.setPatientSex(newModule.getPatientSex());
+                summary.setSampleDate(newModule.getSampleDate());
+                summary.setNumOfTestItems(String.valueOf(newModule.getItems().size()));
+                summary.setModule(newModule);
+                retList.add(summary);
+            }else{
+                NLaboImportSummary summary = new NLaboImportSummary();
+                summary.setLaboCode(module.getLaboCenterCode());
+                summary.setPatientId(module.getPatientId());
+                summary.setPatientName(module.getPatientName());
+                summary.setPatientSex(module.getPatientSex());
+                summary.setSampleDate(module.getSampleDate());
+                summary.setNumOfTestItems(String.valueOf(module.getItems().size()));
+                summary.setModule(module);
+                retList.add(summary);
+            }
+        }
+    }
+    
+    private NLaboModule copyNLaboModule(NLaboModule module, String dialysis) {
+        NLaboModule ret = new NLaboModule();
+        ret.setLaboCenterCode(module.getLaboCenterCode() + dialysis);
+        ret.setPatientId(module.getPatientId());
+        ret.setPatientName(module.getPatientName());
+        ret.setPatientSex(module.getPatientSex());
+        ret.setSampleDate(module.getSampleDate().substring(0, module.getSampleDate().length() - 1) + dialysis);
+        StringBuilder sb = new StringBuilder();
+        sb.append(ret.getPatientId());
+        sb.append(".");
+        sb.append(ret.getSampleDate());
+        sb.append(".");
+        sb.append(ret.getLaboCenterCode());
+        ret.setModuleKey(sb.toString());
+        copyNLaboItem(module, ret, dialysis);
+        return ret;
+    }
+    
+    private void copyNLaboItem(NLaboModule oldModule, NLaboModule newModule, String dialysis) {
+        for(NLaboItem item : oldModule.getItems()) {
+            if(item.getDialysis() != null && !item.getDialysis().equals(dialysis)) {
+                continue;
+            }
+            NLaboItem newItem = new NLaboItem();
+            newItem.setPatientId(item.getPatientId());
+            newItem.setSampleDate(item.getSampleDate());
+            newItem.setLaboCode(item.getLaboCode() + dialysis);
+            newItem.setLipemia(item.getLipemia());
+            newItem.setHemolysis(item.getHemolysis());
+            newItem.setDialysis(item.getDialysis());
+            newItem.setReportStatus(item.getReportStatus());
+            newItem.setGroupCode(item.getGroupCode());
+            newItem.setGroupName(item.getGroupName());
+            newItem.setParentCode(item.getParentCode());
+            newItem.setItemCode(item.getItemCode());
+            newItem.setMedisCode(item.getMedisCode());
+            newItem.setItemName(item.getItemName());
+            newItem.setAbnormalFlg(item.getAbnormalFlg());
+            newItem.setNormalValue(item.getNormalValue());
+            newItem.setValue(item.getValue());
+            newItem.setUnit(item.getUnit());
+            newItem.setSpecimenCode(item.getSpecimenCode());
+            newItem.setSpecimenName(item.getSpecimenName());
+            newItem.setCommentCode1(item.getCommentCode1());
+            newItem.setComment1(item.getComment1());
+            newItem.setCommentCode2(item.getCommentCode2());
+            newItem.setComment2(item.getComment2());
+            newModule.addItem(newItem);
+            newItem.setLaboModule(newModule);
+        }
+    }
+//s.oh$
 
     /**
      * @return the encoding

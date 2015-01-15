@@ -401,13 +401,16 @@ public class SendClaimImpl implements ClaimMessageListener {
                     e.printStackTrace(System.err);
                     getLogger().warn(e.getMessage());
                     alertDialog(TT_SENDING_TROUBLE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, e.toString());
 
                 } catch (InterruptedException e) {
                     getLogger().warn("Interrupted sending CLAIM");
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, e.toString());
 
                 } catch (Exception e) {
                     e.printStackTrace(System.err);
                     getLogger().warn(e.getMessage());
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, e.toString());
                 }
             }
         }

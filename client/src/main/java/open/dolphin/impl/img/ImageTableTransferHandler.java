@@ -8,6 +8,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -83,6 +84,13 @@ public class ImageTableTransferHandler extends TransferHandler {
         if (!canImport(support)) {
             return false;
         }
+        
+//s.oh^ 2014/05/07 PDF・画像タブの改善
+        Window parent = SwingUtilities.getWindowAncestor(context.getUI());
+        if(context.isScanning(parent, (context.dropIsMove()) ? "ファイルの移動ができません。" : "ファイルのコピーができません。")) {
+            return false;
+        }
+//s.oh$
 
         try {
             // Drag & Drop されたファイルのリストを得る
@@ -115,7 +123,10 @@ public class ImageTableTransferHandler extends TransferHandler {
                     allFiles.add(file);
 
                 } else {
-                    listAll(file, allFiles);
+//s.oh^ 2014/05/30 PDF・画像タブの改善
+                    //listAll(file, allFiles);
+                    parseDirectory(file);
+//s.oh$
                 }
             }
 
@@ -164,8 +175,8 @@ public class ImageTableTransferHandler extends TransferHandler {
                 sb.append(baseDir).append(File.separator).append(patientId);
                 String dirStr = sb.toString();
 //s.oh^ 他プロセス連携
-                if(context instanceof DefaultBrowserEx) {
-                    dirStr = ((DefaultBrowserEx)context).getNowLocation();
+                if(context instanceof DefaultBrowserEx || context instanceof DefaultBrowser || context instanceof FCRBrowser) {
+                    dirStr = context.getNowLocation();
                 }
 //s.oh$
                 File dir = new File(dirStr);
@@ -183,7 +194,8 @@ public class ImageTableTransferHandler extends TransferHandler {
 //s.oh^ 機能改善
                     boolean save = true;
                     if(dest.exists()) {
-                        int ret = JOptionPane.showConfirmDialog(null, "この場所には同じ名前のファイルが既にあります。上書きしますか？", ClientContext.getString("productString"), JOptionPane.OK_CANCEL_OPTION);
+                        Window parent = SwingUtilities.getWindowAncestor(context.getUI());
+                        int ret = JOptionPane.showConfirmDialog(parent, "この場所には同じ名前のファイルが既にあります。上書きしますか？", ClientContext.getString("productString"), JOptionPane.OK_CANCEL_OPTION);
                         if(ret != JOptionPane.OK_OPTION) {
                             save = false;
                         }
@@ -215,8 +227,8 @@ public class ImageTableTransferHandler extends TransferHandler {
                     get();
 //s.oh^ 他プロセス連携
                     //context.scan(context.getImgLocation());
-                    if(context instanceof DefaultBrowserEx) {
-                        context.scan(((DefaultBrowserEx)context).getNowLocation());
+                    if(context instanceof DefaultBrowserEx || context instanceof DefaultBrowser || context instanceof FCRBrowser) {
+                        context.scan(context.getNowLocation());
                     }else{
                         context.scan(context.getImgLocation());
                     }
@@ -250,6 +262,120 @@ public class ImageTableTransferHandler extends TransferHandler {
 
         worker.execute();
     }
+    
+//s.oh^ 2014/05/30 PDF・画像タブの改善
+    private void parseDirectory(final File srcDir) {
+
+        final javax.swing.SwingWorker worker = new javax.swing.SwingWorker<Void, Void>() {
+
+            @Override
+            protected Void doInBackground() throws Exception {
+
+                String baseDir = context.getImageBase();
+                if (baseDir == null) {
+                    return null;
+                }
+
+                String patientId = context.getContext().getPatient().getPatientId();
+                StringBuilder sb = new StringBuilder();
+                sb.append(baseDir).append(File.separator).append(patientId);
+                String dirStr = sb.toString();
+                if(context instanceof DefaultBrowserEx || context instanceof DefaultBrowser || context instanceof FCRBrowser) {
+                    dirStr = context.getNowLocation();
+                }
+                File destDir = new File(dirStr, srcDir.getName());
+                if(destDir.exists()) {
+                    Window parent = SwingUtilities.getWindowAncestor(context.getUI());
+                    int ret = JOptionPane.showConfirmDialog(parent, "この場所には同じ名前のフォルダが既にあります。上書きしますか？", ClientContext.getString("productString"), JOptionPane.OK_CANCEL_OPTION);
+                    if(ret != JOptionPane.OK_OPTION) {
+                        return null;
+                    }
+                }
+                
+                copyDir(destDir, srcDir);
+                
+                if (context.dropIsMove()) {
+                    removeDir(srcDir);
+                }
+
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    get();
+                    if(context instanceof DefaultBrowserEx || context instanceof DefaultBrowser || context instanceof FCRBrowser) {
+                        context.scan(context.getNowLocation());
+                    }else{
+                        context.scan(context.getImgLocation());
+                    }
+                } catch (InterruptedException ex) {
+                    ClientContext.getBootLogger().warn(ex);
+                } catch (ExecutionException ex) {
+                    ClientContext.getBootLogger().warn(ex);
+                    Window parent = SwingUtilities.getWindowAncestor(context.getUI());
+                    String message = "ファイルをコピーできません。\n" + ex.getMessage();
+                    String title = ClientContext.getFrameTitle(context.getTitle());
+                    JOptionPane.showMessageDialog(parent, message, title, JOptionPane.WARNING_MESSAGE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, message);
+                }
+            }
+        };
+        
+        worker.addPropertyChangeListener(new PropertyChangeListener() {
+
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if (evt.getNewValue().equals(SwingWorker.StateValue.STARTED)) {
+                } else if (evt.getNewValue().equals(SwingWorker.StateValue.DONE)) {
+                    worker.removePropertyChangeListener(this);
+                }
+            }
+        });
+
+        worker.execute();
+    }
+    
+    private void copyDir(File destDir, File srcDir) throws FileNotFoundException, IOException {
+        if(!destDir.exists() && !destDir.mkdirs()) {
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "ディレクトリを作成できません。", destDir.getPath());
+            return;
+        }
+        File[] files = srcDir.listFiles();
+        for(File file : files) {
+            if(file.isDirectory()) {
+                File dir = new File(destDir, file.getName());
+                copyDir(dir, file);
+            }else{
+                File destFile = new File(destDir, file.getName());
+                FileChannel in = (new FileInputStream(file)).getChannel();
+                FileChannel out = (new FileOutputStream(destFile)).getChannel();
+                in.transferTo(0, file.length(), out);
+                in.close();
+                out.close();
+                destFile.setLastModified(file.lastModified());
+            }
+        }
+    }
+    
+    private void removeDir(File dir) {
+        if(!dir.exists()) {
+            return;
+        }
+        if(dir.isFile()) {
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, dir.getPath());
+            dir.delete();
+        }else if(dir.isDirectory()) {
+            File[] files = dir.listFiles();
+            for(int i = 0; i < files.length; i++) {
+                removeDir(files[i]);
+            }
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, dir.getPath());
+            dir.delete();
+        }
+    }
+//s.oh$
 
     private void listAll(File dir, List<File> list) {
 

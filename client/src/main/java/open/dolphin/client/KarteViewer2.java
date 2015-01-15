@@ -9,6 +9,7 @@ import javax.swing.SwingConstants;
 import javax.swing.text.BadLocationException;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModelUtils;
+import open.dolphin.project.Project;
 
 /**
  * 2号カルテクラス。
@@ -144,11 +145,31 @@ public class KarteViewer2 extends KarteViewer {
                 timeStampLabel.setBackground(bkColor);
                 timeStampLabel.setForeground(foreColor);
             }
-            if (model.getUserModel().getCommonName()!=null) {
+//s.oh^ 2014/10/07 自費カルテタイトル帯色変更
+            else if(model.getDocInfoModel().getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
+                KartePanel2M kp2 = (KartePanel2M)panel2;
+                kp2.getTimeStampPanel().setOpaque(true);
+                kp2.getTimeStampPanel().setBackground(Color.YELLOW);
+                timeStampLabel.setOpaque(true);
+                timeStampLabel.setBackground(Color.YELLOW);
+            }
+//s.oh$
+//s.oh^ 2014/05/19 カルテタイトルのユーザ名非表示
+            //if (model.getUserModel().getCommonName()!=null) {
+            if (model.getUserModel().getCommonName()!=null && !Project.getBoolean("karte.title.username.hide")) {
+//s.oh$
                 StringBuilder sb = new StringBuilder();
                 sb.append(timeStamp).append(" ").append(model.getUserModel().getCommonName());
                 timeStamp = sb.toString();
             }
+//s.oh^ 2014/08/26 修正時の保険表示
+            String ins = model.getDocInfoModel().getHealthInsuranceDesc();
+            if(ins != null) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(timeStamp).append(" (").append(ins).append(")");
+                timeStamp = sb.toString();
+            }
+//s.oh$
             timeStampLabel.setText(timeStamp);
             KarteRenderer_2 renderer = new KarteRenderer_2(soaPane, pPane);
             renderer.render(model);

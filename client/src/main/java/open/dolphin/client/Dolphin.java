@@ -28,20 +28,35 @@ import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.MenuEvent;
+import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.delegater.OrcaDelegater;
 import open.dolphin.delegater.OrcaDelegaterFactory;
+import open.dolphin.delegater.PatientDelegater;
 import open.dolphin.delegater.StampDelegater;
+import open.dolphin.delegater.UserDelegater;
 import open.dolphin.helper.ComponentMemory;
 import open.dolphin.helper.MenuSupport;
 import open.dolphin.helper.SimpleWorker;
 import open.dolphin.helper.WindowSupport;
+import open.dolphin.impl.labrcv.NLaboTestImporter;
 import open.dolphin.impl.login.LoginDialog;
+import open.dolphin.impl.pvt.WatingListImpl;
 import open.dolphin.impl.schedule.PatientScheduleImpl;
+import open.dolphin.infomodel.ActivityModel;
+import open.dolphin.infomodel.AttachmentModel;
+import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.infomodel.FacilityModel;
+import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.IStampTreeModel;
+import open.dolphin.infomodel.ModelUtils;
+import open.dolphin.infomodel.ModuleModel;
+import open.dolphin.infomodel.PatientModel;
 import open.dolphin.infomodel.PatientVisitModel;
+import open.dolphin.infomodel.ProgressCourse;
 import open.dolphin.infomodel.RoleModel;
+import open.dolphin.infomodel.SchemaModel;
 import open.dolphin.infomodel.StampTreeModel;
+import open.dolphin.letter.KartePDFImpl2;
 import open.dolphin.plugin.PluginLoader;
 import open.dolphin.project.Project;
 import open.dolphin.project.ProjectSettingDialog;
@@ -95,8 +110,8 @@ public class Dolphin implements MainWindow {
     private javax.swing.Timer taskTimer;
     private ProgressMonitor monitor;
     private int delayCount;
-    private int maxEstimation = 120*1000; // 120 秒
-    private int delay = 300;      // 300 mmsec
+    private final int maxEstimation = 120*1000; // 120 秒
+    private final int delay = 300;      // 300 mmsec
 
     // VIEW
     private MainView view;
@@ -107,10 +122,23 @@ public class Dolphin implements MainWindow {
     
     // clientのUUID
     private String clientUUID;
+    
+//s.oh^ 2014/07/22 一括カルテPDF出力
+    private ProgressMonitor progress;
+    private int patCounter;
+    private int patTotal;
+//s.oh$
 
     public String getClientUUID() {
         return clientUUID;
     }
+    
+//s.oh^ 2014/10/03 排他処理のID表示
+    public void setClientUUID(String uuid) {
+        clientUUID = uuid;
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "New Owner UUID:", clientUUID);
+    }
+//s.oh$
     
     // Dolphinをstatic instanceにする
     private static Dolphin instance = new Dolphin();
@@ -147,6 +175,7 @@ public class Dolphin implements MainWindow {
         Project.getProjectStub().outputUserDefaults();
         //Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "_/_/_/_/_/ Dolphin開始 _/_/_/_/_/");
         Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "_/_/_/_/_/ Dolphin開始 _/_/_/_/_/");
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "Owner UUID:", clientUUID);
 //s.oh$
         
         // Project作成後、Look&Feel を設定する
@@ -457,6 +486,15 @@ public class Dolphin implements MainWindow {
                 }
             }
 //s.oh$
+//s.oh^ 2014/08/19 ID権限
+            if(Project.isOtherCare()) {
+                if(plugin instanceof WatingListImpl || plugin instanceof PatientScheduleImpl || plugin instanceof NLaboTestImporter) {
+                    plugin.stop();
+                    plugin = null;
+                    continue;
+                }
+            }
+//s.oh$
             list.add(plugin);
         }
         ClientContext.getBootLogger().debug("main window plugin did load");
@@ -521,7 +559,14 @@ public class Dolphin implements MainWindow {
         stampBox.setContext(Dolphin.this);
         stampBox.setStampTreeModels(result);
         stampBox.start();
-        stampBox.getFrame().setVisible(true);
+//s.oh^ 2014/08/19 ID権限
+        //stampBox.getFrame().setVisible(true);
+        if(Project.isOtherCare()) {
+            stampBox.getFrame().setVisible(false);
+        }else{
+            stampBox.getFrame().setVisible(true);
+        }
+//s.oh$
         providers.put("stampBox", stampBox);
 
         //------------------------------
@@ -615,13 +660,25 @@ public class Dolphin implements MainWindow {
         
 //masuda^   すでにChart, EditorFrameが開いていた時の処理はここで行う
         if (pvt == null) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "カルテの表示", "PVT兵法がありません");
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "カルテの表示", "PVTがありません");
             return;
         }
         if (pvt.getStateBit(PatientVisitModel.BIT_CANCEL)) {
             Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "カルテの表示", "キャンセル済みの患者");
             return;
         }
+        
+//s.oh^ 2014/10/03 インスペクタの制御
+        int max = Project.getInt("inspector.open.max", 0);
+        if(max > 0) {
+            if(ChartImpl.getAllChart() != null && ChartImpl.getAllChart().size() >= max) {
+                String msg = "閲覧可能患者数を超えました。";
+                JOptionPane.showMessageDialog(getFrame(), msg, ClientContext.getFrameTitle("カルテオープン"), JOptionPane.WARNING_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, msg);
+                return;
+            }
+        }
+//s.oh$
         
         // このクライアントでChartImplとEditorFrameを開いていた場合の処理
         boolean opened = false;
@@ -663,8 +720,17 @@ public class Dolphin implements MainWindow {
                 //String[] options = {"閲覧のみ", "ロック解除", "キャンセル"};
                 String[] options = {"閲覧のみ", "ロック解除", GUIFactory.getCancelButtonText()};
 //minagawa$                
-                String msg = ptName + " 様のカルテは他の端末で編集中です。\n" +
+//s.oh^ 2014/10/03 排他処理のID表示
+                //String msg = ptName + " 様のカルテは他の端末で編集中です。\n" +
+                //        "ロック解除は編集中の端末がクラッシュした場合等に使用してください。";
+                String[] uuid = pvt.getPatientModel().getOwnerUUID().split(":");
+                String uid = null;
+                if(uuid.length > 1) {
+                    uid = uuid[0];
+                }
+                String msg = ptName + " 様のカルテは他の端末" + ((uid != null) ? "(" + uid + ")" : "") + "で編集中です。\n" +
                         "ロック解除は編集中の端末がクラッシュした場合等に使用してください。";
+//s.oh$
 
                 int val = JOptionPane.showOptionDialog(
                         getFrame(), msg, ClientContext.getFrameTitle("カルテオープン"),
@@ -935,7 +1001,6 @@ public class Dolphin implements MainWindow {
                 }
                 return null;
             }
-            
         };
         worker.execute();
 //masuda$
@@ -1136,6 +1201,11 @@ public class Dolphin implements MainWindow {
             @Override
             protected Void doInBackground() throws Exception {
                 ClientContext.getBootLogger().debug("stampTask doInBackground");
+//s.oh^ 2014/08/19 ID権限
+                if(Project.isOtherCare()) {
+                    return null;
+                }
+//s.oh$
                 // Stamp 保存
                 StampDelegater dl = new StampDelegater();
                 dl.putTree(treeTosave);
@@ -1472,6 +1542,42 @@ public class Dolphin implements MainWindow {
         }
     }
     
+//s.oh^ 2014/07/08 クラウド0対応
+    /**
+     * 統計情報を取得する。
+     */
+    public void fetchActivities() {
+        
+        SwingWorker worker;
+        worker = new SwingWorker<ActivityModel[], Void>() {
+            
+            @Override
+            protected ActivityModel[] doInBackground() throws Exception {
+                UserDelegater sdl = new UserDelegater();
+                return sdl.fetchActivities();
+            }
+            
+            @Override
+            protected void done() {
+                try {
+                    ActivityModel[] am = get();
+                    if (am==null) {
+                        throw new RuntimeException("ヌル値がリターンされました。");
+                    }
+                    
+                    AboutActivities aac = new AboutActivities(am);
+                    aac.start();
+                    
+                } catch (InterruptedException | ExecutionException ex) {
+                    ex.printStackTrace(System.err);
+                }
+            }
+        };
+        
+        worker.execute();
+    }
+//s.oh$
+    
     /**
      * 保険医療機関コードとJMARIコードを取得する
      */
@@ -1537,6 +1643,206 @@ public class Dolphin implements MainWindow {
                 JOptionPane.WARNING_MESSAGE);
         Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle("医療機関コード読み込み"), msg[0], msg[1]);
     }
+    
+//s.oh^ 2014/07/22 一括カルテPDF出力
+    public void outputAllKartePdf() {
+////        JDialog dialog = new JDialog(new JFrame(), "一括カルテPDF出力", false);
+////        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+////        JPanel panel = new JPanel();
+////        panel.add(new JLabel("カルテのPDF出力中..."));
+////        panel.setPreferredSize(new Dimension(200, 50));
+////        dialog.getContentPane().add(panel, BorderLayout.CENTER);
+////        dialog.pack();
+////        Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+////        int x = (size.width - dialog.getPreferredSize().width) / 2;
+////        int y = (size.height - dialog.getPreferredSize().height) / 2;
+////        dialog.setLocation(x, y);
+////        dialog.setVisible(true);
+//        block();
+//        PatientDelegater pdl = new PatientDelegater();
+//        try {
+//            List<PatientModel> pList = pdl.getAllPatient();
+//            for(PatientModel pm : pList) {
+//                outputAllKartePdfForPatient(pm);
+//            }
+////            dialog.setVisible(false);
+//            unblock();
+//            JOptionPane.showMessageDialog((Component) null, "PDF出力が終わりました。", "一括カルテPDF出力", JOptionPane.INFORMATION_MESSAGE);
+//            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "PDF出力が終わりました。");
+//        } catch (Exception ex) {
+////            dialog.setVisible(false);
+//            unblock();
+//            JOptionPane.showMessageDialog((Component) null, "PDF出力に失敗しました。", "一括カルテPDF出力", JOptionPane.ERROR_MESSAGE);
+//            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "PDF出力に失敗しました。", ex.toString());
+//        }
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "一括カルテPDF出力");
+        
+        String[] msg = new String[] {"全患者のカルテPDFを出力しますか？", "※PDF出力には時間がかかります。"};
+        String ok = "はい";
+        String cancel = (String)UIManager.get("OptionPane.cancelButtonText");
+        
+        int option = JOptionPane.showOptionDialog(
+                null, 
+                msg, 
+                "一括カルテPDF出力", 
+                JOptionPane.DEFAULT_OPTION, 
+                JOptionPane.QUESTION_MESSAGE,
+                null, 
+                new String[]{ok, cancel}, 
+                ok);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "一括カルテPDF出力", msg[0], msg[1]);
+        if(option == 0) {
+            Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, ok);
+        }else{
+            Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, cancel);
+            return;
+        }
+        
+        patCounter = 0;
+        patTotal = 1;
+        progress = new ProgressMonitor(getFrame(), "一括カルテPDF出力", "", 0, 100);
+        progress.setProgress(0);
+        final SimpleWorker worker = new SimpleWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                PatientDelegater pdl = new PatientDelegater();
+                List<PatientModel> pList = pdl.getAllPatient();
+                patTotal = pList.size();
+                for(PatientModel pm : pList) {
+                    if(progress.isCanceled()) {
+                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "キャンセルされました。");
+                        return null;
+                    }
+                    patCounter += 1;
+                    double tmp = 100 * ((double)patCounter / (double)patTotal);
+                    if(patCounter >= patTotal) {
+                        setProgress(100);
+                    }else{
+                        setProgress((int)tmp);
+                    }
+                    try{
+                        Thread.sleep(50);
+                    }catch(InterruptedException ie) {}
+                    outputAllKartePdfForPatient(pm);
+                }
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                JOptionPane.showMessageDialog((Component) null, "PDF出力が終わりました。\n" + ClientContext.getTempDirectory(), "一括カルテPDF出力", JOptionPane.INFORMATION_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "PDF出力が終わりました。", ClientContext.getTempDirectory());
+            }
+
+            @Override
+            protected void failed(Throwable e) {
+                setProgress(100);
+                JOptionPane.showMessageDialog((Component) null, "PDF出力に失敗しました。\n" + ClientContext.getTempDirectory(), "一括カルテPDF出力", JOptionPane.ERROR_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "PDF出力に失敗しました。", e.toString());
+            }
+        };
+
+        worker.addPropertyChangeListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if(evt.getPropertyName().equals("progress")) {
+                    int val = (Integer)evt.getNewValue();
+                    progress.setProgress(val);
+                    String msg = String.format("%d / %d 患者のカルテPDFを出力しています...", patCounter, patTotal);
+                    progress.setNote(msg);
+                }
+            }
+        });
+
+        worker.execute();
+    }
+    
+    private void outputAllKartePdfForPatient(PatientModel pm) {
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, String.valueOf(pm.getId()), pm.getPatientId(), pm.getFacilityId());
+        DocumentDelegater ddl = new DocumentDelegater();
+        StringBuilder sb = new StringBuilder();
+        sb.append(ClientContext.getTempDirectory());
+        sb.append(File.separator);
+        sb.append(pm.getPatientId());
+        File dir = new File(sb.toString());
+        if(!dir.exists()) {
+            dir.mkdirs();
+        }
+        try {
+            List<DocumentModel> docList= ddl.getAllDocument(String.valueOf(pm.getId()));
+            for(DocumentModel model : docList) {
+                outputPdf(pm, model, dir.getPath());
+            }
+        } catch (Exception ex) {
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, ex.toString());
+        }
+    }
+    
+    private void outputPdf(PatientModel pm, DocumentModel model, String dir) {
+        if(model.getModules() != null) {
+            KartePaneDumper_2 dumper = new KartePaneDumper_2();
+            KartePaneDumper_2 pdumper = new KartePaneDumper_2();
+            List<ModuleModel> soaModules = new ArrayList<ModuleModel>();
+            List<ModuleModel> pModules = new ArrayList<ModuleModel>();
+            String soaSpec = null;
+            String pSpec = null;
+            for (ModuleModel bean : model.getModules()) {
+                String role = bean.getModuleInfoBean().getStampRole();
+                if(role.equals(IInfoModel.ROLE_SOA)) {
+                    soaModules.add(bean);
+                }else if(role.equals(IInfoModel.ROLE_SOA_SPEC)) {
+                    soaSpec = ((ProgressCourse) bean.getModel()).getFreeText();
+                }else if(role.equals(IInfoModel.ROLE_P)) {
+                    pModules.add(bean);
+                }else if(role.equals(IInfoModel.ROLE_P_SPEC)) {
+                    pSpec = ((ProgressCourse) bean.getModel()).getFreeText();
+                }else if(bean.getModel() instanceof ProgressCourse) {
+                    if(soaSpec==null) {
+                        soaSpec = ((ProgressCourse) bean.getModel()).getFreeText();
+                    }else if(pSpec==null) {
+                        pSpec = ((ProgressCourse) bean.getModel()).getFreeText();
+                    }
+
+                }else{
+                    pModules.add(bean);
+                }
+            }
+            if(soaSpec == null || soaSpec.length() <= 0) {
+                soaSpec = "<section><paragraph><content><text></text></content></paragraph></section>";
+            }
+            if(pSpec == null || pSpec.length() <= 0) {
+                pSpec = "<section><paragraph><content><text></text></content></paragraph></section>";
+            }
+            dumper.setSpec(soaSpec);
+            dumper.setModuleList((ArrayList<ModuleModel>) soaModules);
+            dumper.setSchemaList((ArrayList<SchemaModel>) model.getSchema());
+            dumper.setAttachmentList((ArrayList<AttachmentModel>) model.getAttachment());
+            pdumper.setSpec(pSpec);
+            pdumper.setModuleList((ArrayList<ModuleModel>) pModules);
+            
+            StringBuilder sbTitle = new StringBuilder();
+            String timeStamp = ModelUtils.getDateAsFormatString(model.getDocInfoModel().getFirstConfirmDate(), IInfoModel.KARTE_DATE_FORMAT);
+            sbTitle.append(timeStamp);
+            if (Project.getUserModel().getCommonName()!=null && !Project.getBoolean("karte.title.username.hide")) {
+                sbTitle.append(" ");
+                sbTitle.append(Project.getUserModel().getCommonName());
+            }
+            if(model.getDocInfoModel().getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
+                sbTitle.append("（自費）");
+            }
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+            //KartePDFImpl2 pdf = new KartePDFImpl2(dir, sdf.format(model.getConfirmed()),
+            KartePDFImpl2 pdf = new KartePDFImpl2(dir, sdf.format(model.getStarted()),
+                                                  pm.getPatientId(), pm.getFullName(),
+                                                  sbTitle.toString(),
+                                                  new Date(), dumper, pdumper, null);
+            String path = pdf.create();
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "カルテPDF作成", path);
+        }else{
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "カルテ情報が存在しない", dir);
+        }
+    }
+//s.oh$
 
     /**
      * Pluginを起動する。
@@ -1786,7 +2092,18 @@ public class Dolphin implements MainWindow {
                 GUIConst.ACTION_BROWS_MEDXML,
                 GUIConst.ACTION_SHOW_ABOUT,
                 GUIConst.ACTION_NIMBUS_LOOK_AND_FEEL,
-                GUIConst.ACTION_NATIVE_LOOK_AND_FEEL
+                GUIConst.ACTION_NATIVE_LOOK_AND_FEEL,
+//s.oh^ 2014/07/08 クラウド0対応
+//minagawa^ 統計情報               
+                GUIConst.ACTION_FETCH_ACTIVITIES,
+//minagawa$                    
+//s.oh$
+//s.oh^ 2014/08/19 受付バーコード対応
+                GUIConst.ACTION_RECEIPT_BARCODE,
+//s.oh$
+//s.oh^ 2014/07/22 一括カルテPDF出力
+                GUIConst.ACTION_OUTPUT_ALLKARTEPDF
+//s.oh$
             };
             mediator.enableMenus(enables);
 
@@ -1810,6 +2127,13 @@ public class Dolphin implements MainWindow {
             // 医療機関コード取得
             Action fetchFacilityCode = mediator.getAction(GUIConst.ACTION_FETCH_FACILITY_CODE);
             fetchFacilityCode.setEnabled(Project.canSearchMaster());
+            
+//s.oh^ 2014/08/19 ID権限
+            if(Project.isOtherCare()) {
+                Action printerSetup = mediator.getAction(GUIConst.ACTION_PRINTER_SETUP);
+                printerSetup.setEnabled(false);
+            }
+//s.oh$
         }
     }
 
@@ -1837,8 +2161,8 @@ public class Dolphin implements MainWindow {
      */
     class StateManager {
 
-        private MainWindowState loginState = new LoginState();
-        private MainWindowState logoffState = new LogoffState();
+        private final MainWindowState loginState = new LoginState();
+        private final MainWindowState logoffState = new LogoffState();
         private MainWindowState currentState = logoffState;
 
         public StateManager() {
@@ -1855,6 +2179,7 @@ public class Dolphin implements MainWindow {
     }
 
     public static void main(String[] args) {
+        //String mode = (args.length==1) ? args[0] : null;
         String mode = (args.length==1) ? args[0] : "pro";
         Dolphin.getInstance().start(mode);
     }

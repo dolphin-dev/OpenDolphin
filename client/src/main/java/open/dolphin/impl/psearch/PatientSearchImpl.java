@@ -1,7 +1,9 @@
 package open.dolphin.impl.psearch;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.beans.EventHandler;
@@ -14,6 +16,7 @@ import javax.swing.event.*;
 import open.dolphin.client.*;
 import open.dolphin.delegater.PVTDelegater1;
 import open.dolphin.delegater.PatientDelegater;
+import open.dolphin.delegater.ServerInfoDelegater;
 import open.dolphin.dto.PatientSearchSpec;
 import open.dolphin.helper.KeyBlocker;
 import open.dolphin.helper.SimpleWorker;
@@ -45,6 +48,7 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
     
     private static final String NAME = "患者検索";
     
+//s.oh^ 2014/08/19 施設患者一括表示機能
     private static final String[] COLUMN_NAMES 
             = {"ID", "氏名", "カナ", "性別", "生年月日", "受診日", "状態"};
     
@@ -56,6 +60,18 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
         String.class, String.class};
     
     private final int[] COLUMN_WIDTH = {50, 100, 120, 30, 100, 80, 20};
+//    private static final String[] COLUMN_NAMES 
+//            = {"ID", "氏名", "カナ", "性別", "生年月日", "受診日", "診療内容", "状態"};
+//    
+//    private final String[] PROPERTY_NAMES 
+//            = {"patientId", "fullName", "kanaName", "genderDesc", "ageBirthday", "pvtDateTrimTime", "appMemo", "isOpened"};
+//    
+//    private static final Class[] COLUMN_CLASSES = {
+//        String.class, String.class, String.class, String.class, String.class, 
+//        String.class, String.class, String.class};
+//    
+//    private final int[] COLUMN_WIDTH = {50, 100, 120, 30, 100, 80, 50, 20};
+//s.oh$
     
     //private final int START_NUM_ROWS = 30;
    
@@ -133,6 +149,21 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
             }
         });
 //pns$        
+        
+//s.oh^ 2014/08/19 ID権限
+        if(Project.isOtherCare()) {
+            String text = Project.getString("patient.search.text", "");
+            if(text != null && !text.isEmpty()) {
+                view.getKeywordFld().setText(text);
+                find(view.getKeywordFld().getText());
+            }else{
+                view.getKeywordFld().setText("設定なし");
+            }
+            view.getSortItem().setEnabled(false);
+            view.getKeywordFld().setEnabled(false);
+            view.getTmpKarteButton().setEnabled(false);
+        }
+//s.oh$
     }
 
     @Override
@@ -260,9 +291,16 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
                 if (row == selected && obj != null) {
                     contextMenu.add(new JMenuItem(new ReflectAction("カルテを開く", PatientSearchImpl.this, "openKarte")));
                     contextMenu.addSeparator();
-                    contextMenu.add(new JMenuItem(copyAction));
-                    contextMenu.add(new JMenuItem(new ReflectAction("受付登録", PatientSearchImpl.this, "addAsPvt")));
-                    contextMenu.addSeparator();
+//s.oh^ 2014/08/19 ID権限
+                    //contextMenu.add(new JMenuItem(copyAction));
+                    //contextMenu.add(new JMenuItem(new ReflectAction("受付登録", PatientSearchImpl.this, "addAsPvt")));
+                    //contextMenu.addSeparator();
+                    if(!Project.isOtherCare()) {
+                        contextMenu.add(new JMenuItem(copyAction));
+                        contextMenu.add(new JMenuItem(new ReflectAction("受付登録", PatientSearchImpl.this, "addAsPvt")));
+                        contextMenu.addSeparator();
+                    }
+//s.oh$
                 }
 
                 JCheckBoxMenuItem item = new JCheckBoxMenuItem("年齢表示");
@@ -357,6 +395,13 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
         
         // ソートアイテム
         sortItem = Project.getInt("sortItem", 0);
+//s.oh^ 2014/08/13 コントロールサイズ調整
+        String nimbus = "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
+        String laf = UIManager.getLookAndFeel().getClass().getName();
+        if(!laf.equals(nimbus)) {
+            view.getSortItem().setPreferredSize(new Dimension(90, 20));
+        }
+//s.oh$
         view.getSortItem().setSelectedIndex(sortItem);
 
         // Auto IME Windows の時のみ
@@ -376,6 +421,29 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
         } else {
             view.getTable().setRowHeight(ClientContext.getHigherRowHeight());
         }
+        
+        String method = ageDisplay ? AGE_METHOD[0] : AGE_METHOD[1];
+        ListTableModel tModel = getTableModel();
+        tModel.setProperty(method, ageColumn);
+        List<ColumnSpec> columnSpecs = columnHelper.getColumnSpecs();
+        for (int i = 0; i < columnSpecs.size(); i++) {
+            ColumnSpec cs = columnSpecs.get(i);
+            String test = cs.getMethod();
+            if (test.toLowerCase().endsWith("birthday")) {
+                cs.setMethod(method);
+                break;
+            }
+        }
+        
+//minagawa^ こんなん　駄目        
+////s.oh^ 2014/10/22 Icon表示
+//        view.getSearchLabel().setIcon(ClientContext.getImageIconArias("icon_search_large"));
+////s.oh$
+//minagawa$        
+        
+//s.oh^ 2014/04/16 メニュー制御
+        view.getTable().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+//s.oh$
     }
 
     /**
@@ -822,7 +890,15 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
             @Override
             protected List doInBackground() throws Exception {
                 PatientDelegater pdl = new PatientDelegater();
+//s.oh^ 2014/10/01 患者検索(傷病名)
                 List result = pdl.getTmpKarte();
+                //List result;
+                //if(view.getKeywordFld().getText() != null && !view.getKeywordFld().getText().isEmpty()) {
+                //    result = pdl.getCustom(view.getKeywordFld().getText());
+                //}else{
+                //    result = pdl.getTmpKarte();
+                //}
+//s.oh$
                 return result;
             }
 
@@ -854,6 +930,85 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
 
         worker.execute();
     }
+    
+//s.oh^ 2014/08/19 施設患者一括表示機能
+    public void visitAll() {
+        List<PatientModel> list = getTableModel().getDataProvider();
+        if(list == null) return;
+        for(PatientModel model : list) {
+            // 来院情報を生成する
+            PatientVisitModel pvt = new PatientVisitModel();
+            pvt.setId(0L);
+            pvt.setNumber(number++);
+            pvt.setPatientModel(model);
+
+            //--------------------------------------------------------
+            // 受け付けを通していないのでログイン情報及び設定ファイルを使用する
+            // 診療科名、診療科コード、医師名、医師コード、JMARI
+            // 2.0
+            //---------------------------------------------------------
+            pvt.setDeptName(Project.getUserModel().getDepartmentModel().getDepartmentDesc());
+            pvt.setDeptCode(Project.getUserModel().getDepartmentModel().getDepartment());
+            pvt.setDoctorName(Project.getUserModel().getCommonName());
+            if (Project.getUserModel().getOrcaId()!=null) {
+                pvt.setDoctorId(Project.getUserModel().getOrcaId());
+            } else {
+                pvt.setDoctorId(Project.getUserModel().getUserId());
+            }
+            String jamri;
+            if(Project.claimSenderIsServer()) {
+                ServerInfoDelegater sid = new ServerInfoDelegater();
+                try {
+                    jamri = sid.getJamri();
+                } catch (Exception ex) {
+                    jamri = Project.getString(Project.JMARI_CODE);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, ex.toString());
+                }
+            }else{
+                jamri = Project.getString(Project.JMARI_CODE);
+            }
+            pvt.setJmariNumber(jamri);
+
+            // 来院日
+            pvt.setPvtDate(ModelUtils.getDateTimeAsString(new Date()));
+
+            final PatientVisitModel fPvt = pvt;
+
+            SimpleWorker worker = new SimpleWorker<Void, Void>() {
+
+                @Override
+                protected Void doInBackground() throws Exception {
+                    PVTDelegater1 pdl = new PVTDelegater1();
+                    pdl.addPvt(fPvt);
+                    return null;
+                }
+
+                @Override
+                protected void succeeded(Void result) {
+                }
+
+                @Override
+                protected void failed(Throwable cause) {
+                }
+
+                @Override
+                protected void startProgress() {
+                    doStartProgress();
+                }
+
+                @Override
+                protected void stopProgress() {
+                    doStopProgress();
+                }
+            };
+
+            worker.execute();
+        }
+        Window parent = SwingUtilities.getWindowAncestor(getUI());
+        JOptionPane.showMessageDialog(parent, "一括受付しました。", "一括受付", JOptionPane.WARNING_MESSAGE);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "一括受付しました。");
+    }
+//s.oh$
     
     private void sortList(List<PatientModel> list) {
                  

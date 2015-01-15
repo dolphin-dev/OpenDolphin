@@ -1,68 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project name="project" default="all" basedir="/Users/oh/Develop/Dolphin/Develop/OpenDolphinPro/modules">
-    
-    <property name="jarDir" location="${basedir}/jar"/>
-    <property name="jnlpDir" location="${basedir}/dolphin"/>
-    <property name="objDir" location="/Users/oh/Develop/Dolphin/Develop/OpenDolphinPro/dolphin-dev/OpenDolphin/client/target"/>
-    <property name="signKey" location="/Users/oh/Develop/Dolphin/Develop/digiCert/openDolphin-2012/OpenDolphin.jks"/>
-
-    <!-- Package -->    <!-- Import environment variables -->    <property environment="env"/>    <property name="dir.jars" location="${basedir}/jar"/><!-- Package -->    <!-- compiled target: maven jar target -->    <property name="dir.obj" location="/Users/oh/Develop/Dolphin/Develop/OpenDolphinPro/dolphin-dev/OpenDolphin/client/target"/>    <property name="common" value="opendolphin-common-2.5.0.jar"/>    <property name="dolphin" value="OpenDolphin.jar"/>    <property name="dest.name" value="OpenDolphinPro.jar"/>    <property name="icns" value="${basedir}/icons/op.icns"/>
-
-<!-- Package -->    <!-- Define the appbundler task -->    <taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"/>    
-    <target name="clean">
-        <delete dir="${jarDir}/open"/>
-        <delete dir="${jarDir}/META-INF/plugins"/>
-    </target>
-    
-    <target name="copy">
-        <copy file="${objDir}/lib/${common}" tofile="${jarDir}/${common}"/>
-        <copy file="${objDir}/${dolphin}" tofile="${jarDir}/${dolphin}"/>
-    </target>
-    
-    <target name="unjar">
-        <unjar src="${jarDir}/${common}" dest="${jarDir}"/>
-        <unjar src="${jarDir}/${dolphin}" dest="${jarDir}"/>
-    </target>
-    
-    <target name="clean2">
-        <delete file="${jarDir}/${common}"/>
-        <delete file="${jarDir}/${dolphin}"/>
-        <delete file="${jarDir}/META-INF/MANIFEST.MF"/>
-        <delete file="${jarDir}/META-INF/jboss.xml"/>
-        <delete file="${jarDir}/META-INF/persistence.xml"/>
-        <delete dir="${jarDir}/META-INF/maven"/>
-    </target>
-    
-    <target name="jar">
-        <jar destfile="${jarDir}/${dolphin}" basedir="${jarDir}">
-            <manifest>
-                <attribute name="Main-Class" value="open.dolphin.client.Dolphin"/>
-                <attribute name="Permissions" value="all-permissions"/>
-            </manifest>
-        </jar>
-    </target>
-  
-    <target name="sign">
-        <signjar jar="${jarDir}/${dolphin}"
-               tsaurl="http://timestamp.digicert.com" 
-               keystore="${signKey}" 
-               storepass="hanagui+"
-               alias="server"/>
-    </target>
-  
-    <target name="move">
-        <move file="${jarDir}/${dolphin}" tofile="${jnlpDir}/${dolphin}"/>
-    </target>
-  
-<!-- Package -->    <target name="copy2">
-        <copy file="${jnlpDir}/${dolphin}" tofile="${jnlpDir}/${dest.name}"/>
-    </target>
-  
-    <target name="all" depends="clean,copy,unjar,clean2,jar,sign,move,copy2">
-<!-- Package -->    <bundleapp outputdirectory="${jnlpDir}"        name="OpenDolphinPro"        displayname="OpenDolphinPro-1.4.6"        identifier="jp.co.digital-globe.openDolphin"        shortversion="1.4"        icon="${icns}"        applicationCategory="public.app-category.medical"        mainclassname="open/dolphin/client/Dolphin">        <runtime dir="${env.JAVA_HOME}"/>        <classpath file="${jnlpDir}/${dest.name}"/>        <option value="-Dapple.laf.useScreenMenuBar=true"/>
-        <option value="-Dcom.apple.macos.smallTabs=true"/>
-        <option value="-Dfile.encoding=UTF8"/>
-        <argument value="pro"/>        </bundleapp>        <!-- echo message="Creating..." / -->
-    </target>
-  
-</project>

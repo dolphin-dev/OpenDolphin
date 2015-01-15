@@ -107,7 +107,7 @@ public class TFSBrowser extends AbstractBrowser {
 
     public void openListView() {
 
-        // Genesys Server IP Address
+        // TFS Server IP Address
         String tfserver = properties.getProperty(PROP_TFS_SERVER);
 
         if (valueIsNullOrEmpty(tfserver)) {

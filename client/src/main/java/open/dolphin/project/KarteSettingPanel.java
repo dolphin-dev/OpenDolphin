@@ -59,6 +59,9 @@ public class KarteSettingPanel extends AbstractSettingPanel {
     private JRadioButton vSc;
     private JRadioButton hSc;
     private NameValuePair[] periodObjects;
+//s.oh^ 2014/08/21 修正時にアラート表示
+    private JCheckBox modifyMsgChk;
+//s.oh$
     
     // 文書履歴、適用保険のカラーリング
     private JCheckBox jihiColoringChk;
@@ -122,6 +125,10 @@ public class KarteSettingPanel extends AbstractSettingPanel {
 //s.oh^ 2013/06/24 印刷対応
     private JCheckBox printShowPdf;
 //s.oh$
+//s.oh$
+//s.oh^ 2014/03/19 カルテの選択印刷
+    private JRadioButton printSingle;
+    private JRadioButton printMulti;
 //s.oh$
     
 //minagawa^ Schedule On/Off
@@ -211,6 +218,9 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         periodCombo = new JComboBox(periodObjects);
         vSc = new JRadioButton("垂直");
         hSc = new JRadioButton("水平");
+//s.oh^ 2014/08/21 修正時にアラート表示
+        modifyMsgChk = new JCheckBox("アラートを表示（当日以外）");
+//s.oh$
         
         // 適用保険のカラーリング
         jihiColoringChk = new JCheckBox("自費(黄)");
@@ -273,15 +283,19 @@ public class KarteSettingPanel extends AbstractSettingPanel {
 //s.oh^ 2013/02/07 印刷対応
         printNormal = new JRadioButton("Windows印刷");
         printPdf = new JRadioButton("Windows/Mac印刷");
-        printDirect = new JCheckBox("Windows/Mac印刷を選択した場合、印刷ダイアログを表示しない");
+        printDirect = new JCheckBox("印刷ダイアログを表示しない");
 //s.oh^ 2013/06/24 印刷対応
         printShowPdf = new JCheckBox("Windows/Mac印刷を選択した場合、印刷せずにPDFの表示を行う");
 //s.oh$
 //s.oh$
 //s.oh^ 2013/09/12 PDF印刷文字サイズ
-        printPdfTextSize = new JTextField(10);
+        printPdfTextSize = new JTextField(2);
         printPdfTextSize.setDocument(new RegexConstrainedDocument("[0-9]*", 2));
         printLaboPdf = new JCheckBox("PDF変換");
+//s.oh$
+//s.oh^ 2014/03/19 カルテの選択印刷
+        printSingle = new JRadioButton("単独印刷");
+        printMulti = new JRadioButton("選択印刷");
 //s.oh$
         
         // ２号カルテ文字サイズ
@@ -400,6 +414,13 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         label = new JLabel("文書抽出期間:", SwingConstants.RIGHT);
         gbb.add(label, 0, row, 1, 1, GridBagConstraints.EAST);
         gbb.add(periodCombo, 1, row, 1, 1, GridBagConstraints.WEST);
+        
+//s.oh^ 2014/08/21 修正時にアラート表示
+        row++;
+        label = new JLabel("修正:", SwingConstants.RIGHT);
+        gbb.add(label, 0, row, 1, 1, GridBagConstraints.EAST);
+        gbb.add(modifyMsgChk, 1, row, 1, 1, GridBagConstraints.WEST);
+//s.oh$
         JPanel kartePanel = gbb.getProduct();
 
         //----------------------------------------------------------------
@@ -681,9 +702,16 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         gbb.add(p6, 1, row, 1, 1, GridBagConstraints.WEST);
         JPanel kindP = gbb.getProduct();
         
-        gbb = new GridBagBuilder("印刷ダイアログ");
+        gbb = new GridBagBuilder("Windows/Mac印刷");
         row = 0;
         gbb.add(printDirect, 0, row, 2, 1, GridBagConstraints.WEST);
+//s.oh^ 2014/03/19 カルテの選択印刷
+        row += 1;
+        label = new JLabel("印刷:", SwingConstants.RIGHT);
+        JPanel p7 = GUIFactory.createRadioPanel(new JRadioButton[]{printSingle,printMulti});
+        gbb.add(label, 0, row, 1, 1, GridBagConstraints.EAST);
+        gbb.add(p7, 1, row, 1, 1, GridBagConstraints.WEST);
+//s.oh$
         JPanel dialogP = gbb.getProduct();
         
 //s.oh^ 2013/06/24 印刷対応
@@ -724,6 +752,11 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         bg.add(printNormal);
         bg.add(printPdf);
 //s.oh$
+//s.oh^ 2014/03/19 カルテの選択印刷
+        bg = new ButtonGroup();
+        bg.add(printSingle);
+        bg.add(printMulti);
+//s.oh$
 
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("インスペクタ", inspectorPanel);
@@ -736,7 +769,10 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         tabbedPane.setPreferredSize(docPanel.getPreferredSize());
         
 //minagawa^ tabbedPaneの大きさをカットアンドトライで決めうち mac
-        tabbedPane.setPreferredSize(new Dimension(480, 480));      
+//s.oh^ 2014/07/11 設定画面のサイズ変更
+        //tabbedPane.setPreferredSize(new Dimension(480, 480));      
+        tabbedPane.setPreferredSize(new Dimension(500, 500));
+//s.oh$
 //minagawa$
 //s.oh^ 機能改善
         tabbedPane.setMinimumSize(new Dimension(UI_WIDTH_MIN, UI_HEIGHT_MIN));
@@ -1070,6 +1106,28 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         }
         printLaboPdf.setSelected(model.isPrintLaboPdf());
 //s.oh$
+//s.oh^ 2014/03/19 カルテの選択印刷
+        printSingle.setSelected(!model.isPrintMulti());
+        printMulti.setSelected(model.isPrintMulti());
+        ActionListener al3 = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                boolean enabled = printPdf.isSelected();
+                printDirect.setEnabled(enabled);
+                printSingle.setEnabled(enabled);
+                printMulti.setEnabled(enabled);
+            }
+        };
+        printNormal.addActionListener(al3);
+        printPdf.addActionListener(al3);
+        if(printNormal.isSelected()) {
+            printNormal.doClick();
+        }
+//s.oh$
+        
+//s.oh^ 2014/08/21 修正時にアラート表示
+        modifyMsgChk.setSelected(model.isShowModifyMsg());
+//s.oh$
     }
 
     /**
@@ -1225,6 +1283,12 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         model.setPrintPdfTextSize(printPdfTextSize.getText().trim());
         model.setPrintLaboPdf(printLaboPdf.isSelected());
 //s.oh$
+//s.oh^ 2014/03/19 カルテの選択印刷
+        model.setPrintMulti(printMulti.isSelected());
+//s.oh$
+//s.oh^ 2014/08/21 修正時にアラート表示
+        model.setShowModifyMsg(modifyMsgChk.isSelected());
+//s.oh$
     }
 
     /**
@@ -1300,10 +1364,17 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         private String printPdfTextSize;
         private boolean printLaboPdf;
 //s.oh$
+//s.oh^ 2014/03/19 カルテの選択印刷
+        private boolean printMulti;
+//s.oh$
         
 //minagawa^
         private boolean useScheduleFunc;
 //minagawa$        
+        
+//s.oh^ 2014/08/21 修正時にアラート表示
+        private boolean showModifyMsg;
+//s.oh$
 
         /**
          * ProjectStub から populate する。
@@ -1436,9 +1507,16 @@ public class KarteSettingPanel extends AbstractSettingPanel {
             setPrintPdfTextSize(Project.getString(Project.KARTE_PRINT_PDF_TEXTSIZE));   // stub.getPrintPdfTextSize()
             setPrintLaboPdf(Project.getBoolean(Project.LABO_PRINT_SHOWPDF));    // stub.isPrintLaboPdf()
 //s.oh$
+//s.oh^ 2014/03/19 カルテの選択印刷
+            setPrintMulti(Project.getBoolean(Project.KARTE_PRINT_MULTI)); // stub.isPrintMulti()
+//s.oh$
 //minagawa^ ScheduleKarte On/Off
             setUseScheduleFunc(Project.getBoolean(Project.USE_SCHEDULE_KARTE));
 //minagawa$            
+            
+//s.oh^ 2014/08/21 修正時にアラート表示
+            setShowModifyMsg(Project.getBoolean(Project.KARTE_SHOW_MODIFY_MSG));
+//s.oh$
         }
 
         /**
@@ -1553,10 +1631,17 @@ public class KarteSettingPanel extends AbstractSettingPanel {
             Project.setString(Project.KARTE_PRINT_PDF_TEXTSIZE, getPrintPdfTextSize()); // stub.setPrintPdf(getPrintPdfTextSize());
             Project.setBoolean(Project.LABO_PRINT_SHOWPDF, isPrintLaboPdf());  //stub.setPrintPdf(isPrintLaboPdf());
 //s.oh$
+//s.oh^ 2014/03/19 カルテの選択印刷
+            Project.setBoolean(Project.KARTE_PRINT_MULTI, isPrintMulti());    // stub.setPrintMulti(isPrintMulti());
+//s.oh$
             
 //minagawa^ ScheduleKarte On/Off
             Project.setBoolean(Project.USE_SCHEDULE_KARTE, isUseScheduleFunc());
 //minagawa$            
+            
+//s.oh^ 2014/08/21 修正時にアラート表示
+            Project.setBoolean(Project.KARTE_SHOW_MODIFY_MSG, isShowModifyMsg());
+//s.oh$
         }
 
         public boolean isLocateByPlatform() {
@@ -1900,6 +1985,16 @@ public class KarteSettingPanel extends AbstractSettingPanel {
         }
 //s.oh$
         
+//s.oh^ 2014/03/19 カルテの選択印刷
+        public boolean isPrintMulti() {
+            return printMulti;
+        }
+        
+        public void setPrintMulti(boolean b) {
+            printMulti = b;
+        }
+//s.oh$
+        
 //minagawa^ ScheduleKarte On/Off
         public boolean isUseScheduleFunc() {
             return useScheduleFunc;
@@ -1909,6 +2004,16 @@ public class KarteSettingPanel extends AbstractSettingPanel {
             useScheduleFunc = b;
         }
 //minagawa$        
+        
+//s.oh^ 2014/08/21 修正時にアラート表示
+        public boolean isShowModifyMsg() {
+            return showModifyMsg;
+        }
+        
+        public void setShowModifyMsg(boolean b) {
+            showModifyMsg = b;
+        }
+//s.oh$
     }
 
     public void restoreDefault() {

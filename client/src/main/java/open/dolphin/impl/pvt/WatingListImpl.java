@@ -1,7 +1,9 @@
 package open.dolphin.impl.pvt;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
@@ -9,6 +11,9 @@ import java.awt.event.*;
 import java.beans.EventHandler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,7 +25,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import open.dolphin.client.*;
 import open.dolphin.delegater.PVTDelegater;
+import open.dolphin.impl.img.DefaultBrowserEx;
 import open.dolphin.impl.server.PVTReceptionLink;
+import open.dolphin.impl.xronos.XronosLinkDocument;
 import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
 import open.dolphin.table.*;
@@ -50,6 +57,10 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
     
     // 担当分のみを表示するかどうかの preference key
     private static final String ASSIGNED_ONLY = "assignedOnly";
+    
+//s.oh^ 2014/08/08 受付フィルタ(診療行為送信済)
+    private static final String SENDED_ONLY = "sendedOnly";
+//s.oh$
     
     // 修正送信アイコンの配列インデックス
     private static final int INDEX_MODIFY_SEND_ICON = 1;
@@ -133,6 +144,10 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
     // 性別レンダラフラグ 
     private boolean sexRenderer;
     
+//s.oh^ 2014/04/15 保険のレンダラ
+    private boolean insuranceRenderer;
+//s.oh$
+    
     // 年齢表示 
     private boolean ageDisplay;
     
@@ -212,6 +227,10 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
     private String clientUUID;
     private ChartEventHandler cel;
     private String orcaId;
+    
+//s.oh^ 2014/08/19 受付バーコード対応
+    private JDialog barcodeDialog;
+//s.oh$
 
     /**
      * Creates new WatingList
@@ -221,6 +240,11 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
         cel = ChartEventHandler.getInstance();
         clientUUID = cel.getClientUUID();
         orcaId = Project.getUserModel().getOrcaId();
+//s.oh^ 2014/02/24 担当分のみ表示不具合
+        if(orcaId == null) {
+            Project.setBoolean(ASSIGNED_ONLY, false);
+        }
+//s.oh$
     }
     
     /**
@@ -276,6 +300,9 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
         sexRenderer = Project.getBoolean("sexRenderer", false);
         ageDisplay = Project.getBoolean("ageDisplay", true);
         timeFormatter = new SimpleDateFormat("HH:mm");
+//s.oh^ 2014/04/15 保険のレンダラ
+        insuranceRenderer = Project.getBoolean("insuranceRenderer", false);
+//s.oh$
         
         executor = Executors.newSingleThreadScheduledExecutor();
         
@@ -335,7 +362,12 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                     // Chartビットがたっている場合は不可
                     for (int i = 0; i < chartBitArray.length; i++) {
                         if (pvt.getStateBit(chartBitArray[i])) {
-                            canEdit = false;
+//s.oh^ 2014/10/14 診察終了後のメモ対応
+                            //canEdit = false;
+                            if(col != memoColumn) {
+                                canEdit = false;
+                            }
+//s.oh$
                             break;
                         }
                     }
@@ -407,7 +439,10 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                         return; // データが変更していないので
                     }
                     pvt.setMemo(memo);
-                    cel.publishPvtState(pvt);
+//s.oh^ 2014/10/14 診察終了後のメモ対応
+                    //cel.publishPvtState(pvt);
+                    cel.publishPvtMemo(pvt);
+//s.oh$
                     // update end funabashi
 //s.oh$
 
@@ -528,6 +563,19 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
         } else {
             pvtTable.setRowHeight(ClientContext.getHigherRowHeight());
         }
+        
+        if (pvtTable != null) {
+            String method = ageDisplay ? AGE_METHOD[0] : AGE_METHOD[1];
+            pvtTableModel.setProperty(method, ageColumn);
+            for (int i = 0; i < columnSpecs.size(); i++) {
+                ColumnSpec cs = columnSpecs.get(i);
+                String test = cs.getMethod();
+                if (test.toLowerCase().endsWith("birthday")) {
+                    cs.setMethod(method);
+                    break;
+                }
+            }
+        }
     }
 
     /**
@@ -573,6 +621,27 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                 getFullPvt();
             }
         });
+        
+//s.oh^ Xronos連携
+        if(Project.getBoolean(XronosLinkDocument.KEY_XRONOSBROWSER_LINK) && view.getXronosBtn() != null) {
+            view.getXronosBtn().addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    String imageURL = Project.getString(XronosLinkDocument.KEY_XRONOSBROWSER_IMAGE, "");
+                    String url = imageURL + "userid=" + Project.getUserId();
+                    Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, url);
+                    Desktop desktop = Desktop.getDesktop();
+                    try {
+                        desktop.browse(new URI(url));
+                    } catch (URISyntaxException ex) {
+                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, ex.getMessage());
+                    } catch (IOException ex) {
+                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, ex.getMessage());
+                    }
+                }
+            });
+        }
+//s.oh$
 
         //-----------------------------------------------
         // Copy 機能を実装する
@@ -663,6 +732,12 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
     public boolean isSexRenderer() {
         return sexRenderer;
     }
+    
+//s.oh^ 2014/04/15 保険のレンダラ
+    public boolean isInsuranceRenderer() {
+        return insuranceRenderer;
+    }
+//s.oh$
 
     /**
      * レンダラをトグルで切り替える。
@@ -679,6 +754,19 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
             pvtTableModel.fireTableDataChanged();
         }
     }
+    
+//s.oh^ 2014/04/15 保険のレンダラ
+    public void switchInsuranceRenderere() {
+        insuranceRenderer = !insuranceRenderer;
+        Project.setBoolean("insuranceRenderer", insuranceRenderer);
+        if(insuranceRenderer) {
+            Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "保険(自費)を強調する");
+        }
+        if (pvtTable != null) {
+            pvtTableModel.fireTableDataChanged();
+        }
+    }
+//s.oh$
 
     /**
      * 年齢表示をオンオフする。
@@ -848,6 +936,14 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                 } else {
                     oddEven.setSelected(true);
                 }
+//s.oh^ 2014/04/15 保険のレンダラ
+                String pop8 = "保険(自費)を強調する";
+                JRadioButtonMenuItem insurance = new JRadioButtonMenuItem(new ReflectAction(pop8, WatingListImpl.this, "switchInsuranceRenderere"));
+                contextMenu.add(insurance);
+                if(insuranceRenderer) {
+                    insurance.setSelected(true);
+                }
+//s.oh$
 
                 JCheckBoxMenuItem item = new JCheckBoxMenuItem(pop5);
                 contextMenu.add(item);
@@ -874,6 +970,30 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                         }
                     });
                 }
+//s.oh^ 2014/02/24 担当分のみ表示不具合
+                else{
+                    Project.setBoolean(ASSIGNED_ONLY, false);
+                    Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "担当分のみ表示 ORCA ID = null");
+                    //filterPatients();
+                }
+//s.oh$
+                
+//s.oh^ 2014/08/08 受付フィルタ(診療行為送信済)
+                contextMenu.addSeparator();
+                // 診療行為未送信分のみ表示
+                JCheckBoxMenuItem item2 = new JCheckBoxMenuItem("診療行為送信分を非表示");
+                contextMenu.add(item2);
+                item2.setSelected(isSendedOnly());
+                item2.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        boolean now = isSendedOnly();
+                        Project.setBoolean(SENDED_ONLY, !now);
+                        Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "診療行為未送信分のみ表示", String.valueOf(!now));
+                        filterPatients();
+                    }
+                });
+//s.oh$
 
                 // 修正送信を注意アイコンにする ON/OF default = ON
                 JCheckBoxMenuItem item3 = new JCheckBoxMenuItem(pop7);
@@ -1250,6 +1370,7 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
     private void filterPatients() {
 
         List<PatientVisitModel> list = new ArrayList<PatientVisitModel>();
+        List<PatientVisitModel> listTmp = new ArrayList<PatientVisitModel>();
         
 //s.oh^ ORCAIDがない場合は全部表示 2013/08/08
         //if (isAssignedOnly() && pvtList!=null) {
@@ -1258,12 +1379,25 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
             for (PatientVisitModel pvt : pvtList) {
                 String doctorId = pvt.getDoctorId();
                 if (doctorId == null || doctorId.equals(orcaId) || doctorId.equals(UN_ASSIGNED_ID)) {
-                    list.add(pvt);
+                    listTmp.add(pvt);
                 }
             }
         } else if (pvtList!=null) {
-            list.addAll(pvtList);
+            listTmp.addAll(pvtList);
         }
+        
+//s.oh^ 2014/08/08 受付フィルタ(診療行為送信済)
+        if(isSendedOnly()) {
+            for(PatientVisitModel pvt : listTmp) {
+                if((pvt.getState() & (1 << PatientVisitModel.BIT_SAVE_CLAIM)) > 0 || (pvt.getState() & (1 << PatientVisitModel.BIT_MODIFY_CLAIM)) > 0) {
+                }else{
+                    list.add(pvt);
+                }
+            }
+        }else{
+            list.addAll(listTmp);
+        }
+//s.oh$
         
         for (int i = 0; i < list.size(); ++i) {
             PatientVisitModel pvt = list.get(i);
@@ -1276,6 +1410,105 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
     private boolean isAssignedOnly() {
         return Project.getBoolean(ASSIGNED_ONLY, false);
     }
+    
+//s.oh^ 2014/08/08 受付フィルタ(診療行為送信済)
+    private boolean isSendedOnly() {
+        return Project.getBoolean(SENDED_ONLY, false);
+    }
+//s.oh$
+    
+//s.oh^ 2014/08/19 受付バーコード対応
+    public void receiptBarcode() {
+        final JTextField infoField = new JTextField(25);
+        infoField.addFocusListener(AutoRomanListener.getInstance());
+        infoField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    openReceipt(infoField.getText());
+                }
+            }
+        });
+        JPanel inputPanel = new JPanel();
+        inputPanel.setBackground(Color.white);
+        inputPanel.setOpaque(true);
+        inputPanel.add(new JLabel("受付情報"));
+        inputPanel.add(infoField);
+        JButton open = new JButton("開く");
+        open.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                    openReceipt(infoField.getText());
+            }
+        });
+        JPanel btnPanel = new JPanel();
+        btnPanel.setBackground(Color.white);
+        btnPanel.setOpaque(true);
+        btnPanel.add(open);
+        JPanel contentPane = new JPanel(new BorderLayout());
+        contentPane.setBackground(Color.white);
+        contentPane.setOpaque(true);
+        contentPane.add(inputPanel, BorderLayout.CENTER);
+        contentPane.add(btnPanel, BorderLayout.SOUTH);
+        contentPane.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        barcodeDialog = new JDialog(new JFrame(), ClientContext.getString("productString"), true);
+        barcodeDialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        barcodeDialog.setContentPane(contentPane);
+        barcodeDialog.getRootPane().setDefaultButton(open);
+        barcodeDialog.pack();
+        Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+        int n = ClientContext.isMac() ? 3 : 2;
+        int x = (screen.width - barcodeDialog.getPreferredSize().width) / 2;
+        int y = (screen.height - barcodeDialog.getPreferredSize().height) / n;
+        barcodeDialog.setLocation(x, y);
+        barcodeDialog.setVisible(true);
+    }
+    
+    public void openReceipt(String receipt) {
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, receipt);
+        barcodeDialog.setVisible(false);
+        barcodeDialog.dispose();
+        if(receipt == null) return;
+        String[] info = receipt.split(",");
+        if(info.length == 1) {
+            // 患者ID
+            for(int i = 0; i < pvtTableModel.getObjectCount(); i++) {
+                PatientVisitModel pvt = pvtTableModel.getObject(i);
+                if(pvt.getPatientId().equals(receipt)) {
+                    Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "カルテを開く", pvt.getPatientId());
+                    getContext().openKarte(pvt);
+                    return;
+                }
+            }
+        }else if(info.length == 2) {
+            // 患者ID + 保険
+            for(int i = 0; i < pvtTableModel.getObjectCount(); i++) {
+                PatientVisitModel pvt = pvtTableModel.getObject(i);
+                if(pvt.getFirstInsurance() == null) continue;
+                if(pvt.getPatientId().equals(info[0]) && pvt.getFirstInsurance().equals(info[1])) {
+                    Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "カルテを開く", pvt.getPatientId(), pvt.getDeptName());
+                    getContext().openKarte(pvt);
+                    return;
+                }
+            }
+        }else if(info.length == 3) {
+            // 患者ID + 保険 + 診療科
+            for(int i = 0; i < pvtTableModel.getObjectCount(); i++) {
+                PatientVisitModel pvt = pvtTableModel.getObject(i);
+                if(pvt.getDeptName() == null || pvt.getFirstInsurance() == null) continue;
+                if(pvt.getPatientId().equals(info[0]) && pvt.getFirstInsurance().indexOf(info[1]) >= 0 && pvt.getDeptName().equals(info[2])) {
+                    Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "カルテを開く", pvt.getPatientId(), pvt.getFirstInsurance(), pvt.getDeptName());
+                    getContext().openKarte(pvt);
+                    return;
+                }
+            }
+        }else{
+            
+        }
+        JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(pvtTable), "該当受付情報がありません（" + receipt + "）", "バーコード", JOptionPane.WARNING_MESSAGE);
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "該当受付情報がありません（" + receipt + "）");
+    }
+//s.oh$
 
  //minagawa^ propertyhangeに変更   
     @Override
@@ -1462,6 +1695,23 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                     }
                 }
                 break;
+//s.oh^ 2014/10/14 診察終了後のメモ対応
+            case ChartEventModel.PVT_MEMO:
+                for(PatientVisitModel pvt : pvtList) {
+                    if(pvt.getId() == evt.getPvtPk()) {
+                        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "PVT_MEMO", pvt.getPatientId(), evt.getMemo(), String.valueOf(pvt.getId()));
+                        pvt.setMemo(evt.getMemo());
+                    }
+                }
+                for(int row = 0; row < tableDataList.size(); ++row) {
+                    PatientVisitModel pvt = tableDataList.get(row);
+                    if (pvt.getId() == evt.getPvtPk() 
+                            || pvt.getPatientModel().getId() == evt.getPtPk()) {
+                        pvtTableModel.fireTableRowsUpdated(row, row);
+                    }
+                }
+                break;
+//s.oh$
         }
         
         // PvtInfoを更新する
@@ -1691,7 +1941,9 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
             this.setForeground(fore);
             
             // 選択状態の場合はStripeTableCellRendererの配色を上書きしない
-            if (pvt != null && !isSelected) {
+            if(pvt != null && pvt.getStateBit(PatientVisitModel.BIT_CANCEL)) {
+                this.setForeground(CANCEL_PVT_COLOR);
+            }else if (pvt != null && !isSelected) {
                 if (isSexRenderer()) {
                     if (IInfoModel.MALE.equals(pvt.getPatientModel().getGender())) {
                         this.setBackground(GUIConst.TABLE_MALE_COLOR);
@@ -1710,6 +1962,13 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
 //                        this.setBackground(DIAGNOSIS_EMPTY_COLOR);
 //                    }
 //                }
+//s.oh^ 2014/04/15 保険のレンダラ
+                if (isInsuranceRenderer()) {
+                    if (pvt.getFirstInsurance() != null && pvt.getFirstInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
+                        this.setBackground(Color.YELLOW);
+                    }
+                }
+//s.oh$
             }
             
             boolean bStateColumn = (pvtTable.getColumnModel().getColumn(col).getIdentifier()!=null &&
@@ -1791,6 +2050,13 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
                             this.setBackground(GUIConst.TABLE_FEMALE_COLOR);
                         }
                     }
+//s.oh^ 2014/04/15 保険のレンダラ
+                    if (isInsuranceRenderer() && !isSelected) {
+                        if (pvt.getFirstInsurance() != null && pvt.getFirstInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
+                            this.setBackground(Color.YELLOW);
+                        }
+                    }
+//s.oh$
                 }
             }
 

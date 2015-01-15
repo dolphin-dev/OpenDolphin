@@ -1,9 +1,12 @@
 package open.dolphin.session;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import javax.inject.Named;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import open.dolphin.infomodel.LetterDate;
 import open.dolphin.infomodel.LetterItem;
@@ -60,37 +63,53 @@ public class LetterServiceBean {
         // 削除
         if (model.getLinkId()!=0L) {
 
-            List<LetterItem> itemList = (List<LetterItem>)
-                 em.createQuery(QUERY_ITEM_BY_ID)
-                   .setParameter(ID, model.getLinkId())
-                   .getResultList();
-            for (LetterItem item : itemList) {
-                em.remove(item);
+            try {
+                List<LetterItem> itemList = (List<LetterItem>)
+                     em.createQuery(QUERY_ITEM_BY_ID)
+                       .setParameter(ID, model.getLinkId())
+                       .getResultList();
+                for (LetterItem item : itemList) {
+                    em.remove(item);
+                }
+            }catch(NoResultException e) {
+                Logger.getLogger("open.dolphin").log(Level.WARNING, "QUERY_ITEM_BY_ID : {0}", new Object[]{e.toString()});
             }
 
-            List<LetterText> textList = (List<LetterText>)
-                 em.createQuery(QUERY_TEXT_BY_ID)
-                   .setParameter(ID, model.getLinkId())
-                   .getResultList();
+            try {
+                List<LetterText> textList = (List<LetterText>)
+                     em.createQuery(QUERY_TEXT_BY_ID)
+                       .setParameter(ID, model.getLinkId())
+                       .getResultList();
 
-            for (LetterText txt : textList) {
-                em.remove(txt);
+                for (LetterText txt : textList) {
+                    em.remove(txt);
+                }
+            }catch(NoResultException e) {
+                Logger.getLogger("open.dolphin").log(Level.WARNING, "QUERY_TEXT_BY_ID : {0}", new Object[]{e.toString()});
             }
 
-            List<LetterDate> dateList = (List<LetterDate>)
-                 em.createQuery(QUERY_DATE_BY_ID)
-                   .setParameter(ID, model.getLinkId())
-                   .getResultList();
+            try {
+                List<LetterDate> dateList = (List<LetterDate>)
+                     em.createQuery(QUERY_DATE_BY_ID)
+                       .setParameter(ID, model.getLinkId())
+                       .getResultList();
 
-            for (LetterDate date : dateList) {
-                em.remove(date);
+                for (LetterDate date : dateList) {
+                    em.remove(date);
+                }
+            }catch(NoResultException e) {
+                Logger.getLogger("open.dolphin").log(Level.WARNING, "QUERY_DATE_BY_ID : {0}", new Object[]{e.toString()});
             }
 
-            LetterModule delete = (LetterModule)
-                        em.createQuery(QUERY_LETTER_BY_ID)
-                        .setParameter(ID, model.getLinkId())
-                        .getSingleResult();
-            em.remove(delete);
+            try {
+                LetterModule delete = (LetterModule)
+                            em.createQuery(QUERY_LETTER_BY_ID)
+                            .setParameter(ID, model.getLinkId())
+                            .getSingleResult();
+                em.remove(delete);
+            }catch(NoResultException e) {
+                Logger.getLogger("open.dolphin").log(Level.WARNING, "QUERY_LETTER_BY_ID : {0}", new Object[]{e.toString()});
+            }
         }
         
         return model.getId();
@@ -140,36 +159,52 @@ public class LetterServiceBean {
 
     
     public void delete(long pk) {
-        List<LetterItem> itemList = (List<LetterItem>)
-                 em.createQuery(QUERY_ITEM_BY_ID)
+        try {
+            List<LetterItem> itemList = (List<LetterItem>)
+                     em.createQuery(QUERY_ITEM_BY_ID)
+                       .setParameter(ID, pk)
+                       .getResultList();
+            for (LetterItem item : itemList) {
+                em.remove(item);
+            }
+        }catch(NoResultException e) {
+            Logger.getLogger("open.dolphin").log(Level.WARNING, "QUERY_ITEM_BY_ID : {0}", new Object[]{e.toString()});
+        }
+
+        try {
+            List<LetterText> textList = (List<LetterText>)
+                 em.createQuery(QUERY_TEXT_BY_ID)
                    .setParameter(ID, pk)
                    .getResultList();
-        for (LetterItem item : itemList) {
-            em.remove(item);
+
+            for (LetterText txt : textList) {
+                em.remove(txt);
+            }
+        }catch(NoResultException e) {
+            Logger.getLogger("open.dolphin").log(Level.WARNING, "QUERY_TEXT_BY_ID : {0}", new Object[]{e.toString()});
         }
 
-        List<LetterText> textList = (List<LetterText>)
-             em.createQuery(QUERY_TEXT_BY_ID)
-               .setParameter(ID, pk)
-               .getResultList();
+        try {
+            List<LetterDate> dateList = (List<LetterDate>)
+                 em.createQuery(QUERY_DATE_BY_ID)
+                   .setParameter(ID, pk)
+                   .getResultList();
 
-        for (LetterText txt : textList) {
-            em.remove(txt);
+            for (LetterDate date : dateList) {
+                em.remove(date);
+            }
+        }catch(NoResultException e) {
+            Logger.getLogger("open.dolphin").log(Level.WARNING, "QUERY_DATE_BY_ID : {0}", new Object[]{e.toString()});
         }
 
-        List<LetterDate> dateList = (List<LetterDate>)
-             em.createQuery(QUERY_DATE_BY_ID)
-               .setParameter(ID, pk)
-               .getResultList();
-
-        for (LetterDate date : dateList) {
-            em.remove(date);
+        try {
+            LetterModule delete = (LetterModule)
+                        em.createQuery(QUERY_LETTER_BY_ID)
+                        .setParameter(ID, pk)
+                        .getSingleResult();
+            em.remove(delete);
+        }catch(NoResultException e) {
+            Logger.getLogger("open.dolphin").log(Level.WARNING, "QUERY_LETTER_BY_ID : {0}", new Object[]{e.toString()});
         }
-
-        LetterModule delete = (LetterModule)
-                    em.createQuery(QUERY_LETTER_BY_ID)
-                    .setParameter(ID, pk)
-                    .getSingleResult();
-        em.remove(delete);
     }
 }

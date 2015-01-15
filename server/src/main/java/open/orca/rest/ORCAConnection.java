@@ -59,7 +59,10 @@ public class ORCAConnection {
     public Connection getConnection() {
         
         try {
-            return DriverManager.getConnection(jdbcURL, user, password);
+            //return DriverManager.getConnection(jdbcURL, user, password);
+            Connection conn = DriverManager.getConnection(jdbcURL, user, password);
+            conn.setReadOnly(true);
+            return conn;
         } catch (Exception e) {
             e.printStackTrace(System.err);
         }

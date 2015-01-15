@@ -7,7 +7,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -368,6 +371,9 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         }
         addUserAction.setEnabled(admin);
 //minagawa$
+//s.oh^ 2014/04/16 メニュー制御
+        mediator.getAction(GUIConst.ACTION_EDIT_FACILITY_INFO).setEnabled(admin);
+//s.oh$
         
         // このクラス固有のToolBarを生成する
         JToolBar toolBar = appMenu.getToolBar();
@@ -656,8 +662,11 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         Project.setRectangle(PROP_FRMAE_BOUNDS, getFrame().getBounds());
         getFrame().setVisible(false);
         getFrame().dispose();
-//s.oh^ カルテの画像連携
-        editor.setClosedFrame(true);
+//s.oh^ Xronos連携
+        if(editor != null) {
+            editor.setClosedFrame(true);
+            editor.stop();
+        }
 //s.oh$
     }
     
@@ -839,6 +848,44 @@ public class EditorFrame extends AbstractMainTool implements Chart {
      * カルテを修正する。
      */
     public void modifyKarte() {
+//s.oh^ 2014/06/17 複数カルテ修正制御
+        for (KarteEditor karte : KarteEditor.getAllKarte()) {
+            if(karte.getContext().getPatient().getId() == realChart.getPatient().getId()) {
+                if(!karte.checkModify()) {
+                    return;
+                }
+            }
+        }
+//s.oh$
+        
+//s.oh^ 2014/08/21 修正時にアラート表示
+        if(Project.getBoolean(Project.KARTE_SHOW_MODIFY_MSG)) {
+            Calendar c1 = Calendar.getInstance();
+            c1.setTime(new Date());
+            Calendar c2 = Calendar.getInstance();
+            c2.setTime(view.getModel().getStarted());
+            if(c1.get(Calendar.YEAR) != c2.get(Calendar.YEAR) || c1.get(Calendar.MONTH) != c2.get(Calendar.MONTH) || c1.get(Calendar.DATE) != c2.get(Calendar.DATE)) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日");
+                StringBuilder msg = new StringBuilder();
+                msg.append(sdf.format(c2.getTime()));
+                msg.append("に作成したカルテを修正しますか？");
+                String[] btn = new String[]{"はい", GUIFactory.getCancelButtonText()};
+                int option = JOptionPane.showOptionDialog(
+                        getFrame(),
+                        msg.toString(),
+                        "カルテ修正",
+                        JOptionPane.DEFAULT_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        btn,
+                        btn[1]);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "カルテ修正", msg.toString());
+                if(option != 0) {
+                    return;
+                }
+            }
+        }
+//s.oh$
         
         Runnable r = new Runnable() {
             
@@ -851,6 +898,9 @@ public class EditorFrame extends AbstractMainTool implements Chart {
                 editor.setModel(editModel);
                 editor.setEditable(true);
                 editor.setContext(EditorFrame.this);
+//s.oh^ 2014/06/17 複数カルテ修正制御
+                editor.setEditorFrame(EditorFrame.this);
+//s.oh$
                 editor.setModify(true);
                 String docType = editModel.getDocInfoModel().getDocType();
                 int mode = docType.equals(IInfoModel.DOCTYPE_KARTE) ? KarteEditor.DOUBLE_MODE : KarteEditor.SINGLE_MODE;

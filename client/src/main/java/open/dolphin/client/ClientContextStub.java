@@ -61,6 +61,7 @@ public final class ClientContextStub {
 
     /**
      * ClientContextStub オブジェクトを生成する。
+     * @param mode
      */
     public ClientContextStub(String mode) {
 //minagawa^ jdk7 packaging
@@ -179,7 +180,7 @@ public final class ClientContextStub {
             //------------------------------
             //setUI();
 
-        } catch (Throwable e) {
+        } catch (DolphinException | IOException e) {
             e.printStackTrace(System.err);
             System.exit(1);
         }
@@ -275,15 +276,15 @@ public final class ClientContextStub {
     //-----------------------------------------------------------
 
     public boolean isMac() {
-        return System.getProperty(PROPERTY_OS).toLowerCase().startsWith(OS_MAC) ? true : false;
+        return System.getProperty(PROPERTY_OS).toLowerCase().startsWith(OS_MAC);
     }
 
     public boolean isWin() {
-        return System.getProperty(PROPERTY_OS).toLowerCase().startsWith(OS_WIN) ? true : false;
+        return System.getProperty(PROPERTY_OS).toLowerCase().startsWith(OS_WIN);
     }
 
     public boolean isLinux() {
-        return System.getProperty(PROPERTY_OS).toLowerCase().startsWith(OS_LINUX) ? true : false;
+        return System.getProperty(PROPERTY_OS).toLowerCase().startsWith(OS_LINUX);
     }
 
     public boolean isOpenDolphin() {
@@ -495,7 +496,7 @@ public final class ClientContextStub {
 
     private void setupEventColorTable() {
         // イベントカラーを定義する
-        eventColorTable = new HashMap<String, Color>(10, 0.75f);
+        eventColorTable = new HashMap<>(10, 0.75f);
         eventColorTable.put("TODAY", getColor("color.TODAY_BACK"));
         eventColorTable.put("BIRTHDAY", getColor("color.BIRTHDAY_BACK"));
         eventColorTable.put("PVT", getColor("color.PVT"));
@@ -564,14 +565,14 @@ public final class ClientContextStub {
     }
 
     public boolean getBoolean(String key) {
-        return Boolean.valueOf(getString(key)).booleanValue();
+        return Boolean.valueOf(getString(key));
     }
 
     public boolean[] getBooleanArray(String key) {
         String[] obj = getStringArray(key);
         boolean[] ret = new boolean[obj.length];
         for (int i = 0; i < ret.length; i++) {
-            ret[i] = Boolean.valueOf(obj[i]).booleanValue();
+            ret[i] = Boolean.valueOf(obj[i]);
         }
         return ret;
     }

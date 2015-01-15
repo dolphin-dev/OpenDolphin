@@ -1,10 +1,10 @@
 package open.dolphin.impl.login;
 
-import java.awt.Font;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
@@ -16,16 +16,19 @@ import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.File;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
@@ -35,8 +38,13 @@ import javax.xml.parsers.ParserConfigurationException;
 import open.dolphin.client.BlockGlass;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.ILoginDialog;
+import open.dolphin.dao.OrcaSqlDelegater;
+import open.dolphin.delegater.OrcaDelegater;
+import open.dolphin.delegater.OrcaDelegaterFactory;
+import open.dolphin.delegater.ServerInfoDelegater;
 import open.dolphin.delegater.UserDelegater;
 import open.dolphin.helper.SimpleWorker;
+import open.dolphin.infomodel.DepartmentModel;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.project.Project;
 import open.dolphin.project.ProjectSettingDialog;
@@ -342,6 +350,115 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
         int y = (screen.height - dialog.getPreferredSize().height) / n;
         dialog.setLocation(x, y);
         dialog.setVisible(true);
+    }
+//s.oh$
+    
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+    protected void getOrcaDeptInfo() {
+//        //OrcaDelegater sdl = OrcaDelegaterFactory.create();
+//        OrcaSqlDelegater sdl = new OrcaSqlDelegater();
+//        ArrayList<String> list = new ArrayList<>();
+//        try {
+//            ArrayList<String> tmps = sdl.getDeptInfo();
+//            boolean check = false;
+//            for(String tmp : tmps) {
+//                if(tmp.equals("00")) {
+//                    check = true;
+//                    break;
+//                }
+//            }
+//            if(check) {
+//                for(int i = 1; i <= 50; i++) {
+//                    String code = String.format("%1$02d", i);
+//                    for(int j = 0; j < tmps.size(); j++) {
+//                        String name = tmps.get(j);
+//                        if(name.equals(code) && (j + 1) < tmps.size()) {
+//                            j = j + 1;
+//                            list.add(code + ":" + tmps.get(j));
+//                            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "ORCA診療科情報：", code + ":" + tmps.get(j));
+//                            break;
+//                        }
+//                    }
+//                }
+//                Project.setDeptInfo(list);
+//                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "ORCAの診療科情報取得成功");
+//            }else{
+//                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "ORCAの診療科情報取得失敗");
+//                for(DepartmentModel dm : ClientContext.getDepartmentModel()) {
+//                    list.add(dm.getDepartment() + ":" + dm.getDepartmentDesc());
+//                    Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "ORCA診療科情報：", dm.getDepartment() + ":" + dm.getDepartmentDesc());
+//                }
+//                Project.setDeptInfo(list);
+//                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "デフォルト値から診療科を取得");
+//            }
+//        } catch (Exception ex) {
+//            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "ORCAの診療科情報取得失敗", ex.getMessage());
+//            for(DepartmentModel dm : ClientContext.getDepartmentModel()) {
+//                list.add(dm.getDepartment() + ":" + dm.getDepartmentDesc());
+//                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "ORCA診療科情報：", dm.getDepartment() + ":" + dm.getDepartmentDesc());
+//            }
+//            Project.setDeptInfo(list);
+//            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "デフォルト値から診療科を取得");
+//        }
+    }
+//s.oh$
+    
+//s.oh^ 2014/07/08 クラウド0対応
+    protected boolean checkCloudZero() {
+        if(isCloudZero()) {
+            int ret;
+            UserDelegater ud = new UserDelegater();
+            String uuid = Project.getString("dolphin.license");
+            if(uuid == null) {
+                uuid = UUID.randomUUID().toString();
+                uuid = uuid.replaceAll("-", "");
+                SimpleDateFormat effectiveFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+                uuid = effectiveFormat.format(new Date()) + uuid;
+            }
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, uuid);
+            try {
+                ret = ud.checkLicense(uuid);
+            } catch (Exception ex) {
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, ex.toString());
+                ret = 1;
+            }
+            if(ret == 0) {
+                Project.setString("dolphin.license", uuid);
+                Project.setCloudZero(true);
+            }else{
+                String msg;
+                if(ret == 1) {
+                    msg = "通信エラーが発生しました。";
+                }else if(ret == 2) {
+                    msg = "ライセンスファイルエラーが発生しました。";
+                }else if(ret == 3) {
+                    msg = "ライセンスファイルエラーが発生しました。";
+                }else if(ret == 4) {
+                    msg = "ライセンス認証の制限数を超えました。";
+                }else{
+                    msg = "";
+                }
+                JOptionPane.showMessageDialog(null, msg, "ライセンス認証エラー", JOptionPane.ERROR_MESSAGE);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "ライセンス認証エラー", msg, String.valueOf(ret));
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    private boolean isCloudZero() {
+        boolean ret;
+        
+        ServerInfoDelegater sid = new ServerInfoDelegater();
+        try {
+            ret = sid.isCloudZero();
+        } catch (Exception ex) {
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, ex.toString());
+            ret = false;
+        }
+        
+        return ret;
     }
 //s.oh$
 }

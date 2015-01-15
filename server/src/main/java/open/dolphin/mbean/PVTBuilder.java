@@ -245,6 +245,15 @@ public final class PVTBuilder {
         // status=info ありだって、ヤレヤレ...
         //------------------------------------------------------
         if (pvtClaim != null) {
+            
+//s.oh^ 2014/03/13 ORCA患者登録対応
+            if(pvtClaim.getClaimStatus() != null && pvtClaim.getClaimStatus().trim().equals("regist")) {
+                Logger.getLogger("open.dolphin").info("受付登録情報受信");
+            }else{
+                Logger.getLogger("open.dolphin").info("受付登録ではないため受信した情報を破棄");
+                return null;
+            }
+//s.oh$
 
             // 2.0 から
             model.setDeptCode(pvtClaim.getClaimDeptCode());             // 診療科コード
@@ -341,6 +350,11 @@ public final class PVTBuilder {
                 }
                 pvtClaim = new PVTClaim();
                 parseClaim(docInfoEle, contentEle);
+//s.oh^ 2014/08/19 施設患者一括表示機能
+                if(patientModel != null) {
+                    patientModel.setAppMemo(pvtClaim.getClaimAppMemo());
+                }
+//s.oh$
                 
             } else {
                 System.err.println("Unknown attribute value : " + attr);

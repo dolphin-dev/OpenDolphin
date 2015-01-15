@@ -134,8 +134,12 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     // State Manager
     private StateMgr stateMgr;
     
-//s.oh^ カルテの画像連携
+//s.oh^ Xronos連携
     private boolean closedFrame;
+//s.oh$
+    
+//s.oh^ 2014/06/17 複数カルテ修正制御
+    private EditorFrame editorFrame;
 //s.oh$
 
     /** 
@@ -151,7 +155,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
             timeStampFont = TIMESTAMP_FONT;
         }
 //s.oh$
-//s.oh^ カルテの画像連携
+//s.oh^ Xronos連携
         closedFrame = false;
 //s.oh$
     }
@@ -193,7 +197,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     }
     
     /**
-     * カルテの画像連携
+     * Xronos連携
      * @return 
      */
     public void setClosedFrame(boolean close) {
@@ -201,12 +205,22 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     }
     
     /**
-     * カルテの画像連携
+     * Xronos連携
      * @return 
      */
     public boolean isClosedFrame() {
         return closedFrame;
     }
+    
+//s.oh^ 2014/06/17 複数カルテ修正制御
+    public void setEditorFrame(EditorFrame frame) {
+        this.editorFrame = frame;
+    }
+    
+    public EditorFrame getEditorFrame() {
+        return editorFrame;
+    }
+//s.oh$
 
     public int getActualHeight() {
         try {
@@ -355,6 +369,42 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     protected void setModify(boolean b) {
         modify = b;
     }
+    
+//s.oh^ 2014/06/17 複数カルテ修正制御
+    public boolean checkModify() {
+        if(modify) {
+            if(getEditorFrame() != null) {
+                getEditorFrame().getFrame().setExtendedState(Frame.NORMAL);
+                getEditorFrame().getFrame().toFront();
+            }else{
+                getContext().getFrame().setExtendedState(Frame.NORMAL);
+                getContext().getFrame().toFront();
+            }
+            //int option = JOptionPane.showOptionDialog(
+            //        getContext().getFrame(),
+            //        "修正中のカルテがあります、新たにカルテを修正しますか？",
+            //        "カルテ修正",
+            //        JOptionPane.DEFAULT_OPTION,
+            //        JOptionPane.QUESTION_MESSAGE,
+            //        null,
+            //        new String[]{"はい", "いいえ"},
+            //        "いいえ"
+            //        );
+            //Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "カルテ修正", "修正中のカルテがあります、新たにカルテを修正しますか？");
+            //if(option == 0) {
+            //    Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "はい");
+            //    return true;
+            //}else{
+            //    Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "いいえ or キャンセル");
+            //    return false;
+            //}
+            JOptionPane.showMessageDialog(getContext().getFrame(), "既に修正中のカルテを開いています、確認してください。", "カルテ修正", JOptionPane.INFORMATION_MESSAGE);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "既に修正中のカルテを開いています、確認してください。");
+            return false;
+        }
+        return true;
+    }
+//s.oh$
 
     @Override
     public void enter() {
@@ -608,6 +658,12 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         } else {
             ClientContext.getBootLogger().debug("insGUID is null");
         }
+        
+//s.oh^ 2014/08/26 修正時の保険表示
+        if(selecteIns == null) {
+            selecteIns = getModel().getDocInfoModel().getHealthInsuranceDesc();
+        }
+//s.oh$
 
         StringBuilder sb = new StringBuilder();
         sb.append(timeStamp);
@@ -967,7 +1023,10 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                     // Tmp->Modify
                     params.setClaimDate(claimDate);
                     // 仮保存カルテを修正する場合のデフォルトチェック
-                    sendClaim = sendClaim && Project.getBoolean(Project.SEND_CLAIM_TMP);
+//s.oh^ 2014/06/24 仮保存の修正送信
+                    //sendClaim = sendClaim && Project.getBoolean(Project.SEND_CLAIM_TMP);
+                    sendClaim = sendClaim && Project.getBoolean(Project.SEND_CLAIM_MODIFY);
+//s.oh$
                     break;
                     
                 case SaveParamsM.SCHEDULE_MODIFY:
@@ -1107,7 +1166,10 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                     // Tmp->Modify
                     params.setClaimDate(claimDate);
                     // 仮保存カルテを修正する場合のデフォルトチェック
-                    sendClaim = sendClaim && Project.getBoolean(Project.SEND_CLAIM_TMP);
+//s.oh^ 2014/06/24 仮保存の修正送信
+                    //sendClaim = sendClaim && Project.getBoolean(Project.SEND_CLAIM_TMP);
+                    sendClaim = sendClaim && Project.getBoolean(Project.SEND_CLAIM_MODIFY);
+//s.oh$
                     break;
                     
                 case SaveParamsM.SCHEDULE_MODIFY:
@@ -1163,17 +1225,17 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
 
     @Override
     public void save() {
-////s.oh^ 2013/11/06 Cliam項目20項目の制御
-//        if(!checkClaimItemCount()) {
-//            String[] options = {"はい", "いいえ"};
-//            String msg = "スタンプが20項目を超えました。このまま保存しますか？";
-//            int ret = JOptionPane.showOptionDialog(null, msg, ClientContext.getFrameTitle("スタンプ項目"), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
-//            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle("スタンプ項目"), msg, String.valueOf(ret));
-//            if(ret != 0) {
-//                return;
-//            }
-//        }
-////s.oh$
+//s.oh^ 2013/11/06 Cliam項目20項目の制御
+        if(!checkClaimItemCount()) {
+            String[] options = {"はい", "いいえ"};
+            String msg = "スタンプの数及びスタンプ内の項目が20項目を超えました。このまま保存しますか？";
+            int ret = JOptionPane.showOptionDialog(getContext().getFrame(), msg, ClientContext.getFrameTitle("スタンプ項目"), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle("スタンプ項目"), msg, String.valueOf(ret));
+            if(ret != 0) {
+                return;
+            }
+        }
+//s.oh$
 
         try {
             // 何も書かれていない時はリターンする
@@ -1335,21 +1397,25 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         pdumper.dump(pdoc);
         ModuleModel[] plan = pdumper.getModule();
         
-        int claimCnt = 0;
+        // スタンプ数のチェック
+        if(plan != null && plan.length > 20) {
+            return false;
+        }else if(plan == null) {
+            return true;
+        }
+        // スタンプ内の項目数のチェック
         for (ModuleModel bean : plan) {
             if (bean.getModel() instanceof BundleMed) {
                 BundleMed med = (BundleMed) bean.getModel();
-                ClaimItem[] items = med.getClaimItem();
-                claimCnt += items.length;
+                if(med.getClaimItem() != null && med.getClaimItem().length > 20) {
+                    return false;
+                }
             } else if (bean.getModel() instanceof ClaimBundle) {
                 ClaimBundle bundle = (ClaimBundle) bean.getModel();
-                ClaimItem[] items = bundle.getClaimItem();
-                claimCnt += items.length;
+                if(bundle.getClaimItem() != null && bundle.getClaimItem().length > 20) {
+                    return false;
+                }
             }
-        }
-        
-        if(claimCnt > 20) {
-            return false;
         }
         
         return true;
@@ -1746,6 +1812,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         //----------------------------------------------
         KartePaneDumper_2 dumper = new KartePaneDumper_2();
         KarteStyledDocument doc = (KarteStyledDocument) soaPane.getTextPane().getDocument();
+        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "SOA Text", soaPane.getTextPane().getText());
         dumper.dump(doc);
         ModuleModel[] soa = dumper.getModule();
         if (soa != null && soa.length > 0) {
@@ -1757,6 +1824,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         // ProgressCourse SOA を生成する
         ProgressCourse pc = new ProgressCourse();
         pc.setFreeText(dumper.getSpec());
+        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "SOA FreeText", pc.getFreeText());
         ModuleModel progressSoa = new ModuleModel();
         progressSoa.setModuleInfoBean(progressInfo[0]);
         progressSoa.setModel(pc);
@@ -1929,6 +1997,8 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                 //------------------------
                 chart.getDocumentHistory().getDocumentHistory();
                 
+                modify = false;
+                
                 Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "プレイン文書", "保存成功。");
             }
         };
@@ -2035,6 +2105,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         //-----------------------------------------------
         KartePaneDumper_2 dumper = new KartePaneDumper_2();
         KarteStyledDocument doc = (KarteStyledDocument)soaPane.getTextPane().getDocument();    // component
+        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "SOA Text", soaPane.getTextPane().getText());
 //masuda^   文書末の余分な改行文字を削除する
         doc.removeExtraCR();
 //masuda$        
@@ -2043,12 +2114,14 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         String soaText = dumper.getSpec();
         SchemaModel[] schemas = dumper.getSchema();
         AttachmentModel[] attachments = dumper.getAttachment();
+        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "SOA FreeText", soaText);
         
         //-----------------------------------------------
         // PPane をダンプし model に追加する
         //-----------------------------------------------
         KartePaneDumper_2 pdumper = new KartePaneDumper_2();
         KarteStyledDocument pdoc = (KarteStyledDocument)pPane.getTextPane().getDocument(); // component
+        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "P Text", pPane.getTextPane().getText());
 //masuda^   文書末の余分な改行文字を削除する
         pdoc.removeExtraCR();
 //masuda$        
@@ -2056,6 +2129,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         ModuleModel[] plan = pdumper.getModule();
         String pText = pdumper.getSpec();
         //AttachmentModel[] pAttachments = pdumper.getAttachment();
+        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "P FreeText", pText);
         
         //--------------------------------
         // Editor Frame 閉じる
@@ -2404,7 +2478,10 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                     docInfo.setHasTreatment(flag);
 
                     // LaboTest があるかどうか
-                    flag = model.getModule(ENTITY_LABO_TEST) != null ? true : false;
+//s.oh^ 2014/10/07 検体検査オーダー条件変更
+                    //flag = model.getModule(ENTITY_LABO_TEST) != null ? true : false;
+                    flag = model.isLabTest();
+//s.oh$
                     docInfo.setHasLaboTest(flag);
                     
                     // Attachment があるかどうか
@@ -2647,6 +2724,8 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                     //--------------------------------
                     chart.getDocumentHistory().getDocumentHistory();
                     
+                    modify = false;
+                    
                     Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "新規／修正カルテ", "保存成功。");
                 }
             };
@@ -2681,10 +2760,12 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
             KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
                                                   getContext().getPatient().getPatientId(), getContext().getPatient().getFullName(),
                                                   sbTitle.toString(),
-                                                  new Date(), dumper, pdumper);
+                                                  new Date(), dumper, pdumper, null);
 //s.oh$
             String path = pdf.create();
-            KartePDFImpl2.printPDF(path);
+            ArrayList<String> paths = new ArrayList<>(0);
+            paths.add(path);
+            KartePDFImpl2.printPDF(paths);
         }
     }
 //s.oh$
@@ -2797,7 +2878,11 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         public void controlMenu() {
             Chart chart = getContext();
             chart.enabledAction(GUIConst.ACTION_SAVE, true);
-            chart.enabledAction(GUIConst.ACTION_PRINT, true);
+//s.oh^ 2014/08/19 ID権限
+            //chart.enabledAction(GUIConst.ACTION_PRINT, true);
+            chart.enabledAction(GUIConst.ACTION_PRINT, !Project.isOtherCare());
+            chart.enabledAction(GUIConst.ACTION_PRINTER_SETUP, !Project.isOtherCare());
+//s.oh$
             chart.enabledAction(GUIConst.ACTION_CHANGE_NUM_OF_DATES_ALL, (getMode()==DOUBLE_MODE)); //true
             chart.enabledAction(GUIConst.ACTION_SELECT_INSURANCE, (getMode()==DOUBLE_MODE));    //true
         }
@@ -2820,7 +2905,11 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         public void controlMenu() {
             Chart chart = getContext();
             chart.enabledAction(GUIConst.ACTION_SAVE, false);
-            chart.enabledAction(GUIConst.ACTION_PRINT, true);
+//s.oh^ 2014/08/19 ID権限
+            //chart.enabledAction(GUIConst.ACTION_PRINT, true);
+            chart.enabledAction(GUIConst.ACTION_PRINT, !Project.isOtherCare());
+            chart.enabledAction(GUIConst.ACTION_PRINTER_SETUP, !Project.isOtherCare());
+//s.oh$
             chart.enabledAction(GUIConst.ACTION_CUT, false);
             chart.enabledAction(GUIConst.ACTION_COPY, false);
             chart.enabledAction(GUIConst.ACTION_PASTE, false);

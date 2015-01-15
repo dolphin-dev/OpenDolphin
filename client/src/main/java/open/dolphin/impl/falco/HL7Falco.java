@@ -1763,7 +1763,8 @@ class HL7SetParam{
         String ORC = "";
         HL7ORC_PutParam orc = new HL7ORC_PutParam();
         //上位から設定するもの
-        orc.g.orderC = "NM";              //オーダー制御
+        //orc.g.orderC = "NM";              //オーダー制御
+        orc.g.orderC = "NW";
         // minagawa
         //orc.g.clientOrderNo = "DL"+CurrentDateTime("YYYYMMDDHHMMSS");         //依頼者オーダー番号
         orc.g.clientOrderNo = set.clientOrderNo;

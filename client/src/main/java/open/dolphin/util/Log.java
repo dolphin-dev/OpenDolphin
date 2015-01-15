@@ -7,6 +7,7 @@ package open.dolphin.util;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
@@ -319,6 +320,20 @@ class funcLogSet{
         mes +=ms[ms.length-1];
         //System.out.println(logFileName);
         
+        if(Project.getProjectStub() != null && Project.getBoolean("log.output.memory", false)) {
+            try{
+                DecimalFormat f1 = new DecimalFormat("#,###KB");
+                DecimalFormat f2 = new DecimalFormat("##.#");
+                long free = Runtime.getRuntime().freeMemory() / 1024;
+                long total = Runtime.getRuntime().totalMemory() / 1024;
+                long max = Runtime.getRuntime().maxMemory() / 1024;
+                long used = total - free;
+                String info = "Memory:Total=" + f1.format(total) + ", Used=" + f1.format(used) + ", Max=" + f1.format(max);
+                mes += "\t" + info;
+            }catch(Exception ex) {
+            }
+        }
+        
         //ネットワークのチェック
         log_fileCheckPath();
         logger.info(mes);
@@ -367,6 +382,21 @@ class funcLogSet{
             mes +=ms[i]+"\t";
         }
         mes +=ms[ms.length-1];
+        
+        if(Project.getProjectStub() != null && Project.getBoolean("log.output.memory", false)) {
+            try{
+                DecimalFormat f1 = new DecimalFormat("#,###KB");
+                DecimalFormat f2 = new DecimalFormat("##.#");
+                long free = Runtime.getRuntime().freeMemory() / 1024;
+                long total = Runtime.getRuntime().totalMemory() / 1024;
+                long max = Runtime.getRuntime().maxMemory() / 1024;
+                long used = total - free;
+                String info = "Memory:Total=" + f1.format(total) + ", Used=" + f1.format(used) + ", Max=" + f1.format(max);
+                mes += "\t" + info;
+            }catch(Exception ex) {
+            }
+        }
+        
         log_fileCheckPathOper();
         logger2.info(mes);
         //log_error();

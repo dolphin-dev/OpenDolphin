@@ -31,9 +31,12 @@ import open.dolphin.helper.PdfOfficeIconRenderer;
 import open.dolphin.helper.SimpleWorker;
 import open.dolphin.helper.UserDocumentHelper;
 import open.dolphin.helper.WindowSupport;
-import open.dolphin.impl.genesys.GenesysLinkDocument;
+import open.dolphin.impl.care.CareMapDocument;
 import open.dolphin.impl.img.DefaultBrowserEx;
+import open.dolphin.impl.img.ImageBrowserProxy;
+import open.dolphin.impl.lbtest.LaboTestBean;
 import open.dolphin.impl.server.PVTKanaToAscii;
+import open.dolphin.impl.xronos.XronosLinkDocument;
 import open.dolphin.infomodel.*;
 import open.dolphin.plugin.PluginLister;
 import open.dolphin.plugin.PluginLoader;
@@ -139,7 +142,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
     private List<UnsavedDocument> dirtyList;
 //minagawa$    
     
-//s.oh^ カルテの画像連携
+//s.oh^ Xronos連携
     private ScheduledExecutorService imageScheduler;
     private ImageWatcher imageWatcher;
     private ScheduledFuture<?> imageHandler;
@@ -320,6 +323,12 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         }
     }
     
+//s.oh^ 2014/04/03 文書の複製
+    public boolean isShowDocument(int idx) {
+        return tabbedPane.getSelectedIndex() == idx;
+    }
+//s.oh$
+    
     /**
      * Ppane にDropされた病名スタンプをリストに保存する。
      * @param dropped Ppane にDropされた病名スタンプ
@@ -464,7 +473,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             }
         });
         
-//s.oh^ カルテの画像連携
+//s.oh^ Xronos連携
         Long imageDelay = Long.parseLong(Project.getString("karte.imagelink.watching.delay", "500"));
         sb = new StringBuilder();
         String dir = Project.getString("karte.imagelink.dir");
@@ -575,6 +584,9 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             }
         }
         addUserAction.setEnabled(admin);
+//s.oh^ 2014/04/16 メニュー制御
+        mediator.getAction(GUIConst.ACTION_EDIT_FACILITY_INFO).setEnabled(admin);
+//s.oh$
 
         //---------------------------------
         // このクラス固有のToolBarを生成する
@@ -768,19 +780,32 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         }
 //s.oh$
         
-//s.oh^ 他プロセス連携(アイコン) 2013/10/21
+//s.oh^ 他プロセス連携(アイコン) 2014/05/09
         if(Project.getBoolean(GUIConst.ACTION_OTHERPROCESS_ICON, false)) {
             toolBar.addSeparator();
             int num = Project.getInt("otherprocessicon.link.num", 0);
             for(int i = 1; i < num+1; i++) {
-                String KEY_DEF = "otherprocessicon" + String.valueOf(i) + ".link";
+                final String KEY_DEF = "otherprocessicon" + String.valueOf(i) + ".link";
                 JButton linkBtn = new JButton();
-                linkBtn.setAction(mediator.getActions().get("otherProcessIcon" + String.valueOf(i) + "Link"));
+                final ChartImpl chart = this;
+                //linkBtn.setAction(mediator.getActions().get("otherProcessIcon" + String.valueOf(i) + "Link"));
+                linkBtn.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        DefaultBrowserEx.otherProcess(KEY_DEF, chart, Project.getString(KEY_DEF + ".path"), Project.getString(KEY_DEF + ".param"), null);
+                    }
+                });
+//s.oh^ 他プロセス連携(アイコン) 2014/07/15
+                String iconPath = Project.getString(KEY_DEF + ".icon");
+                if(iconPath != null) {
+                    linkBtn.setIcon(new ImageIcon(iconPath));
+                }
+//s.oh$
                 linkBtn.setText(null);
-                linkBtn.setToolTipText(Project.getString(KEY_DEF + ".tooltip", ""));
+                linkBtn.setToolTipText(Project.getString(KEY_DEF + ".tooltip"));
                 linkBtn.setMargin(new Insets(3,3,3,3));
                 linkBtn.setFocusable(false);
-                linkBtn.setBorderPainted(true);
+                //linkBtn.setBorderPainted(true);
                 toolBar.add(linkBtn);
             }
         }
@@ -994,6 +1019,14 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             try {
                 ChartDocument plugin = iterator.next();
                 
+//s.oh^ 2014/08/19 ID権限
+                if(Project.isOtherCare()) {
+                    if(plugin instanceof DiagnosisDocument || plugin instanceof ImageBrowserProxy || plugin instanceof LaboTestBean || plugin instanceof CareMapDocument) {
+                        continue;
+                    }
+                }
+//s.oh$
+                
                 if (index == 0) {
                     plugin.setContext(this);
                     plugin.start();
@@ -1009,22 +1042,14 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             }
         }
         
-//s.oh^ ジェネシス連携
-        String name = Project.getString("genesys.browser.tab");
-        if(name != null && name.length() > 0) {
-            ChartDocument plugin = new GenesysLinkDocument();
+//s.oh^ Xronos連携
+        if(Project.getBoolean(XronosLinkDocument.KEY_XRONOSBROWSER_LINK, false)) {
+            ChartDocument plugin = new XronosLinkDocument();
             tab.addTab(plugin.getTitle(), plugin.getIconInfo(this), plugin.getUI());
             providers.put(String.valueOf(index), plugin);
             index += 1;
         }
 //s.oh$
-        
-        if(Project.getString(GenesysLinkDocument.KEY_GENESYSBROWSER, "").toLowerCase().equals(GenesysLinkDocument.VAL_GENESYS)) {
-            ChartDocument plugin = new GenesysLinkDocument();
-            tab.addTab(plugin.getTitle(), plugin.getIconInfo(this), plugin.getUI());
-            providers.put(String.valueOf(index), plugin);
-            index += 1;
-        }
 
         // ゼロ番目を選択しておき changeListener を機能させる
         tab.setSelectedIndex(0);
@@ -1222,6 +1247,9 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         if (params.isOpenFrame()) {
             EditorFrame editorFrame = new EditorFrame();
             editorFrame.setChart(this);
+//s.oh^ 2014/06/17 複数カルテ修正制御
+            editor.setEditorFrame(editorFrame);
+//s.oh$
             editorFrame.setKarteEditor(editor);
             editorFrame.start();
         } else {
@@ -1231,7 +1259,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             this.addChartDocument(editor, params);
         }
         
-//s.oh^ カルテの画像連携
+//s.oh^ Xronos連携
         karteEditorList.add(editor);
 //s.oh$
     }
@@ -1540,7 +1568,17 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             List<AttachmentModel> attachment = oldModel.getAttachment();
             if (attachment!=null) {
                 for (AttachmentModel am : attachment) {
+//s.oh^ 2014/08/20 添付ファイルの別読
+                    //newModel.addAttachment(ModelUtils.cloneAttachment(am));
+                    DocumentDelegater ddl = new DocumentDelegater();
+                    try {
+                        AttachmentModel tmp = ddl.getAttachment(am.getId());
+                        am.setBytes(tmp.getBytes());
+                    } catch (Exception ex) {
+                    }
                     newModel.addAttachment(ModelUtils.cloneAttachment(am));
+                    am.setBytes(null);
+//s.oh$
                 }
             }
         }
@@ -2019,7 +2057,16 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         
         // List panel
         JPanel listPanel = new JPanel(new BorderLayout(7, 0));
-        listPanel.add(docList, BorderLayout.CENTER);
+//s.oh^ 2014/05/26 差し込み文書の表示
+        //listPanel.add(docList, BorderLayout.CENTER);
+        if(documents.size() <= 20) {
+            listPanel.add(docList, BorderLayout.CENTER);
+        }else{
+            JScrollPane scroll = new JScrollPane(docList);
+            scroll.setPreferredSize(new Dimension(350, 500));
+            listPanel.add(scroll, BorderLayout.CENTER);
+        }
+//s.oh$
         listPanel.setBorder(BorderFactory.createEmptyBorder(6,6,5,5));
         JPanel content = new JPanel(new BorderLayout());
         content.add(listPanel, BorderLayout.CENTER);
@@ -2143,19 +2190,19 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         }      
     }
     
-//s.oh^ 他プロセス連携(アイコン) 2013/10/21
-    public void otherProcessIcon1Link() {
-        DefaultBrowserEx.otherProcess("otherprocess1icon.link", this, Project.getString("otherprocess1icon.link.path"), Project.getString("otherprocess1icon.link.param"), null);
-    }
-    
-    public void otherProcessIcon2Link() {
-        DefaultBrowserEx.otherProcess("otherprocess2icon.link", this, Project.getString("otherprocess2icon.link.path"), Project.getString("otherprocess2icon.link.param"), null);
-    }
-    
-    public void otherProcessIcon3Link() {
-        DefaultBrowserEx.otherProcess("otherprocess3icon.link", this, Project.getString("otherprocess3icon.link.path"), Project.getString("otherprocess3icon.link.param"), null);
-    }
-//s.oh$
+////s.oh^ 他プロセス連携(アイコン) 2014/05/09
+//    public void otherProcessIcon1Link() {
+//        DefaultBrowserEx.otherProcess("otherprocessicon1.link", this, Project.getString("otherprocessicon1.link.path"), Project.getString("otherprocessicon1.link.param"), null);
+//    }
+//    
+//    public void otherProcessIcon2Link() {
+//        DefaultBrowserEx.otherProcess("otherprocessicon2.link", this, Project.getString("otherprocessicon2.link.path"), Project.getString("otherprocessicon2.link.param"), null);
+//    }
+//    
+//    public void otherProcessIcon3Link() {
+//        DefaultBrowserEx.otherProcess("otherprocessicon3.link", this, Project.getString("otherprocessicon3.link.path"), Project.getString("otherprocessicon3.link.param"), null);
+//    }
+////s.oh$
     
     // 未保存の文書が全て保存されるのを待って stopを実行するリスナ
     class DirtySaveController implements PropertyChangeListener {
@@ -2405,7 +2452,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         getFrame().setJMenuBar(null);
         getFrame().dispose();
         
-//s.oh^ カルテの画像連携
+//s.oh^ Xronos連携
         if(imageScheduler != null) {
             imageScheduler.shutdown();
         }
@@ -2444,6 +2491,10 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         public void controlMenu() {
             mediator.getAction(GUIConst.ACTION_NEW_KARTE).setEnabled(false);
             mediator.getAction(GUIConst.ACTION_MODIFY_KARTE).setEnabled(false);
+//s.oh^ 2014/08/19 ID権限
+            mediator.getAction(GUIConst.ACTION_SHOW_STAMPBOX).setEnabled(false);
+            mediator.getAction(GUIConst.ACTION_SHOW_SCHEMABOX).setEnabled(false);
+//s.oh$
         }
     }
 
@@ -2513,7 +2564,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         }
     }
     
-//s.oh^ カルテの画像連携
+//s.oh^ Xronos連携
     class ImageWatcher implements Runnable {
         
         private File watchDir;
@@ -2525,64 +2576,64 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         @Override
         public void run() {
             
-            // 今回のリスト
-            File[] files = watchDir.listFiles();
-            
-            if(files != null) {
-                // Iterate
-                for (File file : files) {
-                    if(firstImageWatcher) {
-                        file.delete();
-                        continue;
-                    }
-
-                    final String name = file.getName();
-                    int extIdx = name.lastIndexOf(".");
-                    if(extIdx < 0) {
-                        continue;
-                    }
-                    
-                    String ext = name.substring(extIdx+1).toLowerCase();
-                    if(ext.toLowerCase().equals("jpg") || ext.toLowerCase().equals("JPG") || ext.toLowerCase().equals("jpeg") || ext.toLowerCase().equals("JPEG")) {
-                        // 拡張子を除いたファイル名を得る
-                        String baseName = name.substring(0, extIdx);
-                        String sop = baseName;
-                        
-                        final ImageEntry entry = new ImageEntry();
-                        //entry.setPid(pvt.getPatientId());
-                        //entry.setModality("CR");
-                        //entry.setSeqNum(Integer.parseInt(seq));
-                        entry.setPath(baseName);
-                        //entry.setExtension(ext);
-                        entry.setFileName(name);
-                        try {
-                            entry.setUrl(file.toURI().toURL().toString());
-                        } catch (MalformedURLException ex) {
-                            ex.printStackTrace(System.err);
-                        }
-
-                        // 開いているカルテの処理
-                        for(Object obj : karteEditorList) {
-                            KarteEditor editor = (KarteEditor)obj;
-                            if(editor != null && !editor.isClosedFrame() && editor.getSOAPane() != null) {
-                                editor.getSOAPane().importImage(entry, sop, ext);
-                                break;
-                            }
-                        }
-                        
-                        // issue
-                        SwingUtilities.invokeLater(new Runnable() {
-                            @Override
-                            public void run() {
-                            }
-                        });
-                    }else{
-                        file.delete();
-                    }
-                }
-            }
-            
-            firstImageWatcher = false;
+//            // 今回のリスト
+//            File[] files = watchDir.listFiles();
+//            
+//            if(files != null) {
+//                // Iterate
+//                for (File file : files) {
+//                    if(firstImageWatcher) {
+//                        file.delete();
+//                        continue;
+//                    }
+//
+//                    final String name = file.getName();
+//                    int extIdx = name.lastIndexOf(".");
+//                    if(extIdx < 0) {
+//                        continue;
+//                    }
+//                    
+//                    String ext = name.substring(extIdx+1).toLowerCase();
+//                    if(ext.toLowerCase().equals("jpg") || ext.toLowerCase().equals("JPG") || ext.toLowerCase().equals("jpeg") || ext.toLowerCase().equals("JPEG")) {
+//                        // 拡張子を除いたファイル名を得る
+//                        String baseName = name.substring(0, extIdx);
+//                        String sop = baseName;
+//                        
+//                        final ImageEntry entry = new ImageEntry();
+//                        //entry.setPid(pvt.getPatientId());
+//                        //entry.setModality("CR");
+//                        //entry.setSeqNum(Integer.parseInt(seq));
+//                        entry.setPath(baseName);
+//                        //entry.setExtension(ext);
+//                        entry.setFileName(name);
+//                        try {
+//                            entry.setUrl(file.toURI().toURL().toString());
+//                        } catch (MalformedURLException ex) {
+//                            ex.printStackTrace(System.err);
+//                        }
+//
+//                        // 開いているカルテの処理
+//                        for(Object obj : karteEditorList) {
+//                            KarteEditor editor = (KarteEditor)obj;
+//                            if(editor != null && !editor.isClosedFrame() && editor.getSOAPane() != null) {
+//                                editor.getSOAPane().importImage(entry, sop, ext);
+//                                break;
+//                            }
+//                        }
+//                        
+//                        // issue
+//                        SwingUtilities.invokeLater(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                            }
+//                        });
+//                    }else{
+//                        file.delete();
+//                    }
+//                }
+//            }
+//            
+//            firstImageWatcher = false;
         }
     }
 //s.oh$

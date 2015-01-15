@@ -84,6 +84,43 @@ public class Reply1Viewer extends Reply1Impl implements DocumentViewer {
         task.execute();
 //minagawa$        
     }
+    
+//s.oh^ 2014/04/03 文書の複製
+    public void copyDocument() {
+        if (docPK==0L) {
+            return;
+        }
+        
+        DBTask task = new DBTask<LetterModule,Void>(getContext()) {
+
+            @Override
+            protected Object doInBackground() throws Exception {
+                LetterDelegater ddl = new LetterDelegater();
+                LetterModule letter = ddl.getLetter(docPK);
+                letter.setId(0);
+                letter.setLinkId(0);
+                return letter;
+            }
+            
+            @Override
+            protected void succeeded(LetterModule lm) {
+                if (lm==null) {
+                    return;
+                }
+                Reply1Impl editor = new Reply1Impl();
+                editor.setModel(lm);
+                editor.setModify(true);
+                editor.setContext(getContext());
+                editor.start();
+                ChartImpl chart = (ChartImpl)getContext();
+                StringBuilder sb = new StringBuilder();
+                sb.append("複製").append("(").append(editor.getTitle()).append(")");
+                chart.addChartDocument(editor, sb.toString());
+            }
+        };
+        task.execute();
+    }
+//s.oh$
 
     class LetterGetTask extends DBTask<LetterModule, Void> {
 

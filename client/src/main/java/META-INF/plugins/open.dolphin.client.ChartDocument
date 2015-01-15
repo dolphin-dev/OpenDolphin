@@ -5,3 +5,4 @@ open.dolphin.impl.img.ImageBrowserProxy
 open.dolphin.impl.lbtest.LaboTestBean
 open.dolphin.impl.care.CareMapDocument
 open.dolphin.impl.pinfo.PatientInfoDocument  #
+open.dolphin.impl.pinfo.FreeDocument #

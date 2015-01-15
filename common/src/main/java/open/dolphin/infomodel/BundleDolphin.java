@@ -88,7 +88,8 @@ public class BundleDolphin extends ClaimBundle {
             // item number
             number = item.getNumber();
             if (number != null) {
-                buf.append("　").append(number);
+                //buf.append("　").append(number);
+                buf.append(" X ").append(number);
                 if (item.getUnit() != null) {
                     buf.append(item.getUnit());
                 }
@@ -98,7 +99,8 @@ public class BundleDolphin extends ClaimBundle {
         
         // bundleNumber
         if (! bundleNumber.equals("1")) {
-            buf.append("X　").append(bundleNumber).append("\n");
+            //buf.append("X　").append(bundleNumber).append("\n");
+            buf.append("・回数 X ").append(bundleNumber).append("\n");
         }
         
         // admMemo
@@ -115,15 +117,20 @@ public class BundleDolphin extends ClaimBundle {
     }
 
 //s.oh^ 2014/01/27 スタンプのテキストコピー機能拡張
-    public String toString(String patID, String title) {
+    public String toString(String patID, String stampName) {
         
         StringBuilder buf = new StringBuilder();
         
-        buf.append(patID).append("\n");
-        if(title != null) buf.append(title).append("\n");
+        if(patID != null) {
+            buf.append(patID).append("\n");
+        }
         
         // order name
-        buf.append(orderName).append("\n");
+        if(stampName != null) {
+            buf.append(orderName).append("（").append(stampName).append("）").append("\n");
+        }else{
+            buf.append(orderName).append("\n");
+        }
         ClaimItem[] items = getClaimItem();
         int len = items.length;
         ClaimItem item;
@@ -138,7 +145,8 @@ public class BundleDolphin extends ClaimBundle {
             // item number
             number = item.getNumber();
             if (number != null) {
-                buf.append("　").append(number);
+                //buf.append("　").append(number);
+                buf.append(" X ").append(number);
                 if (item.getUnit() != null) {
                     buf.append(item.getUnit());
                 }

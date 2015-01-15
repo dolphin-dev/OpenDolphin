@@ -3,6 +3,8 @@ package open.dolphin.msg;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
@@ -26,7 +28,10 @@ public class DiagnosisSender {
     private static final String ACK_STR = "ACK: ";
     private static final String NAK_STR = "NAK: ";
     private static final String OBJECT_NAME = "diseaseHelper";
+//s.oh^ 2014/03/13 傷病名削除診療科対応
     private static final String TEMPLATE_NAME = "diseaseHelper.vm";
+//    private static final String TEMPLATE_NAME = "diseaseHelper_02.vm";
+//s.oh$
     private static final String TEMPLATE_ENC = "SHIFT_JIS";
     private static final String DORCA_UPDATED = "DORCA_UPDATED";
     
@@ -92,52 +97,75 @@ public class DiagnosisSender {
         // 実際にCLAIM送信する病名
         List<RegisteredDiagnosisModel> actualList = new ArrayList<RegisteredDiagnosisModel>();
         
-        // 新規病名を送信する
-        if (addedDiagnosis!=null && addedDiagnosis.size()>0) {
-            
-            for (RegisteredDiagnosisModel rdm : addedDiagnosis) {
-                if (isDorcaUpdatedDisease(rdm) || isPureDisease(rdm)) {
-                    actualList.add(rdm);
-                }
-            }
-            
-            if (!actualList.isEmpty()) {
-                if (DEBUG) {
-                    debug("-------- Send Diagnosis List to add ----------------");
-                    for (RegisteredDiagnosisModel r : actualList) {
-                        debug(r.getDiagnosis());
-                    }
-                }
-            }
+//s.oh^ 2014/11/11 傷病名送信順番の変更
+//        // 新規病名を送信する
+//        if (addedDiagnosis!=null && addedDiagnosis.size()>0) {
+//            
+//            for (RegisteredDiagnosisModel rdm : addedDiagnosis) {
+//                if (isDorcaUpdatedDisease(rdm) || isPureDisease(rdm)) {
+//                    actualList.add(rdm);
+//                }
+//            }
+//            
+//            if (!actualList.isEmpty()) {
+//                if (DEBUG) {
+//                    debug("-------- Send Diagnosis List to add ----------------");
+//                    for (RegisteredDiagnosisModel r : actualList) {
+//                        debug(r.getDiagnosis());
+//                    }
+//                }
+//            }
+//        }
+//
+//        // 更新された病名を CLAIM 送信する
+//        // detuched object のみ
+//        if (updatedDiagnosis!=null && updatedDiagnosis.size()>0) {
+//            if (DEBUG) {
+//                debug("-------- Send Diagnosis List to update ----------------");
+//                for (RegisteredDiagnosisModel r : updatedDiagnosis) {
+//                    debug(r.getDiagnosis());
+//                }
+//            }
+//            actualList.addAll(updatedDiagnosis);
+//        }
+//        
+////minagawa^ LSC 1.4 傷病名の削除 2013/06/24
+//        if (deletedDiagnosis!=null && deletedDiagnosis.size()>0) {
+//            if (DEBUG) {
+//                debug("-------- Send Diagnosis List to delete ----------------");
+//                for (RegisteredDiagnosisModel r : updatedDiagnosis) {
+//                    debug(r.getDiagnosis());
+//                }
+//            }
+//            actualList.addAll(deletedDiagnosis);
+//        }
+//        
+//        if (actualList.isEmpty()) {
+//            return;
+//        }
+////minagawa$
+        if(deletedDiagnosis != null && deletedDiagnosis.size() > 0) {
+            actualList.addAll(deletedDiagnosis);
         }
 
-        // 更新された病名を CLAIM 送信する
-        // detuched object のみ
-        if (updatedDiagnosis!=null && updatedDiagnosis.size()>0) {
-            if (DEBUG) {
-                debug("-------- Send Diagnosis List to update ----------------");
-                for (RegisteredDiagnosisModel r : updatedDiagnosis) {
-                    debug(r.getDiagnosis());
-                }
-            }
+        if(updatedDiagnosis != null && updatedDiagnosis.size() > 0) {
             actualList.addAll(updatedDiagnosis);
         }
         
-//minagawa^ LSC 1.4 傷病名の削除 2013/06/24
-        if (deletedDiagnosis!=null && deletedDiagnosis.size()>0) {
-            if (DEBUG) {
-                debug("-------- Send Diagnosis List to delete ----------------");
-                for (RegisteredDiagnosisModel r : updatedDiagnosis) {
-                    debug(r.getDiagnosis());
+        if(addedDiagnosis != null && addedDiagnosis.size() > 0) {
+            for(RegisteredDiagnosisModel rdm : addedDiagnosis) {
+                if(isDorcaUpdatedDisease(rdm) || isPureDisease(rdm)) {
+                    actualList.add(rdm);
                 }
             }
-            actualList.addAll(deletedDiagnosis);
         }
         
         if (actualList.isEmpty()) {
             return;
         }
-//minagawa$
+        
+        Collections.sort(actualList, new DiagnosisSendComparator());
+//s.oh$
         
         // DocInfo & RD をカプセル化したアイテムを生成する
         ArrayList<DiagnosisModuleItem> moduleItems = new ArrayList<DiagnosisModuleItem>();
@@ -251,6 +279,47 @@ public class DiagnosisSender {
         reader.close();
         socket.close();
     }
+    
+//s.oh^ 2014/11/11 傷病名送信順番の変更
+    class DiagnosisSendComparator implements Comparator {
+        public DiagnosisSendComparator() {}
+
+        @Override
+        public int compare(Object o1, Object o2) {
+            if(o1 == null && o2 == null) {
+                return 0;
+            }else if(o1 == null) {
+                return 1;
+            }else if(o2 == null) {
+                return -1;
+            }
+            RegisteredDiagnosisModel val1 = (RegisteredDiagnosisModel)o1;
+            RegisteredDiagnosisModel val2 = (RegisteredDiagnosisModel)o2;
+            if(val1.getDiagnosisOutcomeModel() == null && val2.getDiagnosisOutcomeModel() == null) {
+                return 0;
+            }else if(val1.getDiagnosisOutcomeModel() == null) {
+                return 1;
+            }else if(val2.getDiagnosisOutcomeModel() == null) {
+                return -1;
+            }
+            if(val1.getDiagnosisCategoryModel() == null && val2.getDiagnosisCategoryModel() == null) {
+                return 0;
+            }else if(val1.getDiagnosisCategoryModel() == null) {
+                return 1;
+            }else if(val2.getDiagnosisCategoryModel() == null) {
+                return -1;
+            }
+            if(val1.getEnded() == null && val2.getEnded() == null) {
+                return 0;
+            }else if(val1.getEnded() == null) {
+                return 1;
+            }else if(val2.getEnded() == null) {
+                return -1;
+            }
+            return 0;
+        }
+    }
+//s.oh$
     
 //minagawa^ CLAIM Log    
     private void log(String msg) {

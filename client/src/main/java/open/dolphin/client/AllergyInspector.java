@@ -76,7 +76,12 @@ public final class AllergyInspector {
         view.getTable().setFillsViewportHeight(true);
         //view.getTable().setRowHeight(ClientContext.getHigherRowHeight());
         view.getTable().getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        view.getTable().setToolTipText("追加・削除は右クリックで行います。");
+//s.oh^ 2014/04/02 閲覧権限の制御
+        //view.getTable().setToolTipText("追加・削除は右クリックで行います。");
+        if(!context.isReadOnly()) {
+            view.getTable().setToolTipText("追加・削除は右クリックで行います。");
+        }
+//s.oh$
        
         // レンダラを設定する
         //view.getTable().setDefaultRenderer(Object.class, new OddEvenRowRenderer());

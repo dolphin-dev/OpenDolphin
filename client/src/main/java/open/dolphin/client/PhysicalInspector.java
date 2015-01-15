@@ -89,23 +89,28 @@ public final class PhysicalInspector {
         //view.getTable().setDefaultRenderer(Object.class, new OddEvenRowRenderer());
         //view.getTable().getColumnModel().getColumn(2).setCellRenderer(new BMIRenderer());
         view.getTable().getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        view.getTable().setToolTipText("追加・削除は右クリックで行います。");
+//s.oh^ 2014/04/02 閲覧権限の制御
+        //view.getTable().setToolTipText("追加・削除は右クリックで行います。");
+        if(!context.isReadOnly()) {
+            view.getTable().setToolTipText("追加・削除は右クリックで行います。");
+        }
+//s.oh$
         
         //OddEvenRowRenderer heightR = new OddEvenRowRenderer();
         StripeTableCellRenderer heightR = new StripeTableCellRenderer();
-        heightR.setHorizontalAlignment(SwingConstants.RIGHT);
+        heightR.setHorizontalAlignment(SwingConstants.LEFT);
         heightR.setTable(view.getTable());
         view.getTable().getColumnModel().getColumn(0).setCellRenderer(heightR);
         
         //OddEvenRowRenderer weightR = new OddEvenRowRenderer();
         StripeTableCellRenderer weightR = new StripeTableCellRenderer();
-        weightR.setHorizontalAlignment(SwingConstants.RIGHT);
+        weightR.setHorizontalAlignment(SwingConstants.LEFT);
         weightR.setTable(view.getTable());
         view.getTable().getColumnModel().getColumn(1).setCellRenderer(weightR);
         
         //BMIRenderer bmiR = new BMIRenderer();
         StripeTableCellRenderer bmiR = new StripeTableCellRenderer();
-        bmiR.setHorizontalAlignment(SwingConstants.RIGHT);
+        bmiR.setHorizontalAlignment(SwingConstants.LEFT);
         bmiR.setTable(view.getTable());
         view.getTable().getColumnModel().getColumn(2).setCellRenderer(bmiR);
         

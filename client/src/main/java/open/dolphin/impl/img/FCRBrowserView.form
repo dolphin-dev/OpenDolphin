@@ -20,19 +20,23 @@
               <EmptySpace min="20" pref="20" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
-                      <Component id="dirLbl" min="-2" pref="348" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="fcrListBtn" min="-2" pref="64" max="-2" attributes="0"/>
+                      <Component id="dirLbl" pref="192" max="32767" attributes="0"/>
+                      <EmptySpace min="-2" pref="94" max="-2" attributes="0"/>
+                      <Component id="fcrListBtn" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="fcrImageBtn" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="fcrTodayBtn" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="backdirBtn" min="-2" pref="60" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="newdirBtn" min="-2" pref="60" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="refreshBtn" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="settingBtn" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="jScrollPane1" alignment="0" pref="738" max="32767" attributes="0"/>
+                  <Component id="jScrollPane1" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -49,6 +53,8 @@
                   <Component id="fcrListBtn" alignment="2" min="-2" max="-2" attributes="0"/>
                   <Component id="fcrImageBtn" alignment="2" min="-2" max="-2" attributes="0"/>
                   <Component id="fcrTodayBtn" alignment="2" min="-2" max="-2" attributes="0"/>
+                  <Component id="newdirBtn" alignment="2" min="-2" max="-2" attributes="0"/>
+                  <Component id="backdirBtn" alignment="2" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jScrollPane1" pref="500" max="32767" attributes="0"/>
@@ -110,6 +116,24 @@
       <Properties>
         <Property name="label" type="java.lang.String" value="Today"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="newdirBtn">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x65b0;&#x898f;"/>
+        <Property name="toolTipText" type="java.lang.String" value="&#x30c7;&#x30a3;&#x30ec;&#x30af;&#x30c8;&#x30ea;&#x306e;&#x65b0;&#x898f;&#x4f5c;&#x6210;"/>
+      </Properties>
+      <AccessibilityProperties>
+        <Property name="AccessibleContext.accessibleName" type="java.lang.String" value="newdirBtn"/>
+      </AccessibilityProperties>
+    </Component>
+    <Component class="javax.swing.JButton" name="backdirBtn">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="&#x4e0a;&#x3078;"/>
+        <Property name="toolTipText" type="java.lang.String" value="&#x30c7;&#x30a3;&#x30ec;&#x30af;&#x30c8;&#x30ea;&#x306e;&#x65b0;&#x898f;&#x4f5c;&#x6210;"/>
+      </Properties>
+      <AccessibilityProperties>
+        <Property name="AccessibleContext.accessibleDescription" type="java.lang.String" value="&#x4e00;&#x3064;&#x4e0a;&#x306e;&#x968e;&#x5c64;&#x306b;&#x623b;&#x308b;"/>
+      </AccessibilityProperties>
     </Component>
   </SubComponents>
 </Form>

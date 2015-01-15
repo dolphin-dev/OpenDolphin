@@ -202,7 +202,8 @@ public class PVTDelegater extends BusinessDelegater {
                     decodeHealthInsurance(pm.getPatientModel());
                 }
             }
-            return list;
+            //return list;
+            return (list != null) ? list : new ArrayList<PatientVisitModel>(1);
         } catch (Exception e) {
             Log.outputFuncLog(Log.LOG_LEVEL_0,"E",e.toString());
             e.printStackTrace(System.err);

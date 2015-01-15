@@ -166,7 +166,7 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
         if(selectedLabo == null) return;
         PatientModel patient = selectedLabo.getPatient();
         if(patient == null) return;
-        LaboTestPanel labo = new LaboTestPanel(patient.getPatientId());
+        LaboTestPanel labo = new LaboTestPanel(patient.getPatientId(), patient.getFullName(), patient.getKanaName());
         labo.start();
     }
 //s.oh^
@@ -488,7 +488,15 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
                     if (lab != null && lab.getPatient()!=null) {
 //s.oh^ 2013/09/20 ラボレシーバを表示
                         //openKarte();
-                        openLaboTest();
+//s.oh^ 2014/07/10 ラボレシーバを表示(旧表示復活)
+                        //openLaboTest();
+                        String labo = Project.getString("labotest.open", "panel");
+                        if(labo.equals("karte")) {
+                            openKarte();
+                        }else{
+                            openLaboTest();
+                        }
+//s.oh^
 //s.oh^
                     }
                 }
@@ -521,10 +529,13 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
 
                     if (row == selected && obj != null) {
 //s.oh^ 2013/09/20 ラボレシーバを表示
-                        //String pop1 = ClientContext.getString("watingList.popup.openKarte");
-                        //contextMenu.add(new JMenuItem(new ReflectAction(pop1, NLaboTestImporter.this, "openKarte")));
-                        String pop1 = "ラボデータを表示";
-                        contextMenu.add(new JMenuItem(new ReflectAction(pop1, NLaboTestImporter.this, "openLaboTest")));
+                        if(obj instanceof NLaboImportSummary && ((NLaboImportSummary)obj).getKarteId() == null) {
+                        }else if(obj instanceof NLaboImportSummary && ((NLaboImportSummary)obj).getResult().trim().equals(SUCCESS)){
+                            //String pop1 = ClientContext.getString("watingList.popup.openKarte");
+                            //contextMenu.add(new JMenuItem(new ReflectAction(pop1, NLaboTestImporter.this, "openKarte")));
+                            String pop1 = "ラボデータを表示";
+                            contextMenu.add(new JMenuItem(new ReflectAction(pop1, NLaboTestImporter.this, "openLaboTest")));
+                        }
 //s.oh$
                     }
                     contextMenu.show(e.getComponent(), e.getX(), e.getY());

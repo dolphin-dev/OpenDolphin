@@ -118,6 +118,16 @@ public final class RegisteredDiagnosisModelConverter implements IInfoModelConver
             return con;
         }return null;
     }
+    
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+    public String getDepartment() {
+        return model.getDepartment();
+    }
+    
+    public String getDepartmentDesc() {
+        return model.getDepartmentDesc();
+    }
+//s.oh$
 
     @Override
     public void setModel(IInfoModel m) {

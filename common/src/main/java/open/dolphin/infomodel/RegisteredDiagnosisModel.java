@@ -43,6 +43,10 @@ public class RegisteredDiagnosisModel extends KarteEntryBean implements java.io.
     @Transient
     private UserLiteModel userLiteModel;
     
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+    private String department;
+    private String departmentDesc;
+//s.oh$
     
     /**
      * Creates new RegisteredDiagnosisModule
@@ -355,6 +359,24 @@ public class RegisteredDiagnosisModel extends KarteEntryBean implements java.io.
     public void setUserLiteModel(UserLiteModel userLiteModel) {
         this.userLiteModel = userLiteModel;
     }
+    
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+    public String getDepartmentDesc() {
+        return departmentDesc;
+    }
+
+    public void setDepartmentDesc(String departmentDesc) {
+        this.departmentDesc = departmentDesc;
+    }
+//s.oh$
     
     private static String[] splitDiagnosis(String diagnosis) {
         if (diagnosis == null) {

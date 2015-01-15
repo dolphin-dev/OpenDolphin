@@ -198,7 +198,25 @@ public class LaboTestOutputPDF extends AbstractLetterPDFMaker {
                     if(rowObj != null) {
 //s.oh^ 2013/07/30 項目に単位を追加
                         //addData(labo, font, rowObj.getItemName(), cellColor);
-                        addData(labo, font, rowObj.getItemName() + "(" + rowObj.getUnit() + ")", cellColor);
+                        if(rowObj.getUnit() != null && rowObj.getUnit().length() > 0) {
+//s.oh^ 2014/06/16 基準値の表示
+                            //addData(labo, font, rowObj.getItemName() + "(" + rowObj.getUnit() + ")", cellColor);
+                            if(rowObj.getNormalValue() != null && rowObj.getNormalValue().length() > 0) {
+                                addData(labo, font, rowObj.getItemName() + "(" + rowObj.getUnit() + ")" + " [" + rowObj.getNormalValue() + "]", cellColor);
+                            }else{
+                                addData(labo, font, rowObj.getItemName() + "(" + rowObj.getUnit() + ")", cellColor);
+                            }
+//s.oh$
+                        }else{
+//s.oh^ 2014/06/16 基準値の表示
+                            //addData(labo, font, rowObj.getItemName(), cellColor);
+                            if(rowObj.getNormalValue() != null && rowObj.getNormalValue().length() > 0) {
+                                addData(labo, font, rowObj.getItemName() + " [" + rowObj.getNormalValue() + "]", cellColor);
+                            }else{
+                                addData(labo, font, rowObj.getItemName(), cellColor);
+                            }
+//s.oh$
+                        }
 //s.oh$
                     }else{
                         addData(labo, font, "", cellColor);

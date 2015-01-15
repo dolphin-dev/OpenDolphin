@@ -12,10 +12,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import open.dolphin.client.ClientContext;
+import open.dolphin.common.OrcaConnect;
 import open.dolphin.delegater.OrcaDelegater;
 import open.dolphin.infomodel.*;
 import open.dolphin.order.MMLTable;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 import open.dolphin.util.StringTool;
 
 /**
@@ -684,7 +686,10 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
         
         StringBuilder sb1 = new StringBuilder();
         if (true) {
-            sb1.append("select inputcd,suryo1,kaisu from tbl_inputset where hospnum=? and setcd=? order by setseq");
+//s.oh^ 2014/04/01 ORCAセット有効期限対応
+            //sb1.append("select inputcd,suryo1,kaisu from tbl_inputset where hospnum=? and setcd=? order by setseq");
+            sb1.append("select inputcd,suryo1,kaisu,yukostymd,yukoedymd from tbl_inputset where hospnum=? and setcd=? order by setseq");
+//s.oh$
             sql1 = sb1.toString();
         } else {
             sb1.append("select inputcd,suryo1,kaisu from tbl_inputset where setcd=? order by setseq");
@@ -720,6 +725,12 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
             ResultSet rs = ps1.executeQuery();
             
             ArrayList<OrcaInputSet> list = new ArrayList<OrcaInputSet>();
+                
+//s.oh^ 2014/04/01 ORCAセット有効期限対応
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+            String strtoday = sdf.format(new Date());
+            int today = Integer.parseInt(strtoday);
+//s.oh$
 
             while (rs.next()) {
                
@@ -745,11 +756,23 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
                 //inputSet.setUpYmd(rs.getString(18));
                 //inputSet.setUpHms(rs.getString(19));
                 
-                debug("getInputCd = " + inputSet.getInputCd());
-                debug("getSuryo1 = " + String.valueOf(inputSet.getSuryo1()));
-                debug("getKaisu = " + String.valueOf(inputSet.getKaisu()));
-                
-                list.add(inputSet);
+//s.oh^ 2014/04/01 ORCAセット有効期限対応
+                //debug("getInputCd = " + inputSet.getInputCd());
+                //debug("getSuryo1 = " + String.valueOf(inputSet.getSuryo1()));
+                //debug("getKaisu = " + String.valueOf(inputSet.getKaisu()));
+                //
+                //list.add(inputSet);
+                String strst = rs.getString(4);
+                String stred = rs.getString(5);
+                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, inputSet.getInputCd(), String.valueOf(inputSet.getSuryo1()), String.valueOf(inputSet.getKaisu()), strst, stred);
+                int st = Integer.parseInt(strst);
+                int ed = Integer.parseInt(stred);
+                if(st <= today && today <= ed) {
+                    list.add(inputSet);
+                }else{
+                    continue;
+                }
+//s.oh$
             }
             
             rs.close();
@@ -798,6 +821,9 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
                             String name = rs2.getString(2);
                             String number = String.valueOf(inputSet.getSuryo1());
                             String unit = rs2.getString(3);
+////s.oh^ 2014/06/24 ORCAセットの改善
+//                            String ykz = rs2.getString(4);
+////s.oh$
                             
                             debug("code = " + code);
                             debug("kbn = " + kbn);
@@ -810,6 +836,9 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
                             item.setName(name);
                             item.setNumber(number);
                             item.setClassCodeSystem(ClaimConst.SUBCLASS_CODE_ID);
+////s.oh^ 2014/06/24 ORCAセットの改善
+//                            item.setYkzKbn(ykz);
+////s.oh$
                             
                             if (code.startsWith(ClaimConst.SYUGI_CODE_START)) {
                                 //
@@ -827,6 +856,11 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
                                 }
                                 
                                 if (bundle != null) {
+//s.oh^ 2014/03/31 スタンプ回数対応
+                                    if(inputSet.getKaisu() > 0) {
+                                        bundle.setBundleNumber(String.valueOf(inputSet.getKaisu()));
+                                    }
+//s.oh$
                                     bundle.addClaimItem(item);
                                 } 
                             
@@ -852,6 +886,11 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
                                 }
                                 
                                 if (bundle != null) {
+//s.oh^ 2014/03/31 スタンプ回数対応
+                                    if(inputSet.getKaisu() > 0) {
+                                        bundle.setBundleNumber(String.valueOf(inputSet.getKaisu()));
+                                    }
+//s.oh$
                                     bundle.addClaimItem(item);
                                 }
                                 
@@ -874,6 +913,11 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
                                 }
                                 
                                 if (bundle != null) {
+//s.oh^ 2014/03/31 スタンプ回数対応
+                                    if(inputSet.getKaisu() > 0) {
+                                        bundle.setBundleNumber(String.valueOf(inputSet.getKaisu()));
+                                    }
+//s.oh$
                                     bundle.addClaimItem(item);
                                 }
                                 
@@ -919,6 +963,11 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
                                 }
                                 
                                 if (bundle != null) {
+//s.oh^ 2014/03/31 スタンプ回数対応
+                                    if(inputSet.getKaisu() > 0) {
+                                        bundle.setBundleNumber(String.valueOf(inputSet.getKaisu()));
+                                    }
+//s.oh$
                                     bundle.addClaimItem(item);
                                 }
 
@@ -933,6 +982,11 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
                                     }
                                 }
                                 if (bundle != null) {
+//s.oh^ 2014/03/31 スタンプ回数対応
+                                    if(inputSet.getKaisu() > 0) {
+                                        bundle.setBundleNumber(String.valueOf(inputSet.getKaisu()));
+                                    }
+//s.oh$
                                     bundle.addClaimItem(item);
                                 }
                             }
@@ -1119,7 +1173,8 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
         }
         
         sb = new StringBuilder();
-        sb.append("select sryymd,khnbyomeicd,utagaiflg,syubyoflg,tenkikbn,tenkiymd,byomei from tbl_ptbyomei where ");
+        //sb.append("select sryymd,khnbyomeicd,utagaiflg,syubyoflg,tenkikbn,tenkiymd,byomei from tbl_ptbyomei where ");
+        sb.append("select sryymd,khnbyomeicd,utagaiflg,syubyoflg,tenkikbn,tenkiymd,byomei,sryka from tbl_ptbyomei where "); // 診療科追加
         if (ascend.booleanValue()) {
             if (hospNum > 0) {
                 sb.append("hospnum=? and ptid=? and sryymd >= ? and sryymd <= ? and dltflg!=? order by sryymd");
@@ -1179,6 +1234,10 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
                 
                 // 疾患名
                 ord.setDiagnosis(rs.getString(7));
+                
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+                ord.setDepartment(rs.getString(8));
+//s.oh$
                 
                 // 制御のための Status
                 ord.setStatus("ORCA");
@@ -1248,11 +1307,18 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
         }
 
         sb = new StringBuilder();
-        sb.append("select sryymd,khnbyomeicd,utagaiflg,syubyoflg,tenkikbn,tenkiymd,byomei from tbl_ptbyomei where ");
+        //sb.append("select sryymd,khnbyomeicd,utagaiflg,syubyoflg,tenkikbn,tenkiymd,byomei from tbl_ptbyomei where ");
+        sb.append("select sryymd,khnbyomeicd,utagaiflg,syubyoflg,tenkikbn,tenkiymd,byomei,sryka from tbl_ptbyomei where "); // 診療科追加
         if (hospNum > 0) {
-            sb.append("hospnum=? and ptid=? and tenkikbn=? and dltflg!=? order by sryymd");
+//s.oh^ 2014/03/18 ORCAから傷病名の取込
+            //sb.append("hospnum=? and ptid=? and tenkikbn=? and dltflg!=? order by sryymd");
+            sb.append("hospnum=? and ptid=? and dltflg!=? order by sryymd");
+//s.oh$
         } else {
-            sb.append("ptid=? and tenkikbn=? and dltflg!=? order by sryymd");
+//s.oh^ 2014/03/18 ORCAから傷病名の取込
+            //sb.append("ptid=? and tenkikbn=? and dltflg!=? order by sryymd");
+            sb.append("ptid=? and dltflg!=? order by sryymd");
+//s.oh$
         }
         if (!asc) {
             sb.append(" desc");
@@ -1267,12 +1333,18 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
             if (hospNum > 0) {
                 pt.setInt(1, hospNum);
                 pt.setInt(2, Integer.parseInt(ptid));   // 元町皮膚科
-                pt.setString(3, " ");
-                pt.setString(4, "1");
+//s.oh^ 2014/03/18 ORCAから傷病名の取込
+                //pt.setString(3, " ");
+                //pt.setString(4, "1");
+                pt.setString(3, "1");
+//s.oh$
             } else {
                 pt.setInt(1, Integer.parseInt(ptid));   // 元町皮膚科
-                pt.setString(2, " ");
-                pt.setString(3, "1");
+//s.oh^ 2014/03/18 ORCAから傷病名の取込
+                //pt.setString(2, " ");
+                //pt.setString(3, "1");
+                pt.setString(2, "1");
+//s.oh$
             }
             ResultSet rs = pt.executeQuery();
             collection = new ArrayList<RegisteredDiagnosisModel>();
@@ -1301,6 +1373,10 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
 
                 // 疾患名
                 ord.setDiagnosis(rs.getString(7));
+                
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+                ord.setDepartment(rs.getString(8));
+//s.oh$
 
                 // 制御のための Status
                 ord.setStatus("ORCA");
@@ -1396,4 +1472,76 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
 
         return null;
     }
+    
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+    @Override
+    public ArrayList<String> getDeptInfo() {
+        ArrayList<String> list = new ArrayList<>(0);
+        if(Project.getBoolean("orca.orcaapi.getdeptinfo", false)) {
+            String ip = Project.getString("orca.orcaapi.ip", Project.getString(Project.CLAIM_ADDRESS));
+            String port = Project.getString("orca.orcaapi.port", "8000");
+            String id = Project.getString("orca.id", "ormaster");
+            String password = Project.getString("orca.password", "ormaster123");
+            if(ip != null) {
+                OrcaConnect orcaApi = new OrcaConnect(ip, port, id, password, null);
+                SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
+                String ret = orcaApi.getDepartmentInfo(sf.format(new Date()));
+                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, ret);
+                ret = ret.replaceAll("\\<.*?>", ",");
+                String[] tmps = ret.split(",");
+                for(String tmp : tmps) {
+                    if(tmp.trim().length() > 0) {
+                        list.add(tmp);
+                    }
+                }
+//                HashMap<String, String> deptInfo = new HashMap<String, String>();
+//                XmlReadWrite xml = new XmlReadWrite();
+//                try {
+//                    if(ret.length() > 0 && xml.analize(ret, "") == true) {
+//                        if(xml.getRoot().getTagName().equals("xmlio2")) {
+//                            int num = xml.getEleNum(xml.getRoot());
+//                            for(int i = 0; i < num; i++) {
+//                                Element eleDeptRes = xml.getEle(xml.getRoot(), i);
+//                                if(eleDeptRes != null && eleDeptRes.getTagName().equals("departmentres")) {
+//                                    num = xml.getEleNum(eleDeptRes);
+//                                    for(int j = 0; j < num; j++) {
+//                                        Element eleDeptInfo = xml.getEle(eleDeptRes, j);
+//                                        if(eleDeptInfo != null && eleDeptInfo.getTagName().equals("Department_Information")) {
+//                                            int numChild = xml.getEleNum(eleDeptInfo);
+//                                            for(int k = 0; k < numChild; k++) {
+//                                                Element eleDeptInfoChild = xml.getEle(eleDeptInfo, k);
+//                                                if(eleDeptInfoChild != null && eleDeptInfoChild.getTagName().equals("Department_Information_child")) {
+//                                                    int numItem = xml.getEleNum(eleDeptInfoChild, "Code");
+//                                                    String code = null;
+//                                                    String name = null;
+//                                                    for(int l = 0; l < numItem; l++) {
+//                                                        Element eleItem = xml.getEle(eleDeptInfoChild, l);
+//                                                        if(eleItem != null && eleItem.getTagName().equals("Code")) {
+//                                                            code = xml.getEleVal(eleItem);
+//                                                        }else if(eleItem != null && eleItem.getTagName().equals("WholeName")) {
+//                                                            name = xml.getEleVal(eleItem);
+//                                                        }
+//                                                    }
+//                                                }
+//                                            }
+//                                            break;
+//                                        }
+//                                    }
+//                                    break;
+//                                }
+//                            }
+//                        }
+//                    }
+//                } catch (ParserConfigurationException ex) {
+//                    Logger.getLogger(DiagnosisDocument.class.getName()).log(Level.SEVERE, null, ex);
+//                } catch (SAXException ex) {
+//                    Logger.getLogger(DiagnosisDocument.class.getName()).log(Level.SEVERE, null, ex);
+//                } catch (IOException ex) {
+//                    Logger.getLogger(DiagnosisDocument.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+            }
+        }
+        return list;
+    }
+//s.oh$
 }

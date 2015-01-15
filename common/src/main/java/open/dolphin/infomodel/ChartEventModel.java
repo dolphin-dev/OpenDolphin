@@ -13,6 +13,9 @@ public class ChartEventModel extends InfoModel implements java.io.Serializable {
     public static final int PVT_RENEW   = 3;
     public static final int PVT_MERGE   = 4;
     public static final int PM_MERGE    = 5;
+//s.oh^ 2014/10/14 診察終了後のメモ対応
+    public static final int PVT_MEMO    = 6;
+//s.oh$
     
     private String issuerUUID;
     private int eventType;

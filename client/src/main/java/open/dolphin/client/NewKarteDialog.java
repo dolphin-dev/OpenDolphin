@@ -12,6 +12,7 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionListener;
 import open.dolphin.infomodel.PVTHealthInsuranceModel;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 
 /**
@@ -344,6 +345,7 @@ public final class NewKarteDialog {
         params.setPVTHealthInsurance((PVTHealthInsuranceModel) insuranceList.getSelectedValue());
         params.setCreateMode(getCreateMode());
         params.setOpenFrame(openAnother.isSelected());
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, params.getDepartmentName(), params.getPVTHealthInsurance().getInsuranceClass(), params.getCreateMode().toString(), (params.isOpenFrame()) ? "frame" : "tab");
         value = (Object) params;
         dialog.setVisible(false);
         dialog.dispose();

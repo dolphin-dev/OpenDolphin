@@ -63,7 +63,7 @@ public class KarteResource extends AbstractResource {
         String[] params = param.split(CAMMA);
         long patientPK = Long.parseLong(params[0]);
         Date fromDate = parseDate(params[1]);
-
+        
         KarteBean bean = karteServiceBean.getKarte(patientPK, fromDate);
 
         KarteBeanConverter conv = new KarteBeanConverter();
@@ -109,6 +109,17 @@ public class KarteResource extends AbstractResource {
         }
 
         List<DocumentModel> result = karteServiceBean.getDocuments(list);
+        
+//s.oh^ 2014/08/20 添付ファイルの別読
+        for(DocumentModel model : result) {
+            List<AttachmentModel> attachments = model.getAttachment();
+            if(attachments != null) {
+                for(AttachmentModel attachment : attachments) {
+                    attachment.setBytes(null);
+                }
+            }
+        }
+//s.oh$
 
         DocumentList wrapper = new DocumentList();
         wrapper.setList(result);
@@ -215,7 +226,7 @@ public class KarteResource extends AbstractResource {
 
         return pkStr;
     }
-
+    
     @PUT
     @Path("/document/{id}")
     @Consumes(MediaType.TEXT_PLAIN)
@@ -543,6 +554,43 @@ public class KarteResource extends AbstractResource {
 
         return text;
     }
+    
+//s.oh^ 2014/04/03 サマリー対応
+    @GET
+    @Path("/freedocument/{param}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PatientFreeDocumentModelConverter getFreeDocument(@Context HttpServletRequest servletReq, @PathParam("param") String param) {
+
+        String pid = param;
+        String fpid = getFidPid(servletReq.getRemoteUser(), pid);
+        
+        PatientFreeDocumentModel result = karteServiceBean.getPatientFreeDocument(fpid);
+        PatientFreeDocumentModelConverter conv = new PatientFreeDocumentModelConverter();
+        conv.setModel(result);
+        
+        return conv;
+    }
+    
+    @PUT
+    @Path("/freedocument")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
+    public String putPatientFreeDocument(@Context HttpServletRequest servletReq, String json) throws IOException {
+        
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        PatientFreeDocumentModel model = mapper.readValue(json, PatientFreeDocumentModel.class);
+        
+        String fpid = getFidPid(servletReq.getRemoteUser(), model.getFacilityPatId());
+        model.setFacilityPatId(fpid);
+
+        int result = karteServiceBean.updatePatientFreeDocument(model);
+        String text = String.valueOf(result);
+        debug(text);
+
+        return text;
+    }
+//s.oh$
 
     //-------------------------------------------------------
 
@@ -634,4 +682,52 @@ public class KarteResource extends AbstractResource {
         return conv;
     }
 //masuda$
+    
+//s.oh^ 2014/07/22 一括カルテPDF出力
+    @GET
+    @Path("/docinfo/all/{param}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public DocumentListConverter getAllDocument(@PathParam("param") String param) {
+
+        long pk = Long.parseLong(param);
+
+        List<DocumentModel> result = karteServiceBean.getAllDocument(pk);
+        
+//s.oh^ 2014/08/20 添付ファイルの別読
+        for(DocumentModel model : result) {
+            List<AttachmentModel> attachments = model.getAttachment();
+            if(attachments != null) {
+                for(AttachmentModel attachment : attachments) {
+                    attachment.setBytes(null);
+                }
+            }
+        }
+//s.oh$
+
+        DocumentList wrapper = new DocumentList();
+        wrapper.setList(result);
+        
+        DocumentListConverter conv = new DocumentListConverter();
+        conv.setModel(wrapper);
+
+        return conv;
+    }
+//s.oh$
+    
+//s.oh^ 2014/08/20 添付ファイルの別読
+    @GET
+    @Path("/attachment/{param}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public AttachmentModelConverter getAttachment(@PathParam("param") String param) {
+
+        long id = Long.parseLong(param);
+
+        AttachmentModel result = karteServiceBean.getAttachment(id);
+        
+        AttachmentModelConverter conv = new AttachmentModelConverter();
+        conv.setModel(result);
+
+        return conv;
+    }
+//s.oh$
 }

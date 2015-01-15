@@ -23,6 +23,7 @@ import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.SchemaModel;
 import open.dolphin.stampbox.StampTreeNode;
 import open.dolphin.util.Log;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * KartePaneTransferHandler
@@ -102,6 +103,12 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
 
             } else if (tr.isDataFlavorSupported(DataFlavor.stringFlavor)) {
                 String str = (String) tr.getTransferData(DataFlavor.stringFlavor);
+//s.oh^ Xronos連携(D&D画像連携)
+                //if(str.startsWith("#XronosDrag") || str.startsWith("#Genesys")) {
+                if(str.startsWith("GenesysDragDropCommand_Dolphin")) {
+                    return doXronosDrop(str);
+                }
+//s.oh$
                 tc.replaceSelection(str);
                 shouldRemove = tc == source ? true : false;
                 return true;
@@ -415,6 +422,33 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
             return false;
         }
     }
+    
+//s.oh^ Xronos連携(D&D画像連携)
+    public boolean doXronosDrop(String data) {
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, data);
+        
+        String[] vals = data.split(",", 4);
+        if(vals.length != 4) {
+            return false;
+        }
+        
+        String param = new String(Base64.decodeBase64(vals[1]));
+        String dataInfo = vals[2];
+        String imgData = vals[3];
+        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "Xronosから画像ドロップ", vals[0], param, dataInfo);
+        
+        byte[] img = Base64.decodeBase64(imgData);
+        if(img == null) {
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "画像変換失敗");
+            return false;
+        }
+        
+        soaPane.importImage(img, param, "JPEG");
+        
+        return true;
+    }
+//s.oh$
     
     /**
      * クリップボードへデータを転送する。

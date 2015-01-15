@@ -39,7 +39,7 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="usageCheck" min="-2" max="-2" attributes="0"/>
           </Group>
-          <Component id="jScrollPane2" alignment="0" pref="831" max="32767" attributes="0"/>
+          <Component id="jScrollPane2" alignment="0" max="32767" attributes="0"/>
           <Component id="jScrollPane1" alignment="0" max="32767" attributes="0"/>
           <Group type="102" alignment="0" attributes="0">
               <Group type="103" groupAlignment="0" attributes="0">
@@ -138,7 +138,7 @@
                   <Component id="okBtn" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jScrollPane2" pref="275" max="32767" attributes="0"/>
+              <Component id="jScrollPane2" pref="276" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>

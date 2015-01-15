@@ -96,16 +96,13 @@ public class ImageBrowserProxy implements ChartDocument {
             boolean win = ClientContext.isWin();
             //win = true; // test with Mac
 
-            if (win && name!=null && name.equals("genesys")) {
-                browser = (ChartDocument)create("open.dolphin.impl.img.GenesysBrowser");
-
-            } else if (win && name!=null && name.equals("unitea")) {
+            if (win && name!=null && name.equals("unitea")) {
                 browser = (ChartDocument)create("open.dolphin.impl.img.UniteaBrowser");
 
             } else if (win && name!=null && name.equals("tfs")) {
                 browser = (ChartDocument)create("open.dolphin.impl.img.TFSBrowser");
 
-//s.oh^ FCR連携/他プロセス連携/ジェネシス連携
+//s.oh^ FCR連携/他プロセス連携/Xronos連携
             // FCR連携
             } else if (name!=null && name.equals("fcr")) {
                 browser = (ChartDocument)create("open.dolphin.impl.img.FCRBrowser");
@@ -114,9 +111,9 @@ public class ImageBrowserProxy implements ChartDocument {
             } else if (name != null && name.equals("defaultex")) {
                 browser = (ChartDocument)create("open.dolphin.impl.img.DefaultBrowserEx");
                 
-            // ジェネシス連携
-            } else if (win && name != null && name.equals("genephin")) {
-                browser = (ChartDocument)create("open.dolphin.impl.genesys.GenesysLinkDocument");
+            // Xronos連携
+            } else if (win && name != null && name.equals("xronos")) {
+                browser = (ChartDocument)create("open.dolphin.impl.xronos.XronosLinkDocument");
                 
 //s.oh$
             } else {

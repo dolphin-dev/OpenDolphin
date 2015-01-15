@@ -93,6 +93,8 @@ public class PVTServiceBean {
                     .setParameter(FID, fid)
                     .setParameter(PID, patient.getPatientId())
                     .getSingleResult();
+            
+            Logger.getLogger("open.dolphin").info("addPvt : merge patient");
 
             //-----------------------------
             // 健康保険情報を更新する
@@ -147,6 +149,10 @@ public class PVTServiceBean {
             exist.setSimpleAddressModel(patient.getSimpleAddressModel());
             exist.setTelephone(patient.getTelephone());
             //exist.setMobilePhone(patient.getMobilePhone());
+            
+//s.oh^ 2014/08/19 施設患者一括表示機能
+            exist.setAppMemo(patient.getAppMemo());
+//s.oh$
 
             // PatientModelを新しい情報に更新する
             em.merge(exist);
@@ -154,6 +160,7 @@ public class PVTServiceBean {
             pvt.setPatientModel(exist);
 
         } catch (NoResultException e) {
+            Logger.getLogger("open.dolphin").info("addPvt : add patient");
             // 新規患者であれば登録する
             // 患者属性は cascade=PERSIST で自動的に保存される
             em.persist(patient);
@@ -243,7 +250,7 @@ public class PVTServiceBean {
                     && (test.getState() & (1<< PatientVisitModel.BIT_CANCEL)) ==0) {
 //s.oh^ 2013/12/24 同時受付不具合修正
                 // 同一患者のみ
-                if(test.getPatientId() != null && pvt.getPatientId() != null && test.getPatientId().equals(pvt.getPatientId())) {
+                if(test.getPatientId() != null && pvt.getPatientId() != null && test.getPatientId().equals(pvt.getPatientId()) && test.getFacilityId().equals(pvt.getFacilityId())) {
 //s.oh$
                     pvt.setId(test.getId());    // pvtId, state, ownerUUID, byomeiCountは既存のものを使う
                     pvt.setState(test.getState());

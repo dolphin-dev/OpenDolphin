@@ -33,6 +33,9 @@ public final class  PatientDelegater extends BusinessDelegater {
 //minagawa^ 仮保存カルテ取得対応
     private static final String TMP_KARTE_RESOURCE = "/patient/documents/status";
 //minagawa$
+//s.oh^ 2014/07/22 一括カルテPDF出力
+    private static final String ALL_PATIENTS_RESOURCE = "/patient/all";
+//s.oh$
     
     /**
      * 患者を追加する。
@@ -257,4 +260,59 @@ public final class  PatientDelegater extends BusinessDelegater {
             patient.setHealthInsurances(null);
         }
     }
+    
+//s.oh^ 2014/07/22 一括カルテPDF出力
+    public List<PatientModel> getAllPatient() throws Exception {
+     
+        // PATH
+        String path = ALL_PATIENTS_RESOURCE;
+        
+        // GET
+        ClientRequest request = getRequest(path);
+        request.accept(MediaType.APPLICATION_JSON);
+        ClientResponse<String> response = request.get(String.class);
+        
+        // Wrapper
+        BufferedReader br = getReader(response);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        PatientList list = mapper.readValue(br, PatientList.class);
+        br.close();
+        
+        return list.getList();
+    }
+//s.oh$
+    
+//s.oh^ 2014/10/01 患者検索(傷病名)
+    public List getCustom(String val) throws Exception {
+     
+        // PATH
+        String path = BASE_RESOURCE + "custom/" + val;
+        
+        // GET
+        ClientRequest request = getRequest(path);
+        request.accept(MediaType.APPLICATION_JSON);
+        ClientResponse<String> response = request.get(String.class);
+        
+        // Wrapper
+        BufferedReader br = getReader(response);
+        ObjectMapper mapper = new ObjectMapper();
+        // 2013/06/24
+        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        PatientList list = mapper.readValue(br, PatientList.class);
+        br.close();
+        
+        // Decode
+        if (list != null && list.getList()!=null) {
+            List<PatientModel> inList = list.getList();
+            for (PatientModel pm : inList) {
+                decodeHealthInsurance(pm);
+            }
+            return inList;
+            
+        } else {
+            return null;
+        }
+    }
+//s.oh$
 }

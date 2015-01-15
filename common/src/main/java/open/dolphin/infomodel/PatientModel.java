@@ -135,6 +135,19 @@ public class PatientModel extends InfoModel implements java.io.Serializable {
     // 受診日。患者検索で使用
     @Transient
     private String pvtDate;
+    
+//s.oh^ 2014/08/19 施設患者一括表示機能
+    private String appMemo;
+//s.oh$
+    
+//s.oh^ 2014/08/29 患者情報の追加
+    private String reserve1;
+    private String reserve2;
+    private String reserve3;
+    private String reserve4;
+    private String reserve5;
+    private String reserve6;
+//s.oh$
 
     public String getPvtDate() {
         return pvtDate;
@@ -737,6 +750,16 @@ public class PatientModel extends InfoModel implements java.io.Serializable {
         telephones.add(telephone);
     }
     
+//s.oh^ 2014/08/19 施設患者一括表示機能
+    public void setAppMemo(String appMemo) {
+        this.appMemo = appMemo;
+    }
+    
+    public String getAppMemo() {
+        return appMemo;
+    }
+//s.oh$
+    
     /**
      * 患者簡易情報を返す。
      *
@@ -796,4 +819,54 @@ public class PatientModel extends InfoModel implements java.io.Serializable {
     public void setRelations(String relations) {
         this.relations = relations;
     }
+
+//s.oh^ 2014/08/29 患者情報の追加
+    public String getReserve1() {
+        return reserve1;
+    }
+
+    public void setReserve1(String reserve1) {
+        this.reserve1 = reserve1;
+    }
+
+    public String getReserve2() {
+        return reserve2;
+    }
+
+    public void setReserve2(String reserve2) {
+        this.reserve2 = reserve2;
+    }
+
+    public String getReserve3() {
+        return reserve3;
+    }
+
+    public void setReserve3(String reserve3) {
+        this.reserve3 = reserve3;
+    }
+
+    public String getReserve4() {
+        return reserve4;
+    }
+
+    public void setReserve4(String reserve4) {
+        this.reserve4 = reserve4;
+    }
+
+    public String getReserve5() {
+        return reserve5;
+    }
+
+    public void setReserve5(String reserve5) {
+        this.reserve5 = reserve5;
+    }
+
+    public String getReserve6() {
+        return reserve6;
+    }
+
+    public void setReserve6(String reserve6) {
+        this.reserve6 = reserve6;
+    }
+//s.oh$
 }

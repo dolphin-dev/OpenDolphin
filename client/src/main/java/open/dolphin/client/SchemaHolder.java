@@ -1,20 +1,27 @@
 package open.dolphin.client;
 
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Iterator;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JPopupMenu;
 import javax.swing.text.Position;
+import open.dolphin.impl.xronos.XronosLinkDocument;
 import open.dolphin.infomodel.SchemaModel;
 import open.dolphin.plugin.PluginLoader;
+import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  * スタンプのデータを保持するコンポーネントで TextPane に挿入される。
@@ -119,6 +126,25 @@ public final class SchemaHolder extends AbstractComponentHolder implements Compo
     
     @Override
     public void edit() {
+//s.oh^ Xronos連携(D&D画像連携)
+        if(Project.getBoolean(XronosLinkDocument.KEY_XRONOSBROWSER_LINK, false) && schema != null && schema.getExtRefModel() != null) {
+            String imageURL = Project.getString(XronosLinkDocument.KEY_XRONOSBROWSER_IMAGE);
+            String param = schema.getExtRefModel().getSop();
+            if(imageURL != null && param != null && param.length() > 0) {
+                String url = imageURL + "userid=" + Project.getUserId() + "&" + param;
+                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, url);
+                Desktop desktop = Desktop.getDesktop();
+                try {
+                    desktop.browse(new URI(url));
+                } catch (URISyntaxException ex) {
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, url, ex.getMessage());
+                } catch (IOException ex) {
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, url, ex.getMessage());
+                }
+                return;
+            }
+        }
+//s.oh$
         try {
             PluginLoader<SchemaEditor> loader = PluginLoader.load(SchemaEditor.class);
             Iterator<SchemaEditor> iter = loader.iterator();

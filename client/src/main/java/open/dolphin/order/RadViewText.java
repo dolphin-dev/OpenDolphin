@@ -50,6 +50,8 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
         searchResultTable = new javax.swing.JTable();
         partBtn = new javax.swing.JButton();
         partialChk = new javax.swing.JCheckBox();
+        numberCombo = new javax.swing.JComboBox();
+        numberLabel = new javax.swing.JLabel();
 
         setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 12, 11, 11));
         setMaximumSize(new java.awt.Dimension(1024, 768));
@@ -96,8 +98,6 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
         deleteBtn.setText("削除"); // NOI18N
         deleteBtn.setToolTipText("選択した内容を削除します。"); // NOI18N
 
-        jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/resources/images/srch_16.gif"))); // NOI18N
-
         searchTextField.setToolTipText("検索したい点数マスタ項目を入力します。"); // NOI18N
 
         rtCheck.setText("RT"); // NOI18N
@@ -126,6 +126,14 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
         partialChk.setText("部分一致"); // NOI18N
         partialChk.setToolTipText("部分一致検索をします。"); // NOI18N
 
+        numberCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" }));
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/order/Bundle"); // NOI18N
+        numberCombo.setToolTipText(bundle.getString("RadViewText.numberCombo.toolTipText")); // NOI18N
+        numberCombo.setName("numberCombo"); // NOI18N
+
+        numberLabel.setText(bundle.getString("RadViewText.numberLabel.text")); // NOI18N
+        numberLabel.setName("numberLabel"); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -133,6 +141,10 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(infoLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(numberLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(numberCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(techCheck)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(partCheck))
@@ -158,7 +170,7 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(countField, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 39, Short.MAX_VALUE)
+                        .addGap(0, 55, Short.MAX_VALUE)
                         .addComponent(deleteBtn)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(clearBtn)
@@ -174,7 +186,9 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
                     .addComponent(infoLabel)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(partCheck)
-                        .addComponent(techCheck)))
+                        .addComponent(techCheck)
+                        .addComponent(numberCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(numberLabel)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 185, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -194,7 +208,7 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
                     .addComponent(partBtn)
                     .addComponent(partialChk))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 273, Short.MAX_VALUE))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 269, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -208,6 +222,8 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JComboBox numberCombo;
+    private javax.swing.JLabel numberLabel;
     private javax.swing.JButton okBtn;
     private javax.swing.JButton okCntBtn;
     private javax.swing.JButton partBtn;
@@ -340,4 +356,16 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
     public javax.swing.JCheckBox getPartialChk() {
         return partialChk;
     }
+
+    @Override
+    public javax.swing.JComboBox getNumberCombo() {
+        return numberCombo;
+    }
+
+//s.oh^ 2014/10/22 Icon表示
+    @Override
+    public javax.swing.JLabel getSearchLabel() {
+        return jLabel3;
+    }
+//s.oh$
 }

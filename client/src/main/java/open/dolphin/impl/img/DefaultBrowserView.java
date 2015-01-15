@@ -36,6 +36,8 @@ public class DefaultBrowserView extends javax.swing.JPanel {
         settingBtn = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         table = new javax.swing.JTable();
+        newdirBtn = new javax.swing.JButton();
+        backdirBtn = new javax.swing.JButton();
 
         refreshBtn.setText("更新");
 
@@ -54,6 +56,12 @@ public class DefaultBrowserView extends javax.swing.JPanel {
         ));
         jScrollPane1.setViewportView(table);
 
+        newdirBtn.setText("新規");
+        newdirBtn.setToolTipText("ディレクトリの新規作成");
+
+        backdirBtn.setText("上へ");
+        backdirBtn.setToolTipText("ディレクトリの新規作成");
+
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -63,7 +71,11 @@ public class DefaultBrowserView extends javax.swing.JPanel {
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
                         .add(dirLbl, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 348, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 236, Short.MAX_VALUE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 104, Short.MAX_VALUE)
+                        .add(backdirBtn, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 60, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(newdirBtn, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 60, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(refreshBtn)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(settingBtn))
@@ -77,17 +89,23 @@ public class DefaultBrowserView extends javax.swing.JPanel {
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.CENTER)
                     .add(refreshBtn)
                     .add(settingBtn)
-                    .add(dirLbl))
+                    .add(dirLbl)
+                    .add(newdirBtn)
+                    .add(backdirBtn))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 500, Short.MAX_VALUE)
                 .addContainerGap())
         );
+
+        backdirBtn.getAccessibleContext().setAccessibleDescription("一つ上の階層に戻る");
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton backdirBtn;
     private javax.swing.JLabel dirLbl;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JButton newdirBtn;
     private javax.swing.JButton refreshBtn;
     private javax.swing.JButton settingBtn;
     private javax.swing.JTable table;
@@ -109,4 +127,15 @@ public class DefaultBrowserView extends javax.swing.JPanel {
         return table;
     }
 
+//s.oh^ 2014/05/07 PDF・画像タブの改善
+    public javax.swing.JButton getNewDirBtn() {
+        return newdirBtn;
+    }
+//s.oh$
+
+//s.oh^ 2014/05/30 PDF・画像タブの改善
+    public javax.swing.JButton getBackDirBtn() {
+        return backdirBtn;
+    }
+//s.oh$
 }

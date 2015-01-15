@@ -24,6 +24,7 @@ import open.dolphin.project.Project;
 import open.dolphin.util.Log;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.impl.nio.client.DefaultHttpAsyncClient;
 import org.apache.http.nio.conn.ClientAsyncConnectionManager;
@@ -246,7 +247,7 @@ public class ChartEventDelegater extends BusinessDelegater {
             return httpAsyncClient;
         }
         
-//minagawa^            
+//minagawa^ Self Cert Test           
             //if (!ClientContext.isOpenDolphin()) {
             if (!ClientContext.isSelfCertTest()) {
 //minagawa$ 

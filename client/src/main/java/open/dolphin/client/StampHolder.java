@@ -7,6 +7,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JPopupMenu;
@@ -15,6 +17,7 @@ import javax.swing.text.Position;
 import open.dolphin.infomodel.*;
 import open.dolphin.order.StampEditor;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 import open.dolphin.util.ZenkakuUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
@@ -50,6 +53,17 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
     private Color foreGround = FOREGROUND;
     private Color background = BACKGROUND;
     
+////s.oh^ 2014/09/30 スタンプの色変更
+//    private static final Color STAMP_1 = new Color(255, 255, 153);
+//    private static final Color STAMP_2 = new Color(255, 255, 204);
+//    private static final Color STAMP_3 = new Color(204, 255, 255);
+//    private static final Color STAMP_4 = new Color(204, 236, 255);
+//    private static final Color STAMP_5 = new Color(153, 204, 255);
+//    private static final Color STAMP_6 = new Color(255, 204, 204);
+//    private static final Color STAMP_7 = new Color(234, 234, 234);
+//    private static final Color STAMP_8 = new Color(255, 204, 153);
+////s.oh$
+    
     /** Creates new StampHolder2 */
     public StampHolder(KartePane kartePane, ModuleModel stamp) {
         super();
@@ -65,6 +79,40 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
 //masuda^        
         setBorder(nonSelectedBorder);
 //masuda$        
+////s.oh^ 2014/09/30 スタンプの色変更
+//        if(Project.getBoolean(Project.CHANGE_STAMP_COLOR)) {
+//            switch(stamp.getModuleInfoBean().getEntity()) {
+//                case IInfoModel.ENTITY_PHYSIOLOGY_ORDER:
+//                case IInfoModel.ENTITY_BACTERIA_ORDER:
+//                case IInfoModel.ENTITY_LABO_TEST:
+//                    h.setLabelColor(STAMP_1);
+//                    break;
+//                case IInfoModel.ENTITY_TREATMENT:
+//                    h.setLabelColor(STAMP_2);
+//                    break;
+//                case IInfoModel.ENTITY_SURGERY_ORDER:
+//                    h.setLabelColor(STAMP_3);
+//                    break;
+//                case IInfoModel.ENTITY_RADIOLOGY_ORDER:
+//                    h.setLabelColor(STAMP_4);
+//                    break;
+//                case IInfoModel.ENTITY_BASE_CHARGE_ORDER:
+//                    h.setLabelColor(STAMP_5);
+//                    break;
+//                case IInfoModel.ENTITY_INSTRACTION_CHARGE_ORDER:
+//                    h.setLabelColor(STAMP_6);
+//                    break;
+//                case IInfoModel.ENTITY_MED_ORDER:
+//                    h.setLabelColor(STAMP_7);
+//                    break;
+//                case IInfoModel.ENTITY_INJECTION_ORDER:
+//                    h.setLabelColor(STAMP_8);
+//                    break;
+//                default:
+//                    break;
+//            }
+//        }
+////s.oh$
         setStamp(stamp);
     }
     
@@ -78,6 +126,10 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
             ChartMediator mediator = kartePane.getMediator();
             popup.add(mediator.getAction(GUIConst.ACTION_CUT));
             popup.add(mediator.getAction(GUIConst.ACTION_COPY));
+        
+//s.oh^ 2014/04/16 メニュー制御
+            mediator.getAction(GUIConst.ACTION_COPY).setEnabled(true);
+//s.oh$
             
             // copyAsText
             AbstractAction copyAsTextAction = new AbstractAction("テキストとしてコピー") {
@@ -94,24 +146,26 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
             popup.add(copyAsTextAction);
             
 //s.oh^ 2014/01/27 スタンプのテキストコピー機能拡張
-            // copyAsTextAndPatID
-            AbstractAction copyAsTextAndOtherAction = new AbstractAction("テキストとしてコピー(患者ID含む)") {
-                @Override
-                public void actionPerformed(ActionEvent ae) {
-                    IInfoModel im = stamp.getModel();
-                    if (im instanceof BundleDolphin) {
-                        BundleDolphin bundle = (BundleDolphin)im;
-                        StringSelection ss = null;
-                        if(kartePane.getPatID() != null) {
-                            ss = new StringSelection(bundle.toString(kartePane.getPatID(), null));
-                        }else{
-                            ss = new StringSelection(bundle.toString());
+            if(Project.getBoolean("stamp.text.copy.patid")) {
+                // copyAsTextAndPatID
+                AbstractAction copyAsTextAndOtherAction = new AbstractAction("テキストとしてコピー(患者ID含む)") {
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        IInfoModel im = stamp.getModel();
+                        if (im instanceof BundleDolphin) {
+                            BundleDolphin bundle = (BundleDolphin)im;
+                            StringSelection ss = null;
+                            if(kartePane.getPatID() != null) {
+                                ss = new StringSelection(bundle.toString(kartePane.getPatID(), getStamp().getModuleInfoBean().getStampName()));
+                            }else{
+                                ss = new StringSelection(bundle.toString());
+                            }
+                            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(ss, null);
                         }
-                        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(ss, null);
                     }
-                }
-            };
-            popup.add(copyAsTextAndOtherAction);
+                };
+                popup.add(copyAsTextAndOtherAction);
+            }
 //s.oh$
             
             popup.add(mediator.getAction(GUIConst.ACTION_PASTE));
@@ -276,20 +330,20 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
         }
         
 //s.oh^ 2014/01/27 同じ検体検査をまとめる
-        boolean mergeLabTest = Project.getBoolean(Project.KARTE_MERGE_WITH_LABTEST, false);
-        mergeLabTest = mergeLabTest && (newStamp.getModuleInfoBean().getEntity().equals(IInfoModel.ENTITY_LABO_TEST));
-        if (mergeLabTest) {
-            StampHolder sh = kartePane.findCanMergeLabTestHolder(this);
-
-            if (sh!=null) {
-                // newStampのclaimItemをshへ追加する
-                sh.addItems(((BundleDolphin)newStamp.getModel()).getClaimItem());
-                
-                // このStampは削除する
-                kartePane.removeStamp(this, false);
-                return;
-            }
-        }
+//        boolean mergeLabTest = Project.getBoolean(Project.KARTE_MERGE_WITH_LABTEST, false);
+//        mergeLabTest = mergeLabTest && (newStamp.getModuleInfoBean().getEntity().equals(IInfoModel.ENTITY_LABO_TEST));
+//        if (mergeLabTest) {
+//            StampHolder sh = kartePane.findCanMergeLabTestHolder(this);
+//
+//            if (sh!=null) {
+//                // newStampのclaimItemをshへ追加する
+//                sh.addItems(((BundleDolphin)newStamp.getModel()).getClaimItem());
+//                
+//                // このStampは削除する
+//                kartePane.removeStamp(this, false);
+//                return;
+//            }
+//        }
 //s.oh$
         
 //s.oh^ 2013/02/22 不具合修正(同じ用法がマージされない)
@@ -349,6 +403,18 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
             context.put(KEY_HINTS, getHints());
             context.put(KEY_STAMP_NAME, getStamp().getModuleInfoBean().getStampName());
             
+//s.oh^ 2014/02/03 撮影分割数対応
+            Map<String, String> items = new HashMap<String, String>();
+            if(((BundleDolphin)model).getClaimItem() != null) {
+                for(ClaimItem item : ((BundleDolphin)model).getClaimItem()) {
+                    if(item.getCode().startsWith("7") && item.getNumber().indexOf("-") > 0) {
+                        items.put(item.getCode(), item.getNumber());
+                        item.setNumber(item.getNumber().split("-")[0]);
+                    }
+                }
+            }
+//s.oh$
+            
             String templateFile = getStamp().getModel().getClass().getName() + DOT_VM;
             
             // このスタンプのテンプレートファイルを得る
@@ -377,8 +443,22 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
             // カルテペインへ展開された時広がるのを防ぐ
             this.setMaximumSize(this.getPreferredSize());
             
+//s.oh^ 2014/02/03 撮影分割数対応
+            if(((BundleDolphin)model).getClaimItem() != null) {
+                for(ClaimItem item : ((BundleDolphin)model).getClaimItem()) {
+                    if(item.getCode().startsWith("7")) {
+                        String data = items.get(item.getCode());
+                        if(data != null && data.length() > 0) {
+                            item.setNumber(data);
+                        }
+                    }
+                }
+            }
+//s.oh$
+            
         } catch (Exception e) {
-            e.printStackTrace(System.err);
+            //e.printStackTrace(System.err);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, e.toString());
         }
     }
 }

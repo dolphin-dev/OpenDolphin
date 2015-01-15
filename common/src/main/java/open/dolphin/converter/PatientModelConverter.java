@@ -121,6 +121,38 @@ public final class PatientModelConverter implements IInfoModelConverter {
         return model.getOwnerUUID();
     }
 //minagawa$    
+    
+//s.oh^ 2014/08/19 施設患者一括表示機能
+    public String getAppMemo() {
+        return model.getAppMemo();
+    }
+//s.oh$
+    
+//s.oh^ 2014/08/29 患者情報の追加
+    public String getReserve1() {
+        return model.getReserve1();
+    }
+    
+    public String getReserve2() {
+        return model.getReserve2();
+    }
+    
+    public String getReserve3() {
+        return model.getReserve3();
+    }
+    
+    public String getReserve4() {
+        return model.getReserve4();
+    }
+    
+    public String getReserve5() {
+        return model.getReserve5();
+    }
+    
+    public String getReserve6() {
+        return model.getReserve6();
+    }
+//s.oh$
 
     @Override
     public void setModel(IInfoModel model) {

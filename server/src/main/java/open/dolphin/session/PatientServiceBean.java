@@ -16,6 +16,7 @@ import open.dolphin.infomodel.HealthInsuranceModel;
 import open.dolphin.infomodel.KarteBean;
 import open.dolphin.infomodel.PatientModel;
 import open.dolphin.infomodel.PatientVisitModel;
+import open.dolphin.infomodel.RegisteredDiagnosisModel;
 
 /**
  *
@@ -33,6 +34,9 @@ public class PatientServiceBean {
     private static final String QUERY_PATIENT_BY_TELEPHONE = "from PatientModel p where p.facilityId = :fid and (p.telephone like :number or p.mobilePhone like :number)";
     private static final String QUERY_PATIENT_BY_ZIPCODE = "from PatientModel p where p.facilityId = :fid and p.address.zipCode like :zipCode";
     private static final String QUERY_INSURANCE_BY_PATIENT_PK = "from HealthInsuranceModel h where h.patient.id=:pk";
+//s.oh^ 2014/08/19 施設患者一括表示機能
+    private static final String QUERY_PATIENT_BY_APPMEMO = "from PatientModel p where p.facilityId = :fid and p.appMemo like :appMemo";
+//s.oh$
 
     private static final String PK = "pk";
     private static final String FID = "fid";
@@ -42,6 +46,9 @@ public class PatientServiceBean {
     private static final String ZIPCODE = "zipCode";
     private static final String DATE = "date";
     private static final String PERCENT = "%";
+//s.oh^ 2014/08/19 施設患者一括表示機能
+    private static final String APPMEMO = "appMemo";
+//s.oh$
 
     @PersistenceContext
     private EntityManager em;
@@ -66,6 +73,21 @@ public class PatientServiceBean {
                 .setParameter(NAME, PERCENT + name)
                 .getResultList();
         }
+        
+//s.oh^ 2014/08/19 施設患者一括表示機能
+        if (ret.isEmpty()) {
+            ret = em.createQuery(QUERY_PATIENT_BY_APPMEMO)
+                .setParameter(FID, fid)
+                .setParameter(APPMEMO, name+PERCENT)
+                .getResultList();
+        }
+        if (ret.isEmpty()) {
+            ret = em.createQuery(QUERY_PATIENT_BY_APPMEMO)
+                .setParameter(FID, fid)
+                .setParameter(APPMEMO, PERCENT+name)
+                .getResultList();
+        }
+//s.oh$
         
         //-----------------------------------
         // 患者の健康保険を取得する
@@ -95,6 +117,21 @@ public class PatientServiceBean {
                 .setParameter(NAME, PERCENT + name)
                 .getResultList();
         }
+        
+//s.oh^ 2014/08/19 施設患者一括表示機能
+        if (ret.isEmpty()) {
+            ret = em.createQuery(QUERY_PATIENT_BY_APPMEMO)
+                .setParameter(FID, fid)
+                .setParameter(APPMEMO, name+PERCENT)
+                .getResultList();
+        }
+        if (ret.isEmpty()) {
+            ret = em.createQuery(QUERY_PATIENT_BY_APPMEMO)
+                .setParameter(FID, fid)
+                .setParameter(APPMEMO, PERCENT+name)
+                .getResultList();
+        }
+//s.oh$
 
         //-----------------------------------
         // 患者の健康保険を取得する
@@ -368,4 +405,68 @@ public class PatientServiceBean {
                 .getSingleResult();
         return ret;
     }
+    
+//s.oh^ 2014/07/22 一括カルテPDF出力
+    public List<PatientModel> getAllPatient(String fid) {
+        
+        List<PatientModel> ret = em.createQuery("from PatientModel p where p.facilityId=:fid")
+            .setParameter(FID, fid)
+            .getResultList();
+        
+        setHealthInsurances(ret);
+        
+        return ret;
+    }
+//s.oh$
+    
+//s.oh^ 2014/10/01 患者検索(傷病名)
+    public List<PatientModel> getCustom(String fid, String param) {
+        List<PatientModel> ret = new ArrayList();
+        
+        final String DIAGNOSIS = "[D]";
+        
+        if(param.indexOf(DIAGNOSIS) == 0) {
+            String val = param.substring(param.indexOf(DIAGNOSIS) + DIAGNOSIS.length());
+            List<RegisteredDiagnosisModel> list = null;
+            if(val.startsWith("*") && val.endsWith("*")) {
+                list = (List<RegisteredDiagnosisModel>)
+                       em.createQuery("from RegisteredDiagnosisModel d where d.diagnosis like :val and d.status='F'")
+                         .setParameter("val", PERCENT+val+PERCENT)
+                         .getResultList();
+            }else if(val.startsWith("*")) {
+                list = (List<RegisteredDiagnosisModel>)
+                       em.createQuery("from RegisteredDiagnosisModel d where d.diagnosis like :val and d.status='F'")
+                         .setParameter("val", PERCENT+val)
+                         .getResultList();
+            }else if(val.endsWith("*")) {
+                list = (List<RegisteredDiagnosisModel>)
+                       em.createQuery("from RegisteredDiagnosisModel d where d.diagnosis like :val and d.status='F'")
+                         .setParameter("val", val+PERCENT)
+                         .getResultList();
+            }else{
+                list = (List<RegisteredDiagnosisModel>)
+                       em.createQuery("from RegisteredDiagnosisModel d where d.diagnosis=:val and d.status='F'")
+                         .setParameter("val", val)
+                         .getResultList();
+            }
+            HashMap<String, String> map = new HashMap(10,0.75f);
+            for(RegisteredDiagnosisModel rdm : list) {
+                KarteBean karte = (KarteBean)em.find(KarteBean.class, rdm.getKarte().getId());
+                if(karte != null && karte.getPatient() != null) {
+                    if(map.get(karte.getPatient().getPatientId())!=null) {
+                        continue;
+                    }else{
+                        map.put(karte.getPatient().getPatientId(), "pid");
+                    }
+                    ret.add(karte.getPatient());
+                }
+            }
+            map.clear();
+        }
+        
+        this.setHealthInsurances(ret);
+        
+        return ret;
+    }
+//s.oh$
 }

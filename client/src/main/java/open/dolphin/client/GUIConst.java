@@ -103,10 +103,19 @@ public class GUIConst {
     public static final String ACTION_CHANGE_PASSWORD = "changePassword";
     public static final String ACTION_EDIT_FACILITY_INFO = "editFacilityInfo";
     public static final String ACTION_ADD_USER = "addUser";
+//s.oh^ 2014/07/08 クラウド0対応
+    public static final String ACTION_FETCH_ACTIVITIES = "fetchActivities";
+//s.oh$
 //minagaw^ 保険医療機関コード読み込み
     public static final String ACTION_FETCH_FACILITY_CODE = "fetchFacilityCode";
     public static final String ACTION_CONFIRM_RUN = "confirmRun";
     public static final String ACTION_SOFTWARE_UPDATE = "update1";
+//s.oh^ 2014/08/19 受付バーコード対応
+    public static final String ACTION_RECEIPT_BARCODE = "receiptBarcode";
+//s.oh$
+//s.oh^ 2014/07/22 一括カルテPDF出力
+    public static final String ACTION_OUTPUT_ALLKARTEPDF = "outputAllKartePdf";
+//s.oh$
 
     public static final String ACTION_BROWS_DOLPHIN = "browseDolphinSupport";
     public static final String ACTION_BROWS_DOLPHIN_PROJECT = "browseDolphinProject";

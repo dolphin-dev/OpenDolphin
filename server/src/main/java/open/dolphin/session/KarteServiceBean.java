@@ -5,14 +5,15 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
-import javax.annotation.Resource;
+import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import javax.inject.Named;
-import javax.jms.*;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import open.dolphin.infomodel.*;
+import open.dolphin.msg.ClaimSender;
+import open.dolphin.msg.DiagnosisSender;
 
 /**
  *
@@ -45,9 +46,17 @@ public class KarteServiceBean {
     private static final String QUERY_DOCUMENT = "from DocumentModel d where d.karte.id=:karteId and d.started >= :fromDate and (d.status='F' or d.status='T')";
     private static final String QUERY_DOCUMENT_BY_LINK_ID = "from DocumentModel d where d.linkId=:id";
 
-    private static final String QUERY_MODULE_BY_DOC_ID = "from ModuleModel m where m.document.id=:id";
-    private static final String QUERY_SCHEMA_BY_DOC_ID = "from SchemaModel i where i.document.id=:id";
-    private static final String QUERY_ATTACHMENT_BY_DOC_ID = "from AttachmentModel a where a.document.id=:id";
+//s.oh^ 2014/07/29 スタンプ／シェーマ／添付のソート
+    //private static final String QUERY_MODULE_BY_DOC_ID = "from ModuleModel m where m.document.id=:id";
+    //private static final String QUERY_SCHEMA_BY_DOC_ID = "from SchemaModel i where i.document.id=:id";
+    //private static final String QUERY_ATTACHMENT_BY_DOC_ID = "from AttachmentModel a where a.document.id=:id";
+    private static final String QUERY_MODULE_BY_DOC_ID = "from ModuleModel m where m.document.id=:id order by m.id";
+    private static final String QUERY_SCHEMA_BY_DOC_ID = "from SchemaModel i where i.document.id=:id order by i.id";
+    private static final String QUERY_ATTACHMENT_BY_DOC_ID = "from AttachmentModel a where a.document.id=:id order by a.id";
+//s.oh$
+//s.oh^ 2014/08/20 添付ファイルの別読
+    private static final String QUERY_ATTACHMENT_BY_ID = "from AttachmentModel a where a.id=:id";
+//s.oh$
 //minagawa^ LSC Test
     //private static final String QUERY_MODULE_BY_ENTITY = "from ModuleModel m where m.karte.id=:karteId and m.moduleInfo.entity=:entity and m.started between :fromDate and :toDate and m.status='F'";
     private static final String QUERY_MODULE_BY_ENTITY = "from ModuleModel m where m.karte.id=:karteId and m.moduleInfo.entity=:entity and m.started between :fromDate and :toDate and m.status='F' order by m.started";
@@ -77,14 +86,21 @@ public class KarteServiceBean {
             = "select max(m.started) from DocumentModel m where m.karte.id = :karteId and (m.status = 'F' or m.status = 'T')";
 //masuda$
     
+//s.oh^ 2014/04/03 サマリー対応
+    private static final String QUERY_FREEDOCU_BY_FPID = "from PatientFreeDocumentModel p where p.facilityPatId=:fpid";
+    private static final String FPID = "fpid";
+//s.oh$
+    
     @PersistenceContext
     private EntityManager em;
     
-    @Resource(mappedName = "java:/JmsXA")
-    private ConnectionFactory connectionFactory;
-    
-    @Resource(mappedName = "java:/queue/dolphin")
-    private javax.jms.Queue queue;
+//s.oh^ 2014/02/21 Claim送信方法の変更
+    //@Resource(mappedName = "java:/JmsXA")
+    //private ConnectionFactory connectionFactory;
+    //
+    //@Resource(mappedName = "java:/queue/dolphin")
+    //private javax.jms.Queue queue;
+//s.oh$
     
     public KarteBean getKarte(String fid, String pid, Date fromDate) {
         
@@ -624,28 +640,43 @@ public class KarteServiceBean {
         String claimConn = config.getProperty("claim.conn");
         if(claimConn != null && claimConn.equals("server")) {
 //s.oh$
-            Connection conn = null;
+//s.oh^ 2014/02/21 Claim送信方法の変更
+            //Connection conn = null;
+            //try {
+            //    conn = connectionFactory.createConnection();
+            //    Session session = conn.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
+            //
+            //    ObjectMessage msg = session.createObjectMessage(document);
+            //    MessageProducer producer = session.createProducer(queue);
+            //    producer.send(msg);
+            //
+            //
+            //} catch (Exception e) {
+            //    e.printStackTrace(System.err);
+            //    throw new RuntimeException(e.getMessage());
+            //
+            //} finally {
+            //    if(conn != null) {
+            //        try {
+            //            conn.close();
+            //        } catch (JMSException e) { 
+            //        }
+            //    }
+            //}
+            // ORCA CLAIM 送信パラメータ
+            String host = config.getProperty("claim.host");
+            int port = Integer.parseInt(config.getProperty("claim.send.port"));
+            String enc = config.getProperty("claim.send.encoding");
+            String facilityId = config.getProperty("dolphin.facilityId");
+            Logger.getLogger("open.dolphin").info("Document message has received. Sending ORCA will start(Not Que).");
+            ClaimSender sender = new ClaimSender(host, port, enc);
             try {
-                conn = connectionFactory.createConnection();
-                Session session = conn.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
-
-                ObjectMessage msg = session.createObjectMessage(document);
-                MessageProducer producer = session.createProducer(queue);
-                producer.send(msg);
-
-
-            } catch (Exception e) {
-                e.printStackTrace(System.err);
-                throw new RuntimeException(e.getMessage());
-
-            } finally {
-                if(conn != null) {
-                    try {
-                        conn.close();
-                    } catch (JMSException e) { 
-                    }
-                }
+                sender.send(document);
+            } catch (Exception ex) {
+                ex.printStackTrace(System.err);
+                Logger.getLogger("open.dolphin").warning("Claim send error : " + ex.getMessage());
             }
+//s.oh$
         }
     }
 
@@ -932,32 +963,45 @@ public class KarteServiceBean {
             String claimConn = config.getProperty("claim.conn");
             if(claimConn != null && claimConn.equals("server")) {
 //s.oh$
-                Connection conn = null;
+//s.oh^ 2014/02/21 Claim送信方法の変更
+                //Connection conn = null;
+                //try {
+                //    conn = connectionFactory.createConnection();
+                //    Session session = conn.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
+                //
+                //    ObjectMessage msg = session.createObjectMessage(wrapper);
+                //    MessageProducer producer = session.createProducer(queue);
+                //    producer.send(msg);
+                //
+                //} catch (Exception e) {
+                //    e.printStackTrace(System.err);
+                //    throw new RuntimeException(e.getMessage());
+                //
+                //} 
+                //finally {
+                //    if(conn != null)
+                //    {
+                //        try
+                //        {
+                //        conn.close();
+                //        }
+                //        catch (JMSException e)
+                //        { 
+                //        }
+                //    }
+                //}
+                String host = config.getProperty("claim.host");
+                int port = Integer.parseInt(config.getProperty("claim.send.port"));
+                String enc = config.getProperty("claim.send.encoding");
+                Logger.getLogger("open.dolphin").info("DiagnosisSendWrapper message has received. Sending ORCA will start(Not Que).");
+                DiagnosisSender sender = new DiagnosisSender(host, port, enc);
                 try {
-                    conn = connectionFactory.createConnection();
-                    Session session = conn.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
-
-                    ObjectMessage msg = session.createObjectMessage(wrapper);
-                    MessageProducer producer = session.createProducer(queue);
-                    producer.send(msg);
-
-                } catch (Exception e) {
-                    e.printStackTrace(System.err);
-                    throw new RuntimeException(e.getMessage());
-
-                } 
-                finally {
-                    if(conn != null)
-                    {
-                        try
-                        {
-                        conn.close();
-                        }
-                        catch (JMSException e)
-                        { 
-                        }
-                    }
+                    sender.send(wrapper);
+                } catch (Exception ex) {
+                    ex.printStackTrace(System.err);
+                    Logger.getLogger("open.dolphin").warning("Diagnosis Claim send error : " + ex.getMessage());
                 }
+//s.oh$
             }
         }
         
@@ -1125,13 +1169,59 @@ public class KarteServiceBean {
         int cnt = 0;
 
         if (memo.getId() == 0L) {
-            em.persist(memo);
+            //em.persist(memo);
+            if(memo.getKarteBean() != null) {
+                List<PatientMemoModel> memoList =
+                            (List<PatientMemoModel>)em.createQuery(QUERY_PATIENT_MEMO)
+                                                      .setParameter("karteId", memo.getKarteBean().getId())
+                                                      .getResultList();
+                if(memoList.isEmpty()) {
+                    em.persist(memo);
+                }else{
+                    PatientMemoModel pmm = memoList.get(0);
+                    pmm.setMemo(memo.getMemo());
+                    em.merge(pmm);
+                }
+            }
         } else {
             em.merge(memo);
         }
         cnt++;
         return cnt;
     }
+    
+//s.oh^ 2014/04/03 サマリー対応
+    public PatientFreeDocumentModel getPatientFreeDocument(String fpid) {
+
+        PatientFreeDocumentModel ret = (PatientFreeDocumentModel)em.createQuery(QUERY_FREEDOCU_BY_FPID)
+                                        .setParameter(FPID, fpid)
+                                        .getSingleResult();
+
+        return ret;
+    }
+    
+    public int updatePatientFreeDocument(PatientFreeDocumentModel update) {
+        PatientFreeDocumentModel current = (PatientFreeDocumentModel)em.find(PatientFreeDocumentModel.class, update.getId());
+        if(current == null) {
+            try{
+                current = (PatientFreeDocumentModel)em.createQuery(QUERY_FREEDOCU_BY_FPID)
+                          .setParameter(FPID, update.getFacilityPatId())
+                          .getSingleResult();
+                if(current != null) {
+                    update.setId(current.getId());
+                }
+            }catch(NoResultException ex) {
+                Logger.getLogger("open.dolphin").warning("FreeDocument NoResultException");
+            }
+            em.persist(update);
+            Logger.getLogger("open.dolphin").info("New FreeDocument");
+            return 1;
+        }
+        em.merge(update);
+        Logger.getLogger("open.dolphin").info("Update FreeDocument");
+        return 1;
+    }
+//s.oh$
 
     //--------------------------------------------------------------------------
 
@@ -1258,4 +1348,80 @@ public class KarteServiceBean {
         return ret;
     }
 
+//s.oh^ 2014/07/22 一括カルテPDF出力
+    public List<DocumentModel> getAllDocument(long patientPK) {
+        
+        List<DocumentModel> documents = null;
+        List<DocumentModel> result = new ArrayList<DocumentModel>();
+        
+        try {
+            List<KarteBean> kartes = em.createQuery(QUERY_KARTE)
+                                  .setParameter(PATIENT_PK, patientPK)
+                                  .getResultList();
+            KarteBean karte = kartes.get(0);
+            
+            documents = (List<DocumentModel>)em.createQuery("from DocumentModel d where d.karte.id=:karteId and (d.status='F' or d.status='T')")
+                .setParameter(KARTE_ID, karte.getId())
+                .getResultList();
+        } catch (NoResultException e) {
+            // 患者登録の際にカルテも生成してある
+        }
+        
+        if(documents != null) {
+            for (DocumentModel model : documents) {
+
+                model.toDetuch();
+                
+                long id = model.getId();
+
+                // ModuleBean を取得する
+                try {
+                    List modules = em.createQuery(QUERY_MODULE_BY_DOC_ID)
+                    .setParameter(ID, id)
+                    .getResultList();
+                    model.setModules(modules);
+                } catch (NoResultException e) {
+                    // 患者登録の際にカルテも生成してある
+                }
+
+                // SchemaModel を取得する
+                try {
+                    List images = em.createQuery(QUERY_SCHEMA_BY_DOC_ID)
+                    .setParameter(ID, id)
+                    .getResultList();
+                    model.setSchema(images);
+                } catch (NoResultException e) {
+                    // 患者登録の際にカルテも生成してある
+                }
+
+                // AttachmentModel を取得する
+                try {
+                    List attachments = em.createQuery(QUERY_ATTACHMENT_BY_DOC_ID)
+                    .setParameter(ID, id)
+                    .getResultList();
+                    model.setAttachment(attachments);
+                } catch (NoResultException e) {
+                    // 患者登録の際にカルテも生成してある
+                }
+
+                result.add(model);
+            }
+        }
+        
+        return result;
+    }
+//s.oh$
+    
+//s.oh^ 2014/08/20 添付ファイルの別読
+    public AttachmentModel getAttachment(long pk) {
+        try {
+            AttachmentModel attachment = (AttachmentModel)em.createQuery(QUERY_ATTACHMENT_BY_ID)
+                                            .setParameter(ID, pk)
+                                            .getSingleResult();
+            return attachment;
+        } catch (NoResultException e) {
+        }
+        return null;
+    }
+//s.oh$
 }

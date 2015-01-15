@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.List;
 import javax.swing.tree.DefaultMutableTreeNode;
+import open.dolphin.util.Log;
 
 /**
  * stampBytesも含めたStampTreeXmlDirector
@@ -32,6 +33,7 @@ public class ExtendedStampTreeXmlDirector {
         try {
             builder.buildStart();
             for (StampTree tree : allTrees) {
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "Export...", tree.getTreeName());
                 lbuild(tree);
             }
 

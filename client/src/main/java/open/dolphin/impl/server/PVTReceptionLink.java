@@ -15,6 +15,7 @@ import open.dolphin.utilities.utility.OtherProcessLink;
 import open.dolphin.infomodel.PatientModel;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  * 受付連携
@@ -42,7 +43,17 @@ public class PVTReceptionLink {
     //private static final String KEY_INSURANCENUMBER = "%INSURANCENUMBER%";          // 保険者番号
     //private static final String KEY_FAMILYCLASS = "%FAMILYCLASS%";                  // 本人家族区分
     
+//s.oh^ 2014/08/01 受付連携
+    private static final String KEY_DEPT_CODE = "%DEPTCODE%";                       // 診療科コード
+    private static final String KEY_DEPT_NAME = "%DEPTNAME%";                       // 診療科
+    private static final String KEY_ATTENDING_KANJI = "%ATTENDINGKANJI%";           // 担当医(漢字)
+    private static final String KEY_ATTENDING_ID = "%ATTENDINGID%";                 // 担当医(ID)
+    private static final String KEY_INSURANCE_FIRST = "%INSURANCEFIRST%";           // 保険
+//s.oh$
+    
     private static final String KEY_FILENAME_DATE = "%FILENAMEDATE%";               // ファイル名
+    
+    private static final String KEY_RETURN = "%RETURN%";                            // 改行コード
     
     private static final String[][] KANA = { {"ア", "ｱ"},  {"イ", "ｲ"},  {"ウ", "ｳ"},  {"エ", "ｴ"},  {"オ", "ｵ"},
                                              {"カ", "ｶ"},  {"キ", "ｷ"},  {"ク", "ｸ"},  {"ケ", "ｹ"},  {"コ", "ｺ"},
@@ -601,6 +612,13 @@ public class PVTReceptionLink {
             String[] sexFormat = sexFormats.split(",");
             String sex = (patientModel.getGender() != null) ? (patientModel.getGender().toLowerCase().startsWith("m") ? sexFormat[0] : sexFormat[1]) : "";
             String encoding = Project.getString(KEY_DEF + String.valueOf(i) + ".encoding", DEFAULT_CSV_ENCODING);
+//s.oh^ 2014/08/01 受付連携
+            format = format.replaceAll(KEY_DEPT_CODE, pvtModel.getDeptCode());
+            format = format.replaceAll(KEY_DEPT_NAME, pvtModel.getDeptName());
+            format = format.replaceAll(KEY_ATTENDING_KANJI, pvtModel.getDoctorName());
+            format = format.replaceAll(KEY_ATTENDING_ID, pvtModel.getDoctorId());
+            format = format.replaceAll(KEY_INSURANCE_FIRST, (pvtModel.getFirstInsurance() == null) ? "" : pvtModel.getFirstInsurance());
+//s.oh$
             format = format.replaceAll(KEY_PATIENT_ID, patientModel.getPatientId());
             format = format.replaceAll(KEY_PATIENT_ID_0SUP, zeroSuppress(patientModel.getPatientId()));
             format = format.replaceAll(KEY_PATIENT_KANJI, patientModel.getFullName());
@@ -642,6 +660,7 @@ public class PVTReceptionLink {
             }else{
                 format = format.replaceAll(KEY_PATIENT_MOBILEPHONE, "");
             }
+            format = format.replaceAll(KEY_RETURN, "\n");
             String file = Project.getString(KEY_DEF + String.valueOf(i) + ".filename", "ID_%PATIENTID%");
             String ext = Project.getString(KEY_DEF + String.valueOf(i) + ".ext", ".txt");
             String fDateFormat = Project.getString(KEY_DEF + String.valueOf(i) + ".filename.dateformat", DEFAULT_DATE_FORMAT);
@@ -657,25 +676,33 @@ public class PVTReceptionLink {
                 if(data.length < 3) return;
                 OtherProcessLink opl = new OtherProcessLink();
                 opl.linkTCPToFile(format, data[0], Integer.valueOf(data[1]), data[2]);
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "TCP", data[0], data[1], data[2]);
+                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, format);
             }else{
                 try {
                     if(Project.getBoolean(KEY_DEF + String.valueOf(i) + ".rename", false)) {
-                        File tmp = new File(path);
+                        String tmpExt = Project.getString(KEY_DEF + String.valueOf(i) + ".tmpext", "");
+                        File tmp = new File(path + tmpExt);
                         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding));
                         bw.write(format);
                         bw.newLine();
                         bw.close();
                         File csv = new File(path + ext);
                         tmp.renameTo(csv);
+                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "FILE", tmp.getPath(), "→", csv.getPath());
+                        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, format);
                     }else{
                         File tmp = new File(path + ext);
                         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding));
                         bw.write(format);
                         bw.newLine();
                         bw.close();
+                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "FILE", tmp.getPath());
+                        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, format);
                     }
                 } catch (IOException ex) {
                     Logger.getLogger(PVTBuilder.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "ファイル出力失敗", ex.toString());
                 }
             }
         }

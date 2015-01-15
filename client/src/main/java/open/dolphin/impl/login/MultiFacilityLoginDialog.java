@@ -18,6 +18,7 @@ import open.dolphin.helper.SimpleWorker;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.project.Project;
+import open.dolphin.util.Log;
 
 /**
  * ログインダイアログ　クラス。
@@ -28,6 +29,7 @@ public class MultiFacilityLoginDialog extends AbstractLoginDialog {
     
     private LoginPanelFacility view;
     private StateMgr stateMgr;
+    private boolean loginFlag;
 
     
     /** Creates new LoginService */
@@ -36,6 +38,12 @@ public class MultiFacilityLoginDialog extends AbstractLoginDialog {
     
     @Override
     protected void tryLogin() {
+        
+        if(loginFlag) {
+            return;
+        }else{
+            loginFlag = true;
+        }
         
         // User 情報を取得するためのデリゲータを得る
         if (userDlg == null) {
@@ -67,6 +75,10 @@ public class MultiFacilityLoginDialog extends AbstractLoginDialog {
                 String fid = Project.getFacilityId();
                 String uid = view.getUserIdField().getText().trim();
                 String password = new String(view.getPasswordField().getPassword());
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "ログインを開始します... ");
+                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "ユーザーID：", uid);
+                Log.outputFuncLog(Log.LOG_LEVEL_4, Log.FUNCTIONLOG_KIND_INFORMATION, "パスワード：", password);
+                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "医療機関ID：", fid);
                 UserModel userModel = userDlg.login(fid, uid, password);
                 return userModel;
             }
@@ -85,10 +97,21 @@ public class MultiFacilityLoginDialog extends AbstractLoginDialog {
                     // ユーザモデルを ProjectStub へ保存する
                     //----------------------------------
                     Project.getProjectStub().setUserModel(userModel);
+//s.oh^ 2014/07/08 クラウド0対応
+                    if(!checkCloudZero()) {
+                        Project.getProjectStub().setUserModel(null);
+                        loginFlag = false;
+                        return;
+                    }
+//s.oh$
                     Project.getProjectStub().setFacilityId(userModel.getFacilityModel().getFacilityId());
                     Project.getProjectStub().setUserId(userModel.idAsLocal());  // facilityId無し
 
                     setResult(LoginStatus.AUTHENTICATED);
+                        
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+                    getOrcaDeptInfo();
+//s.oh$
                      
                 } else {
                     if (tryCount <= maxTryCount) {
@@ -98,6 +121,7 @@ public class MultiFacilityLoginDialog extends AbstractLoginDialog {
                         showTryOutError();
                         setResult(LoginStatus.NOT_AUTHENTICATED);
                     }
+                    loginFlag = false;
                 }
             }
             
@@ -108,7 +132,9 @@ public class MultiFacilityLoginDialog extends AbstractLoginDialog {
                 ClientContext.getPart11Logger().warn(cause.getMessage());
 
                 if (tryCount <= maxTryCount) {
-                    showMessageDialog(cause.getMessage());
+                    //showMessageDialog(cause.getMessage());
+                    showMessageDialog("ログイン情報が間違っています");
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "ログイン情報が間違っています", cause.getMessage());
 
                 } else {
                     showTryOutError();
@@ -128,6 +154,7 @@ public class MultiFacilityLoginDialog extends AbstractLoginDialog {
                 } else if (SwingWorker.StateValue.STARTED == evt.getNewValue()) {
                     setBusy(true);
                 }
+                loginFlag = false;
             }  
         });
         

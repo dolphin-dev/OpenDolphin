@@ -251,6 +251,11 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
             LetterItem item = new LetterItem(ITEM_DISEASE, value);
             model.addLetterItem(item);
         }
+//s.oh^ 2014/09/18 文書修正
+        else{
+            model.addLetterItem(new LetterItem(ITEM_DISEASE, ""));
+        }
+//s.oh$
 
         // 紹介目的
         value = LetterHelper.getFieldValue(view.getPurpose());
@@ -258,6 +263,11 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
             LetterItem item = new LetterItem(ITEM_PURPOSE, value);
             model.addLetterItem(item);
         }
+//s.oh^ 2014/09/18 文書修正
+        else{
+            model.addLetterItem(new LetterItem(ITEM_PURPOSE, ""));
+        }
+//s.oh$
 
         // 既往歴、家族歴
         String text = LetterHelper.getAreaValue(view.getPastFamily());
@@ -265,6 +275,11 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
             LetterText lt = new LetterText(TEXT_PAST_FAMILY, text);
             model.addLetterText(lt);
         }
+//s.oh^ 2014/09/18 文書修正
+        else{
+            model.addLetterText(new LetterText(TEXT_PAST_FAMILY, ""));
+        }
+//s.oh$
 
         // 症状経過
         text = LetterHelper.getAreaValue(view.getClinicalCourse());
@@ -272,6 +287,11 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
             LetterText lt = new LetterText(TEXT_CLINICAL_COURSE, text);
             model.addLetterText(lt);
         }
+//s.oh^ 2014/09/18 文書修正
+        else{
+            model.addLetterText(new LetterText(TEXT_CLINICAL_COURSE, ""));
+        }
+//s.oh$
 
         // 現在の処方
         text = LetterHelper.getAreaValue(view.getMedication());
@@ -279,6 +299,11 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
             LetterText lt = new LetterText(TEXT_MEDICATION, text);
             model.addLetterText(lt);
         }
+//s.oh^ 2014/09/18 文書修正
+        else{
+            model.addLetterText(new LetterText(TEXT_MEDICATION, ""));
+        }
+//s.oh$
 
         // 備考
         value = LetterHelper.getFieldValue(view.getRemarks());
@@ -286,6 +311,11 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
             LetterItem item = new LetterItem(ITEM_REMARKS, value);
             model.addLetterItem(item);
         }
+//s.oh^ 2014/09/18 文書修正
+        else{
+            model.addLetterItem(new LetterItem(ITEM_REMARKS, ""));
+        }
+//s.oh$
 
         // Title
         StringBuilder sb = new StringBuilder();
@@ -342,6 +372,43 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
             this.model.setClientAddress(user.getFacilityModel().getAddress());
         }
 //minagawa$        
+//s.oh^ 2014/04/03 文書の複製
+        else if(this.modify && this.model.getId() == 0) {
+            Date d = new Date();
+            this.model.setConfirmed(d);
+            this.model.setRecorded(d);
+            this.model.setStarted(d);
+            this.model.setEnded(null);
+            
+            // 患者情報
+            PatientModel patient = getContext().getPatient();
+            this.model.setPatientId(patient.getPatientId());
+            this.model.setPatientName(patient.getFullName());
+            this.model.setPatientKana(patient.getKanaName());
+            this.model.setPatientGender(patient.getGenderDesc());
+            this.model.setPatientBirthday(patient.getBirthday());
+
+            int showMonth = Project.getInt(Project.KARTE_AGE_TO_NEED_MONTH);
+            String age = AgeCalculater.getAge(patient.getBirthday(), showMonth);
+            this.model.setPatientAge(age);
+            // 患者住所
+            if (patient.getSimpleAddressModel()!=null) {
+                this.model.setPatientAddress(patient.getSimpleAddressModel().getAddress());
+                this.model.setPatientZipCode(patient.getSimpleAddressModel().getZipCode());
+            }
+            this.model.setPatientTelephone(patient.getTelephone());
+
+            // 紹介元
+            UserModel user = Project.getUserModel();
+            this.model.setClientHospital(user.getFacilityModel().getFacilityName());
+            this.model.setClientDoctor(user.getCommonName());
+            this.model.setClientDept(user.getDepartmentModel().getDepartmentDesc());
+            this.model.setClientTelephone(user.getFacilityModel().getTelephone());
+            this.model.setClientFax(user.getFacilityModel().getFacsimile());
+            this.model.setClientZipCode(user.getFacilityModel().getZipCode());
+            this.model.setClientAddress(user.getFacilityModel().getAddress());
+        }
+//s.oh$
 
         // view を生成
         this.view = new LetterView();

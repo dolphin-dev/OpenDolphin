@@ -58,7 +58,10 @@ public class Dat2Parser implements LabResultParser {
             }
 
             String labCode = data[0];
-            String orderId = data[1];
+//s.oh^ 2014/08/06 DAT2オーダーIDの変更
+            //String orderId = data[1];
+            String orderId = labCode + data[1];
+//s.oh$
             String patientId = data[2];
             String sampleDate = data[3];
             String patientName = data[4];

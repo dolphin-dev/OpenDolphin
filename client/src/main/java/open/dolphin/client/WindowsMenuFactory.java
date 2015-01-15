@@ -195,6 +195,18 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
             }
         };
         map.put("modifyKarte", modifyKarte);
+        
+//s.oh^ 2014/04/03 文書の複製
+        text = "複製";
+        icon = ClientContext.getImageIconArias("icon_edit_karte_document");
+        AbstractAction copyDocument = new AbstractAction(text, icon) {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                chart.sendToChain("copyDocument");
+            }
+        };
+        map.put("copyDocument", copyDocument);
+//s.oh$
 
         // Undo
         text = resource.getString("undo.Action.text");
@@ -734,6 +746,20 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         };
         map.put("addUser", addUser);
         
+//s.oh^ 2014/07/08 クラウド0対応
+//minagawa^ 統計情報
+        text = resource.getString("activities.Action.text");
+        AbstractAction fetchActivities = new AbstractAction(text) {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("activities.Action.text"));
+                main.sendToChain("fetchActivities");
+            }
+        };
+        map.put("fetchActivities", fetchActivities);
+//minagawa$
+//s.oh$
+        
         // 医療機関コード取得
         text = resource.getString("fetchFacilityCode.Action.text");
         AbstractAction fetchFacilityCode = new AbstractAction(text) {
@@ -791,7 +817,10 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
 //s.oh^ テキストの挿入 2013/08/12
         text = resource.getString("soapane.Action.text");
+//minagawa^ Icon Server        
+        //icon = ClientContext.getImageIcon(resource.getString("soapane.Action.icon"));
         icon = ClientContext.getImageIconArias(resource.getString("soapane.Action.icon"));
+//minagawa$
         AbstractAction insertSOAText = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -801,7 +830,10 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         map.put("insertSOAText", insertSOAText);
         
         text = resource.getString("ppane.Action.text");
+//minagawa^ Icon Server        
+        //icon = ClientContext.getImageIcon(resource.getString("ppane.Action.icon"));
         icon = ClientContext.getImageIconArias(resource.getString("ppane.Action.icon"));
+//minagawa$
         AbstractAction insertPText = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -811,33 +843,58 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         map.put("insertPText", insertPText);
 //s.oh$
         
-//s.oh^ 他プロセス連携(アイコン) 2013/10/21
-        text = resource.getString("ppane.Action.text");
-        icon = ClientContext.getImageIconArias(resource.getString("ppane.Action.icon"));
-        AbstractAction otherProcessIcon1Link = new AbstractAction(text, icon) {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                chart.sendToChain("otherProcessIcon1Link");
-            }
-        };
-        map.put("otherProcessIcon1Link", otherProcessIcon1Link);
+////s.oh^ 他プロセス連携(アイコン) 2014/05/09
+////minagawa^ Icon Server        
+//        //icon = ClientContext.getImageIcon(resource.getString("ppane.Action.icon"));
+//        icon = ClientContext.getImageIconArias("icon_other_process");
+////minagawa$
+//        AbstractAction otherProcessIcon1Link = new AbstractAction("", icon) {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                chart.sendToChain("otherProcessIcon1Link");
+//            }
+//        };
+//        map.put("otherProcessIcon1Link", otherProcessIcon1Link);
+//        
+//        AbstractAction otherProcessIcon2Link = new AbstractAction("", icon) {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                chart.sendToChain("otherProcessIcon2Link");
+//            }
+//        };
+//        map.put("otherProcessIcon2Link", otherProcessIcon2Link);
+//        
+//
+//        AbstractAction otherProcessIcon3Link = new AbstractAction("", icon) {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                chart.sendToChain("otherProcessIcon3Link");
+//            }
+//        };
+//        map.put("otherProcessIcon3Link", otherProcessIcon3Link);
+////s.oh$
         
-        AbstractAction otherProcessIcon2Link = new AbstractAction(text, icon) {
+//s.oh^ 2014/08/19 受付バーコード対応
+        text = resource.getString("receipt.barcode.Action.text");
+        AbstractAction receiptBarcode = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent e) {
-                chart.sendToChain("otherProcessIcon2Link");
+                main.sendToChain("receiptBarcode");
             }
         };
-        map.put("otherProcessIcon2Link", otherProcessIcon2Link);
+        map.put("receiptBarcode", receiptBarcode);
+//s.oh$
         
-
-        AbstractAction otherProcessIcon3Link = new AbstractAction(text, icon) {
+//s.oh^ 2014/07/22 一括カルテPDF出力
+        text = resource.getString("allkartepdf.Action.text");
+        AbstractAction outputAllKartePdf = new AbstractAction(text) {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                chart.sendToChain("otherProcessIcon3Link");
+            public void actionPerformed(ActionEvent ae) {
+                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("allkartepdf.Action.text"));
+                main.sendToChain("outputAllKartePdf");
             }
         };
-        map.put("otherProcessIcon3Link", otherProcessIcon3Link);
+        map.put("outputAllKartePdf", outputAllKartePdf);
 //s.oh$
     }
     
@@ -856,7 +913,11 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         toolBar.addSeparator();
         
         if (chart != null) {
-            toolPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+//s.oh^ 2014/09/19 ツールバーの表示改善
+            //toolPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            toolPanel = new JPanel();
+            toolPanel.setLayout(new BoxLayout(toolPanel, BoxLayout.X_AXIS));
+//s.oh$
             toolPanel.add(toolBar);
         }
         
@@ -1415,6 +1476,17 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
         tool.add(new JSeparator());
         
+//s.oh^ 2014/07/08 クラウド0対応
+//minagawa^ 統計情報        
+        if(Project.isCloudZero()) {
+            JMenuItem activities = new JMenuItem();
+            activities.setName("activities");
+            activities.setAction(actionMap.get("fetchActivities"));
+            tool.add(activities);
+        }
+//mingawa$         
+//s.oh$
+        
 //s.oh^ 不要機能の削除(復活)
         JMenuItem fetchFacilityCode = new JMenuItem();
         fetchFacilityCode.setName("fetchFacilityCode");
@@ -1444,6 +1516,24 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
                 tool.add(mItem);
             }
         } 
+        
+//s.oh^ 2014/08/19 受付バーコード対応
+        tool.add(new JSeparator());
+        JMenuItem receiptBarcode = new JMenuItem();
+        receiptBarcode.setName("receiptBarcode");
+        receiptBarcode.setAction(actionMap.get("receiptBarcode"));
+        tool.add(receiptBarcode);
+//s.oh$
+        
+//s.oh^ 2014/07/22 一括カルテPDF出力
+        if(!Project.isReadOnly() && Project.getBoolean("output.all.karte.pdf")) {
+            tool.add(new JSeparator());
+            JMenuItem outputAllKartePdf = new JMenuItem();
+            outputAllKartePdf.setName("outputAllKartePdf");
+            outputAllKartePdf.setAction(actionMap.get("outputAllKartePdf"));
+            tool.add(outputAllKartePdf);
+        }
+//s.oh$
         
         /******************************************************/
         
@@ -1478,13 +1568,24 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         /******************************************************/
         
         menuBar.add(file,   0);
-        menuBar.add(edit,   1);
-        menuBar.add(karte,  2);
-        menuBar.add(insert, 3);
-        menuBar.add(text,   4);
-        menuBar.add(tool,   5);
-        // 6 = Window
-        menuBar.add(help,   7);
+//s.oh^ 2014/08/19 ID権限
+        //menuBar.add(edit,   1);
+        //menuBar.add(karte,  2);
+        //menuBar.add(insert, 3);
+        //menuBar.add(text,   4);
+        //menuBar.add(tool,   5);
+        //// 6 = Window
+        //menuBar.add(help,   7);
+        if(!Project.isOtherCare()) {
+            menuBar.add(edit,   1);
+            menuBar.add(karte,  2);
+            menuBar.add(insert, 3);
+            menuBar.add(text,   4);
+            menuBar.add(tool,   5);
+            // 6 = Window
+            menuBar.add(help,   7);
+        }
+//s.oh$
         
         /******************************************************/
         file.setText(resource.getString("fileMenu.text"));

@@ -239,6 +239,21 @@ public class DocumentModel extends KarteEntryBean
         return null;
     }
     
+//s.oh^ 2014/10/07 検体検査オーダー条件変更
+    public boolean isLabTest() {
+        if(modules != null) {
+            for(ModuleModel mm : modules) {
+                if(mm.getModel() instanceof BundleDolphin) {
+                    if(((BundleDolphin)mm.getModel()).getOrderName() != null && ((BundleDolphin)mm.getModel()).getOrderName().startsWith("検体検査")) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+//s.oh$
+    
     /**
      * 引数のエンティティ名を持つモジュール情報を返す。
      * @param entityName エンティティの名前

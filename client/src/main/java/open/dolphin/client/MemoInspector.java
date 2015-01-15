@@ -63,7 +63,12 @@ public class MemoInspector {
 
         // 右クリックによる編集メニューを登録する
         //memoArea.addMouseListener(new CutCopyPasteAdapter(memoArea));
-        memoArea.addMouseListener(CutCopyPasteAdapter.getInstance());
+//s.oh^ 2014/04/02 閲覧権限の制御
+        //memoArea.addMouseListener(CutCopyPasteAdapter.getInstance());
+        if(!context.isReadOnly()) {
+            memoArea.addMouseListener(CutCopyPasteAdapter.getInstance());
+        }
+//s.oh$
         
 //minagawa^ LSC 1.4 bug fix : Mac JDK7 bug マックの上下キー問題 2013/06/24
         if (ClientContext.isMac()) {
@@ -89,7 +94,12 @@ public class MemoInspector {
         memoArea.setLineWrap(true);
         memoArea.setMargin(new java.awt.Insets(3, 3, 2, 2));
         memoArea.addFocusListener(AutoKanjiListener.getInstance());
-        memoArea.setToolTipText("メモに使用します。内容は自動的に保存されます。");
+//s.oh^ 2014/04/02 閲覧権限の制御
+        //memoArea.setToolTipText("メモに使用します。内容は自動的に保存されます。");
+        if(!context.isReadOnly()) {
+            memoArea.setToolTipText("メモに使用します。内容は自動的に保存されます。");
+        }
+//s.oh$
 //minagawa^ 排他制御
         memoArea.setEnabled(!context.isReadOnly());
 //minagawa$

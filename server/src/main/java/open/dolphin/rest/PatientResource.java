@@ -196,4 +196,42 @@ public class PatientResource extends AbstractResource {
         
         return val;
     }
+    
+//s.oh^ 2014/07/22 一括カルテPDF出力
+    @GET
+    @Path("/all")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PatientListConverter getAllPatient(@Context HttpServletRequest servletReq) {
+
+        String fid = getRemoteFacility(servletReq.getRemoteUser());
+        
+        List<PatientModel> result = patientServiceBean.getAllPatient(fid);
+        PatientList list = new PatientList();
+        list.setList(result);
+        
+        PatientListConverter conv = new PatientListConverter();
+        conv.setModel(list);
+
+        return conv;
+    } 
+//s.oh$
+    
+//s.oh^ 2014/10/01 患者検索(傷病名)
+    @GET
+    @Path("/custom/{param}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PatientListConverter getDocumentsByCustom(@Context HttpServletRequest servletReq, @PathParam("param") String param) {
+
+        String fid = getRemoteFacility(servletReq.getRemoteUser());
+        
+        List<PatientModel> result = patientServiceBean.getCustom(fid, param);
+        PatientList list = new PatientList();
+        list.setList(result);
+        
+        PatientListConverter conv = new PatientListConverter();
+        conv.setModel(list);
+
+        return conv;
+    }
+//s.oh$
 }

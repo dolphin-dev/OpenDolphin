@@ -48,6 +48,7 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
     private boolean bCreating;                          // Creating paragraph
     private boolean bInitialized;                       // Initialized PDF
     private String docID;                               // Karte ID
+    private String docNo;                               // Karte Number
     
     private boolean border;                             // Border   // Attachment追加
 
@@ -57,7 +58,7 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
      * @param valPathID タイトル
      * @param valDate 保存時刻
      */
-    public KartePDFMaker2(String valPatID, String valPatName, String valTitle, Date valDate, String docID) {
+    public KartePDFMaker2(String valPatID, String valPatName, String valTitle, Date valDate, String docID, String docNo) {
         // 患者ID
         patID = valPatID;
         // 患者氏名
@@ -71,6 +72,8 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
         bInitialized = false;
         // カルテID
         this.docID = docID;
+        // カルテNo
+        this.docNo = docNo;
     }
     
     /**
@@ -123,7 +126,7 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
                 sbPath.append("_").append(docID);   // KarteIDの追加
                 sbPath.append(".PDF");
             }else{
-                sbPath.append("Temp.pdf");
+                sbPath.append("Temp").append((docNo != null) ? docNo : "").append(".pdf");
             }
 //s.oh$
             setPathToPDF(sbPath.toString());         // 呼び出し側で取り出せるように保存する

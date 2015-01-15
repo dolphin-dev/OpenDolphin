@@ -12,6 +12,7 @@ import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.StampModel;
 import open.dolphin.project.Project;
 import open.dolphin.util.HexBytesTool;
+import open.dolphin.util.Log;
 import org.apache.log4j.Logger;
 
 /**
@@ -127,6 +128,7 @@ public class ExtendedStampTreeXmlBuilder {
             String val = toXmlText(node.toString());
             writer.write(addQuote(val));
             writer.write(">\n");
+            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "Dir name", node.toString());
         }
     }
 
@@ -147,6 +149,7 @@ public class ExtendedStampTreeXmlBuilder {
         writer.write("<stampInfo name=");
         String val = toXmlText(node.toString());
         writer.write(addQuote(val));
+        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "Stamp name", node.toString());
 
         ModuleInfoBean info = (ModuleInfoBean) node.getUserObject();
 
@@ -169,6 +172,7 @@ public class ExtendedStampTreeXmlBuilder {
 
         if (info.isSerialized()) {
             val = info.getStampId();
+            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "Stamp id", val);
             writer.write(" stampId=");
             writer.write(addQuote(val));
             // ここで対応するstampBytesをデータベースから読み込み登録する。

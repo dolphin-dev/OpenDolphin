@@ -1,5 +1,9 @@
 package open.dolphin.msg;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.UUID;
+
 public class GUIDGenerator {
     
     /** Cached per JVM server IP. */
@@ -29,7 +33,14 @@ public class GUIDGenerator {
                 System.err.println("KingAppoUtil: Could not get the local IP address using InetAddress.getLocalHost()!");
                 // todo: find better way to get around this...
                 uhe.printStackTrace(System.err);
-                return null;
+                //return null;
+                String uuid = UUID.randomUUID().toString();
+                uuid = uuid.replaceAll("-", "");
+                if(uuid.length() != 32) {
+                    SimpleDateFormat effectiveFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS");
+                    uuid = effectiveFormat.format(new Date()) + "000000000000000";
+                }
+                return uuid;
             }
             byte serverIP[] = localInetAddress.getAddress();
             hexServerIP = hexFormat(getInt(serverIP), 8);

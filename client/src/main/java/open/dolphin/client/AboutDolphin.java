@@ -18,8 +18,8 @@ import open.dolphin.table.OddEvenRowRenderer;
  */
 public final class AboutDolphin  {
     
-    private UserModel user;
-    private String[] copyrights;
+    private final UserModel user;
+    private final String[] copyrights;
     private JDialog dialog;
     
     public AboutDolphin() {

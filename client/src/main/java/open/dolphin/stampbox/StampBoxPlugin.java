@@ -15,6 +15,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import open.dolphin.client.*;
 import open.dolphin.helper.ComponentMemory;
+import open.dolphin.helper.WindowSupport;
 import open.dolphin.infomodel.*;
 import open.dolphin.order.EditorSetPanel;
 import open.dolphin.project.Project;
@@ -198,7 +199,11 @@ public class StampBoxPlugin extends AbstractMainTool {
         int y = defaultY;
         int width = DEFAULT_WIDTH;
         int height = DEFAULT_HEIGHT;
-        frame = new JFrame(title);
+//s.oh^ 2014/08/26 スタンプ箱の表示
+        //frame = new JFrame(title);
+        WindowSupport ws = WindowSupport.create(title);
+        frame = ws.getFrame();
+//s.oh$
         glass = new BlockGlass();
         frame.setGlassPane(glass);
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);

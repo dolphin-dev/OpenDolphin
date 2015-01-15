@@ -72,14 +72,25 @@ public final class FalcoSender implements IKarteSender {
 
         sendList = new ArrayList<BundleDolphin>();
         for (ModuleModel module : modules) {
-            ModuleInfoBean info = module.getModuleInfoBean();
-            if (info.getEntity().equals(IInfoModel.ENTITY_LABO_TEST)) {
+//s.oh^ 2014/10/07 検体検査オーダー条件変更
+            //ModuleInfoBean info = module.getModuleInfoBean();
+            //if (info.getEntity().equals(IInfoModel.ENTITY_LABO_TEST)) {
+            //    BundleDolphin send = (BundleDolphin)module.getModel();
+            //    ClaimItem[] items = send.getClaimItem();
+            //    if (items!=null && items.length>0) {
+            //        sendList.add(send);
+            //    }
+            //}
+            if(module.getModel() instanceof BundleDolphin) {
                 BundleDolphin send = (BundleDolphin)module.getModel();
-                ClaimItem[] items = send.getClaimItem();
-                if (items!=null && items.length>0) {
-                    sendList.add(send);
+                if(send.getOrderName() != null && send.getOrderName().startsWith("検体検査")) {
+                    ClaimItem[] items = send.getClaimItem();
+                    if (items!=null && items.length>0) {
+                        sendList.add(send);
+                    }
                 }
             }
+//s.oh$
         }
 
         // オーダー番号を docInfo へ設定する

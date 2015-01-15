@@ -4,8 +4,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Date;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.Singleton;
@@ -54,32 +60,39 @@ public class InitialAccountMaker {
     //@Resource(mappedName="java:jboss/datasources/OrcaDS")
     //private DataSource ds;
 //minagawa$
+//s.oh^ 2014/07/08 クラウド0対応
+    @Resource(mappedName="java:jboss/datasources/PostgresDS")
+    private DataSource ds;
+//s.oh$
     
     @PostConstruct
     public void init() {
         start();
+//s.oh^ 2014/07/08 クラウド0対応
+        createIndexes();
+//s.oh$
     }
     
     private void start() {
-//        boolean updated = false;
-//        
-//        long userCount = (Long) em.createQuery("select count(*) from UserModel").getSingleResult();
-//        long facilityCount = (Long) em.createQuery("select count(*) from FacilityModel").getSingleResult();
-//        
-//        // ユーザーも施設情報もない場合のみ初期ユーザーと施設情報を登録する
-//        if (userCount == 0 && facilityCount == 0) {
-//            addFacilityAdmin();
-//            if (DEVELOPMENT) {
-//                addDemoPatient();
-//            }
-//            updated = true;
-//        }
-//        
-//        if (updated) {
-//            Logger.getLogger("open.dolphin").info(UPDATE_MEMO);
-//        } else {
-//            Logger.getLogger("open.dolphin").info(NO_UPDATE_MEMO);
-//        }
+        boolean updated = false;
+        
+        long userCount = (Long) em.createQuery("select count(*) from UserModel").getSingleResult();
+        long facilityCount = (Long) em.createQuery("select count(*) from FacilityModel").getSingleResult();
+        
+        // ユーザーも施設情報もない場合のみ初期ユーザーと施設情報を登録する
+        if (userCount == 0 && facilityCount == 0) {
+            addFacilityAdmin();
+            if (DEVELOPMENT) {
+                addDemoPatient();
+            }
+            updated = true;
+        }
+        
+        if (updated) {
+            Logger.getLogger("open.dolphin").info(UPDATE_MEMO);
+        } else {
+            Logger.getLogger("open.dolphin").info(NO_UPDATE_MEMO);
+        }
         
         Properties config = new Properties();
         
@@ -93,9 +106,9 @@ public class InitialAccountMaker {
         try {
             // 読み込む
             FileInputStream fin = new FileInputStream(f);
-            InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect");
-            config.load(r);
-            r.close();
+            try (InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect")) {
+                config.load(r);
+            }
             
             String conn = config.getProperty("claim.conn");
             String addr = config.getProperty("claim.host");
@@ -109,6 +122,67 @@ public class InitialAccountMaker {
         } catch (Exception e) {
         }
     }  
+    
+//s.oh^ 2014/07/08 クラウド0対応
+   private void createIndexes() {
+       
+       String[] names = {"pvt_idx3", "d_karte_idx", "d_document_idx", "d_diagnosis_idx", "d_patient_memo_idx",
+       "d_letter_module_idx", "d_observation_idx", "d_module_idx", "d_image_idx","d_attachment_idx","d_nlabo_module_idx","d_nlabo_item_idx",
+       "patient_idx1", "pvt_idx1", "pub_tree_idx1"};
+       
+       String[] sqls = {
+           "create index pvt_idx3 on d_patient_visit(patient_id)",
+           "create index d_karte_idx on d_karte(patient_id)",
+           "create index d_document_idx on d_document(karte_id)",
+           "create index d_diagnosis_idx on d_diagnosis(karte_id)",
+           "create index d_patient_memo_idx on d_patient_memo(karte_id)",
+           "create index d_letter_module_idx on d_letter_module(karte_id)",
+           "create index d_observation_idx on d_observation(karte_id)",
+           "create index d_module_idx on d_module(doc_id)",
+           "create index d_image_idx on d_image(doc_id)",
+           "create index d_attachment_idx on d_attachment(doc_id)",
+           "create index d_nlabo_module_idx on d_nlabo_module(patientid)",
+           "create index d_nlabo_item_idx on d_nlabo_item(labomodule_id)",
+           "create index patient_idx1 on d_patient(facilityId, patientid)",
+           "create index pvt_idx1 on d_patient_visit(facilityid, pvtdate)",
+           "create index pub_tree_idx1 on d_published_tree(publishtype)"
+       };
+       
+       Connection con;
+       PreparedStatement pt;
+       ResultSet rs;
+       Statement st;
+       
+        try {
+            con = ds.getConnection();
+            pt = con.prepareStatement("select count(*) from pg_indexes where indexname=?");
+            st = con.createStatement();
+            
+            for (int i=0; i < names.length; i++) {
+                pt.setString(1, names[i]);
+                rs = pt.executeQuery();
+                if (rs.next()) {
+                    int cnt = rs.getInt(1);
+                    if (cnt==0) {
+                        st.executeUpdate(sqls[i]);
+                    }
+                    rs.close();
+                    
+                    if (cnt==0) {
+                        Logger.getLogger("open.dolphin").log(Level.INFO, "{0} dose not exists", names[i]);
+                    } else {
+                        Logger.getLogger("open.dolphin").log(Level.INFO, "{0} exists", names[i]);
+                    }
+                }
+            }
+            st.close();
+            pt.close();
+            con.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(InitialAccountMaker.class.getName()).log(Level.SEVERE, null, ex);
+        }
+   }
+//s.oh$
 
    private void addFacilityAdmin() {
         

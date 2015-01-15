@@ -3,6 +3,7 @@ package open.dolphin.project;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Properties;
 import open.dolphin.client.ClientContext;
 import open.dolphin.infomodel.ID;
@@ -58,6 +59,9 @@ public class Project  {
     public static final String SEND_LABTEST_SYSTEM      = "order.labtest.system";
     public static final String SEND_LABTEST_PATH        = "order.labtest.path";
     public static final String SEND_LABTEST_FACILITY_ID = "order.labtest.facility.id";
+//s.oh^ 2014/11/04 仮保存時のオーダー出力
+    public static final String SEND_TMPKARTE_LABTEST    = "order.tmpkarte.send";
+//s.oh$
     
     // Area Network
     public static final String JOIN_AREA_NETWORK 	= "joinAreaNetwork";
@@ -120,11 +124,14 @@ public class Project  {
     public static final String KARTE_SHOW_CONFIRM_AT_SAVE = "karte.showConfirmAtSave";
     public static final String KARTE_PRINT_COUNT = "karte.printCount";
     public static final String KARTE_SAVE_ACTION = "karte.saveAction";
-    public static final String KARTE_AUTO_CLOSE_AFTER_SAVE = "karte.auto.close";
+    public static final String KARTE_AUTO_CLOSE_AFTER_SAVE = "karte.auto.close"; 
     public static final String KARTE_AGE_TO_NEED_MONTH = "ageToNeedMonth";
     public static final String KARTE_MERGE_RP_WITH_SAME_ADMIN = "merge.rp.with.sameAdmin";
 //s.oh^ 2014/01/27 同じ検体検査をまとめる
-    public static final String KARTE_MERGE_WITH_LABTEST = "merge.with.labtest";
+//    public static final String KARTE_MERGE_WITH_LABTEST = "merge.with.labtest";
+//s.oh$
+//s.oh^ 2014/08/21 修正時にアラート表示
+    public static final String KARTE_SHOW_MODIFY_MSG = "karte.show.modify.msg";
 //s.oh$
     
     public static final String KARTE_PDF_SEND_AT_SAVE = "karte.pdf.send.at.save";
@@ -140,6 +147,9 @@ public class Project  {
 //s.oh^ 2013/09/12 PDF印刷文字サイズ
     public static final String KARTE_PRINT_PDF_TEXTSIZE = "karte.print.pdf.textsize";
     public static final String LABO_PRINT_SHOWPDF = "labo.print.showpdf";
+//s.oh$
+//s.oh^ 2014/03/19 カルテの選択印刷
+    public static final String KARTE_PRINT_MULTI = "karte.print.multi";
 //s.oh$
 
     // Stamp
@@ -158,6 +168,9 @@ public class Project  {
     public static final String MASTER_SEARCH_REALTIME = "masterSearch.realTime";
     public static final String MASTER_SEARCH_PARTIAL_MATCH = "masterSearch.partialMatch";
     public static final String MASTER_SEARCH_ITEM_COLORING = "masterItemColoring";
+////s.oh^ 2014/09/30 スタンプの色変更
+//    public static final String CHANGE_STAMP_COLOR = "changeStampColor";
+////s.oh$
 
     // 紹介状等
     public static final String LETTER_ATESAKI_TITLE = "letter.atesaki.title";
@@ -171,6 +184,9 @@ public class Project  {
 
     // 医療資格
     private static final String LICENSE_DOCTOR = "doctor";
+//s.oh^ 2014/08/19 ID権限
+    private static final String LICENSE_OTHERCARE = "otherCare";
+//s.oh$
     
     // 受付 Relay
     public static final String PVT_RELAY = "pvt.relay";
@@ -220,6 +236,13 @@ public class Project  {
         String licenseCode = stub.getUserModel().getLicenseModel().getLicense();
         return licenseCode.equals(LICENSE_DOCTOR) ? false : true;
     }
+    
+//s.oh^ 2014/08/19 ID権限
+    public static boolean isOtherCare() {
+        String licenseCode = stub.getUserModel().getLicenseModel().getLicense();
+        return licenseCode.equals(LICENSE_OTHERCARE) ? true : false;
+    }
+//s.oh$
 
     public static String getBaseURI() {
         return stub.getBaseURI();
@@ -539,4 +562,24 @@ public class Project  {
         stub.setString(FACILITY_CODE_OF_INSURNCE_SYSTEM, basicInfo);
     }
 //新宿ヒロクリニック$    
+    
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+    public static ArrayList<String> getDeptInfo() {
+        return stub.getDeptInfo();
+    }
+    
+    public static void setDeptInfo(ArrayList<String> info) {
+        stub.setDeptInfo(info);
+    }
+//s.oh$
+    
+//s.oh^ 2014/07/08 クラウド0対応
+    public static boolean isCloudZero() {
+        return stub.isCloudZero();
+    }
+    
+    public static void setCloudZero(boolean cloudZero) {
+        stub.setCloudZero(cloudZero);
+    }
+//s.oh$
 }

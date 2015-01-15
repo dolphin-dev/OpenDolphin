@@ -2,6 +2,7 @@ package open.dolphin.letter;
 
 import open.dolphin.client.GUIConst;
 import open.dolphin.client.Letter;
+import open.dolphin.project.Project;
 
 /**
  *
@@ -97,7 +98,11 @@ public class LetterStateMgr {
 //minagawa^ LSC Test             
             boolean canEdit = letterImpl.getContext().isReadOnly() ? false : true;           
             letterImpl.getContext().enabledAction(GUIConst.ACTION_MODIFY_KARTE, canEdit);   // 修正
-            letterImpl.getContext().enabledAction(GUIConst.ACTION_PRINT, true);             // Print
+//s.oh^ 2014/08/19 ID権限
+            //letterImpl.getContext().enabledAction(GUIConst.ACTION_PRINT, true);             // Print
+            letterImpl.getContext().enabledAction(GUIConst.ACTION_PRINT, !Project.isOtherCare());
+            letterImpl.getContext().enabledAction(GUIConst.ACTION_PRINTER_SETUP, !Project.isOtherCare());
+//s.oh$
 //minagawa$
         }
     }
@@ -119,7 +124,11 @@ public class LetterStateMgr {
         @Override
         public void enter() {
             letterImpl.getContext().enabledAction(GUIConst.ACTION_SAVE, true);
-            letterImpl.getContext().enabledAction(GUIConst.ACTION_PRINT, true);
+//s.oh^ 2014/08/19 ID権限
+            //letterImpl.getContext().enabledAction(GUIConst.ACTION_PRINT, true);
+            letterImpl.getContext().enabledAction(GUIConst.ACTION_PRINT, !Project.isOtherCare());
+            letterImpl.getContext().enabledAction(GUIConst.ACTION_PRINTER_SETUP, !Project.isOtherCare());
+//s.oh$
             //letterImpl.getContext().enabledAction(GUIConst.ACTION_MODIFY_KARTE, false);
         }
     }

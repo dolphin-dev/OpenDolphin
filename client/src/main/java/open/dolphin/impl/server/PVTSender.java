@@ -45,6 +45,12 @@ public final class PVTSender implements Runnable {
         PVTBuilder builder = new PVTBuilder();
         builder.parse(r);
         PatientVisitModel model = builder.getProduct();
+        
+//s.oh^ 2014/03/13 ORCA患者登録対応
+        if(model == null) {
+            return;
+        }
+//s.oh$
 
         PVTDelegater1 pdl = new PVTDelegater1();
         try {

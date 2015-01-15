@@ -1,6 +1,7 @@
 package open.dolphin.client;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -9,11 +10,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.StringTokenizer;
+import javax.swing.Action;
 import javax.swing.text.*;
 import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.ProgressCourse;
+import open.dolphin.util.Log;
 import org.jdom.Document;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
@@ -226,9 +229,13 @@ public class KarteRenderer_2 {
         }
         // indicates a well-formedness error
         catch (JDOMException e) {
-            e.printStackTrace(System.err);
+            //e.printStackTrace(System.err);
+            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_OTHER, xml);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, e.getMessage());
         } catch (IOException e) {
-            e.printStackTrace(System.err);
+            //e.printStackTrace(System.err);
+            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_OTHER, xml);
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, e.getMessage());
         }
     }
     
@@ -345,10 +352,34 @@ public class KarteRenderer_2 {
             Style style = doc.addStyle("alignment", style0);
             if (alignStr.equals("0")) {
                 StyleConstants.setAlignment(style, StyleConstants.ALIGN_LEFT);
+//s.oh^ 2014/04/02 修正時の中央揃え／右揃え対応
+                if (thePane.getTextPane() != null) {
+                    Action a = thePane.getTextPane().getActionMap().get("left-justify");
+                    if (a != null) {
+                        a.actionPerformed(new ActionEvent(thePane.getTextPane(), ActionEvent.ACTION_PERFORMED, null));
+                    }
+                }
+//s.oh$
             } else if (alignStr.equals("1")) {
                 StyleConstants.setAlignment(style, StyleConstants.ALIGN_CENTER);
+//s.oh^ 2014/04/02 修正時の中央揃え／右揃え対応
+                if (thePane.getTextPane() != null) {
+                    Action a = thePane.getTextPane().getActionMap().get("center-justify");
+                    if (a != null) {
+                        a.actionPerformed(new ActionEvent(thePane.getTextPane(), ActionEvent.ACTION_PERFORMED, null));
+                    }
+                }        
+//s.oh$
             } else if (alignStr.equals("2")) {
                 StyleConstants.setAlignment(style, StyleConstants.ALIGN_RIGHT);
+//s.oh^ 2014/04/02 修正時の中央揃え／右揃え対応
+                if (thePane.getTextPane() != null) {
+                    Action a = thePane.getTextPane().getActionMap().get("right-justify");
+                    if (a != null) {
+                        a.actionPerformed(new ActionEvent(thePane.getTextPane(), ActionEvent.ACTION_PERFORMED, null));
+                    }
+                }         
+//s.oh$
             }
             thePane.setLogicalStyle("alignment");
             logicalStyle = true;
@@ -361,6 +392,14 @@ public class KarteRenderer_2 {
             debug("paragrap did end");
         }
         if (logicalStyle) {
+//s.oh^ 2014/04/02 修正時の中央揃え／右揃え対応
+            if (thePane.getTextPane() != null) {
+                Action a = thePane.getTextPane().getActionMap().get("left-justify");
+                if (a != null) {
+                    a.actionPerformed(new ActionEvent(thePane.getTextPane(), ActionEvent.ACTION_PERFORMED, null));
+                }
+            }
+//s.oh$
             thePane.clearLogicalStyle();
             logicalStyle = false;
         }

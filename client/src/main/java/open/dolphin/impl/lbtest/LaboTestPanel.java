@@ -81,15 +81,19 @@ public class LaboTestPanel extends AbstractChartDocument {
     private JButton printBtn;   // ***ラボテストの印刷***
     
     private String pid;
+    private String pname;
+    private String pkana;
     
     private JDialog dialog;
     
     // ラボデータの削除 2013/06/24
     private List<NLaboModule> modules;
     
-    public LaboTestPanel(String pid) {
+    public LaboTestPanel(String pid, String pname, String pkana) {
         setTitle(TITLE);
         this.pid = pid;
+        this.pname = pname;
+        this.pkana = pkana;
     }
 
     public int getMaxResult() {
@@ -304,7 +308,19 @@ public class LaboTestPanel extends AbstractChartDocument {
                 }
             }
         });
-//minagawa$        
+//minagawa$    
+        
+//s.oh^ 2014/04/02 ラボデータのグラフ表示
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                JPanel dummy = new JPanel();
+                graphPanel.removeAll();
+                graphPanel.add(dummy, BorderLayout.CENTER);
+                graphPanel.validate();
+            }
+        });
+//s.oh$
     }
 
     /**
@@ -477,7 +493,7 @@ public class LaboTestPanel extends AbstractChartDocument {
     }
     
     private void createAndShowGUI() {
-        dialog = new JDialog(new JFrame(), ClientContext.getString("productString"), true);
+        dialog = new JDialog(new JFrame(), pname + "（" + pkana + "）：" + pid, true);
         dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         dialog.setPreferredSize(new Dimension(DIALOG_WIDTH, DIALOG_HEIGHT));
         dialog.setContentPane(getUI());
@@ -551,11 +567,55 @@ public class LaboTestPanel extends AbstractChartDocument {
             ldl = new LaboDelegater();
             List<NLaboModule> modules = ldl.getLaboTest(pid, firstResult, getMaxResult());
             int moduleCount = modules != null ? modules.size() : 0;
-            createTable(modules);
+//s.oh^ 2014/08/04 ラボデータ表示不具合対応
+            //createTable(modules);
+            createTable(checkLaboModules(modules));
+//s.oh$
         } catch (Exception ex) {
             Logger.getLogger(LaboTestPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+//s.oh^ 2014/08/04 ラボデータ表示不具合対応
+    public List<NLaboModule> checkLaboModules(List<NLaboModule> modules) {
+        if(modules != null) {
+            for(int i = 0; i < modules.size(); i++) {
+                NLaboModule module = modules.get(i);
+                List<NLaboItem> items = new ArrayList<NLaboItem>();
+                for(int j = 0; j < module.getItems().size(); j++) {
+                    NLaboItem item = module.getItems().get(j);
+                    if(items.size() <= 0) {
+                        items.add(item);
+                    }else{
+                        int addedIdx = -1;
+                        boolean notadd = false;
+                        for(int k = 0; k < items.size(); k++) {
+                            NLaboItem addedItem = items.get(k);
+                            if(item.getItemCode().equals(addedItem.getItemCode())) {
+                                if(addedItem.getReportStatus() != null && addedItem.getReportStatus().equals("E")) {
+                                    notadd = true;
+                                }else{
+                                    items.remove(k);
+                                    addedIdx = k;
+                                    break;
+                                }
+                            }
+                        }
+                        if(!notadd) {
+                            if(addedIdx >= 0) {
+                                items.add(addedIdx, item);
+                            }else{
+                                items.add(item);
+                            }
+                        }
+                    }
+                }
+                module.setItems(items);
+            }
+        }
+        return modules;
+    }
+//s.oh$
     
     // 全件表示修正^
     private void firstSearch() {
@@ -838,6 +898,13 @@ public class LaboTestPanel extends AbstractChartDocument {
         // 全件表示修正^
         //extractionCombo = new JComboBox(periodObject);
         extractionCombo = new JComboBox();
+//s.oh^ 2014/08/13 コントロールサイズ調整
+        String nimbus = "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
+        String laf = UIManager.getLookAndFeel().getClass().getName();
+        if(!laf.equals(nimbus)) {
+            extractionCombo.setPreferredSize(new Dimension(130, 20));
+        }
+//s.oh$
         extractionCombo.addItemListener(new ItemListener() {
 
             @Override
@@ -898,7 +965,7 @@ public class LaboTestPanel extends AbstractChartDocument {
     public static void main(String[] args) {
         JFrame frame = new JFrame();
         //frame.getContentPane().setLayout(new FlowLayout());
-        LaboTestPanel labo = new LaboTestPanel("00001");
+        LaboTestPanel labo = new LaboTestPanel("00001", "テスト 患者", "テスト　");
         //labo.setContext(ChartImpl.this);
         labo.start();
         frame.getContentPane().add(labo.getUI());

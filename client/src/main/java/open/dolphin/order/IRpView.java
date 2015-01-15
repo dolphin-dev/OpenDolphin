@@ -100,4 +100,8 @@ public interface IRpView {
 
     public javax.swing.JCheckBox getTemporalChk();
     
+//s.oh^ 2014/10/22 Icon表示
+    public javax.swing.JLabel getSearchLabel();
+//s.oh$
+    
 }

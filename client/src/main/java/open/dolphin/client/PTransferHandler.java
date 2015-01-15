@@ -267,6 +267,24 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
             ArrayList<ModuleInfoBean> stamptList = new ArrayList<ModuleInfoBean>(2);
             ArrayList<ModuleInfoBean> diagList = new ArrayList<ModuleInfoBean>(2);
             
+//s.oh^ 2014/08/01 パス対応
+            boolean radiology = false;
+            if(Project.getBoolean("stamp.path.text.p")) {
+                while(e.hasMoreElements()) {
+                    StampTreeNode node = (StampTreeNode)e.nextElement();
+                    if(node.isLeaf()) {
+                        ModuleInfoBean stampInfo = (ModuleInfoBean)node.getStampInfo();
+                        if(stampInfo.getEntity().equals(IInfoModel.ENTITY_RADIOLOGY_ORDER)) {
+                            radiology = true;
+                            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "パスに放射線が含まれている(テキスト→P)");
+                            break;
+                        }
+                    }
+                }
+                e = droppedNode.preorderEnumeration();
+            }
+//s.oh$
+            
             while (e.hasMoreElements()) {
                 StampTreeNode node = (StampTreeNode)e.nextElement();
                 if (node.isLeaf()) {
@@ -275,7 +293,14 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
                     
                     if (stampInfo.isSerialized() && (role.equals(IInfoModel.ROLE_TEXT)) ) {
                         // Text Stamp
-                        textList.add(stampInfo);
+//s.oh^ 2014/08/01 パス対応
+                        //textList.add(stampInfo);
+                        if(radiology) {
+                            stamptList.add(stampInfo);
+                        }else{
+                            textList.add(stampInfo);
+                        }
+//s.oh$
                     }
                     
                     else if (stampInfo.isSerialized() && (role.equals(IInfoModel.ROLE_P))) {
@@ -472,6 +497,7 @@ public class PTransferHandler extends TransferHandler implements IKarteTransferH
                     //ClientContext.getImageIcon("about_32.gif"));
                     ClientContext.getImageIconArias("icon_info"));
 //minagawa$            
+            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle("パススタンプ"), msg1.getText(), msg2.getText());
         }
     }
 }

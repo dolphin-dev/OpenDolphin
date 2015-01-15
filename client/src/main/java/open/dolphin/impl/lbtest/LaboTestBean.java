@@ -537,13 +537,57 @@ public class LaboTestBean extends AbstractChartDocument {
                 int moduleCount = result != null ? result.size() : 0;
                 // 全件表示修正^
                 //countField.setText(String.valueOf(moduleCount));
-                createTable(result);
+//s.oh^ 2014/08/04 ラボデータ表示不具合対応
+                //createTable(result);
+                createTable(checkLaboModules(result));
+//s.oh$
             }
         };
 
         task.execute();
 
     }
+    
+//s.oh^ 2014/08/04 ラボデータ表示不具合対応
+    public List<NLaboModule> checkLaboModules(List<NLaboModule> modules) {
+        if(modules != null) {
+            for(int i = 0; i < modules.size(); i++) {
+                NLaboModule module = modules.get(i);
+                List<NLaboItem> items = new ArrayList<NLaboItem>();
+                for(int j = 0; j < module.getItems().size(); j++) {
+                    NLaboItem item = module.getItems().get(j);
+                    if(items.size() <= 0) {
+                        items.add(item);
+                    }else{
+                        int addedIdx = -1;
+                        boolean notadd = false;
+                        for(int k = 0; k < items.size(); k++) {
+                            NLaboItem addedItem = items.get(k);
+                            if(item.getItemCode().equals(addedItem.getItemCode())) {
+                                if(addedItem.getReportStatus()!= null && addedItem.getReportStatus().equals("E")) {
+                                    notadd = true;
+                                }else{
+                                    items.remove(k);
+                                    addedIdx = k;
+                                    break;
+                                }
+                            }
+                        }
+                        if(!notadd) {
+                            if(addedIdx >= 0) {
+                                items.add(addedIdx, item);
+                            }else{
+                                items.add(item);
+                            }
+                        }
+                    }
+                }
+                module.setItems(items);
+            }
+        }
+        return modules;
+    }
+//s.oh$
     
     // 全件表示修正^
     private void firstSearch() {
@@ -817,6 +861,13 @@ public class LaboTestBean extends AbstractChartDocument {
         // 全件表示修正^
         //extractionCombo = new JComboBox(periodObject);
         extractionCombo = new JComboBox();
+//s.oh^ 2014/08/13 コントロールサイズ調整
+        String nimbus = "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
+        String laf = UIManager.getLookAndFeel().getClass().getName();
+        if(!laf.equals(nimbus)) {
+            extractionCombo.setPreferredSize(new Dimension(130, 20));
+        }
+//s.oh$
         extractionCombo.addItemListener(new ItemListener() {
 
             @Override

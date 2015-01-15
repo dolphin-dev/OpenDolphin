@@ -19,6 +19,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.StringTokenizer;
@@ -100,13 +101,13 @@ public class KartePDFImpl2 {
      * @param valSOA SOA
      * @param valPlan Plan
      */
-    public KartePDFImpl2(String valPath, String valDocID, String valPatID, String valPatName, String valTitle, Date valDate, KartePaneDumper_2 valSOA, KartePaneDumper_2 valPlan) {
+    public KartePDFImpl2(String valPath, String valDocID, String valPatID, String valPatName, String valTitle, Date valDate, KartePaneDumper_2 valSOA, KartePaneDumper_2 valPlan, String docNo) {
         // SOA
         pdfSOA = valSOA;
         // Plan
         pdfPlan = valPlan;
         // PDF Marker
-        pdfMarker = new KartePDFMaker2(valPatID, valPatName, valTitle, valDate, valDocID);
+        pdfMarker = new KartePDFMaker2(valPatID, valPatName, valTitle, valDate, valDocID, docNo);
         pdfMarker.setDocumentDir(valPath);
     }
     
@@ -711,9 +712,21 @@ cell = new PdfPCell(para);
     }
     
 //s.oh^ 2013/02/07 印刷対応
-    public static void printPDF(String pdfFileName) {
-        if(pdfFileName == null) return;
-        if(Project.getBoolean(Project.KARTE_PRINT_DIRECT)) {
+    public static void printPDF(ArrayList<String> pdfFileNames) {
+        if(pdfFileNames == null || pdfFileNames.size() <= 0) return;
+//s.oh^ 2013/06/24 印刷対応
+        if(Project.getBoolean(Project.KARTE_PRINT_SHOWPDF)) {
+            for(String pdfFileName : pdfFileNames) {
+                File file = new File(pdfFileName);
+                URI uri = file.toURI();
+                try {
+                    Desktop.getDesktop().browse(uri);
+                } catch (IOException ex) {
+                    Logger.getLogger(KartePDFImpl2.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+//s.oh$
+        }else if(Project.getBoolean(Project.KARTE_PRINT_DIRECT)) {
             // ダイアログ非表示
             //// docフレーバを設定
             //DocFlavor flavor = DocFlavor.INPUT_STREAM.AUTOSENSE;
@@ -729,35 +742,30 @@ cell = new PdfPCell(para);
             DocFlavor flavor = DocFlavor.INPUT_STREAM.AUTOSENSE;
             PrintService printService[] = PrintServiceLookup.lookupPrintServices(flavor, pras);
             PrintService defaultService = PrintServiceLookup.lookupDefaultPrintService();
-            DocPrintJob job = (defaultService == null) ? null : defaultService.createPrintJob();
-            if(job == null) {
-                if(printService.length > 0) {
-                    job = printService[0].createPrintJob();
+            for(String pdfFileName : pdfFileNames) {
+                DocPrintJob job = (defaultService == null) ? null : defaultService.createPrintJob();
+                if(job == null) {
+                    if(printService.length > 0) {
+                        job = printService[0].createPrintJob();
+                    }
                 }
+                if(job == null) continue;
+                try {
+                    // docオブジェクトを生成
+                    FileInputStream data = new FileInputStream(pdfFileName);
+                    DocAttributeSet docAttributes = new HashDocAttributeSet();
+                    Doc doc = new SimpleDoc(data, flavor, docAttributes);
+                    // 印刷
+                    job.print(doc, pras);
+                }catch (IOException e) {
+                    e.printStackTrace();
+                }catch (PrintException e) {
+                    e.printStackTrace();
+                }
+                try{
+                    Thread.sleep(100);
+                }catch(InterruptedException ex) {}
             }
-            if(job == null) return;
-            try {
-                // docオブジェクトを生成
-                FileInputStream data = new FileInputStream(pdfFileName);
-                DocAttributeSet docAttributes = new HashDocAttributeSet();
-                Doc doc = new SimpleDoc(data, flavor, docAttributes);
-                // 印刷
-                job.print(doc, pras);
-            }catch (IOException e) {
-                e.printStackTrace();
-            }catch (PrintException e) {
-                e.printStackTrace();
-            }
-//s.oh^ 2013/06/24 印刷対応
-        }else if(Project.getBoolean(Project.KARTE_PRINT_SHOWPDF)) {
-            File file = new File(pdfFileName);
-            URI uri = file.toURI();
-            try {
-                Desktop.getDesktop().browse(uri);
-            } catch (IOException ex) {
-                Logger.getLogger(KartePDFImpl2.class.getName()).log(Level.SEVERE, null, ex);
-            }
-//s.oh$
         }else{
             // ダイアログ表示(プロパティ等は選択できない)
             PrintRequestAttributeSet pras = new HashPrintRequestAttributeSet();
@@ -767,21 +775,26 @@ cell = new PdfPCell(para);
             if(printService.length > 0) {
                 PrintService service = ServiceUI.printDialog(null, 200, 200, printService, defaultService, flavor, pras);
                 if(service != null) {
-                    DocPrintJob job = service.createPrintJob();
-                    //DocPrintJob job = defaultService.createPrintJob();
-                    //FileOutputStream fis;
-                    FileInputStream fis;
-                    try {
-                        fis = new FileInputStream(pdfFileName);
-                        DocAttributeSet das = new HashDocAttributeSet();
-                        Doc doc = new SimpleDoc(fis, flavor, das);
-                        //Doc doc = new SimpleDoc(fis, flavor, null);
-                        job.print(doc, pras);
-                        //job.print(doc, null);
-                    } catch (FileNotFoundException ex) {
-                        Logger.getLogger(LaboTestOutputPDF.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (PrintException ex) {
-                        Logger.getLogger(LaboTestOutputPDF.class.getName()).log(Level.SEVERE, null, ex);
+                    for(String pdfFileName : pdfFileNames) {
+                        DocPrintJob job = service.createPrintJob();
+                        //DocPrintJob job = defaultService.createPrintJob();
+                        //FileOutputStream fis;
+                        FileInputStream fis;
+                        try {
+                            fis = new FileInputStream(pdfFileName);
+                            DocAttributeSet das = new HashDocAttributeSet();
+                            Doc doc = new SimpleDoc(fis, flavor, das);
+                            //Doc doc = new SimpleDoc(fis, flavor, null);
+                            job.print(doc, pras);
+                            //job.print(doc, null);
+                        } catch (FileNotFoundException ex) {
+                            Logger.getLogger(LaboTestOutputPDF.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (PrintException ex) {
+                            Logger.getLogger(LaboTestOutputPDF.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        try{
+                            Thread.sleep(100);
+                        }catch(InterruptedException ex) {}
                     }
                 }
             }

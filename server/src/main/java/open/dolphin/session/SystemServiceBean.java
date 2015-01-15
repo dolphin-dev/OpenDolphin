@@ -4,22 +4,28 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
-import javax.annotation.Resource;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import javax.inject.Named;
-import javax.jms.*;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import open.dolphin.infomodel.*;
+import open.dolphin.msg.OidSender;
 import open.stamp.seed.CopyStampTreeBuilder;
 import open.stamp.seed.CopyStampTreeDirector;
-import org.jboss.ejb3.annotation.ResourceAdapter;
+//import org.jboss.ejb3.annotation.ResourceAdapter;
 
 /**
  *
@@ -27,7 +33,9 @@ import org.jboss.ejb3.annotation.ResourceAdapter;
  */
 @Named
 @Stateless
-@ResourceAdapter("hornetq-ra.rar")
+//s.oh^ 2014/02/21 Claim送信方法の変更
+//@ResourceAdapter("hornetq-ra.rar")
+//s.oh$
 public class SystemServiceBean {
 
     //private static final boolean DolphinPro = true;
@@ -52,11 +60,13 @@ public class SystemServiceBean {
     @PersistenceContext
     private EntityManager em;
     
-    @Resource(mappedName = "java:/JmsXA")
-    private ConnectionFactory connectionFactory;
-    
-    @Resource(mappedName = "java:/queue/dolphin")
-    private javax.jms.Queue queue;
+//s.oh^ 2014/02/21 Claim送信方法の変更
+    //@Resource(mappedName = "java:/JmsXA")
+    //private ConnectionFactory connectionFactory;
+    //
+    //@Resource(mappedName = "java:/queue/dolphin")
+    //private javax.jms.Queue queue;
+//s.oh$
     
 
     /**
@@ -219,43 +229,412 @@ public class SystemServiceBean {
             e.printStackTrace(System.err);
         }
         
+//s.oh^ 2014/02/21 Claim送信方法の変更
+        //// MailでOIDを通知するためMessageDrivenBeanに渡す
+        //Connection conn = null;
+        //try {
+        //    conn = connectionFactory.createConnection();
+        //    Session session = conn.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
+        //
+        //    AccountSummary account = new AccountSummary();
+        //    account.setMemberType(ASP_TESTER);
+        //    account.setFacilityAddress(user.getFacilityModel().getAddress());
+        //    account.setFacilityId(user.getFacilityModel().getFacilityId());
+        //    account.setFacilityName(user.getFacilityModel().getFacilityName());
+        //    account.setFacilityTelephone(user.getFacilityModel().getTelephone());
+        //    account.setFacilityZipCode(user.getFacilityModel().getZipCode());
+        //    account.setUserEmail(user.getEmail());
+        //    account.setUserName(user.getCommonName());
+        //    account.setUserId(user.idAsLocal());
+        //
+        //    ObjectMessage msg = session.createObjectMessage(account);
+        //    MessageProducer producer = session.createProducer(queue);
+        //    producer.send(msg);
+        //    
+        //} catch (Exception e) {
+        //    e.printStackTrace(System.err);
+        //    throw new RuntimeException(e.getMessage());
+        //
+        //} 
+        //finally {
+        //    if(conn != null)
+        //    {
+        //        try
+        //        {
+        //        conn.close();
+        //        }
+        //        catch (JMSException e)
+        //        { 
+        //        }
+        //    }
+        //}
+//s.oh$
+    }
+    
+//s.oh^ 2014/07/08 クラウド0対応
+    /**
+     * カルテ枚数等、全件数をカウントする
+     * @param fid  医療機関 OID
+     * @return 
+     */
+    public ActivityModel countTotalActivities(String fid) {
+        
+        ActivityModel am = new ActivityModel();
+        
+        // ユーザー数
+        StringBuilder sb = new StringBuilder();
+        sb.append("select count(u.id) from UserModel u where u.userId like :fid and u.memberType!=:memberType");
+        String sql = sb.toString();
+        Object obj = em.createQuery(sql)
+                .setParameter("fid", fid+":%")
+                .setParameter("memberType", "EXPIRED")
+                .getSingleResult();
+        long count = (long)obj;
+        am.setNumOfUsers(count);
+        
+        // 全患者数
+        sb = new StringBuilder();
+        sb.append("select count(p.id) from PatientModel p where p.facilityId=:fid");
+        sql = sb.toString();
+        obj = em.createQuery(sql)
+                .setParameter("fid", fid)
+                .getSingleResult();
+        count = (long)obj;
+        am.setNumOfPatients(count);
+        
+        // 延べ来院患者
+        sb = new StringBuilder();
+        sb.append("select count(p.id) from PatientVisitModel p where p.facilityId=:fid and p.status!=:status");
+        sql = sb.toString();
+        obj = em.createQuery(sql)
+                .setParameter("fid", fid)
+                .setParameter("status", 6)
+                .getSingleResult();
+        count = (long)obj;
+        am.setNumOfPatientVisits(count);
+        
+        // 全カルテ数
+        sb = new StringBuilder();
+        sb.append("select count(d.id) from DocumentModel d where d.creator.userId like :fid and d.status='F'");
+        sql = sb.toString();
+        obj = em.createQuery(sql)
+                .setParameter("fid", fid+":%")
+                .getSingleResult();
+        count = (long)obj;
+        am.setNumOfKarte(count);
+        
+        // 全画像数
+        sb = new StringBuilder();
+        sb.append("select count(s.id) from SchemaModel s where s.creator.userId like :fid and s.status='F'");
+        sql = sb.toString();
+        obj = em.createQuery(sql)
+                .setParameter("fid", fid+":%")
+                .getSingleResult();
+        count = (long)obj;
+        am.setNumOfImages(count);
+        
+        // 添付文書数
+        sb = new StringBuilder();
+        sb.append("select count(a.id) from AttachmentModel a where a.creator.userId like :fid and a.status='F'");
+        sql = sb.toString();
+        obj = em.createQuery(sql)
+                .setParameter("fid", fid+":%")
+                .getSingleResult();
+        count = (long)obj;
+        am.setNumOfAttachments(count);
+        
+        // 病名数 RegisteredDiagnosisModel
+        sb = new StringBuilder();
+        sb.append("select count(r.id) from RegisteredDiagnosisModel r where r.creator.userId like :fid");
+        sql = sb.toString();
+        obj = em.createQuery(sql)
+                .setParameter("fid", fid+":%")
+                .getSingleResult();
+        count = (long)obj;
+        am.setNumOfDiagnosis(count);
+        
+        // 紹介状数
+        sb = new StringBuilder();
+        sb.append("select count(l.id) from LetterModule l where l.creator.userId like :fid and l.status='F'");
+        sql = sb.toString();
+        obj = em.createQuery(sql)
+                .setParameter("fid", fid+":%")
+                .getSingleResult();
+        count = (long)obj;
+        am.setNumOfLetters(count);
+        
+        // 検査数
+        sb = new StringBuilder();
+        sb.append("select count(l.id) from NLaboModule l where l.patientId like :fid");
+        sql = sb.toString();
+        obj = em.createQuery(sql)
+                .setParameter("fid", fid+":%")
+                .getSingleResult();
+        count = (long)obj;
+        am.setNumOfLabTests(count);
+        
+        // 医療機関情報
+        sb = new StringBuilder();
+        sb.append("from FacilityModel f where f.facilityId=:fid");
+        sql = sb.toString();
+        FacilityModel fm = (FacilityModel)em.createQuery(sql)
+                .setParameter("fid", fid)
+                .getSingleResult();
+        am.setFacilityId(fm.getFacilityId());
+        am.setFacilityName(fm.getFacilityName());
+        am.setFacilityZip(fm.getZipCode());
+        am.setFacilityAddress(fm.getAddress());
+        am.setFacilityTelephone(fm.getTelephone());
+        am.setFacilityFacimile(fm.getFacsimile());
+        
+        // DB size
+        sb = new StringBuilder();
+        sb.append("select pg_size_pretty(pg_database_size('dolphin'))");
+        sql = sb.toString();
+        obj = em.createNativeQuery(sql).getSingleResult();
+        am.setDbSize(obj.toString());
+        
+        // bind address
+        am.setBindAddress(this.getBindAddress());
+        
+        return am;
+    }
+    
+    /**
+     * 対象期間のレコード件数をカウントする
+     * @param fid   医療機関OID
+     * @param from  集計開始日
+     * @param to    集計終了日
+     * @return 
+     */
+    public ActivityModel countActivities(String fid, Date from, Date to) {
+        
+        ActivityModel am = new ActivityModel();
+        am.setFromDate(from);
+        am.setToDate(to);
+        
+        // 対象期間の新規患者
+        StringBuilder sb = new StringBuilder();
+        sb.append("select count(p.id) from PatientModel p, KarteBean k where p.id=k.patient.id and p.facilityId=:fid and k.created between :fromDate and :toDate");
+        String sql = sb.toString();
+        Object obj = em.createQuery(sql)
+                .setParameter("fid", fid)
+                .setParameter("fromDate", from)
+                .setParameter("toDate", to)
+                .getSingleResult();
+        long count = (long)obj;
+        am.setNumOfPatients(count);
+        
+        // 対象期間の来院数
+        sb = new StringBuilder();
+        sb.append("select count(p.id) from PatientVisitModel p where p.facilityId=:fid and p.pvtDate between :fromDate and :toDate and p.status!=:status");
+        sql = sb.toString();
+        obj = em.createQuery(sql)
+                .setParameter("fid", fid)
+                .setParameter("fromDate", pvtDateFromDate(from))
+                .setParameter("toDate", pvtDateFromDate(to))
+                .setParameter("status", 6)
+                .getSingleResult();
+        count = (long)obj;
+        am.setNumOfPatientVisits(count);
+        
+        // 対象期間のカルテ枚数
+        sb = new StringBuilder();
+        sb.append("select count(d.id) from DocumentModel d where d.creator.userId like :fid and d.started between :fromDate and :toDate and d.status='F'");
+        sql = sb.toString();
+        obj = em.createQuery(sql)
+                .setParameter("fid", fid+":%")
+                .setParameter("fromDate", from)
+                .setParameter("toDate", to)
+                .getSingleResult();
+        count = (long)obj;
+        am.setNumOfKarte(count);
+        
+        // 対象期間画像数
+        sb = new StringBuilder();
+        sb.append("select count(s.id) from SchemaModel s where s.creator.userId like :fid and s.started between :fromDate and :toDate and s.status='F'");
+        sql = sb.toString();
+        obj = em.createQuery(sql)
+                .setParameter("fid", fid+":%")
+                .setParameter("fromDate", from)
+                .setParameter("toDate", to)
+                .getSingleResult();
+        count = (long)obj;
+        am.setNumOfImages(count);
+        
+        // 対象期間添付文書数
+        sb = new StringBuilder();
+        sb.append("select count(a.id) from AttachmentModel a where a.creator.userId like :fid and a.started between :fromDate and :toDate and a.status='F'");
+        sql = sb.toString();
+        obj = em.createQuery(sql)
+                .setParameter("fid", fid+":%")
+                .setParameter("fromDate", from)
+                .setParameter("toDate", to)
+                .getSingleResult();
+        count = (long)obj;
+        am.setNumOfAttachments(count);
+        
+        // 対象期間病名数
+        sb = new StringBuilder();
+        sb.append("select count(r.id) from RegisteredDiagnosisModel r where r.creator.userId like :fid and r.started between :fromDate and :toDate");
+        sql = sb.toString();
+        obj = em.createQuery(sql)
+                .setParameter("fid", fid+":%")
+                .setParameter("fromDate", from)
+                .setParameter("toDate", to)
+                .getSingleResult();
+        count = (long)obj;
+        am.setNumOfDiagnosis(count);
+        
+        // 対象期間の紹介状数
+        sb = new StringBuilder();
+        sb.append("select count(l.id) from LetterModule l where l.creator.userId like :fid and l.started between :fromDate and :toDate and l.status='F'");
+        sql = sb.toString();
+        obj = em.createQuery(sql)
+                .setParameter("fid", fid+":%")
+                .setParameter("fromDate", from)
+                .setParameter("toDate", to)
+                .getSingleResult();
+        count = (long)obj;
+        am.setNumOfLetters(count);
+        
+        // 対象期間の検査数
+        sb = new StringBuilder();
+        sb.append("select count(l.id) from NLaboModule l where l.patientId like :fid and l.sampleDate between :fromDate and :toDate");
+        sql = sb.toString();
+        obj = em.createQuery(sql)
+                .setParameter("fid", fid+":%")
+                .setParameter("fromDate", sampleDateFromDate(from))
+                .setParameter("toDate", sampleDateFromDate(to))
+                .getSingleResult();
+        count = (long)obj;
+        am.setNumOfLabTests(count);
+        
+        return am;
+    }
+    
+    public void mailActivities(ActivityModel[] ams) {
+        
+        ActivityModel am = ams[0];
+        ActivityModel total = ams[1];
+        
+        // log
+        log("開始日時", am.getFromDate().toString());
+        log("終了日時", am.getToDate().toString());
+        log("医療機関ID", total.getFacilityId());
+        log("医療機関名", total.getFacilityName());
+        log("郵便番号", total.getFacilityZip());
+        log("住所", total.getFacilityAddress());
+        log("電話", total.getFacilityTelephone());
+        log("FAX", total.getFacilityFacimile());
+        log("利用者数", am.getNumOfUsers());
+        log("患者数", am.getNumOfPatients(), total.getNumOfPatients());
+        log("来院数", am.getNumOfPatientVisits(),total.getNumOfPatientVisits());
+        log("病名数", am.getNumOfDiagnosis(),total.getNumOfDiagnosis());
+        log("カルテ枚数", am.getNumOfKarte(),total.getNumOfKarte());
+        log("画像数", am.getNumOfImages(),total.getNumOfImages());
+        log("添付文書数", am.getNumOfAttachments(),total.getNumOfAttachments());
+        log("紹介状数", am.getNumOfLetters(),total.getNumOfLetters());
+        log("検査数", am.getNumOfLabTests(),total.getNumOfLabTests());
+        log("データベース容量", total.getDbSize());
+        log("IP アドレス", total.getBindAddress());
+        
         // MailでOIDを通知するためMessageDrivenBeanに渡す
-        Connection conn = null;
+        //Connection conn = null;
+        //try {
+        //    conn = connectionFactory.createConnection();
+        //    Session session = conn.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
+        //    ObjectMessage msg = session.createObjectMessage(ams);
+        //    MessageProducer producer = session.createProducer(queue);
+        //    producer.send(msg);
+        //
+        //} catch (JMSException e) {
+        //    e.printStackTrace(System.err);
+        //    throw new RuntimeException(e.getMessage());
+        //
+        //} 
+        //finally {
+        //    if(conn != null)
+        //    {
+        //        try
+        //        {
+        //        conn.close();
+        //        }
+        //        catch (JMSException e)
+        //        { 
+        //        }
+        //    }
+        //}
+        Logger.getLogger("open.dolphin").info("ActivityModel message has received. Reporting will start(Not Que).");
+        OidSender sender = new OidSender();
         try {
-            conn = connectionFactory.createConnection();
-            Session session = conn.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
-
-            AccountSummary account = new AccountSummary();
-            account.setMemberType(ASP_TESTER);
-            account.setFacilityAddress(user.getFacilityModel().getAddress());
-            account.setFacilityId(user.getFacilityModel().getFacilityId());
-            account.setFacilityName(user.getFacilityModel().getFacilityName());
-            account.setFacilityTelephone(user.getFacilityModel().getTelephone());
-            account.setFacilityZipCode(user.getFacilityModel().getZipCode());
-            account.setUserEmail(user.getEmail());
-            account.setUserName(user.getCommonName());
-            account.setUserId(user.idAsLocal());
-
-            ObjectMessage msg = session.createObjectMessage(account);
-            MessageProducer producer = session.createProducer(queue);
-            producer.send(msg);
-            
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-            throw new RuntimeException(e.getMessage());
-
-        } 
-        finally {
-            if(conn != null)
-            {
-                try
-                {
-                conn.close();
-                }
-                catch (JMSException e)
-                { 
-                }
-            }
+            sender.sendActivity(ams);
+        } catch (Exception ex) {
+            ex.printStackTrace(System.err);
+            Logger.getLogger("open.dolphin").warning("ActivityModel message send error : " + ex.getMessage());
         }
     }
+    
+    public void sendMonthlyActivities(int year, int month) {
+        
+        // 対象月の１日
+        GregorianCalendar gcFrom = new GregorianCalendar(year, month, 1);
+        Date fromDate = gcFrom.getTime();
+        
+        // 対象月の最後
+        GregorianCalendar gcTo = new GregorianCalendar(year, month, gcFrom.getActualMaximum(Calendar.DAY_OF_MONTH), 23, 59, 59);
+        Date toDate = gcTo.getTime();
+        
+        List<FacilityModel> list = (List<FacilityModel>)em.createQuery("from FacilityModel f").getResultList();
+        for (FacilityModel fm : list) {
+            
+            ActivityModel total = this.countTotalActivities(fm.getFacilityId());
+            total.setFlag("T");
+            
+            ActivityModel target = this.countActivities(fm.getFacilityId(), fromDate, toDate);
+            target.setFlag("M");
+            target.setFromDate(fromDate);
+            target.setToDate(toDate);
+            
+            this.mailActivities(new ActivityModel[]{target, total});
+        }
+    }
+    
+    private String pvtDateFromDate(Date d) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        return sdf.format(d);
+    }
+    
+    private String sampleDateFromDate(Date d) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf.format(d);
+    }
+    
+    private String getBindAddress() {
+        String test = System.getProperty("jboss.bind.address");
+        if (test==null) {
+            try {
+                InetAddress ip = InetAddress.getLocalHost();
+                if (ip!=null) {
+                    test = ip.toString();
+                }
+            } catch (UnknownHostException ex) {
+                Logger.getLogger("open.dolphin").log(Level.SEVERE, null, ex);
+            }
+        }
+        return test;
+    }
+    
+    private void log(String name, String value) { 
+        Logger.getLogger("open.dolphin").log(Level.INFO, "{0}={1}", new Object[]{name, value});
+    }
+    
+    private void log(String msg, long count) { 
+        Logger.getLogger("open.dolphin").log(Level.INFO, "{0}={1}", new Object[]{msg, count});
+    }
+    
+    private void log(String msg, long count, long total) { 
+        Logger.getLogger("open.dolphin").log(Level.INFO, "{0}={1}/{2}", new Object[]{msg, count, total});
+    }
+//s.oh$
 }

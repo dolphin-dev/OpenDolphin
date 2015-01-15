@@ -105,6 +105,11 @@ public class ChartEventServiceBean {
             case ChartEventModel.PVT_STATE:
                 sendEvent = processPvtStateEvent(evt);
                 break;
+//s.oh^ 2014/10/14 診察終了後のメモ対応
+            case ChartEventModel.PVT_MEMO:
+                sendEvent = processPvtMemoEvent(evt);
+                break;
+//s.oh$
             default:
                 return 0;
         }
@@ -123,6 +128,10 @@ public class ChartEventServiceBean {
         PatientVisitModel exist = em.find(PatientVisitModel.class, pvtPk);
         // WatingListから開いていないとexist = nullなので。
         if (exist != null) {
+            PatientModel pm = exist.getPatientModel();
+            if(pm != null) {
+                log("processPvtDeleteEvent : pvtPk = " + String.valueOf(pvtPk) + ", ptId = " + pm.getPatientId() + ", pvtDate = " + exist.getPvtDate());
+            }
             em.remove(exist);
         }
         // pvtListから削除
@@ -195,6 +204,7 @@ public class ChartEventServiceBean {
         // データベースのPatientModelを更新
         PatientModel pm = em.find(PatientModel.class, ptPk);
         if (pm != null) {
+            log("processPvtStateEvent : owner = " + ownerUUID + ", pvtPk = " + String.valueOf(pvtId) + ", ptId = " + pm.getPatientId() + ", state = " + String.valueOf(state));
             pm.setOwnerUUID(ownerUUID);
         }
 
@@ -246,6 +256,37 @@ public class ChartEventServiceBean {
 //s.oh$
         return true;
     }
+    
+//s.oh^ 2014/10/14 診察終了後のメモ対応
+    private boolean processPvtMemoEvent(ChartEventModel evt) {
+        
+        String fid = evt.getFacilityId();
+        long pvtId = evt.getPvtPk();
+        int state = evt.getState();
+        String memo = evt.getMemo();
+        
+        if((state & (1 << PatientVisitModel.BIT_NOTUPDATE)) > 0) {
+            return false;
+        }
+
+        List<PatientVisitModel> pvtList = getPvtList(fid);
+
+        PatientVisitModel pvt = em.find(PatientVisitModel.class, pvtId);
+        if(pvt != null) {
+            pvt.setMemo(memo);
+        }
+        
+        log("processPvtMemoEvent : pvtPk = " + String.valueOf(pvtId) + ", memo = " + memo);
+
+        for(PatientVisitModel model : pvtList) {
+            if(model.getId() == pvtId) {
+                model.setMemo(memo);
+                break;
+            }
+        }
+        return true;
+    }
+//s.oh$
 
     public void start() {
         log("ChartEventServiceBean: start did call");

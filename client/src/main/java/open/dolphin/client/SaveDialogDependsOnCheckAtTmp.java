@@ -260,7 +260,10 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
         //---------------------------
         // 検体検査オーダー送信ありなし
         //---------------------------
-        sendLabtest = new JCheckBox("検体検査オーダー（仮保存の場合はしない）");
+//s.oh^ 2014/11/04 仮保存時のオーダー出力
+        //sendLabtest = new JCheckBox("検体検査オーダー（仮保存の場合はしない）");
+        sendLabtest = new JCheckBox(Project.getBoolean(Project.SEND_TMPKARTE_LABTEST) ? "検体検査オーダー" : "検体検査オーダー（仮保存の場合はしない）");
+//s.oh$
         if (Project.getBoolean(Project.SEND_LABTEST)) {
             JPanel p6 = new JPanel(new FlowLayout(FlowLayout.LEFT));
             p6.add(sendLabtest);
@@ -394,7 +397,10 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
                 model.setTmpSave(true);
                 model.setSendClaim(sendClaim.isSelected());             // CLAIM送信->CheckBoxへ従う
                 model.setClaimDate(getClaimDate());                     // Property
-                model.setSendLabtest(false);                            // Lab.Test送信->false 互換性を確保..
+//s.oh^ 2014/11/04 仮保存時のオーダー出力
+                //model.setSendLabtest(false);                            // Lab.Test送信->false 互換性を確保..
+                model.setSendLabtest(Project.getBoolean(Project.SEND_TMPKARTE_LABTEST) ? sendLabtest.isSelected() : false);
+//s.oh$
                 model.setAllowPatientRef(false);                        // MML->送信しない
                 model.setAllowClinicRef(false);                         // MML->送信しない
                 model.setSendMML(false);

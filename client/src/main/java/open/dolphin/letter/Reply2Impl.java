@@ -192,6 +192,11 @@ public class Reply2Impl extends AbstractChartDocument implements Letter {
             LetterItem item = new LetterItem(ITEM_VISITED_DATE, value);
             model.addLetterItem(item);
         }
+//s.oh^ 2014/09/18 文書修正
+        else{
+            model.addLetterItem(new LetterItem(ITEM_VISITED_DATE, ""));
+        }
+//s.oh$
 
         // Informed
         String informed = LetterHelper.getAreaValue(view.getInformedContent());
@@ -201,6 +206,11 @@ public class Reply2Impl extends AbstractChartDocument implements Letter {
             text.setTextValue(informed);
             model.addLetterText(text);
         }
+//s.oh^ 2014/09/18 文書修正
+        else{
+            model.addLetterText(new LetterText(TEXT_INFORMED_CONTENT, ""));
+        }
+//s.oh$
 
         // Title
         StringBuilder sb = new StringBuilder();
@@ -259,6 +269,42 @@ public class Reply2Impl extends AbstractChartDocument implements Letter {
             LetterItem item = new LetterItem(ITEM_VISITED_DATE, value);
             model.addLetterItem(item);
         }
+//s.oh^ 2014/04/03 文書の複製
+        else if(this.modify && this.model.getId() == 0) {
+            Date d = new Date();
+            this.model.setConfirmed(d);
+            this.model.setRecorded(d);
+            this.model.setStarted(d);
+            this.model.setEnded(null);
+            
+            // 患者情報
+            PatientModel patient = getContext().getPatient();
+            this.model.setPatientId(patient.getPatientId());
+            this.model.setPatientName(patient.getFullName());
+            this.model.setPatientKana(patient.getKanaName());
+            this.model.setPatientGender(patient.getGenderDesc());
+            this.model.setPatientBirthday(patient.getBirthday());
+
+            int showMonth = Project.getInt(Project.KARTE_AGE_TO_NEED_MONTH);
+            String age = AgeCalculater.getAge(patient.getBirthday(), showMonth);
+            this.model.setPatientAge(age);
+
+            if (patient.getSimpleAddressModel()!=null) {
+                this.model.setPatientAddress(patient.getSimpleAddressModel().getAddress());
+            }
+            this.model.setPatientTelephone(patient.getTelephone());
+
+            // 紹介元
+            UserModel user = Project.getUserModel();
+            this.model.setConsultantHospital(user.getFacilityModel().getFacilityName());
+            this.model.setConsultantDoctor(user.getCommonName());
+            this.model.setConsultantDept(user.getDepartmentModel().getDepartmentDesc());
+            this.model.setConsultantTelephone(user.getFacilityModel().getTelephone());
+            this.model.setConsultantFax(user.getFacilityModel().getFacsimile());
+            this.model.setConsultantZipCode(user.getFacilityModel().getZipCode());
+            this.model.setConsultantAddress(user.getFacilityModel().getAddress());
+        }
+//s.oh$
 
         // view を生成
         this.view = new Reply2View();

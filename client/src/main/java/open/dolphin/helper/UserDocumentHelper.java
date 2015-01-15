@@ -142,17 +142,12 @@ public class UserDocumentHelper {
         
         for (int i=0; i < DOCS_HAS_ICON.length; i++) {
             if (DOCS_HAS_ICON[i].equals(ext)) {
-//minagawa^ Icon Server                
-                //ret = ClientContext.getImageIcon(DOC_ICONS[i]);
-                ret = ClientContext.getImageIconArias(DOC_ICONS[i]);
-//minagawa$                
+                ret = ClientContext.getImageIcon(DOC_ICONS[i]);
                 break;
             }
         }
-//minagawa^ Icon Server         
-        //return ret!=null ? ret : ClientContext.getImageIcon(DEFAULT_DOC_ICON);
-        return ret!=null ? ret : ClientContext.getImageIconArias("icon_default_document");
-//minagawa$        
+        
+        return ret!=null ? ret : ClientContext.getImageIcon(DEFAULT_DOC_ICON);
     }
     
     public static boolean isImage(String ext) {

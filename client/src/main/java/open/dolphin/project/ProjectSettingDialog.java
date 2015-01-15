@@ -81,7 +81,7 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
 
     public void notifyResult() {
         if (boundSupport!=null) {
-            boolean valid = Project.getProjectStub().isValid() ? true : false;
+            boolean valid = Project.getProjectStub().isValid();
             boundSupport.firePropertyChange(SETTING_PROP, !valid, valid);
         }
     }
@@ -106,7 +106,7 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
                 // モデルを得る
                 // 全ての設定プラグイン(Reference)を得、リストに格納する
                 try {
-                    allSettings = new ArrayList<AbstractSettingPanel>();
+                    allSettings = new ArrayList<>();
                     PluginLoader<AbstractSettingPanel> loader = PluginLoader.load(AbstractSettingPanel.class);
                     Iterator<AbstractSettingPanel> iter = loader.iterator();
                     while (iter.hasNext()) {
@@ -122,7 +122,7 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
 
                 // 設定パネル(AbstractSettingPanel)を格納する Hashtableを生成する
                 // key=設定プラグインの名前 value=設定プラグイン
-                settingMap = new HashMap<String, AbstractSettingPanel>();
+                settingMap = new HashMap<>();
 
                 // GUI を構築しモデルをバインドする
                 initComponents();
@@ -160,7 +160,7 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
 
         // 設定プラグインを起動するためのトグルボタンを生成し
         // パネルへ加える
-        allBtns = new ArrayList<JToggleButton>();
+        allBtns = new ArrayList<>();
         ButtonGroup bg = new ButtonGroup();
         for (AbstractSettingPanel setting : allSettings) {
             String id = setting.getId();

@@ -46,4 +46,8 @@ public interface OrcaDelegater {
     
     // Active病名検索
     public ArrayList<RegisteredDiagnosisModel> getActiveOrcaDisease(String patientId, boolean asc) throws Exception;
+    
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+    public ArrayList<String> getDeptInfo() throws Exception;
+//s.oh$
 }

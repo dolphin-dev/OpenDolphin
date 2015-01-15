@@ -106,7 +106,8 @@ public class RpViewText extends javax.swing.JPanel implements IRpView {
         deleteBtn.setText("削除"); // NOI18N
         deleteBtn.setToolTipText("選択した項目を削除します。"); // NOI18N
 
-        jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/resources/images/srch_16.gif"))); // NOI18N
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/order/Bundle"); // NOI18N
+        jLabel3.setText(bundle.getString("RpViewText.jLabel3.text")); // NOI18N
 
         searchTextField.setToolTipText("検索したい医薬品名を入力します。"); // NOI18N
 
@@ -175,7 +176,7 @@ public class RpViewText extends javax.swing.JPanel implements IRpView {
                         .addComponent(partialChk)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(usageCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 45, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 61, Short.MAX_VALUE)
                         .addComponent(jLabel4)
                         .addGap(12, 12, 12)
                         .addComponent(countField, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -221,12 +222,11 @@ public class RpViewText extends javax.swing.JPanel implements IRpView {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(searchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(rtCheck)
-                                .addComponent(partialChk)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(searchTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(rtCheck)
+                            .addComponent(partialChk)
+                            .addComponent(jLabel3))
                         .addComponent(usageCombo, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(countField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -390,5 +390,12 @@ public class RpViewText extends javax.swing.JPanel implements IRpView {
     public javax.swing.JCheckBox getTemporalChk() {
         return temporalChk;
     }
+
+//s.oh^ 2014/10/22 Icon表示
+    @Override
+    public javax.swing.JLabel getSearchLabel() {
+        return jLabel3;
+    }
+//s.oh$
 
 }

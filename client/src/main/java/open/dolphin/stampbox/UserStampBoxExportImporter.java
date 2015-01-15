@@ -11,6 +11,7 @@ import javax.swing.*;
 import open.dolphin.client.BlockGlass;
 import open.dolphin.helper.InfiniteProgressBar;
 import open.dolphin.infomodel.IInfoModel;
+import open.dolphin.util.Log;
 
 /**
  * StampBox の特別メニュー
@@ -90,7 +91,9 @@ public class UserStampBoxExportImporter {
 //                            writer.flush();
 //minagawa$                            
                             Path destpath = file.toPath();
+                            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "保存先", file.getPath());
                             Files.write(destpath, xml.getBytes("UTF-8"));
+                            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, xml);
                             
                         } catch (InterruptedException | ExecutionException ex) {
                             processException(ex);
@@ -197,6 +200,7 @@ public class UserStampBoxExportImporter {
 
                 @Override
                 protected void done() {
+                    boolean imported = false;
                     try {
                         List<StampTree> userTrees = get();
                         int currentTab = stampBox.getSelectedIndex();
@@ -220,6 +224,7 @@ public class UserStampBoxExportImporter {
                             stampBox.add(treePanel, treeName, index);
                         }
                         stampBox.setSelectedIndex(currentTab);
+                        imported = true;
                         
                     } catch (InterruptedException | ExecutionException ex) {
                         processException(ex);
@@ -229,10 +234,16 @@ public class UserStampBoxExportImporter {
                     blockGlass.unblock();
                     progressBar.stop();
                     progressBar = null;
+                    
+                    if(imported) {
+                        JOptionPane.showMessageDialog(context.getFrame(), "スタンプのインポートが完了しました、アプリを再起動してください。", "スタンプインポート", JOptionPane.INFORMATION_MESSAGE);
+                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "スタンプのインポートが完了しました、アプリを再起動してください。");
+                    }
                 }
 
                 private void processException(Exception ex) {
                     System.out.println("StampBoxPluginExtraMenu.java: " + ex);
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "StampBoxPluginExtraMenu.java: " + ex.getMessage());
                 }
             };
             

@@ -96,7 +96,7 @@ public final class SaveParamsM {
     }
 
     public String getTitle() {
-        return title;
+        return getOldTitle()!=null ? getOldTitle() : title;      
     }
     
     public void setTitle(String val) {

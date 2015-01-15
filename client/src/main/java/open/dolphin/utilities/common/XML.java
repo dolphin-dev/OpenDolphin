@@ -104,7 +104,7 @@ public class XML extends AbstractCommonFunc {
      * @return 要素数
      */
     protected int getElementNum(Element element, String tag) {
-        NodeList list = rootElement.getElementsByTagName(tag);
+        NodeList list = element.getElementsByTagName(tag);
         return list.getLength();
     }
     
@@ -114,7 +114,7 @@ public class XML extends AbstractCommonFunc {
      * @return 要素数
      */
     protected int getElementNum(Element element) {
-        NodeList list = rootElement.getChildNodes();
+        NodeList list = element.getChildNodes();
         return list.getLength();
     }
 
@@ -161,8 +161,11 @@ public class XML extends AbstractCommonFunc {
      */
     protected Element getElement(Element parentElement, int idx) {
         NodeList list = parentElement.getChildNodes();
-        Element element = (Element)list.item(idx);
-        return element;
+        Node node = list.item(idx);
+        if(node != null && node.getNodeType() == Node.ELEMENT_NODE) {
+            return (Element)node;
+        }
+        return null;
     }
     
     /**

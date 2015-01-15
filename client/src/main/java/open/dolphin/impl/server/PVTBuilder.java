@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import open.dolphin.client.ClientContext;
 import open.dolphin.infomodel.*;
+import open.dolphin.util.Log;
 import org.apache.log4j.Level;
 import org.jdom.Attribute;
 import org.jdom.Document;
@@ -107,6 +108,9 @@ public final class PVTBuilder {
     private static final String registTime = "registTime";
     private static final String admitFlag = "admitFlag";
     private static final String insuranceUid = "insuranceUid";
+    // 在宅関連(在宅患者登録)
+    private static final String appoint = "appoint";
+    private static final String memo = "memo";
 
     private static final char FULL_SPACE = '　';
     private static final char HALF_SPACE = ' ';
@@ -239,6 +243,16 @@ public final class PVTBuilder {
         // status=info ありだって、ヤレヤレ...
         //------------------------------------------------------
         if (pvtClaim != null) {
+            
+//s.oh^ 2014/03/13 ORCA患者登録対応
+            if(pvtClaim.getClaimStatus() != null && pvtClaim.getClaimStatus().trim().equals("regist")) {
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "受付登録情報受信", (model.getPatientModel() != null) ? model.getPatientModel().getPatientId() : "");
+            }else{
+                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "受付登録ではないため受信した情報を破棄", (model.getPatientModel() != null) ? model.getPatientModel().getPatientId() : "");
+                return null;
+            }
+//s.oh$
+            
             // 2.0 から
             model.setDeptCode(pvtClaim.getClaimDeptCode());         // 診療科コード
             model.setDeptName(pvtClaim.getClaimDeptName());         // 診療科名
@@ -327,6 +341,11 @@ public final class PVTBuilder {
                 }
                 pvtClaim = new PVTClaim();
                 parseClaim(docInfoEle, contentEle);
+//s.oh^ 2014/08/19 施設患者一括表示機能
+                if(patientModel != null) {
+                    patientModel.setAppMemo(pvtClaim.getClaimAppMemo());
+                }
+//s.oh$
                 
             } else {
                 ClientContext.getPvtLogger().warn("Unknown attribute value : " + attr);
@@ -695,6 +714,12 @@ public final class PVTBuilder {
         
         // insuranceUid
         pvtClaim.setInsuranceUid(claimInfo.getAttributeValue(insuranceUid, claim));
+        
+        // 在宅関連(在宅患者登録)
+        Element claimAppoint = claimInfo.getChild(appoint, claim);
+        if(claimAppoint != null) {
+            pvtClaim.setClaimAppMemo(claimAppoint.getChildTextTrim(memo, claim));
+        }
         
         // DEBUG 出力
         if (DEBUG) {

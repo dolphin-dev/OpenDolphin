@@ -120,6 +120,31 @@ public final class ClaimConst {
     public static final String UNIT_G = "ｇ";
     public static final String UNIT_ML = "ｍＬ";
     public static final String UNIT_CAPSULE = "カプセル";
+//s.oh^ 2014/06/19 薬剤の単位対応
+    public static final String UNIT_01 = "本";
+    public static final String UNIT_02 = "容器";
+    public static final String UNIT_03 = "枚";
+    public static final String UNIT_04 = "瓶";
+    public static final String UNIT_05 = "瓶（袋）";
+    public static final String UNIT_06 = "筒";
+    public static final String UNIT_07 = "袋";
+    public static final String UNIT_08 = "組";
+    public static final String UNIT_09 = "個";
+    public static final String UNIT_10 = "丸";
+    public static final String UNIT_11 = "缶";
+    public static final String UNIT_12 = "管";
+    public static final String UNIT_13 = "患者当たり";
+    public static final String UNIT_14 = "回分";
+    public static final String UNIT_15 = "ブリスター";
+    public static final String UNIT_16 = "セット";
+    public static final String UNIT_17 = "シート";
+    public static final String UNIT_18 = "キット";
+    public static final String UNIT_19 = "ガラス筒";
+    public static final String UNIT_20 = "ｍＬＶ";
+    public static final String UNIT_21 = "ｍＬ（ｇ）";
+    public static final String UNIT_22 = "ＭＢｑ";
+    public static final String UNIT_23 = "包";
+//s.oh$
     
 //masuda^
     public static final String LABO_CODE_START = "16";

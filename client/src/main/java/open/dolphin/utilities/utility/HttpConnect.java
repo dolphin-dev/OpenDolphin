@@ -31,7 +31,9 @@ public class HttpConnect extends HTTP {
     public String httpGET(String target, String request) throws MalformedURLException, IOException {
         connectHttp(target, request, false, "", 0);
         //if(getLastResponseCode() != HttpURLConnection.HTTP_OK) return "";
-        return recvHttp(true);
+        String ret = recvHttp(true);
+        disconnectHttp();
+        return ret;
     }
     
     /**
@@ -46,7 +48,9 @@ public class HttpConnect extends HTTP {
     public String httpPOST(String target, String request, String data) throws MalformedURLException, IOException {
         connectHttp(target, request, false, "", 0);
         setPostData(data);
-        return recvHttp(true);
+        String ret = recvHttp(true);
+        disconnectHttp();
+        return ret;
     }
     
     /**

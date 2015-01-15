@@ -1,4 +1,4 @@
-2014-02-01　皆川和史、王勝偉　ライフサイエンスコンピューティング（株）  
+2015-01-15　皆川和史、王勝偉　オープンドルフィン・ラボ  
 
 １．ライセンス  
 ・OpenDolphinのライセンスは GNU GPL3 です。  
@@ -10,11 +10,12 @@
 また Takayoshi KimuraさんのJBoss as7 へのポーティングを使用させていただきました。  
 
 ２．開発環境  
-・jdk 1.7.0_51  
-・NetBeans 7.3.1  
-・maven 3.0.3  
+・jdk 1.8.0_25  
+・NetBeans 8.0.2  
+・maven 3.2.1  
 ・JavaEE 6  
 ・JBoss-7.1.2.Final  
+＊ソース/バイナリ形式は jdk1.7
 
 ３．依存性  
 OpenDolphinは、maven でプロジェクト管理を行っています。  
@@ -26,3 +27,8 @@ OpenDolphinは、maven でプロジェクト管理を行っています。
 mvn install:install-file -Dfile=/path/to/iTextAsian.jar -DgroupId=opendolphin -DartifactId=itext-font -Dversion=1.0 -Dpackaging=jar  
 
 mvn install:install-file -Dfile=/path/to/AppleJavaExtensions.jar -DgroupId=com.apple -DartifactId=AppleJavaExtensions -Dversion=1.6 -Dpackaging=jar
+
+４ ．コンパイル  
+OpenDolphin（トップ）ディレクトリで  
+mvn clean  
+mvn package  

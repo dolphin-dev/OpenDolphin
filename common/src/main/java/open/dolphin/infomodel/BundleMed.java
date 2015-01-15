@@ -80,6 +80,61 @@ public class BundleMed extends BundleDolphin {
             sb.append("・").append(item.getName());
             number = item.getNumber();
             if (number != null) {
+                //sb.append("　").append(number);
+                sb.append(" X ").append(number);
+                if (item.getUnit() != null) {
+                    sb.append(item.getUnit());
+                }
+            }
+            sb.append("\n");
+        }
+        
+        if (admin != null && (!admin.equals(""))) {
+            sb.append(admin);
+        }
+        
+        sb.append(" x ").append(bundleNumber).append("\n");
+        //if (! bundleNumber.equals("1")) {
+        //    sb.append("・回数 X ").append(bundleNumber).append("\n");
+        //}
+        
+        // admMemo
+        if (adminMemo != null) {
+            sb.append(adminMemo).append("\n");
+        }
+        
+        // Memo
+        if (memo != null) {
+            sb.append(memo).append("\n");
+        }
+        
+        return sb.toString();
+    }
+    
+//s.oh^ 2014/01/27 スタンプのテキストコピー機能拡張
+    public String toString(String patID, String stampName) {
+        
+        StringBuilder sb = new StringBuilder();
+        
+        if(patID != null) {
+            sb.append(patID).append("\n");
+        }
+        if(stampName != null) {
+            sb.append("RP").append("（").append(stampName).append("）").append("\n");
+        }else{
+            sb.append("RP").append("\n");
+        }
+        
+        ClaimItem[] items = getClaimItem();
+        int len = items.length;
+        ClaimItem item;
+        String number;
+        
+        for (int i = 0; i < len; i++) {
+            item = items[i];
+            sb.append("・").append(item.getName());
+            number = item.getNumber();
+            if (number != null) {
                 sb.append("　").append(number);
                 if (item.getUnit() != null) {
                     sb.append(item.getUnit());
@@ -106,6 +161,7 @@ public class BundleMed extends BundleDolphin {
         
         return sb.toString();
     }
+//s.oh$
 
     @Override
     protected Object clone() throws CloneNotSupportedException {

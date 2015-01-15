@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.event.MouseListener;
 import java.awt.print.PageFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -205,10 +206,12 @@ public class KarteViewer extends AbstractChartDocument implements Comparable {
             KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
                                                   getContext().getPatient().getPatientId(), getContext().getPatient().getFullName(),
                                                   sbTitle.toString(),
-                                                  new Date(), dumper, pdumper);
+                                                  new Date(), dumper, pdumper, null);
 //s.oh$
             String path = pdf.create();
-            KartePDFImpl2.printPDF(path);
+            ArrayList<String> paths = new ArrayList<>(0);
+            paths.add(path);
+            KartePDFImpl2.printPDF(paths);
         }
     }
 //s.oh$
@@ -240,11 +243,18 @@ public class KarteViewer extends AbstractChartDocument implements Comparable {
         boolean tmp = model.getDocInfoModel().getStatus().equals(IInfoModel.STATUS_TMP) ? true : false;
         
         // 新規カルテ作成が可能な条件
-        boolean newOk = canEdit && (!tmp) ? true : false;
+//s.oh^ 2014/10/24 新規カルテメニューの制御
+        //boolean newOk = canEdit && (!tmp) ? true : false;
+        boolean newOk = canEdit;
+//s.oh$
         
         ChartMediator mediator = getContext().getChartMediator();
         mediator.getAction(GUIConst.ACTION_NEW_KARTE).setEnabled(newOk);        // 新規カルテ
-        mediator.getAction(GUIConst.ACTION_PRINT).setEnabled(true);             // 印刷
+//s.oh^ 2014/08/19 ID権限
+        //mediator.getAction(GUIConst.ACTION_PRINT).setEnabled(true);             // 印刷
+        mediator.getAction(GUIConst.ACTION_PRINT).setEnabled(!Project.isOtherCare());
+        mediator.getAction(GUIConst.ACTION_PRINTER_SETUP).setEnabled(!Project.isOtherCare());
+//s.oh$
         mediator.getAction(GUIConst.ACTION_MODIFY_KARTE).setEnabled(canEdit);   // 修正
     }
         
@@ -309,7 +319,10 @@ public class KarteViewer extends AbstractChartDocument implements Comparable {
                 timeStampLabel.setBackground(GUIConst.TEMP_SAVE_KARTE_BK_COLOR);
                 timeStampLabel.setForeground(GUIConst.TEMP_SAVE_KARTE_FORE_COLOR);
             }
-            if (model.getUserModel().getCommonName()!=null) {
+//s.oh^ 2014/05/19 カルテタイトルのユーザ名非表示
+            //if (model.getUserModel().getCommonName()!=null) {
+            if (model.getUserModel().getCommonName()!=null && !Project.getBoolean("karte.title.username.hide")) {
+//s.oh$
                 StringBuilder sb = new StringBuilder();
                 sb.append(timeStamp).append(" ").append(model.getUserModel().getCommonName());
                 timeStamp = sb.toString();

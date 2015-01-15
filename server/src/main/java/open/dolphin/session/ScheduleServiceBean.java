@@ -3,25 +3,22 @@ package open.dolphin.session;
 import java.beans.XMLDecoder;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.inject.Named;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
-import javax.jms.MessageProducer;
-import javax.jms.ObjectMessage;
-import javax.jms.QueueSession;
-import javax.jms.Session;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import open.dolphin.infomodel.AttachmentModel;
@@ -33,8 +30,12 @@ import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.PVTHealthInsuranceModel;
 import open.dolphin.infomodel.PatientModel;
 import open.dolphin.infomodel.PatientVisitModel;
+import open.dolphin.infomodel.ProgressCourse;
 import open.dolphin.infomodel.SchemaModel;
 import open.dolphin.infomodel.UserModel;
+import open.dolphin.msg.ClaimSender;
+import open.dolphin.rest.IOSHelper;
+//import open.dolphin.touch.converter.IOSHelper;
 
 /**
  * (予定カルテ対応)
@@ -80,11 +81,13 @@ public class ScheduleServiceBean {
     @PersistenceContext
     private EntityManager em;
     
-    @Resource(mappedName = "java:/JmsXA")
-    private ConnectionFactory connectionFactory;
-    
-    @Resource(mappedName = "java:/queue/dolphin")
-    private javax.jms.Queue queue;
+//s.oh^ 2014/02/21 Claim送信方法の変更
+    //@Resource(mappedName = "java:/JmsXA")
+    //private ConnectionFactory connectionFactory;
+    //
+    //@Resource(mappedName = "java:/queue/dolphin")
+    //private javax.jms.Queue queue;
+//s.oh$
     
     public List<PatientVisitModel> getPvt(String fid, String did, String unassigned, String date) {
         
@@ -206,6 +209,66 @@ public class ScheduleServiceBean {
 
                 // 予定文書（カルテ）
                 schedule = latest.rpClone();
+//s.oh^ 2014/02/06 iPadのFreeText対応
+                if(schedule.getModules() != null && !schedule.getModules().isEmpty()) {
+                    // SOA
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("<section>");
+                    sb.append("<paragraph>");
+                    sb.append("<content><text></text></content>");
+                    sb.append("</paragraph>");
+                    sb.append("</section>");
+                    ProgressCourse soaProgress = new ProgressCourse();
+                    soaProgress.setFreeText(sb.toString());
+                    ModuleModel soaSpecModule = new ModuleModel();
+                    soaSpecModule.setBeanBytes(IOSHelper.toXMLBytes(soaProgress));
+                    soaSpecModule.setConfirmed(latest.getConfirmed());
+                    soaSpecModule.setStarted(latest.getStarted());
+                    soaSpecModule.setRecorded(latest.getRecorded());
+                    soaSpecModule.setStatus(latest.getStatus());
+                    soaSpecModule.setUserModel(latest.getUserModel());
+                    soaSpecModule.setKarteBean(latest.getKarteBean());
+                    soaSpecModule.getModuleInfoBean().setStampName("progressCourse");
+                    soaSpecModule.getModuleInfoBean().setStampRole("soaSpec");
+                    soaSpecModule.getModuleInfoBean().setEntity("progressCourse");
+                    soaSpecModule.getModuleInfoBean().setStampNumber(0);
+                    soaSpecModule.setDocumentModel(schedule);
+                    schedule.addModule(soaSpecModule);
+                    // P
+                    int number = 0;
+                    sb = new StringBuilder();
+                    sb.append("<section>");
+                    for(int i = 0; i < schedule.getModules().size(); i++) {
+                        if(i != 0)  {
+                            sb.append("<paragraph>");
+                            sb.append("<content><text>\n</text></content>");
+                            sb.append("</paragraph>");
+                        }
+                        sb.append("<paragraph>");
+                        sb.append("<component component=").append("\"").append(i).append("\"").append(" name=\"stampHolder\">").append("</component>");
+                        sb.append("<content><text></text></content>");
+                        sb.append("<content><text>\n</text></content>");
+                        sb.append("</paragraph>");
+                    }
+                    sb.append("</section>");
+                    ProgressCourse pProgress = new ProgressCourse();
+                    pProgress.setFreeText(sb.toString());
+                    ModuleModel pSpecModule = new ModuleModel();
+                    pSpecModule.setBeanBytes(IOSHelper.toXMLBytes(pProgress));
+                    pSpecModule.setConfirmed(latest.getConfirmed());
+                    pSpecModule.setStarted(latest.getStarted());
+                    pSpecModule.setRecorded(latest.getRecorded());
+                    pSpecModule.setStatus(latest.getStatus());
+                    pSpecModule.setUserModel(latest.getUserModel());
+                    pSpecModule.setKarteBean(latest.getKarteBean());
+                    pSpecModule.getModuleInfoBean().setStampName("progressCourse");
+                    pSpecModule.getModuleInfoBean().setStampRole("pSpec");
+                    pSpecModule.getModuleInfoBean().setEntity("progressCourse");
+                    pSpecModule.getModuleInfoBean().setStampNumber(number++);
+                    pSpecModule.setDocumentModel(schedule);
+                    schedule.addModule(pSpecModule);
+                }
+//s.oh$
                 Logger.getLogger("open.dolphin").info("did rpClone");
                 
             } catch (Exception e) {
@@ -284,24 +347,59 @@ public class ScheduleServiceBean {
             
             // CLAIM送信
             if (send) {
-                // DocInfoへ開始日等を設定する
-                schedule.toDetuch();
-                Connection conn = null;
+//s.oh^ 2014/01/23 ORCAとの接続対応
+                Properties config = new Properties();
+                sb = new StringBuilder();
+                sb.append(System.getProperty("jboss.home.dir"));
+                sb.append(File.separator);
+                sb.append("custom.properties");
+                File f = new File(sb.toString());
                 try {
-                    conn = connectionFactory.createConnection();
-                    Session session = conn.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
-                    ObjectMessage msg = session.createObjectMessage(schedule);
-                    MessageProducer producer = session.createProducer(queue);
-                    producer.send(msg);
-                } catch (Exception e) {
-                    e.printStackTrace(System.err);
-                } finally {
-                    if(conn != null) {
-                        try {
-                            conn.close();
-                        } catch (JMSException e) { 
-                        }
+                    FileInputStream fin = new FileInputStream(f);
+                    InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect");
+                    config.load(r);
+                    r.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace(System.err);
+                    return 1;
+                }
+                String claimConn = config.getProperty("claim.conn");
+                if(claimConn != null && claimConn.equals("server")) {
+//s.oh$
+                    // DocInfoへ開始日等を設定する
+                    schedule.toDetuch();
+//s.oh^ 2014/02/21 Claim送信方法の変更
+                    //Connection conn = null;
+                    //try {
+                    //    conn = connectionFactory.createConnection();
+                    //    Session session = conn.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
+                    //    ObjectMessage msg = session.createObjectMessage(schedule);
+                    //    MessageProducer producer = session.createProducer(queue);
+                    //    producer.send(msg);
+                    //} catch (Exception e) {
+                    //    e.printStackTrace(System.err);
+                    //} finally {
+                    //    if(conn != null) {
+                    //        try {
+                    //            conn.close();
+                    //        } catch (JMSException e) { 
+                    //        }
+                    //    }
+                    //}
+                    // ORCA CLAIM 送信パラメータ
+                    String host = config.getProperty("claim.host");
+                    int port = Integer.parseInt(config.getProperty("claim.send.port"));
+                    String enc = config.getProperty("claim.send.encoding");
+                    String facilityId = config.getProperty("dolphin.facilityId");
+                    Logger.getLogger("open.dolphin").info("Schedule message has received. Sending ORCA will start(Not Que).");
+                    ClaimSender sender = new ClaimSender(host, port, enc);
+                    try {
+                        sender.send(schedule);
+                    } catch (Exception ex) {
+                        ex.printStackTrace(System.err);
+                        Logger.getLogger("open.dolphin").warning("Claim send error : " + ex.getMessage());
                     }
+//s.oh$
                 }
             }
             

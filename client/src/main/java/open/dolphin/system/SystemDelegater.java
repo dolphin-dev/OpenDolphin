@@ -4,6 +4,7 @@ import javax.ws.rs.core.MediaType;
 import open.dolphin.converter.UserModelConverter;
 import open.dolphin.delegater.BusinessDelegater;
 import open.dolphin.infomodel.UserModel;
+import open.dolphin.util.Log;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.resteasy.client.ClientRequest;
 import org.jboss.resteasy.client.ClientResponse;
@@ -14,10 +15,10 @@ import org.jboss.resteasy.client.ClientResponse;
  */
 public final class SystemDelegater extends BusinessDelegater {
 
-    private final String PATH = "/hiuchi";
-    private final String BASE_URI = "http://182.50.106.61:8080/openDolphin/resources";
-    private final String USER_ID = "1.3.6.1.4.1.9414.2.1:cloudia";
-    private final String USER_PASSWORD = "220Smooth";
+    private final String PATH = "/dolphin";
+    private final String BASE_URI = "http://localhost:8080/dolphin/openSource";
+    private final String USER_ID = "1.3.6.1.4.1.9414.70.1:dolphin";
+    private final String USER_PASSWORD = "dolphin";
 
     public SystemDelegater() {
     }
@@ -62,4 +63,21 @@ public final class SystemDelegater extends BusinessDelegater {
         // Check
         checkStatus(response);
     }
+    
+//s.oh^ 2014/07/08 クラウド0対応
+    public void sendCloudZeroMail() throws Exception {
+        String path = PATH + "/cloudzero/sendmail";
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
+        // GET
+        ClientRequest request = getRequest(path);
+        request.accept(MediaType.APPLICATION_JSON);
+        ClientResponse<String> response = request.get(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+    }
+//s.oh$
 }

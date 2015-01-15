@@ -226,7 +226,10 @@ public final class SaveDialog {
         //---------------------------
         // 検体検査オーダー送信ありなし
         //---------------------------
-        sendLabtest = new JCheckBox("検体検査オーダー（仮保存の場合はしない）");
+//s.oh^ 2014/11/04 仮保存時のオーダー出力
+        //sendLabtest = new JCheckBox("検体検査オーダー（仮保存の場合はしない）");
+        sendLabtest = new JCheckBox(Project.getBoolean(Project.SEND_TMPKARTE_LABTEST) ? "検体検査オーダー" : "検体検査オーダー（仮保存の場合はしない）");
+//s.oh$
         if (Project.getBoolean(Project.SEND_LABTEST)) {
             JPanel p6 = new JPanel(new FlowLayout(FlowLayout.LEFT));
             p6.add(sendLabtest);
@@ -358,7 +361,10 @@ public final class SaveDialog {
         //-------------------
         // LabTest 送信
         //-------------------
-        value.setSendLabtest(false);
+//s.oh^ 2014/11/04 仮保存時のオーダー出力
+        //value.setSendLabtest(false);
+        value.setSendLabtest(Project.getBoolean(Project.SEND_TMPKARTE_LABTEST) ? sendLabtest.isSelected() : false);
+//s.oh$
         
         close();
     }

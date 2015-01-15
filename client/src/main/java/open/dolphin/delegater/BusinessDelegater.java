@@ -187,8 +187,7 @@ public class BusinessDelegater {
         DefaultHttpClient defaultHttpClient;
 
         try {
-//minagawa^            
-            //if (!ClientContext.isOpenDolphin()) {
+//minagawa^ Self Cert Test           
             if (!ClientContext.isSelfCertTest()) {
 //minagawa$                
                defaultHttpClient = new DefaultHttpClient();

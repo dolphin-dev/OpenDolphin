@@ -31,7 +31,10 @@ public abstract class AbstractStampEditor {
     public static final String EDIT_END_PROP = "editEnd";
     public static final String CURRENT_SHINKU_PROP = "currentShinkuProp";
 
-    protected static final String DEFAULT_NUMBER = "1";
+//s.oh^ 2014/06/19 薬剤の単位対応
+    //protected static final String DEFAULT_NUMBER = "1";
+    protected static final String DEFAULT_NUMBER = "0";
+//s.oh$
 
     protected static final String DEFAULT_STAMP_NAME     = "新規スタンプ";
     protected static final String FROM_EDITOR_STAMP_NAME = "エディタから";
@@ -143,6 +146,10 @@ public abstract class AbstractStampEditor {
     protected static final String EDITABLE_COMMENT_0084 = "0084";
     protected static final String EDITABLE_COMMENT_85 = "85";
     protected static final String EDITABLE_COMMENT_0085 = "0085";  //"008500000";
+//s.oh^ 2014/01/27 86コメント対応
+    protected static final String EDITABLE_COMMENT_86 = "86";
+    protected static final String EDITABLE_COMMENT_0086 = "0086";  //"008600000";
+//s.oh$
 
     // 検索特殊記号文字
     protected static final String ASTERISK_HALF = "*";
@@ -404,7 +411,12 @@ public abstract class AbstractStampEditor {
                       code.startsWith(EDITABLE_COMMENT_83) ||
                       code.startsWith(EDITABLE_COMMENT_0083) ||
                       code.startsWith(EDITABLE_COMMENT_85) ||
-                      code.startsWith(EDITABLE_COMMENT_0085));
+//s.oh^ 2014/01/27 86コメント対応
+                      //code.startsWith(EDITABLE_COMMENT_0085)c);
+                      code.startsWith(EDITABLE_COMMENT_0085) ||
+                      code.startsWith(EDITABLE_COMMENT_86) ||
+                      code.startsWith(EDITABLE_COMMENT_0086));
+//s.oh$
 
         return ed;
     }
@@ -629,6 +641,10 @@ public abstract class AbstractStampEditor {
     protected MasterItem tensuToMasterItem(TensuMaster tm) {
 
         MasterItem ret = new MasterItem();
+        
+//s.oh^ 2014/08/08 スタンプ編集制御
+        ret.setSrysyukbn(tm.getSrysyukbn());
+//s.oh$
 
         // code
         ret.setCode(tm.getSrycd());
@@ -690,7 +706,10 @@ public abstract class AbstractStampEditor {
             //}
 
             // zero -> null 
-            inputNum = (inputNum==null || inputNum.equals("") || inputNum.equals("0")) ? null : inputNum;
+//s.oh^ 2014/06/19 薬剤の単位対応
+            //inputNum = (inputNum==null || inputNum.equals("") || inputNum.equals("0")) ? null : inputNum;
+            inputNum = (inputNum==null || inputNum.equals("") || inputNum.equals("0") || inputNum.equals("0.0")) ? null : inputNum;
+//s.oh$
             ret.setNumber(inputNum);
 
 

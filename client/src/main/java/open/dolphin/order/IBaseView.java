@@ -67,5 +67,13 @@ public interface IBaseView {
     public javax.swing.JTable getSetTable();
 
     public javax.swing.JCheckBox getPartialChk();
+
+//s.oh^ 2014/03/31 スタンプ回数対応
+    public javax.swing.JComboBox getNumberCombo();
+//s.oh$
+    
+//s.oh^ 2014/10/22 Icon表示
+    public javax.swing.JLabel getSearchLabel();
+//s.oh$
     
 }

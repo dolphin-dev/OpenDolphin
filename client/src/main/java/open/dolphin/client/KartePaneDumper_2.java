@@ -179,6 +179,12 @@ public final class KartePaneDumper_2 {
                         continue;
                     }
                     
+//s.oh^ 2014/05/08 Google日本語入力対応
+                    if (nextName.toString().startsWith("composed text")) {
+                        continue;
+                    }
+//s.oh$
+                    
                     // 属性= の形を準備する
                     retBuffer.append(" ");
                     retBuffer.append(nextName);
@@ -301,4 +307,22 @@ public final class KartePaneDumper_2 {
         buf.append("\"");
         return buf.toString();
     }
+    
+//s.oh^ 2014/07/22 一括カルテPDF出力
+    public void setSpec(String spec) {
+        this.spec = spec;
+    }
+    
+    public void setModuleList(ArrayList<ModuleModel> list) {
+        this.moduleList = list;
+    }
+    
+    public void setSchemaList(ArrayList<SchemaModel> list) {
+        this.schemaList = list;
+    }
+    
+    public void setAttachmentList(ArrayList<AttachmentModel> list) {
+        this.attachmentList = list;
+    }
+//s.oh$
 }

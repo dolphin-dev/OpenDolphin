@@ -55,14 +55,26 @@ public class MedicalCertificatePDFMaker extends AbstractLetterPDFMaker {
             PdfWriter.getInstance(document, byteo);
             document.open();
 
+//s.oh^ 2014/08/01 診断書文字サイズ
+            int fontSize;
+//s.oh$
+            
             // Font
             baseFont = BaseFont.createFont(HEISEI_MIN_W3, UNIJIS_UCS2_HW_H, false);
             if (Project.getString(Project.SHINDANSYO_FONT_SIZE).equals("small")) {
                 titleFont = new Font(baseFont, getTitleFontSize());
-                bodyFont = new Font(baseFont, getBodyFontSize());
+//s.oh^ 2014/08/01 診断書文字サイズ
+                //bodyFont = new Font(baseFont, getBodyFontSize());
+                fontSize = 10;
+                bodyFont = new Font(baseFont, fontSize);
+//s.oh$
             } else {
                 titleFont = new Font(baseFont, 18);
-                bodyFont = new Font(baseFont, 14);
+//s.oh^ 2014/08/01 診断書文字サイズ
+                //bodyFont = new Font(baseFont, 14);
+                fontSize = 12;
+                bodyFont = new Font(baseFont, fontSize);
+//s.oh$
             }
 
             //----------------------------------------
@@ -116,11 +128,23 @@ public class MedicalCertificatePDFMaker extends AbstractLetterPDFMaker {
             pTable = new PdfPTable(new float[]{1.0f});
             pTable.setWidthPercentage(100.0f);
             String informed = model.getTextValue(MedicalCertificateImpl.TEXT_INFORMED_CONTENT);
+//s.oh^ 2014/08/01 診断書文字サイズ
+            //cell = createNoBorderCell(informed);
+            Font bakFont = bodyFont;
+            bodyFont = new Font(baseFont, fontSize - 1);
             cell = createNoBorderCell(informed);
+            bodyFont = bakFont;
+//s.oh$
             if (Project.getString("sindansyo.font.size").equals("small")) {
-                cell.setFixedHeight(250.0f);            // Cell 高
+//s.oh^ 2014/08/01 診断書文字サイズ
+                //cell.setFixedHeight(250.0f);            // Cell 高
+                cell.setFixedHeight(340.0f);
+//s.oh$
             } else {
-                cell.setFixedHeight(225.0f);            // Cell 高
+//s.oh^ 2014/08/01 診断書文字サイズ
+                //cell.setFixedHeight(225.0f);            // Cell 高
+                cell.setFixedHeight(310.0f);
+//s.oh$
             }   
             cell.setLeading(0f, 1.5f);              // x 1.5 font height
             pTable.addCell(cell);

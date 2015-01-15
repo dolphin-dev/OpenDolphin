@@ -72,6 +72,9 @@ public class KartePane implements DocumentListener, MouseListener,
     private static final String MEDIA_TYPE_IMAGE_JPEG = "image/jpeg";
     private static final String DEFAULT_IMAGE_TITLE = "Schema Image";
     private static final String JPEG_EXT = ".jpg";
+    private static final String MEDIA_TYPE_IMAGE_PNG = "image/png";
+    private static final String XRONOS_IMAGE_TITLE = "Xronos Image";
+    private static final String PNG_EXT = ".png";
 
     // JTextPane
     private JTextPane textPane;
@@ -365,15 +368,25 @@ public class KartePane implements DocumentListener, MouseListener,
     // JTextPaneへの挿入でdirtyかどうかを判定する
     @Override
     public void insertUpdate(DocumentEvent e) {
-        boolean newDirty = getDocument().getLength() > getInitialLength() ? true : false;
-        setDirty(newDirty);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                boolean newDirty = getDocument().getLength() > getInitialLength() ? true : false;
+                setDirty(newDirty);
+            }
+        });
     }
 
     // 削除が起こった時dirtyかどうかを判定する
     @Override
     public void removeUpdate(DocumentEvent e) {
-        boolean newDirty = getDocument().getLength() > getInitialLength() ? true : false;
-        setDirty(newDirty);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                boolean newDirty = getDocument().getLength() >= getInitialLength() ? true : false;
+                setDirty(newDirty);
+            }
+        });
     }
 
     @Override
@@ -654,9 +667,12 @@ public class KartePane implements DocumentListener, MouseListener,
                 public void run() {
                     // 処方の場合、同じ用法であれば一つにまとめる
                     boolean drop = true;
-//minagawa^ LSC Test
-                    boolean selfDrag = (getDraggedCount()>0 && getDrragedStamp()!=null);
-//minagawa$
+//s.oh^ 2014/02/10 スタンプめとめる不具合
+////minagawa^ LSC Test
+//                    boolean selfDrag = (getDraggedCount()>0 && getDrragedStamp()!=null);
+////minagawa$
+                    boolean selfDrag = (getDraggedCount()>0 && getDrragedStamp()!=null && getDroppedCount()>0);
+//s.oh$
                     
                     String entity = stamp.getModuleInfoBean().getEntity();
 //minagawa^ LSC Test
@@ -677,18 +693,18 @@ public class KartePane implements DocumentListener, MouseListener,
                     }
                     
 //s.oh^ 2014/01/27 同じ検体検査をまとめる
-                    if (!selfDrag && entity.equals(IInfoModel.ENTITY_LABO_TEST) && Project.getBoolean(Project.KARTE_MERGE_WITH_LABTEST, false)) {
-                        StampHolder sh = findCanMergeLabTest(stamp);
-                        
-                        if (sh!=null) {
-                            BundleDolphin lab = (BundleDolphin)sh.getStamp().getModel();
-                            ClaimItem[] items = ((BundleDolphin)stamp.getModel()).getClaimItem();
-                            sh.addItems(items);
-                            drop = false;
-                            textPane.revalidate();
-                            textPane.repaint();
-                        }
-                    }
+//                    if (!selfDrag && entity.equals(IInfoModel.ENTITY_LABO_TEST) && Project.getBoolean(Project.KARTE_MERGE_WITH_LABTEST, false)) {
+//                        StampHolder sh = findCanMergeLabTest(stamp);
+//                        
+//                        if (sh!=null) {
+//                            BundleDolphin lab = (BundleDolphin)sh.getStamp().getModel();
+//                            ClaimItem[] items = ((BundleDolphin)stamp.getModel()).getClaimItem();
+//                            sh.addItems(items);
+//                            drop = false;
+//                            textPane.revalidate();
+//                            textPane.repaint();
+//                        }
+//                    }
 //s.oh$
                     
                     if (drop) {
@@ -866,10 +882,20 @@ public class KartePane implements DocumentListener, MouseListener,
                         StampModel theModel = list.get(i);
                         IInfoModel model = (IInfoModel) BeanUtils.xmlDecode(theModel.getStampBytes());
                         if (model != null) {
-                            ModuleModel stamp = new ModuleModel();
-                            stamp.setModel(model);
-                            stamp.setModuleInfoBean(stampInfo);
-                            stamp(stamp);
+//s.oh^ 2014/08/01 パス対応
+                            //ModuleModel stamp = new ModuleModel();
+                            //stamp.setModel(model);
+                            //stamp.setModuleInfoBean(stampInfo);
+                            //stamp(stamp);
+                            if(stampInfo.getEntity().equals(IInfoModel.ENTITY_TEXT)) {
+                                insertTextStamp(model.toString() + "\n");
+                            }else{
+                                ModuleModel stamp = new ModuleModel();
+                                stamp.setModel(model);
+                                stamp.setModuleInfoBean(stampInfo);
+                                stamp(stamp);
+                            }
+//s.oh$
                         }
                     }
                 }
@@ -1507,56 +1533,122 @@ public class KartePane implements DocumentListener, MouseListener,
     }
     
     /**
-     * カルテの画像連携
+     * Xronos連携(D&D画像連携)
      * @param file 
      */
-    public void importImage(final ImageEntry spec, final String sop, final String ext) {
+//    public void importImage(final ImageEntry spec, final String sop, final String ext) {
+//        if(getTextPane() == null || !getTextPane().isEditable()) return;
+//
+//        if (spec==null) {
+//            throw new RuntimeException("importImage: 無効な引数");
+//        } 
+//        
+//        SwingWorker task = new SwingWorker<BufferedImage, Void>() {
+//
+//            @Override
+//            protected BufferedImage doInBackground() throws Exception {
+//                
+//                BufferedImage importImage = null;
+//                        
+//                // ThumbnailへのURLからFile オブジェクトを生成する
+//                URL url = new URL(spec.getUrl());
+//                File file = new File(url.toURI());
+//
+//                // ImageReaderを取得する
+//                Iterator readers = ImageIO.getImageReadersBySuffix(ext);
+//                if (!readers.hasNext()) {
+//                    showNoReaderMessage();
+//                    file.delete();
+//                    return null;
+//                }
+//                ImageReader reader = (ImageReader)readers.next();
+//
+//                FileImageInputStream fin = new FileImageInputStream(file);
+//                try {
+//                    spec.setFileName(file.getName());
+//                    spec.setNumImages(1);
+//                    reader.setInput(fin, true);
+//                    
+//                    // 幅と高さを読む
+//                    spec.setWidth(reader.getWidth(0));
+//                    spec.setHeight(reader.getHeight(0));
+//                    
+//                    // BufferedImageを生成する
+//                    importImage = reader.read(0);
+//                    
+//                    // Close & delete
+//                    fin.close();
+//                    file.delete();
+//                    
+//                } catch (Exception e) {
+//                    logger.warn(e.getMessage());
+//                }
+//
+//                return importImage;
+//            }
+//            
+//            @Override
+//            public void done() {
+//                try {
+//                    BufferedImage importImage = get();
+//                    
+//                    if (importImage!=null) {
+//                        
+//                        if(importImage.getHeight() > 512 || importImage.getWidth() > 512) {
+//                            BufferedImage tmpImage = createAdjustAndCompositeImage(importImage, new Dimension(512, 512));
+//                        }
+//
+//                        ImageIcon icon = new ImageIcon(importImage);
+//                        SchemaModel schema = new SchemaModel();
+//                        schema.setIcon(icon);
+//
+//                        // IInfoModel として ExtRef を保持している
+//                        ExtRefModel ref = new ExtRefModel();
+//                        schema.setExtRefModel(ref);
+//
+//                        ref.setContentType(MEDIA_TYPE_IMAGE_JPEG);   // MIME
+//                        ref.setTitle(DEFAULT_IMAGE_TITLE);           //
+//                        ref.setUrl(spec.getUrl());                   // 元画像のURL
+//                        ref.setMedicalRole("");                      // medicalRole=modality
+//                        ref.setSop(sop);                             // SOP
+//                        ref.setExtension(ext);                       // extension
+//
+//                        // href=docID-stampId.jpg
+//                        stampId++;
+//                        StringBuilder sb = new StringBuilder();
+//                        sb.append(getDocId());
+//                        sb.append("-");
+//                        sb.append(stampId);
+//                        sb.append(JPEG_EXT);
+//                        String fileName = sb.toString();
+//                        schema.setFileName(fileName);       // href
+//                        ref.setHref(fileName);              // href
+//                        
+//                        stampSchema(schema);
+//                    }
+//                } catch (InterruptedException ex) {
+//                    ex.printStackTrace(System.err);
+//                } catch (ExecutionException ex) {
+//                    ex.printStackTrace(System.err);
+//                }
+//            }
+//        };
+//        
+//        task.execute();
+//}
+    public void importImage(final byte[] img, final String sop, final String ext) {
         if(getTextPane() == null || !getTextPane().isEditable()) return;
 
-        if (spec==null) {
+        if (img==null) {
             throw new RuntimeException("importImage: 無効な引数");
-        }
+        } 
         
         SwingWorker task = new SwingWorker<BufferedImage, Void>() {
 
             @Override
             protected BufferedImage doInBackground() throws Exception {
                 
-                BufferedImage importImage = null;
-                        
-                // ThumbnailへのURLからFile オブジェクトを生成する
-                URL url = new URL(spec.getUrl());
-                File file = new File(url.toURI());
-
-                // ImageReaderを取得する
-                Iterator readers = ImageIO.getImageReadersBySuffix(ext);
-                if (!readers.hasNext()) {
-                    showNoReaderMessage();
-                    file.delete();
-                    return null;
-                }
-                ImageReader reader = (ImageReader)readers.next();
-
-                FileImageInputStream fin = new FileImageInputStream(file);
-                try {
-                    spec.setFileName(file.getName());
-                    spec.setNumImages(1);
-                    reader.setInput(fin, true);
-                    
-                    // 幅と高さを読む
-                    spec.setWidth(reader.getWidth(0));
-                    spec.setHeight(reader.getHeight(0));
-                    
-                    // BufferedImageを生成する
-                    importImage = reader.read(0);
-                    
-                    // Close & delete
-                    fin.close();
-                    file.delete();
-                    
-                } catch (Exception e) {
-                    logger.warn(e.getMessage());
-                }
+                BufferedImage importImage = ImageIO.read(new ByteArrayInputStream(img));
 
                 return importImage;
             }
@@ -1569,7 +1661,7 @@ public class KartePane implements DocumentListener, MouseListener,
                     if (importImage!=null) {
                         
                         if(importImage.getHeight() > 512 || importImage.getWidth() > 512) {
-                            BufferedImage tmpImage = createAdjustAndCompositeImage(importImage, new Dimension(512, 512));
+                            importImage = createAdjustAndCompositeImage(importImage, new Dimension(512, 512));
                         }
 
                         ImageIcon icon = new ImageIcon(importImage);
@@ -1580,9 +1672,9 @@ public class KartePane implements DocumentListener, MouseListener,
                         ExtRefModel ref = new ExtRefModel();
                         schema.setExtRefModel(ref);
 
-                        ref.setContentType(MEDIA_TYPE_IMAGE_JPEG);   // MIME
-                        ref.setTitle(DEFAULT_IMAGE_TITLE);           //
-                        ref.setUrl(spec.getUrl());                   // 元画像のURL
+                        ref.setContentType(MEDIA_TYPE_IMAGE_PNG);    // MIME
+                        ref.setTitle(XRONOS_IMAGE_TITLE);           //
+                        ref.setUrl(sop);                             // 元画像のURL
                         ref.setMedicalRole("");                      // medicalRole=modality
                         ref.setSop(sop);                             // SOP
                         ref.setExtension(ext);                       // extension
@@ -1593,7 +1685,7 @@ public class KartePane implements DocumentListener, MouseListener,
                         sb.append(getDocId());
                         sb.append("-");
                         sb.append(stampId);
-                        sb.append(JPEG_EXT);
+                        sb.append(PNG_EXT);
                         String fileName = sb.toString();
                         schema.setFileName(fileName);       // href
                         ref.setHref(fileName);              // href
@@ -1612,7 +1704,7 @@ public class KartePane implements DocumentListener, MouseListener,
     }
 
     /**
-     * カルテの画像連携
+     * Xronos連携
      * @param image
      * @param dim
      * @return 
@@ -1660,7 +1752,7 @@ public class KartePane implements DocumentListener, MouseListener,
     }
     
     /**
-     * カルテの画像連携
+     * Xronos連携
      * @param srcImage
      * @param dstWidth
      * @param dstHeight
@@ -1920,7 +2012,28 @@ public class KartePane implements DocumentListener, MouseListener,
         this.setDirty(true);
         this.getTextPane().validate();
         this.getTextPane().repaint();
+//s.oh^ 2014/10/06 処方日数変更修正
+        if(mergeAllRpHolder()) {
+            this.getTextPane().validate();
+            this.getTextPane().repaint();
+        }
+//s.oh$
     }
+//s.oh^ 2014/10/06 処方日数変更修正
+    private boolean mergeAllRpHolder() {
+        List<StampHolder> list = getStamps(IInfoModel.ENTITY_MED_ORDER);
+        for(StampHolder tmp : list) {
+            StampHolder sh = findCanMergeRpHolder(tmp);
+            if(sh != null) {
+                tmp.addItems(((BundleMed)sh.getStamp().getModel()).getClaimItem());
+                removeStamp(sh, false);
+                mergeAllRpHolder();
+                return true;
+            }
+        }
+        return false;
+    }
+//s.oh$
 //minagawa^ LSC Test
 //    private List<StampHolder> getRPStamps() {
 //        KarteStyledDocument doc = getDocument();
@@ -1978,8 +2091,22 @@ public class KartePane implements DocumentListener, MouseListener,
         if ((!getTextPane().isEditable())) {
             return false;
         }
-        List<StampHolder> list = getStamps(IInfoModel.ENTITY_LABO_TEST);
-        return (!list.isEmpty());
+//s.oh^ 2014/10/07 検体検査オーダー条件変更
+        //List<StampHolder> list = getStamps(IInfoModel.ENTITY_LABO_TEST);
+        //return (!list.isEmpty());
+        KarteStyledDocument doc = getDocument();
+        List<ModuleModel> list = getDocument().getStamps();
+        if(list != null) {
+            for(ModuleModel mm : list) {
+                if(mm.getModel() instanceof BundleDolphin) {
+                    if(((BundleDolphin)mm.getModel()).getOrderName() != null && ((BundleDolphin)mm.getModel()).getOrderName().startsWith("検体検査")) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+//s.oh$
     }
 
     private List<StampHolder> getStamps(String entity) {
@@ -2166,10 +2293,12 @@ public class KartePane implements DocumentListener, MouseListener,
             for (StampHolder sh : rps) {
                 
                 BundleDolphin lab = (BundleDolphin)sh.getStamp().getModel();
+                if(targetLab.getBundleNumber() != null && lab.getBundleNumber() != null && targetLab.getBundleNumber().equals(lab.getBundleNumber())) {
                 //if (lab.canMerge(targetMed)) {
                     found = sh;
                     break;
                 //}
+                }
             }
         }
         
@@ -2198,10 +2327,12 @@ public class KartePane implements DocumentListener, MouseListener,
                 }
                 
                 BundleDolphin lab = (BundleDolphin)sh.getStamp().getModel();
+                if(targetLab.getBundleNumber() != null && lab.getBundleNumber() != null && targetLab.getBundleNumber().equals(lab.getBundleNumber())) {
                 //if (lab.canMerge(targetMed)) {
                     found = sh;
                     break;
                 //}
+                }
             }
         }
         

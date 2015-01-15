@@ -126,6 +126,13 @@ public class LabTestRowObject implements Serializable, Comparable {
             sb.append("(");
             sb.append(getUnit());
             sb.append(")");
+//s.oh^ 2014/06/16 基準値の表示
+            if(getNormalValue() != null && getNormalValue().length() > 0) {
+                sb.append(" [");
+                sb.append(getNormalValue());
+                sb.append("]");
+            }
+//s.oh$
         }
         return sb.toString();
     }

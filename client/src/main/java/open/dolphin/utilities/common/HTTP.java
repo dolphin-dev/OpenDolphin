@@ -200,4 +200,14 @@ public class HTTP extends AbstractCommonFunc {
     protected String getCharset() {
         return charset;
     }
+    
+    /**
+     * HTTP切断
+     */
+    protected void disconnectHttp() {
+        if(http != null) {
+            http.disconnect();
+            http = null;
+        }
+    }
 }

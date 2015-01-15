@@ -501,4 +501,34 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         int cnt = Integer.parseInt(entityStr);
         return cnt;
     }
+    
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+    @Override
+    public ArrayList<String> getDeptInfo() throws Exception {
+        ArrayList<String> list = new ArrayList<>(0);
+        
+        // PATH
+        String path = "/orca/deptinfo";
+        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
+        // GET
+        ClientRequest request = getRequest(path);
+        request.accept(MediaType.TEXT_PLAIN);
+        ClientResponse<String> response = request.get(String.class);
+        
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.TEXT_PLAIN);
+        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
+        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        
+        String[] tmps = getString(response).split(",");
+        for(String tmp : tmps) {
+            if(tmp.trim().length() > 0) {
+                list.add(tmp);
+            }
+        }
+        
+        return list;
+    }
+//s.oh$
 }

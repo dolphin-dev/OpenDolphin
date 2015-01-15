@@ -6,7 +6,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -100,10 +105,22 @@ public class LoginDialog extends AbstractLoginDialog {
                         // ユーザモデルを ProjectStub へ保存する
                         //----------------------------------
                         Project.getProjectStub().setUserModel(userModel);
+//s.oh^ 2014/07/08 クラウド0対応
+                        if(!checkCloudZero()) {
+                            Project.getProjectStub().setUserModel(null);
+                            loginFlag = false;
+                            return;
+                        }
+//s.oh$
                         Project.getProjectStub().setFacilityId(userModel.getFacilityModel().getFacilityId());
                         Project.getProjectStub().setUserId(userModel.idAsLocal());  // facilityId無し
 
                         setResult(LoginStatus.AUTHENTICATED);
+                        
+//s.oh^ 2014/03/13 傷病名削除診療科対応
+                        getOrcaDeptInfo();
+//s.oh$
+                        
                     }
                      
                 } else {
@@ -116,6 +133,25 @@ public class LoginDialog extends AbstractLoginDialog {
                     }
                     loginFlag = false;
                 }
+//                Enumeration<NetworkInterface> nics;
+//                try {
+//                    nics = NetworkInterface.getNetworkInterfaces();
+//                    while(nics.hasMoreElements()) {
+//                        NetworkInterface ni = nics.nextElement();
+//                        System.out.println("Name : " + ni.getName());
+//                        System.out.println("Display name : " + ni.getDisplayName());
+//                        byte[] addr = ni.getHardwareAddress();
+//                        StringBuilder sb = new StringBuilder();
+//                        if(addr != null) {
+//                            for(byte b : addr) {
+//                                sb.append(String.format("%02X ", b));
+//                            }
+//                        }
+//                        System.out.println("Hardware address : " + sb.toString());
+//                    }
+//                } catch (SocketException ex) {
+//                    Logger.getLogger(LoginDialog.class.getName()).log(Level.SEVERE, null, ex);
+//                }
             }
             
             @Override
@@ -127,7 +163,7 @@ public class LoginDialog extends AbstractLoginDialog {
                 if (tryCount <= maxTryCount) {
                     //showMessageDialog(cause.getMessage());
                     showMessageDialog("ログイン情報が間違っています");
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "ログイン情報が間違っています");
+                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "ログイン情報が間違っています", cause.getMessage());
 
                 } else {
                     showTryOutError();

@@ -42,8 +42,11 @@ public class StampSettingPanel extends AbstractSettingPanel {
     private JCheckBox showStampNameOnKarte;
 //minagawa$    
 //s.oh^ 2014/01/27 同じ検体検査をまとめる
-    private JCheckBox mergeWithLabTest;
+//    private JCheckBox mergeWithLabTest;
 //s.oh$
+////s.oh^ 2014/09/30 スタンプの色変更
+//    private JCheckBox changeStampColorChk;
+////s.h$
     
     private StampModel model;
     private boolean ok = true;
@@ -109,8 +112,11 @@ public class StampSettingPanel extends AbstractSettingPanel {
         showStampNameOnKarte = new JCheckBox("カルテ展開時にスタンプ名を表示する");
 //minagawa$        
 //s.oh^ 2014/01/27 同じ検体検査をまとめる
-        mergeWithLabTest = new JCheckBox("同じ検体検査をまとめる");
+//        mergeWithLabTest = new JCheckBox("検体検査を剤にまとめる");
 //s.oh$
+////s.oh^ 2014/09/30 スタンプの色変更
+//        changeStampColorChk = new JCheckBox("カラーリング");
+////s.h$
         
         // Button Group
         ButtonGroup bg = new ButtonGroup();
@@ -165,6 +171,8 @@ public class StampSettingPanel extends AbstractSettingPanel {
         gbb.add(label, 0, row, 1, 1, GridBagConstraints.EAST);
         gbb.add(createUnitFieldPanel(defaultRpNum, "日/回"), 1, row, 1, 1, GridBagConstraints.WEST);
         stampPanel.add(gbb.getProduct());
+//s.oh^ 2014/06/19 薬剤の単位対応
+//s.oh$
         
         // 同じ用法の処方をまとめる
         gbb = new GridBagBuilder("処方");
@@ -189,11 +197,22 @@ public class StampSettingPanel extends AbstractSettingPanel {
         stampPanel.add(gbb.getProduct());
         
 //s.oh^ 2014/01/27 同じ検体検査をまとめる
-        gbb = new GridBagBuilder("検体検査");
-        row = 0;
-        gbb.add(mergeWithLabTest, 0, row, 1, 1, GridBagConstraints.WEST);
-        stampPanel.add(gbb.getProduct());
+//        gbb = new GridBagBuilder("検体検査");
+//        row = 0;
+//        gbb.add(mergeWithLabTest, 0, row, 1, 1, GridBagConstraints.WEST);
+//        stampPanel.add(gbb.getProduct());
 //s.oh$
+        
+////s.oh^ 2014/09/30 スタンプの色変更
+//        panel = new JPanel();
+//        panel.add(gbb.getProduct());
+//        panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+//        gbb = new GridBagBuilder("スタンプタイトル");
+//        row = 0;
+//        gbb.add(changeStampColorChk, 0, row, 1, 1, GridBagConstraints.WEST);
+//        panel.add(gbb.getProduct());
+//        stampPanel.add(panel);
+////s.h$
 
         getUI().setLayout(new BorderLayout());
 //s.oh^ 機能改善
@@ -254,8 +273,11 @@ public class StampSettingPanel extends AbstractSettingPanel {
         showStampNameOnKarte.setSelected(model.isShowStampName());
 //minagawa$        
 //s.oh^ 2014/01/27 同じ検体検査をまとめる
-        mergeWithLabTest.setSelected(model.isMergeWithLabTest());
+//        mergeWithLabTest.setSelected(model.isMergeWithLabTest());
 //s.oh$
+////s.oh^ 2014/09/30 スタンプの色変更
+//        changeStampColorChk.setSelected(model.isChangeStampColor());
+////s.oh$
         // この設定画面は常に有効状態である
         setState(AbstractSettingPanel.State.VALID_STATE);
     }
@@ -286,8 +308,11 @@ public class StampSettingPanel extends AbstractSettingPanel {
         model.setShowStampName(showStampNameOnKarte.isSelected());
 //minagawa$        
 //s.oh^ 2014/01/27 同じ検体検査をまとめる
-        model.setMergeWithLabTest(mergeWithLabTest.isSelected());
+//        model.setMergeWithLabTest(mergeWithLabTest.isSelected());
 //s.oh$
+////s.oh^ 2014/09/30 スタンプの色変更
+//        model.setChangeStampColor(changeStampColorChk.isSelected());
+////s.oh$
     }
 
     /**
@@ -311,8 +336,11 @@ public class StampSettingPanel extends AbstractSettingPanel {
         private boolean showStampName;
 //minagawa$        
 //s.oh^ 2014/01/27 同じ検体検査をまとめる
-        private boolean mergeWithLabTest;
+//        private boolean mergeWithLabTest;
 //s.oh$
+////s.oh^ 2014/09/30 スタンプの色変更
+//        private boolean changeStampColor;
+////s.oh$
 
         /**
          * ProjectStub から populate する。
@@ -361,8 +389,12 @@ public class StampSettingPanel extends AbstractSettingPanel {
 //minagawa$
             
 //s.oh^ 2014/01/27 同じ検体検査をまとめる
-            setMergeWithLabTest(Project.getBoolean(Project.KARTE_MERGE_WITH_LABTEST));
+//            setMergeWithLabTest(Project.getBoolean(Project.KARTE_MERGE_WITH_LABTEST));
 //s.oh&
+            
+////s.oh^ 2014/09/30 スタンプの色変更
+//            setChangeStampColor(Project.getBoolean(Project.CHANGE_STAMP_COLOR));
+////s.oh$
         }
 
         /**
@@ -415,8 +447,12 @@ public class StampSettingPanel extends AbstractSettingPanel {
 //minagawa$            
             
 //s.oh^ 2014/01/27 同じ検体検査をまとめる
-            Project.setBoolean(Project.KARTE_MERGE_WITH_LABTEST, isMergeWithLabTest());
+//            Project.setBoolean(Project.KARTE_MERGE_WITH_LABTEST, isMergeWithLabTest());
 //s.oh$
+            
+////s.oh^ 2014/09/30 スタンプの色変更
+//            Project.setBoolean(Project.CHANGE_STAMP_COLOR, isChangeStampColor());
+////s.oh$
         }
 
         public boolean isReplaceStamp() {
@@ -516,14 +552,24 @@ public class StampSettingPanel extends AbstractSettingPanel {
 //minagawa$        
         
 //s.oh^ 2014/01/27 同じ検体検査をまとめる
-        public boolean isMergeWithLabTest() {
-            return mergeWithLabTest;
-        }
-        
-        public void setMergeWithLabTest(boolean b) {
-            mergeWithLabTest = b;
-        }
+//        public boolean isMergeWithLabTest() {
+//            return mergeWithLabTest;
+//        }
+//        
+//        public void setMergeWithLabTest(boolean b) {
+//            mergeWithLabTest = b;
+//        }
 //s.oh$
+        
+////s.oh^ 2014/09/30 スタンプの色変更
+//        public boolean isChangeStampColor() {
+//            return changeStampColor;
+//        }
+//        
+//        public void setChangeStampColor(boolean changeStampColor) {
+//            this.changeStampColor = changeStampColor;
+//        }
+////s.oh$
     }
 
     private JPanel createUnitFieldPanel(JTextField tf, String unit) {
