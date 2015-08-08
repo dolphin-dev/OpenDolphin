@@ -36,6 +36,6 @@ mvn install:install-file -Dfile=/path/to/AppleJavaExtensions.jar -DgroupId=com.a
  * mvn clean  
  * mvn package  
 
-#### ５．Docker Image
-dolphin-dev リポジトリに Docker コンテナイメージ（docke-images）も置いています。[この手順](https://github.com/dolphin-dev/docker-images)
+#### ５．Docker Image  
+dolphin-dev リポジトリに Docker コンテナイメージ（docke-images）も置いています。[この手順](https://github.com/dolphin-dev/docker-images)
 に従うと最も簡単にOpenDolphinサーバーを構築することができます。
