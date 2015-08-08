@@ -1,9 +1,7 @@
 package open.dolphin.delegater;
 
-import java.io.BufferedReader;
 import java.util.Collection;
 import java.util.List;
-import javax.ws.rs.core.MediaType;
 import open.dolphin.converter.PatientModelConverter;
 import open.dolphin.dto.PatientSearchSpec;
 import open.dolphin.infomodel.HealthInsuranceModel;
@@ -12,10 +10,7 @@ import open.dolphin.infomodel.PatientList;
 import open.dolphin.infomodel.PatientModel;
 import open.dolphin.util.BeanUtils;
 import open.dolphin.util.Log;
-import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.jboss.resteasy.client.ClientRequest;
-import org.jboss.resteasy.client.ClientResponse;
 
 /**
  * 患者関連の Business Delegater　クラス。
@@ -38,62 +33,19 @@ public final class  PatientDelegater extends BusinessDelegater {
 //s.oh$
     
     /**
-     * 患者を追加する。
-     * @param patient 追加する患者
-     * @return PK
-     */
-    public long addPatient(PatientModel patient) throws Exception {
-        
-        // Converter
-        PatientModelConverter conv = new PatientModelConverter();
-        conv.setModel(patient);
-        
-        // JSON
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String json = mapper.writeValueAsString(conv);
-        byte[] data = json.getBytes(UTF8);
-        
-        // POST
-        ClientRequest request = getRequest(BASE_RESOURCE);
-        request.body(MediaType.APPLICATION_JSON, data);
-        ClientResponse<String> response = request.post(String.class);
-        
-        // PK
-        String entityStr = getString(response);
-        long pk = Long.parseLong(entityStr);
-        return pk;
-    }
-    
-    /**
      * 患者を検索する。
      * @param pid 患者ID
      * @return PatientModel
+     * @throws java.lang.Exception
      */
     public PatientModel getPatientById(String pid) throws Exception {
         
         // PATH
         String path = ID_RESOURCE;
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
-        // GET
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.get(String.class);
         
-        // PatientModel
-        BufferedReader br = getReader(response);
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        PatientModel patient = mapper.readValue(br, PatientModel.class);
-        br.close();
-
-        //20130225
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        // GET
+        PatientModel patient = getEasyJson(path, PatientModel.class);
+        
         return patient;
     }
     
@@ -101,6 +53,7 @@ public final class  PatientDelegater extends BusinessDelegater {
      * 患者を検索する。
      * @param spec PatientSearchSpec 検索仕様
      * @return PatientModel の Collection
+     * @throws java.lang.Exception
      */
     public Collection getPatients(PatientSearchSpec spec) throws Exception {
 
@@ -130,26 +83,9 @@ public final class  PatientDelegater extends BusinessDelegater {
         }
 
         String path = sb.toString();
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.get(String.class);
-        
-        //20130225
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        // Wrapper
-        BufferedReader br = getReader(response);
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        PatientList list = mapper.readValue(br, PatientList.class);
-        br.close();
+        PatientList list = getEasyJson(path, PatientList.class);
         
         // Decode
         if (list != null && list.getList()!=null) {
@@ -168,37 +104,25 @@ public final class  PatientDelegater extends BusinessDelegater {
      * 患者を更新する。
      * @param patient 更新する患者
      * @return 更新数
+     * @throws java.lang.Exception
      */
     public int updatePatient(PatientModel patient) throws Exception {
         
         // PATH
         String path = BASE_RESOURCE;
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Converter
         PatientModelConverter conv = new PatientModelConverter();
         conv.setModel(patient);
-        
+
         // JSON
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String json = mapper.writeValueAsString(conv);
-        byte[] data = json.getBytes(UTF8);
+        ObjectMapper mapper = this.getSerializeMapper();
+        byte[] data = mapper.writeValueAsBytes(conv);
         
         // PUT
-        ClientRequest request = getRequest(path);
-        request.body(MediaType.APPLICATION_JSON, data);
-        ClientResponse<String> response = request.put(String.class);
-        
-        //20130225
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        String entityStr = putEasyJson(path, data, String.class);
         
         // Count
-        String entityStr = getString(response);
         return  Integer.parseInt(entityStr);
     }
     
@@ -207,19 +131,9 @@ public final class  PatientDelegater extends BusinessDelegater {
      
         // PATH
         String path = TMP_KARTE_RESOURCE;
-        
+
         // GET
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.get(String.class);
-        
-        // Wrapper
-        BufferedReader br = getReader(response);
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        PatientList list = mapper.readValue(br, PatientList.class);
-        br.close();
+        PatientList list = getEasyJson(path, PatientList.class);
         
         // Decode
         if (list != null && list.getList()!=null) {
@@ -266,19 +180,11 @@ public final class  PatientDelegater extends BusinessDelegater {
      
         // PATH
         String path = ALL_PATIENTS_RESOURCE;
-        
+
         // GET
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.get(String.class);
+        PatientList list = getEasyJson(path, PatientList.class);
         
-        // Wrapper
-        BufferedReader br = getReader(response);
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        PatientList list = mapper.readValue(br, PatientList.class);
-        br.close();
-        
+        // List
         return list.getList();
     }
 //s.oh$
@@ -288,19 +194,9 @@ public final class  PatientDelegater extends BusinessDelegater {
      
         // PATH
         String path = BASE_RESOURCE + "custom/" + val;
-        
+
         // GET
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.get(String.class);
-        
-        // Wrapper
-        BufferedReader br = getReader(response);
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        PatientList list = mapper.readValue(br, PatientList.class);
-        br.close();
+        PatientList list = getEasyJson(path, PatientList.class);
         
         // Decode
         if (list != null && list.getList()!=null) {

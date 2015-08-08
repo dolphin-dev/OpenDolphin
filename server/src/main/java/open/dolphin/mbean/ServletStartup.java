@@ -1,9 +1,5 @@
 package open.dolphin.mbean;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Properties;
@@ -18,6 +14,7 @@ import javax.ejb.Timeout;
 import javax.inject.Inject;
 import open.dolphin.session.ChartEventServiceBean;
 import open.dolphin.session.SystemServiceBean;
+import open.orca.rest.ORCAConnection;
 //import open.dolphin.updater.Updater;
 
 /**
@@ -75,22 +72,25 @@ private static final Logger logger = Logger.getLogger(ServletStartup.class.getSi
     //@Schedule(hour="15", minute="0", persistent=false)
     public void sendMonthlyActivities() {
         Logger.getLogger("open.dolphin").info("Send monthly Activities.");
-        
-        Properties config = new Properties();
-        StringBuilder sb = new StringBuilder();
-        sb.append(System.getProperty("jboss.home.dir"));
-        sb.append(File.separator);
-        sb.append("custom.properties");
-        File f = new File(sb.toString());
-        try {
-            FileInputStream fin = new FileInputStream(f);
-            InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect");
-            config.load(r);
-            r.close();
-        } catch (IOException ex) {
-            ex.printStackTrace(System.err);
-            throw new RuntimeException(ex.getMessage());
-        }
+     
+//minagawa^ custom.properties          
+//        Properties config = new Properties();
+//        StringBuilder sb = new StringBuilder();
+//        sb.append(System.getProperty("jboss.home.dir"));
+//        sb.append(File.separator);
+//        sb.append("custom.properties");
+//        File f = new File(sb.toString());
+//        try {
+//            FileInputStream fin = new FileInputStream(f);
+//            InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect");
+//            config.load(r);
+//            r.close();
+//        } catch (IOException ex) {
+//            ex.printStackTrace(System.err);
+//            throw new RuntimeException(ex.getMessage());
+//        }
+        Properties config = ORCAConnection.getInstance().getProperties();
+//minagawa$        
         String zero = config.getProperty("cloud.zero");
         if(zero != null && zero.equals("true")) {
             // 先月の月と年

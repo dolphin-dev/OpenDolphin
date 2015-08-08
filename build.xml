@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="project" default="all" basedir="/Users/oh/Develop/Dolphin/Develop/OpenDolphinPro">
+    
+    <property name="modulesDir" location="${basedir}/modules"/>
+    <property name="jarDir" location="${modulesDir}/jar"/>
+    <property name="jnlpDir" location="${modulesDir}/dolphin"/>
+    <property name="objDir" location="${basedir}/OpenDolphin/client/target"/>
+    <property name="warDir" location="${basedir}/OpenDolphin/server/target"/>
+
+    <!-- Create APP -->
+    <!-- Import environment variables -->
+    <property environment="env"/>
+    <!-- <property name="dir.jars" location="${modulesDir}/jars"/> -->
+    <!-- <property name="dir.output" location="${modulesDir}/bundle-app-pro"/> -->
+    <!-- compiled target: maven jar target -->
+    <!-- <property name="dir.obj" location="${basedir}/OpenDolphin/client/target"/> -->
+    <property name="common" value="opendolphin-common-2.5.12.jar"/>
+    <property name="server" value="opendolphin-server-2.5.12.war"/>
+    <property name="dolphin" value="OpenDolphin.jar"/>
+    <property name="dolphinpro" value="OpenDolphinPro.jar"/>
+    <property name="icns" value="${modulesDir}/icons/op.icns"/>
+    <!-- Define the appbundler task -->
+    <taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"/>
+    
+    <target name="clean">
+        <delete dir="${jarDir}/open"/>
+        <delete dir="${jarDir}/META-INF/plugins"/>
+    </target>
+    
+    <target name="copy">
+        <copy file="${objDir}/${dolphin}" tofile="${jarDir}/${dolphin}"/>
+        <copy file="${objDir}/lib/${common}" tofile="${jarDir}/${common}"/>
+        <copy file="${warDir}/${server}" tofile="${jnlpDir}/${server}"/>
+    </target>
+    
+    <target name="unjar">
+        <unjar src="${jarDir}/${common}" dest="${jarDir}"/>
+        <unjar src="${jarDir}/OpenDolphin.jar" dest="${jarDir}"/>
+    </target>
+    
+    <target name="clean2">
+        <delete file="${jarDir}/${common}"/>
+        <delete file="${jarDir}/OpenDolphin.jar"/>
+        <delete file="${jarDir}/META-INF/MANIFEST.MF"/>
+        <delete file="${jarDir}/META-INF/jboss.xml"/>
+        <delete file="${jarDir}/META-INF/persistence.xml"/>
+        <delete dir="${jarDir}/META-INF/maven"/>
+    </target>
+    
+    <target name="jar">
+        <jar destfile="${jarDir}/OpenDolphin.jar" basedir="${jarDir}">
+            <manifest>
+                <attribute name="Main-Class" value="open.dolphin.client.Dolphin"/>
+                <attribute name="Permissions" value="all-permissions"/>
+            </manifest>
+        </jar>
+    </target>
+  
+    <target name="sign">
+        <signjar jar="${jarDir}/OpenDolphin.jar"
+               tsaurl="http://timestamp.digicert.com" 
+               keystore="/Users/oh/Develop/Dolphin/Develop/digiCert/openDolphin-2014-life/OpenDolphin.jks" 
+               storepass="silk825"
+               alias="server"/>
+    </target>
+  
+    <target name="move">
+        <move file="${jarDir}/${dolphin}" tofile="${jnlpDir}/${dolphin}"/>
+    </target>
+  
+    <target name="copy2">
+        <copy file="${jnlpDir}/${dolphin}" tofile="${jnlpDir}/${dolphinpro}"/>
+    </target>
+  
+    <target name="all" depends="clean,copy,unjar,clean2,jar,sign,move,copy2">
+        <echo message="Creating..." />
+        <bundleapp outputdirectory="${modulesDir}/dolphin"
+            name="OpenDolphinPro"
+            displayname="OpenDolphinPro-1.5.12"
+            identifier="jp.co.lscc.openDolphin"
+            shortversion="1.5.12"
+            icon="${icns}"
+            applicationCategory="public.app-category.medical"
+            mainclassname="open/dolphin/client/Dolphin">
+            <runtime dir="${env.JAVA_HOME}"/>
+            <classpath file="${modulesDir}/dolphin/${dolphinpro}"/>
+            <option value="-Dapple.laf.useScreenMenuBar=true"/>
+            <option value="-Dcom.apple.macos.smallTabs=true"/>
+            <option value="-Dfile.encoding=UTF8"/>
+            <option value="-Xms512m"/>
+            <option value="-Xmx1024m"/>
+            <argument value="pro"/>
+        </bundleapp>
+    </target>
+  
+</project>

@@ -24,7 +24,7 @@ public final class ProjectStub implements java.io.Serializable {
     // デフォルトのプロジェクト名
     private final String DEFAULT_PROJECT_NAME = "OpenDolphin";
     
-    // OpenDolphin
+    // OpenDolphin ASP Service の Server URI
     private final String OPEN_DOLPHIN_URI = "http://localhost:8080";
     
 //minagawa^  Self Cert Test

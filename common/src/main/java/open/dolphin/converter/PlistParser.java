@@ -456,6 +456,24 @@ public final class PlistParser {
         return ret;
     }
 
+//    public static byte[] base64Encode(byte[] value) throws IOException, MessagingException {
+//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//        OutputStream b64os = MimeUtility.encode(baos, BASE64);
+//        b64os.write(value);
+//        b64os.close();
+//        return baos.toByteArray();
+//    }
+//
+//    public static byte[] base64Decode(byte[] value) throws IOException, MessagingException {
+//        ByteArrayInputStream bais = new ByteArrayInputStream(value);
+//        InputStream b64is = MimeUtility.decode(bais, BASE64);
+//        byte[] tmp = new byte[value.length];
+//        int n = b64is.read(tmp);
+//        byte[] res = new byte[n];
+//        System.arraycopy(tmp, 0, res, 0, n);
+//        return res;
+//    }
+    
     public static byte[] base64Encode(byte[] value) throws IOException, MessagingException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         OutputStream b64os = MimeUtility.encode(baos, BASE64);

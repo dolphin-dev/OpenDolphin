@@ -1,17 +1,14 @@
 package open.dolphin.delegater;
 
-import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
 import open.dolphin.converter.*;
 import open.dolphin.infomodel.*;
-import open.dolphin.util.Log;
-import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.jboss.resteasy.client.ClientRequest;
-import org.jboss.resteasy.client.ClientResponse;
+import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
 /**
  * Stamp関連の Delegater クラス。
@@ -25,8 +22,7 @@ public final class StampDelegater extends BusinessDelegater {
     static {
         instance = new StampDelegater();
     }
-
-    //private static final String RES_STAMP       = "/stamp";
+    
     private static final String RES_STAMP_TREE  = "/stamp/tree";
     private static final String RES_TREE_SYNC  = "/stamp/tree/sync";
     private static final String RES_TREE_FORCE_SYNC  = "/stamp/tree/forcesync";
@@ -39,6 +35,7 @@ public final class StampDelegater extends BusinessDelegater {
      * StampTree を保存/更新する。
      * @param model 保存する StampTree
      * @return treeのPK
+     * @throws java.lang.Exception
      */
     public long putTree(IStampTreeModel model) throws Exception {
        
@@ -46,34 +43,17 @@ public final class StampDelegater extends BusinessDelegater {
         model.setTreeBytes(model.getTreeXml().getBytes(UTF8)); // UTF-8 bytes
         StampTreeModelConverter conv = new StampTreeModelConverter();
         conv.setModel(model);
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I","StampTree を保存/更新する。");
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I",model.getTreeXml());
         
         // JSON
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String json = mapper.writeValueAsString(conv);
-        byte[] data = json.getBytes(UTF8);
+        ObjectMapper mapper = this.getSerializeMapper();
+        byte[] data = mapper.writeValueAsBytes(conv);
         
         // PUT
-        ClientRequest request = getRequest(RES_STAMP_TREE);
-        request.body(MediaType.APPLICATION_JSON, data);
-        ClientResponse<String> response = request.put(String.class);
-        
-        checkFirstCommitWin(response);
-        
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        
+        //String entityStr = putEasyJson(RES_STAMP_TREE, data, String.class);
+        String entityStr = putEasyStampTree(RES_STAMP_TREE, data, String.class);
         
         // PK
-        String entityStr = getString(response);
-        long pk = Long.parseLong(entityStr);
-        return pk;
+        return Long.parseLong(entityStr);
     }
     
     /**
@@ -88,28 +68,15 @@ public final class StampDelegater extends BusinessDelegater {
         model.setTreeBytes(model.getTreeXml().getBytes(UTF8)); // UTF-8 bytes
         StampTreeModelConverter conv = new StampTreeModelConverter();
         conv.setModel(model);
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I","現在のuserTreeとDBを同期化する。");
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I",model.getTreeXml());
+        
         // JSON
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String json = mapper.writeValueAsString(conv);
-        byte[] data = json.getBytes(UTF8);
+        ObjectMapper mapper = this.getSerializeMapper();
+        byte[] data = mapper.writeValueAsBytes(conv);
         
         // PUT
-        ClientRequest request = getRequest(RES_TREE_SYNC);
-        request.body(MediaType.APPLICATION_JSON, data);
-        ClientResponse<String> response = request.put(String.class);
+        String  entityStr = putEasyJson(RES_TREE_SYNC, data, String.class);
         
-        checkFirstCommitWin(response);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        // PK,versionNumberの連結
-        String entityStr = getString(response);
+        // What?
         return entityStr;
     }
     
@@ -119,27 +86,15 @@ public final class StampDelegater extends BusinessDelegater {
         model.setTreeBytes(model.getTreeXml().getBytes(UTF8)); // UTF-8 bytes
         StampTreeModelConverter conv = new StampTreeModelConverter();
         conv.setModel(model);
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I","前のuserTreeとDBを同期化する。");
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I",model.getTreeXml());
         
         // JSON
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String json = mapper.writeValueAsString(conv);
-        byte[] data = json.getBytes(UTF8);
+        ObjectMapper mapper = this.getSerializeMapper();
+        byte[] data = mapper.writeValueAsBytes(conv);
         
         // PUT
-        ClientRequest request = getRequest(RES_TREE_FORCE_SYNC);
-        request.body(MediaType.APPLICATION_JSON, data);
-        ClientResponse<String> response = request.put(String.class);
-
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        checkStatus(response);
+        ResteasyWebTarget target = getWebTarget(RES_TREE_FORCE_SYNC);
+        Response response = target.request().put(Entity.json(data));
+        response.close();
     }
 
     public List<IStampTreeModel> getTrees(long userPK) throws Exception {
@@ -148,25 +103,12 @@ public final class StampDelegater extends BusinessDelegater {
         StringBuilder sb = new StringBuilder();
         sb.append(RES_STAMP_TREE).append("/").append(userPK);
         String path = sb.toString();
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
-        // GET
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.get(String.class);
         
-        // Wrapper
-        BufferedReader br = getReader(response);
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        StampTreeHolder h = mapper.readValue(br, StampTreeHolder.class);
-        br.close();
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        // GET
+        StampTreeHolder h = getEasyJson(path, StampTreeHolder.class);
+        
         // return List
-        List<IStampTreeModel> retList = new ArrayList<IStampTreeModel>();
+        List<IStampTreeModel> retList = new ArrayList<>();
         
         // 個人用のtree
         if (h.getPersonalTree()!=null) {
@@ -191,50 +133,12 @@ public final class StampDelegater extends BusinessDelegater {
         return retList;
     }
     
-//    /**
-//     * 個人用のStampTreeを保存し公開する。
-//     * @param model 個人用のStampTreeで公開するもの
-//     * @return id
-//     */
-//    public long saveAndPublishTree(StampTreeModel model, byte[] publishBytes) throws Exception {
-//        
-//        // PATH
-//        StringBuilder sb = new StringBuilder();
-//        sb.append("/stamp/published/tree");
-//        String path = sb.toString();
-//        
-//        // Model
-//        model.setTreeBytes(model.getTreeXml().getBytes(UTF8));
-//        PublishedTreeModel publishedModel = createPublishedTreeModel(model, publishBytes);
-//        
-//        // Holder
-//        StampTreeHolder h = new StampTreeHolder();
-//        h.setPersonalTree(model);
-//        h.addSubscribedTree(publishedModel);
-//        
-//        // Converter
-//        StampTreeHolderConverter conv = new StampTreeHolderConverter();
-//        conv.setModel(h);
-//
-//        // JSON
-//        ObjectMapper mapper = new ObjectMapper();
-//        String json = mapper.writeValueAsString(conv);
-//        byte[] data = json.getBytes(UTF8);
-//        
-//        // POST
-//        ClientRequest request = getRequest(path);
-//        request.body(MediaType.APPLICATION_JSON, data);
-//        ClientResponse<String> response = request.post(String.class);
-//
-//        // PK
-//        String entityStr = getString(response);
-//        return  Long.parseLong(entityStr);
-//    }
-    
     /**
      * 既に保存されている個人用のTreeを公開する。
      * @param model 既に保存されている個人用のTreeで公開するもの
+     * @param publishBytes
      * @return 公開数
+     * @throws java.lang.Exception
      */
     public String publishTree(StampTreeModel model, byte[] publishBytes) throws Exception {
         
@@ -242,7 +146,6 @@ public final class StampDelegater extends BusinessDelegater {
         StringBuilder sb = new StringBuilder();
         sb.append("/stamp/published/tree");
         String path = sb.toString();
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Model
         model.setTreeBytes(model.getTreeXml().getBytes(UTF8));
@@ -258,33 +161,22 @@ public final class StampDelegater extends BusinessDelegater {
         conv.setModel(h);
 
         // JSON
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String json = mapper.writeValueAsString(conv);
-        byte[] data = json.getBytes(UTF8);
+        ObjectMapper mapper = this.getSerializeMapper();
+        byte[] data = mapper.writeValueAsBytes(conv);
         
         // PUT
-        ClientRequest request = getRequest(path);
-        request.body(MediaType.APPLICATION_JSON, data);
-        ClientResponse<String> response = request.put(String.class);
+        String entityStr = putEasyJson(path, data, String.class);
         
-        checkFirstCommitWin(response);
-
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        // Version
-        String entityStr = getString(response);
+        // What?
         return entityStr;
     }
     
     /**
      * 公開されているTreeを更新する。
      * @param model 更新するTree
+     * @param publishBytes
      * @return 更新数
+     * @throws java.lang.Exception
      */
     public String updatePublishedTree(StampTreeModel model, byte[] publishBytes) throws Exception {
         
@@ -292,7 +184,6 @@ public final class StampDelegater extends BusinessDelegater {
         StringBuilder sb = new StringBuilder();
         sb.append("/stamp/published/tree");
         String path = sb.toString();
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Model
         model.setTreeBytes(model.getTreeXml().getBytes(UTF8));
@@ -308,67 +199,41 @@ public final class StampDelegater extends BusinessDelegater {
         conv.setModel(h);
 
         // JSON
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String json = mapper.writeValueAsString(conv);
-        byte[] data = json.getBytes(UTF8);
+        ObjectMapper mapper = this.getSerializeMapper();
+        byte[] data = mapper.writeValueAsBytes(conv);
         
         // PUT
-        ClientRequest request = getRequest(path);
-        request.body(MediaType.APPLICATION_JSON, data);
-        ClientResponse<String> response = request.put(String.class); 
+        String entityStr = putEasyJson(path, data, String.class);
         
-        checkFirstCommitWin(response);
-        
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        
-        // Version
-        String entityStr = getString(response);
+        // What?
         return entityStr;
     }
     
     /**
      * 公開されているTreeを削除する。
-     * @param id 削除するTreeのID
+     * @param model
      * @return 削除数
+     * @throws java.lang.Exception
      */
     public String cancelPublishedTree(StampTreeModel model) throws Exception {
         
         // PATH
         String path = "/stamp/published/cancel";
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
         // Model
         model.setTreeBytes(model.getTreeXml().getBytes(UTF8));
         
         // Converter
         StampTreeModelConverter conv = new StampTreeModelConverter();
         conv.setModel(model);
-        
+
         // JSON
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String json = mapper.writeValueAsString(conv);
-        byte[] data = json.getBytes(UTF8);
+        ObjectMapper mapper = this.getSerializeMapper();
+        byte[] data = mapper.writeValueAsBytes(conv);
         
         // PUT
-        ClientRequest request = getRequest(path);
-        request.body(MediaType.APPLICATION_JSON, data);
-        ClientResponse<String> response = request.put(String.class);
+        String entityStr = putEasyJson(path, data, String.class);
         
-        checkFirstCommitWin(response);
-        
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        // Version
-        String entityStr = getString(response);
         return entityStr;
     }
     
@@ -376,24 +241,10 @@ public final class StampDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/stamp/published/tree";
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.get(String.class);
+        PublishedTreeList result = getEasyJson(path, PublishedTreeList.class);
         
-        // Wrapper
-        BufferedReader br = getReader(response);
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        PublishedTreeList result = mapper.readValue(br, PublishedTreeList.class);
-        br.close();
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
         // List
         return result.getList();
     }
@@ -422,7 +273,6 @@ public final class StampDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/stamp/subscribed/tree";
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Wrapper
         SubscribedTreeList wrapper = new SubscribedTreeList();
@@ -431,28 +281,17 @@ public final class StampDelegater extends BusinessDelegater {
         // Converter
         SubscribedTreeListConverter conv = new SubscribedTreeListConverter();
         conv.setModel(wrapper);
-        
+
         // JSON
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String json = mapper.writeValueAsString(conv);
-        byte[] data = json.getBytes(UTF8);
+        ObjectMapper mapper = this.getSerializeMapper();
+        byte[] data = mapper.writeValueAsBytes(conv);
         
         // PUT
-        ClientRequest request = getRequest(path);
-        request.body(MediaType.APPLICATION_JSON, data);
-        ClientResponse<String> response = request.put(String.class); 
-        
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        // PK list
-        String entityStr = getString(response);
+        String entityStr = putEasyJson(path, data, String.class);
+
+        // PK List
         String[] pks = entityStr.split(",");
-        List<Long> ret = new ArrayList<Long>(pks.length);
+        List<Long> ret = new ArrayList<>(pks.length);
         for (String str : pks) {
             ret.add(Long.parseLong(str));
         }
@@ -472,20 +311,9 @@ public final class StampDelegater extends BusinessDelegater {
         }
         String path = sb.toString();
         path = path.substring(0, path.length()-1);
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // DELETE
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.delete(String.class);
-        
-        // Check
-        checkStatus(response);
-        
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        deleteEasy(path);
         
         // Count
         return 1;
@@ -495,14 +323,14 @@ public final class StampDelegater extends BusinessDelegater {
 
     /**
      * Stampを保存する。
-     * @param model StampModel
+     * @param list
      * @return 保存件数
+     * @throws java.lang.Exception
      */
     public List<String> putStamp(List<StampModel> list) throws Exception {
         
         // PATH
         String path = "/stamp/list";
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Wrapper
         StampList wrapper = new StampList();
@@ -513,27 +341,15 @@ public final class StampDelegater extends BusinessDelegater {
         conv.setModel(wrapper);
         
         // JSON
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String json = mapper.writeValueAsString(conv);
-        byte[] data = json.getBytes(UTF8);
+        ObjectMapper mapper = getSerializeMapper();
+        byte[] data = mapper.writeValueAsBytes(conv);
         
         // PUT
-        ClientRequest request = getRequest(path);
-        request.body(MediaType.APPLICATION_JSON, data);
-        ClientResponse<String> response = request.put(String.class);
-
-        // PK List
-        String entityStr = getString(response);
-        String[] params = entityStr.split(",");
-        List<String> ret = new ArrayList<String>();
-        ret.addAll(Arrays.asList(params));
+        String entityStr = putEasyJson(path, data, String.class);
         
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        String[] params = entityStr.split(",");
+        List<String> ret = new ArrayList<>();
+        ret.addAll(Arrays.asList(params));
         
         return ret;
     }
@@ -542,36 +358,24 @@ public final class StampDelegater extends BusinessDelegater {
      * Stampを保存する。
      * @param model StampModel
      * @return 保存件数
+     * @throws java.lang.Exception
      */
     public String putStamp(StampModel model) throws Exception {
         
         // PATH
         String path = "/stamp/id";
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
         // Convereter
         StampModelConverter conv = new StampModelConverter();
         conv.setModel(model);
-        
+
         // JSON
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String json = mapper.writeValueAsString(conv);
-        byte[] data = json.getBytes(UTF8);
+        ObjectMapper mapper = getSerializeMapper();
+        byte[] data = mapper.writeValueAsBytes(conv);
         
         // PUT
-        ClientRequest request = getRequest(path);
-        request.body(MediaType.APPLICATION_JSON, data);
-        ClientResponse<String> response = request.put(String.class);
+        String entityStr = putEasyJson(path, data, String.class);
         
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        
-        // PK
-        String entityStr = getString(response);
         return entityStr;
     }
 
@@ -585,30 +389,18 @@ public final class StampDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/stamp/id";
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
         // Converter
         StampModelConverter conv = new StampModelConverter();
         conv.setModel(model);
-        
+
         // JSON
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String json = mapper.writeValueAsString(conv);
-        byte[] data = json.getBytes(UTF8);
+        ObjectMapper mapper = getSerializeMapper();
+        byte[] data = mapper.writeValueAsBytes(conv);
         
         // PUT
-        ClientRequest request = getRequest(path);
-        request.body(MediaType.APPLICATION_JSON, data);
-        ClientResponse<String> response = request.put(String.class);
+        String entityStr = putEasyJson(path, data, String.class);
         
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        // PK
-        String entityStr = getString(response);
         return entityStr;
     }
     
@@ -616,37 +408,24 @@ public final class StampDelegater extends BusinessDelegater {
      * Stampを取得する。
      * @param stampId 取得する StampModel の id
      * @return StampModel
+     * @throws java.lang.Exception
      */
     public StampModel getStamp(String stampId) throws Exception {
         
         // PATH
         String path = "/stamp/id/" + stampId;
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.get(String.class);
-        
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        // StampModel
-        BufferedReader br = getReader(response);
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        StampModel ret = mapper.readValue(br, StampModel.class);
+        StampModel ret = getEasyJson(path, StampModel.class);
         
         return ret;
     }
     
     /**
      * Stampを取得する。
-     * @param stampId 取得する StampModel の id
+     * @param list
      * @return StampModel
+     * @throws java.lang.Exception
      */
     public List<StampModel> getStamp(List<ModuleInfoBean> list) throws Exception {
 
@@ -659,23 +438,9 @@ public final class StampDelegater extends BusinessDelegater {
         String ids = sb.toString();
         ids = ids.substring(0, ids.length()-1);
         String path = "/stamp/list/" + ids;
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
         // GET
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.get(String.class);
-        
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        // Wrapper
-        BufferedReader br = getReader(response);
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        StampList result = mapper.readValue(br, StampList.class);
+        StampList result = getEasyJson(path, StampList.class);
         
         // List
         return result.getList();
@@ -685,25 +450,15 @@ public final class StampDelegater extends BusinessDelegater {
      * Stampを削除する。
      * @param stampId 削除する StampModel の id
      * @return 削除件数
+     * @throws java.lang.Exception
      */
     public int removeStamp(String stampId) throws Exception {
         
         // PATH
         String path = "/stamp/id/" + stampId;
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // DELETE
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.delete(String.class);
-        
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        // Check
-        checkStatus(response);
+        deleteEasy(path);
         
         // Count
         return 1;
@@ -711,8 +466,9 @@ public final class StampDelegater extends BusinessDelegater {
     
     /**
      * Stampを削除する。
-     * @param stampId 削除する StampModel の id
+     * @param ids
      * @return 削除件数
+     * @throws java.lang.Exception
      */
     public int removeStamp(List<String> ids) throws Exception {
 
@@ -725,19 +481,9 @@ public final class StampDelegater extends BusinessDelegater {
         String idList = sb.toString();
         idList = idList.substring(0, idList.length()-1);
         String path = "/stamp/list/" + idList;
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // DELETE
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.delete(String.class);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        // Check
-        checkStatus(response);
+        deleteEasy(path);
         
         // Count
         return ids.size();

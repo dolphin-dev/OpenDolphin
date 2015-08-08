@@ -2021,14 +2021,16 @@ public class KartePane implements DocumentListener, MouseListener,
     }
 //s.oh^ 2014/10/06 処方日数変更修正
     private boolean mergeAllRpHolder() {
-        List<StampHolder> list = getStamps(IInfoModel.ENTITY_MED_ORDER);
-        for(StampHolder tmp : list) {
-            StampHolder sh = findCanMergeRpHolder(tmp);
-            if(sh != null) {
-                tmp.addItems(((BundleMed)sh.getStamp().getModel()).getClaimItem());
-                removeStamp(sh, false);
-                mergeAllRpHolder();
-                return true;
+        if(Project.getBoolean("merge.rp.with.sameAdmin")) {
+            List<StampHolder> list = getStamps(IInfoModel.ENTITY_MED_ORDER);
+            for(StampHolder tmp : list) {
+                StampHolder sh = findCanMergeRpHolder(tmp);
+                if(sh != null) {
+                    tmp.addItems(((BundleMed)sh.getStamp().getModel()).getClaimItem());
+                    removeStamp(sh, false);
+                    mergeAllRpHolder();
+                    return true;
+                }
             }
         }
         return false;

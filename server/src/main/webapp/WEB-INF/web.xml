@@ -32,7 +32,7 @@
                 open.dolphin.rest.ChartEventResource,
                 open.dolphin.rest.PVTResource2,
                 open.dolphin.rest.ServerInfoResource,
-                open.orca.rest.OrcaResource,
+                open.orca.rest.OrcaResource
         </param-value>
     </context-param>
     

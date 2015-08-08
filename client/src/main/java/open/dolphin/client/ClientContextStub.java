@@ -107,9 +107,9 @@ public final class ClientContextStub {
 
             } else {
                 Properties prop = new Properties();
-                BufferedInputStream in = new BufferedInputStream(getResourceAsStream("log4j.properties"));
-                prop.load(in);
-                in.close();
+                try (BufferedInputStream in = new BufferedInputStream(getResourceAsStream("log4j.properties"))) {
+                    prop.load(in);
+                }
                 prop.setProperty("log4j.appender.bootAppender.File", pathToLogFile("boot.log"));
                 prop.setProperty("log4j.appender.part11Appender.File", pathToLogFile("part11.log"));
                 prop.setProperty("log4j.appender.delegaterAppender.File", pathToLogFile("delegater.log"));
@@ -117,9 +117,9 @@ public final class ClientContextStub {
                 prop.setProperty("log4j.appender.labTestAppender.File", pathToLogFile("labTest.log"));
                 prop.setProperty("log4j.appender.claimAppender.File", pathToLogFile("claim.log"));
                 prop.setProperty("log4j.appender.mmlAppender.File", pathToLogFile("mml.log"));
-                BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(log4jProp));
-                prop.store(out, getVersion());
-                out.close();
+                try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(log4jProp))) {
+                    prop.store(out, getVersion());
+                }
                 PropertyConfigurator.configure(prop);
             }
 
@@ -496,7 +496,7 @@ public final class ClientContextStub {
 
     private void setupEventColorTable() {
         // イベントカラーを定義する
-        eventColorTable = new HashMap<>(10, 0.75f);
+        eventColorTable = new HashMap<String, Color>(10, 0.75f);
         eventColorTable.put("TODAY", getColor("color.TODAY_BACK"));
         eventColorTable.put("BIRTHDAY", getColor("color.BIRTHDAY_BACK"));
         eventColorTable.put("PVT", getColor("color.PVT"));
@@ -565,14 +565,14 @@ public final class ClientContextStub {
     }
 
     public boolean getBoolean(String key) {
-        return Boolean.valueOf(getString(key));
+        return Boolean.parseBoolean(getString(key));
     }
 
     public boolean[] getBooleanArray(String key) {
         String[] obj = getStringArray(key);
         boolean[] ret = new boolean[obj.length];
         for (int i = 0; i < ret.length; i++) {
-            ret[i] = Boolean.valueOf(obj[i]);
+            ret[i] = Boolean.parseBoolean(obj[i]);
         }
         return ret;
     }
@@ -660,7 +660,7 @@ public final class ClientContextStub {
     public void setupUI() {
         
         try {
-            Font font = null;
+            Font font;
             int size = 13;
             if (isWin() || isLinux()) {
                 size = isLinux() ? 13: 12;

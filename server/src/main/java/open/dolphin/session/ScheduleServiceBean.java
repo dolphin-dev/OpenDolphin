@@ -35,7 +35,6 @@ import open.dolphin.infomodel.SchemaModel;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.msg.ClaimSender;
 import open.dolphin.rest.IOSHelper;
-//import open.dolphin.touch.converter.IOSHelper;
 
 /**
  * (予定カルテ対応)

@@ -136,6 +136,8 @@ public class KarteResource extends AbstractResource {
     @Produces(MediaType.TEXT_PLAIN)
     public String postDocument(String json) throws IOException {
         
+        System.err.println(json);
+        
         // Karte 保存 ddl.putKarte()
         ObjectMapper mapper = new ObjectMapper();
         // 2013/06/24
@@ -565,10 +567,14 @@ public class KarteResource extends AbstractResource {
         String fpid = getFidPid(servletReq.getRemoteUser(), pid);
         
         PatientFreeDocumentModel result = karteServiceBean.getPatientFreeDocument(fpid);
-        PatientFreeDocumentModelConverter conv = new PatientFreeDocumentModelConverter();
-        conv.setModel(result);
-        
-        return conv;
+        if (result!=null) {
+            PatientFreeDocumentModelConverter conv = new PatientFreeDocumentModelConverter();
+            conv.setModel(result);
+            return conv;
+        }
+        else {
+            return null;
+        }
     }
     
     @PUT

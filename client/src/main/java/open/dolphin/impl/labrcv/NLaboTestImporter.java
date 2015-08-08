@@ -16,7 +16,6 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import open.dolphin.client.*;
 import open.dolphin.delegater.LaboDelegater;
 import open.dolphin.impl.lbtest.LaboTestPanel;
@@ -51,11 +50,11 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
     private ListTableModel<NLaboImportSummary> tableModel;
     private NLabTestImportView view;
     
-    private int stateColumn=9;
+    private final int stateColumn=9;
     
 //masuda^
-    private String clientUUID;
-    private ChartEventHandler cel;
+    private final String clientUUID;
+    private final ChartEventHandler cel;
 //masuda$    
     
     /** Creates new NLaboTestImporter */
@@ -286,7 +285,7 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
 //minagawa$
                 if (dataList!=null && dataList.size()>0) {
 
-                    List<String> idList = new ArrayList<String>(dataList.size());
+                    List<String> idList = new ArrayList<>(dataList.size());
                     for (NLaboImportSummary sm : dataList) {
                         idList.add(sm.getPatientId());
                     }

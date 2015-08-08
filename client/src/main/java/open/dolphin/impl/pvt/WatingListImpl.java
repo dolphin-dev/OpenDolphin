@@ -25,7 +25,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import open.dolphin.client.*;
 import open.dolphin.delegater.PVTDelegater;
-import open.dolphin.impl.img.DefaultBrowserEx;
 import open.dolphin.impl.server.PVTReceptionLink;
 import open.dolphin.impl.xronos.XronosLinkDocument;
 import open.dolphin.infomodel.*;
@@ -161,13 +160,12 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
     private SimpleDateFormat timeFormatter;
     
     // Chart State
-    private Integer[] chartBitArray = {
-        new Integer(PatientVisitModel.BIT_OPEN), 
-        new Integer(PatientVisitModel.BIT_MODIFY_CLAIM),
-        new Integer(PatientVisitModel.BIT_SAVE_CLAIM)};
+    private final Integer[] chartBitArray = {
+        PatientVisitModel.BIT_OPEN, PatientVisitModel.BIT_MODIFY_CLAIM, PatientVisitModel.BIT_SAVE_CLAIM
+    };
     
     // Chart State を表示するアイコン
-    private ImageIcon[] chartIconArray = {
+    private final ImageIcon[] chartIconArray = {
         OPEN_ICON, 
 //minagawa^ Icon Server        
         //ClientContext.getImageIcon("sinfo_16.gif"), 
@@ -177,8 +175,8 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
 //minagawa$    
     
     // State ComboBox
-    private Integer[] userBitArray = {0, 3, 4, 5, 6};
-    private ImageIcon[] userIconArray = {
+    private final Integer[] userBitArray = {0, 3, 4, 5, 6};
+    private final ImageIcon[] userIconArray = {
         null, 
 //minagawa^ Icon Server        
 //        ClientContext.getImageIcon("apps_16.gif"), 
@@ -204,8 +202,8 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
     private AbstractAction copyAction;
 
     // 受付数・待ち時間の更新間隔
-    //private static final int intervalSync = 60;
-    private static final int intervalSync = 30;
+    private static final int intervalSync = 45;
+    //private static final int intervalSync = 30;
 
     // pvtUpdateTask
     private ScheduledExecutorService executor;
@@ -222,11 +220,12 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
     
     // pvt delegater
     private PVTDelegater pvtDelegater;
+    private int selectedRowBeforeFullPvt;
     
     // Commet staff
-    private String clientUUID;
-    private ChartEventHandler cel;
-    private String orcaId;
+    private final String clientUUID;
+    private final ChartEventHandler cel;
+    private final String orcaId;
     
 //s.oh^ 2014/08/19 受付バーコード対応
     private JDialog barcodeDialog;
@@ -309,7 +308,7 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
         pvtDelegater = PVTDelegater.getInstance();
         
         // 来院リスト
-        pvtList = new ArrayList<PatientVisitModel>();
+        pvtList = new ArrayList<>();
     }
     
     /**
@@ -450,7 +449,7 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
 
                     // State ComboBox の value
                     BitAndIconPair pair = (BitAndIconPair) value;
-                    int theBit = pair.getBit().intValue();
+                    int theBit = pair.getBit();
 
                     if (theBit == PatientVisitModel.BIT_CANCEL) {
 //s.oh^ 不具合修正
@@ -1311,66 +1310,91 @@ public class WatingListImpl extends AbstractMainComponent implements PropertyCha
     
 //s.oh^ 2013/11/06 受付定期チェック処理変更
     private void updateFullPvt() {
-        if(pvtDelegater == null) return;
-
-        view.getKutuBtn().setEnabled(false);
-        if (getContext().getCurrentComponent() == getUI()) {
-            getContext().block();
-            getContext().getProgressBar().setIndeterminate(true);
-        }
-        final int row = pvtTable.getSelectedRow();
         
-        SwingWorker worker = new SwingWorker<List<PatientVisitModel>, Void>() {
-            @Override
-            protected List<PatientVisitModel> doInBackground() throws Exception {
-                return pvtDelegater.getPvtList();
+        if(pvtDelegater == null) return;
+        
+        SwingUtilities.invokeLater(() -> {
+            view.getKutuBtn().setEnabled(false);
+            if (getContext().getCurrentComponent() == getUI()) {
+                getContext().block();
+                getContext().getProgressBar().setIndeterminate(true);
             }
-
-            @Override
-            protected void done() {
-                try {
-                    pvtList = get();
-                    filterPatients();
-                    countPvt();
-                    updatePvtInfo();
-                } catch (InterruptedException | ExecutionException ex) {
-                }
-                
-                view.getKutuBtn().setEnabled(true);
-                if (getContext().getCurrentComponent() == getUI()) {
-                    getContext().unblock();
-                    getContext().getProgressBar().setIndeterminate(false);
-                    getContext().getProgressBar().setValue(0);
-                }
-                if(row >= 0) {
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            pvtTable.getSelectionModel().addSelectionInterval(row, row);
-                            //Rectangle r = pvtTable.getCellRect(row, row, true);
-                            //pvtTable.scrollRectToVisible(r);
-                        }
-                    });
-                }else if(pvtTable.getRowCount() > 0) {
-                    //showLastRow();
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            pvtTable.getSelectionModel().addSelectionInterval(pvtTable.getRowCount()-1, pvtTable.getRowCount()-1);
-                        }
-                    });
-                }
+            selectedRowBeforeFullPvt = pvtTable.getSelectedRow();
+        });
+        
+        try {
+            List<PatientVisitModel> results = pvtDelegater.getPvtList();
+            if (results!=null && results.size()>0)  {
+                pvtList = results;
             }
-        };
-        worker.execute();
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+        }
+        
+        SwingUtilities.invokeLater(() -> {
+            filterPatients();
+            countPvt();
+            updatePvtInfo();
+            
+            view.getKutuBtn().setEnabled(true);
+            if (getContext().getCurrentComponent() == getUI()) {
+                getContext().unblock();
+                getContext().getProgressBar().setIndeterminate(false);
+                getContext().getProgressBar().setValue(0);
+            }
+            if (selectedRowBeforeFullPvt >= 0) {
+                pvtTable.getSelectionModel().addSelectionInterval(selectedRowBeforeFullPvt, selectedRowBeforeFullPvt);
+               
+            } else if (pvtTable.getRowCount() > 0) {
+                pvtTable.getSelectionModel().addSelectionInterval(pvtTable.getRowCount() - 1, pvtTable.getRowCount() - 1);
+            }
+        });
+        
+//        SwingWorker worker = new SwingWorker<List<PatientVisitModel>, Void>() {
+//            @Override
+//            protected List<PatientVisitModel> doInBackground() throws Exception {
+//                return pvtDelegater.getPvtList();
+//            }
+//
+//            @Override
+//            protected void done() {
+//                try {
+//                    pvtList = get();
+//                    filterPatients();
+//                    countPvt();
+//                    updatePvtInfo();
+//                    
+//                    view.getKutuBtn().setEnabled(true);
+//                    if (getContext().getCurrentComponent() == getUI()) {
+//                        getContext().unblock();
+//                        getContext().getProgressBar().setIndeterminate(false);
+//                        getContext().getProgressBar().setValue(0);
+//                    }
+//                    if(row >= 0) {
+//                        SwingUtilities.invokeLater(() -> {
+//                            pvtTable.getSelectionModel().addSelectionInterval(row, row);
+//                            //Rectangle r = pvtTable.getCellRect(row, row, true);
+//                            //pvtTable.scrollRectToVisible(r);
+//                        });
+//                    }else if(pvtTable.getRowCount() > 0) {
+//                        //showLastRow();
+//                        SwingUtilities.invokeLater(() -> {
+//                            pvtTable.getSelectionModel().addSelectionInterval(pvtTable.getRowCount()-1, pvtTable.getRowCount()-1);
+//                        });
+//                    }
+//                } catch (InterruptedException | ExecutionException ex) {
+//                }
+//            }
+//        };
+//        worker.execute();
     }
 //s.oh$
     
     // 受付番号を振り、フィルタリングしてtableModelに設定する
     private void filterPatients() {
 
-        List<PatientVisitModel> list = new ArrayList<PatientVisitModel>();
-        List<PatientVisitModel> listTmp = new ArrayList<PatientVisitModel>();
+        List<PatientVisitModel> list = new ArrayList<>();
+        List<PatientVisitModel> listTmp = new ArrayList<>();
         
 //s.oh^ ORCAIDがない場合は全部表示 2013/08/08
         //if (isAssignedOnly() && pvtList!=null) {

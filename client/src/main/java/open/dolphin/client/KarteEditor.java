@@ -27,6 +27,9 @@ import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.exception.DolphinException;
 import open.dolphin.helper.DBTask;
 import open.dolphin.infomodel.*;
+import static open.dolphin.infomodel.IInfoModel.MODULE_PROGRESS_COURSE;
+import static open.dolphin.infomodel.IInfoModel.ROLE_P_SPEC;
+import static open.dolphin.infomodel.IInfoModel.ROLE_SOA_SPEC;
 import static open.dolphin.infomodel.IInfoModel.STATUS_FINAL;
 import open.dolphin.letter.KartePDFImpl2;
 import open.dolphin.plugin.PluginLoader;
@@ -98,7 +101,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     private JScrollPane scroller;
 
     // タイムスタンプの foreground
-    private Color timeStampFore = TIMESTAMP_FORE;
+    private final Color timeStampFore = TIMESTAMP_FORE;
 
     // タイムスタンプフォント
 //s.oh^ 不具合修正
@@ -197,8 +200,8 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     }
     
     /**
-     * Xronos連携
-     * @return 
+     * Xronos連携 
+     * @param close
      */
     public void setClosedFrame(boolean close) {
         closedFrame = close;
@@ -321,6 +324,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     /**
      * MMLリスナを追加する。
      * @param listener MMLリスナリスナ
+     * @throws java.util.TooManyListenersException
      */
     public void addMMLListner(MmlMessageListener listener) throws TooManyListenersException {
         if (mmlListener != null) {
@@ -417,7 +421,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         if (getMode() == SINGLE_MODE) {
             stateMgr.setDirty(soaPane.isDirty());
         } else {
-            boolean bdirty = (soaPane.isDirty() || pPane.isDirty()) ? true : false;
+            boolean bdirty = (soaPane.isDirty() || pPane.isDirty());
             stateMgr.setDirty(bdirty);
         }
     }
@@ -688,14 +692,10 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
             return;
         }
 
-        PropertyChangeListener pcl = new PropertyChangeListener() {
-
-            @Override
-            public void propertyChange(PropertyChangeEvent pce) {
-                int number = ((Integer)pce.getNewValue()).intValue();
-                if (number>0) {
-                    getPPane().changeAllRPNumDates(number);
-                }
+        PropertyChangeListener pcl = (PropertyChangeEvent pce) -> {
+            int number = ((Integer)pce.getNewValue()).intValue();
+            if (number>0) {
+                getPPane().changeAllRPNumDates(number);
             }
         };
 
@@ -1067,7 +1067,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
 
  //minagawa^ 予定カルテ
              // 仮保存ボタンが押された時のCLAIM送信設定によって保存ダイアログを表示する
-            AbstractSaveDialog sd = null;
+            AbstractSaveDialog sd;
             
             if (enterOption==SaveParamsM.SCHEDULE_SCHEDULE) {
                 //予定予定
@@ -1110,7 +1110,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
 //minagawa$            
             // 仮保存が指定されている端末の場合
             int sMode = Project.getInt(Project.KARTE_SAVE_ACTION);
-            boolean tmpSave = sMode == 1 ? true : false;
+            boolean tmpSave = sMode == 1;
 //s.oh^ 2014/01/29 保存不具合
             int enterOption = -1;
             
@@ -1227,8 +1227,12 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     public void save() {
 //s.oh^ 2013/11/06 Cliam項目20項目の制御
         if(!checkClaimItemCount()) {
-            String[] options = {"はい", "いいえ"};
-            String msg = "スタンプの数及びスタンプ内の項目が20項目を超えました。このまま保存しますか？";
+//minagawa^ 2015/03/11      
+            //String[] options = {"はい", "いいえ"};
+            //String msg = "スタンプの数及びスタンプ内の項目が20項目を超えました。このまま保存しますか？";
+            String[] options = {"保存する", GUIFactory.getCancelButtonText()};
+            String msg = "診療行為が20項目を超えました。ORCAの制約で20を超えた分は取り込めません。\n保存する場合は収納にご注意ください。このまま保存しますか？";
+//minagawa$            
             int ret = JOptionPane.showOptionDialog(getContext().getFrame(), msg, ClientContext.getFrameTitle("スタンプ項目"), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
             Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle("スタンプ項目"), msg, String.valueOf(ret));
             if(ret != 0) {
@@ -1872,7 +1876,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
 //minagawa$        
         // FLAGを設定する
         // image があるかどうか
-        boolean flag = model.getSchema() != null ? true : false;
+        boolean flag = model.getSchema() != null;
         docInfo.setHasImage(flag);
 
         //----------------------------------------------
@@ -2209,17 +2213,17 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
      */
     protected class SaveAdnSender {
         
-        private Chart chart;
+        private final Chart chart;
         // (予定カルテ対応)
         //private SaveParams params;
-        private SaveParamsM params;
-        private ModuleModel[] soa;
-        private String soaText;
-        private SchemaModel[] schemas;
-        private AttachmentModel[] attachments;
-        private ModuleModel[] plan;
-        private String pText;
-        private EditorFrame ef;
+        private final SaveParamsM params;
+        private final ModuleModel[] soa;
+        private final String soaText;
+        private final SchemaModel[] schemas;
+        private final AttachmentModel[] attachments;
+        private final ModuleModel[] plan;
+        private final String pText;
+        private final EditorFrame ef;
         //private int theState = 0;
         
         public SaveAdnSender(Chart chart,
@@ -2377,6 +2381,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                     ModuleInfoBean pProgressInfo = null;
                     ModuleInfoBean[] progressInfos = model.getModuleInfo(MODULE_PROGRESS_COURSE);
 
+                    //boolean recreate = false;
                     if (progressInfos == null) {
                         // 存在しない場合は新規に作成する
                         soaProgressInfo = new ModuleInfoBean();
@@ -2389,7 +2394,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                         pProgressInfo.setEntity(MODULE_PROGRESS_COURSE);
                         pProgressInfo.setStampRole(ROLE_P_SPEC);
 
-                    } else {
+                    } else if (progressInfos.length==2){
                         if (progressInfos[0].getStampRole().equals(ROLE_SOA_SPEC)) {
                             soaProgressInfo = progressInfos[0];
                             pProgressInfo = progressInfos[1];
@@ -2398,7 +2403,20 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                             pProgressInfo = progressInfos[0];
                         }
                     }
+                    else 
+                    {
+                        // 存在しない場合は新規に作成する
+                        soaProgressInfo = new ModuleInfoBean();
+                        soaProgressInfo.setStampName(MODULE_PROGRESS_COURSE);
+                        soaProgressInfo.setEntity(MODULE_PROGRESS_COURSE);
+                        soaProgressInfo.setStampRole(ROLE_SOA_SPEC);
 
+                        pProgressInfo = new ModuleInfoBean();
+                        pProgressInfo.setStampName(MODULE_PROGRESS_COURSE);
+                        pProgressInfo.setEntity(MODULE_PROGRESS_COURSE);
+                        pProgressInfo.setStampRole(ROLE_P_SPEC);
+                    }
+                    
                     //-----------------------------------------------
                     // モデルのモジュールをヌルに設定する
                     // エディタの画面をダンプして生成したモジュールを設定する
@@ -2466,15 +2484,15 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                     // FLAGを設定する
                     // image があるかどうか
                     Collection tmpC = model.getSchema();
-                    boolean flag = (tmpC != null && tmpC.size() > 0 ) ? true : false;
+                    boolean flag = (tmpC != null && tmpC.size() > 0 );
                     docInfo.setHasImage(flag);
 
                     // RP があるかどうか
-                    flag = model.getModule(ENTITY_MED_ORDER) != null ? true : false;
+                    flag = model.getModule(ENTITY_MED_ORDER) != null;
                     docInfo.setHasRp(flag);
 
                     // 処置があるかどうか
-                    flag = model.getModule(ENTITY_TREATMENT) != null ? true : false;
+                    flag = model.getModule(ENTITY_TREATMENT) != null;
                     docInfo.setHasTreatment(flag);
 
                     // LaboTest があるかどうか
@@ -2486,7 +2504,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                     
                     // Attachment があるかどうか
                     tmpC = model.getAttachment();
-                    flag = (tmpC != null && tmpC.size() > 0 ) ? true : false;
+                    flag = (tmpC != null && tmpC.size() > 0 );
                     docInfo.setHasMark(flag);
 
                     //-------------------------------------
@@ -2624,7 +2642,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                     //----------------------------------------------
                     // Prepare
                     //----------------------------------------------
-                    List<IKarteSender> senderList = new ArrayList<IKarteSender>(3);
+                    List<IKarteSender> senderList = new ArrayList<>(3);
                     PluginLoader<IKarteSender> loader = PluginLoader.load(IKarteSender.class);
                     Iterator<IKarteSender> iter = loader.iterator();
                     while (iter.hasNext()) {
@@ -2738,8 +2756,8 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     private void printPDF() {
         StringBuilder sb = new StringBuilder();
         sb.append(ClientContext.getTempDirectory());
-        KartePaneDumper_2 dumper = null;
-        KartePaneDumper_2 pdumper = null;
+        KartePaneDumper_2 dumper;
+        KartePaneDumper_2 pdumper;
         dumper = new KartePaneDumper_2();
         pdumper = new KartePaneDumper_2();
         KarteStyledDocument doc = (KarteStyledDocument)getSOAPane().getTextPane().getDocument();
@@ -2938,9 +2956,9 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
      */
     protected final class StateMgr {
 
-        private EditorState noDirtyState = new NoDirtyState();
-        private EditorState dirtyState = new DirtyState();
-        private EditorState savedState = new SavedState();
+        private final EditorState noDirtyState = new NoDirtyState();
+        private final EditorState dirtyState = new DirtyState();
+        private final EditorState savedState = new SavedState();
         private EditorState currentState;
 
         public StateMgr() {

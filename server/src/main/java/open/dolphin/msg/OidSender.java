@@ -88,10 +88,13 @@ public class OidSender {
             ////--------------------------------------
             try (BufferedWriter bw = new BufferedWriter(sw)) {
                 // ライセンスのタイプでテンプレートを選択する
-                if (account.getMemberType().equals(ASP_TESTER)) {
-                    Velocity.mergeTemplate(TESTER_TEMPLATE, TEMPLATE_ENC, context, bw);
-                } else if (account.getMemberType().equals(ASP_MEMBER)) {
-                    Velocity.mergeTemplate(MEMBER_TEMPLATE, TEMPLATE_ENC, context, bw);
+                switch (account.getMemberType()) {
+                    case ASP_TESTER:
+                        Velocity.mergeTemplate(TESTER_TEMPLATE, TEMPLATE_ENC, context, bw);
+                        break;
+                    case ASP_MEMBER:
+                        Velocity.mergeTemplate(MEMBER_TEMPLATE, TEMPLATE_ENC, context, bw);
+                        break;
                 }
                 
                 bw.flush();
@@ -124,7 +127,7 @@ public class OidSender {
             Transport.send(mimeMessage);
            
 
-        } catch (Exception e) {
+        } catch (IOException | ResourceNotFoundException | ParseErrorException | MethodInvocationException | MessagingException e) {
             e.printStackTrace(System.err);
             Logger.getLogger("open.dolphin").warning(e.getMessage());
         }
@@ -144,9 +147,9 @@ public class OidSender {
         File f = new File(path.toString());
         try {
             FileInputStream fin = new FileInputStream(f);
-            InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect");
-            config.load(r);
-            r.close();
+            try (InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect")) {
+                config.load(r);
+            }
         } catch (IOException ex) {
             ex.printStackTrace(System.err);
             throw new RuntimeException(ex.getMessage());

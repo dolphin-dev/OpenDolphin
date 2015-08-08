@@ -11,7 +11,7 @@ import javax.inject.Singleton;
 @Singleton
 public class UserCache {
 
-    private Map<String, String> map = new ConcurrentHashMap<String, String>();
+    private final Map<String, String> map = new ConcurrentHashMap<>();
 
     public Map<String, String> getMap() {
         return map;

@@ -11,7 +11,6 @@ import open.dolphin.converter.PatientListConverter;
 import open.dolphin.converter.PatientModelConverter;
 import open.dolphin.infomodel.PatientList;
 import open.dolphin.infomodel.PatientModel;
-import static open.dolphin.rest.AbstractResource.CAMMA;
 import static open.dolphin.rest.AbstractResource.getRemoteFacility;
 import open.dolphin.session.PatientServiceBean;
 import org.codehaus.jackson.map.DeserializationConfig;

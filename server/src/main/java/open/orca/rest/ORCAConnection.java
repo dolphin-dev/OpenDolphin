@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package open.orca.rest;
 
 import java.io.File;
@@ -17,12 +13,15 @@ import java.util.Properties;
  */
 public class ORCAConnection {
     
-    private static ORCAConnection instane = new ORCAConnection();
+    private static final ORCAConnection instane = new ORCAConnection();
     
     private String jdbcURL;
     private String user;
     private String password;
-    //private int port = 5432;
+    
+//minagawa^    
+    private final Properties config;
+//minagawa$
     
     public static ORCAConnection getInstance() {
         return instane;
@@ -36,14 +35,14 @@ public class ORCAConnection {
         sb.append("custom.properties");
         File f = new File(sb.toString());
         
-        Properties config = new Properties();
+        this.config = new Properties();
 
         try {
             // 読み込む
             FileInputStream fin = new FileInputStream(f);
-            InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect");
-            config.load(r);
-            r.close();
+            try (InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect")) {
+                config.load(r);
+            }
 
             String conn = config.getProperty("claim.conn");
             if (conn!=null && conn.equals("server")) {
@@ -53,19 +52,36 @@ public class ORCAConnection {
             }
             
         } catch (Exception e) {
+            e.printStackTrace(System.err);
         }
     }
     
     public Connection getConnection() {
         
         try {
-            //return DriverManager.getConnection(jdbcURL, user, password);
             Connection conn = DriverManager.getConnection(jdbcURL, user, password);
+//minagawa^            
             conn.setReadOnly(true);
+//minagawa$            
             return conn;
         } catch (Exception e) {
             e.printStackTrace(System.err);
         }
         return null;
     }
+    
+//minagawa^     
+    public Properties getProperties() {
+        return this.config;
+    }
+    
+    public String getProperty(String prop) {
+        return config.getProperty(prop);
+    }
+    
+    public boolean isSendClaim() {
+        String test = config.getProperty("claim.conn");         // connection type
+        return test!=null && test.equals("server");
+    }
+//minagawa$    
 }

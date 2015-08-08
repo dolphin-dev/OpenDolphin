@@ -268,6 +268,23 @@ public class SystemServiceBean {
         //        }
         //    }
         //}
+        AccountSummary account = new AccountSummary();
+        account.setMemberType(ASP_TESTER);
+        account.setFacilityAddress(user.getFacilityModel().getAddress());
+        account.setFacilityId(user.getFacilityModel().getFacilityId());
+        account.setFacilityName(user.getFacilityModel().getFacilityName());
+        account.setFacilityTelephone(user.getFacilityModel().getTelephone());
+        account.setFacilityZipCode(user.getFacilityModel().getZipCode());
+        account.setUserEmail(user.getEmail());
+        account.setUserName(user.getCommonName());
+        account.setUserId(user.idAsLocal());
+        OidSender sender = new OidSender();
+        try {
+            sender.send(account);
+        } catch (Exception ex) {
+            ex.printStackTrace(System.err);
+            Logger.getLogger("open.dolphin").warning("AccountSummary send error : " + ex.getMessage());
+        }
 //s.oh$
     }
     

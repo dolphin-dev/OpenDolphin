@@ -64,7 +64,7 @@ public class PVTServiceBean {
     
    /**
      * 患者来院情報を登録する。
-     * @param PatientVisitModel 来院情報を保持するPatientVisitModel
+     * @param pvt
      * @return 登録個数
      */
     public int addPvt(PatientVisitModel pvt) {
@@ -530,7 +530,11 @@ public class PVTServiceBean {
 
     /**
      * 施設の患者来院情報を取得する。
-     * @param spec 検索仕様DTOオブジェクト
+     * @param fid
+     * @param date
+     * @param firstResult
+     * @param appoDateFrom
+     * @param appoDateTo
      * @return 来院情報のCollection
      */
     
@@ -557,7 +561,7 @@ public class PVTServiceBean {
         int index = date.indexOf(PERCENT);
         Date theDate = ModelUtils.getDateAsObject(date.substring(0, index));
 
-        boolean searchAppo = (appoDateFrom != null && appoDateTo != null) ? true : false;
+        boolean searchAppo = (appoDateFrom != null && appoDateTo != null);
 
         // 来院情報と患者は ManyToOne の関係である
         for (int i = 0; i < len; i++) {
@@ -621,7 +625,7 @@ public class PVTServiceBean {
         int index = date.indexOf(PERCENT);
         Date theDate = ModelUtils.getDateAsObject(date.substring(0, index));
 
-        boolean searchAppo = (appoDateFrom != null && appoDateTo != null) ? true : false;
+        boolean searchAppo = (appoDateFrom != null && appoDateTo != null);
 
         // 来院情報と患者は ManyToOne の関係である
         for (int i = 0; i < len; i++) {
@@ -662,7 +666,8 @@ public class PVTServiceBean {
       
     /**
      * 受付情報を削除する。
-     * @param pvtPk, fid
+     * @param id
+     * @param fid
      * @return 削除件数
      */
     public int removePvt(long id, String fid) {
@@ -708,6 +713,7 @@ public class PVTServiceBean {
      * 診察終了情報を書き込む。
      * @param pk レコードID
      * @param state 診察終了の時 1
+     * @return 
      */
     
     public int updatePvtState(long pk, int state) {

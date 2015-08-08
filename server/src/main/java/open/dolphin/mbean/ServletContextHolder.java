@@ -22,11 +22,11 @@ public class ServletContextHolder {
     private GregorianCalendar tomorrow;
 
     // AsyncContextのリスト
-    private final List<AsyncContext> acList = new ArrayList<AsyncContext>();
+    private final List<AsyncContext> acList = new ArrayList<>();
     
     // facilityIdとpvtListのマップ
-    private Map<String, List<PatientVisitModel>> pvtListMap 
-            = new ConcurrentHashMap<String, List<PatientVisitModel>>();
+    private final Map<String, List<PatientVisitModel>> pvtListMap 
+            = new ConcurrentHashMap<>();
     
     // サーバーのUUID
     private String serverUUID;
@@ -62,7 +62,7 @@ public class ServletContextHolder {
     public List<PatientVisitModel> getPvtList(String fid) {
         List<PatientVisitModel> pvtList = pvtListMap.get(fid);
         if (pvtList == null) {
-            pvtList = new CopyOnWriteArrayList<PatientVisitModel>();
+            pvtList = new CopyOnWriteArrayList<>();
             pvtListMap.put(fid, pvtList);
         }
         return pvtList;

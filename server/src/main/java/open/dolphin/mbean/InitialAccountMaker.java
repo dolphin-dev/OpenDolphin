@@ -1,15 +1,11 @@
 package open.dolphin.mbean;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
@@ -29,7 +25,6 @@ import open.dolphin.infomodel.PatientModel;
 import open.dolphin.infomodel.RoleModel;
 import open.dolphin.infomodel.TelephoneModel;
 import open.dolphin.infomodel.UserModel;
-import open.orca.rest.ORCAConnection;
 
 /**
  * Updator
@@ -48,29 +43,20 @@ public class InitialAccountMaker {
     private static final String ADMIN_SIR_NAME = "オープン";
     private static final String ADMIN_GIVEN_NAME = "ドルフィン";
 
-    private static final boolean DEVELOPMENT = true;
-    
+    private static final boolean DEVELOPMENT = false;
     private static final String UPDATE_MEMO     = "Initial user registered.";
     private static final String NO_UPDATE_MEMO  = "User account exists.";
     
     @PersistenceContext
     private EntityManager em;
     
-//minagawa^ 2013/08/29
-    //@Resource(mappedName="java:jboss/datasources/OrcaDS")
-    //private DataSource ds;
-//minagawa$
-//s.oh^ 2014/07/08 クラウド0対応
     @Resource(mappedName="java:jboss/datasources/PostgresDS")
     private DataSource ds;
-//s.oh$
     
     @PostConstruct
-    public void init() {
-        start();
-//s.oh^ 2014/07/08 クラウド0対応
+    public void init() {      
+        start();      
         createIndexes();
-//s.oh$
     }
     
     private void start() {
@@ -93,42 +79,16 @@ public class InitialAccountMaker {
         } else {
             Logger.getLogger("open.dolphin").info(NO_UPDATE_MEMO);
         }
-        
-        Properties config = new Properties();
-        
-        // コンフィグファイルをチェックする
-        StringBuilder sb = new StringBuilder();
-        sb.append(System.getProperty("jboss.home.dir"));
-        sb.append(File.separator);
-        sb.append("custom.properties");
-        File f = new File(sb.toString());
-        
-        try {
-            // 読み込む
-            FileInputStream fin = new FileInputStream(f);
-            try (InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect")) {
-                config.load(r);
-            }
-            
-            String conn = config.getProperty("claim.conn");
-            String addr = config.getProperty("claim.host");
-            if (conn!=null && conn.equals("server") && addr!=null) {
-//minagawa^ 2013/08/29
-                //Connection con = ds.getConnection();
-                Connection con = ORCAConnection.getInstance().getConnection();
-//minagawa$
-                con.close();
-            }
-        } catch (Exception e) {
-        }
     }  
     
 //s.oh^ 2014/07/08 クラウド0対応
    private void createIndexes() {
        
+//minagawa^ d_patient に (facikityid,patientid) の unique index 名前=fid_pid_idx を作成する
+// unique 制約のない 旧indexは削除する        
        String[] names = {"pvt_idx3", "d_karte_idx", "d_document_idx", "d_diagnosis_idx", "d_patient_memo_idx",
        "d_letter_module_idx", "d_observation_idx", "d_module_idx", "d_image_idx","d_attachment_idx","d_nlabo_module_idx","d_nlabo_item_idx",
-       "patient_idx1", "pvt_idx1", "pub_tree_idx1"};
+       "fid_pid_idx", "pvt_idx1", "pub_tree_idx1"};
        
        String[] sqls = {
            "create index pvt_idx3 on d_patient_visit(patient_id)",
@@ -143,7 +103,7 @@ public class InitialAccountMaker {
            "create index d_attachment_idx on d_attachment(doc_id)",
            "create index d_nlabo_module_idx on d_nlabo_module(patientid)",
            "create index d_nlabo_item_idx on d_nlabo_item(labomodule_id)",
-           "create index patient_idx1 on d_patient(facilityId, patientid)",
+           "create unique index fid_pid_idx on d_patient(facilityid, patientid)",
            "create index pvt_idx1 on d_patient_visit(facilityid, pvtdate)",
            "create index pub_tree_idx1 on d_published_tree(publishtype)"
        };
@@ -165,16 +125,30 @@ public class InitialAccountMaker {
                     int cnt = rs.getInt(1);
                     if (cnt==0) {
                         st.executeUpdate(sqls[i]);
-                    }
-                    rs.close();
-                    
-                    if (cnt==0) {
-                        Logger.getLogger("open.dolphin").log(Level.INFO, "{0} dose not exists", names[i]);
+                        Logger.getLogger("open.dolphin").log(Level.INFO, "{0} dose not exists, created", names[i]);
                     } else {
                         Logger.getLogger("open.dolphin").log(Level.INFO, "{0} exists", names[i]);
                     }
+                    rs.close();
                 }
             }
+            
+//minagawa^ unique制約のない 旧indexを削除する
+            String oldIndex = "patient_idx1";
+            pt.setString(1, oldIndex);
+            rs = pt.executeQuery();
+            if (rs.next()) {
+                int cnt = rs.getInt(1);
+                if (cnt==1) {
+                    st.executeUpdate("drop index " + oldIndex);
+                    Logger.getLogger("open.dolphin").log(Level.INFO, "{0} exists, deleted", oldIndex);
+                
+                } else {
+                    Logger.getLogger("open.dolphin").log(Level.INFO, "{0} dose not exists", oldIndex);
+                }
+                rs.close();
+            }
+//minagawa$            
             st.close();
             pt.close();
             con.close();

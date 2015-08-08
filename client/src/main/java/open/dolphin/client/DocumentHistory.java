@@ -913,11 +913,13 @@ public class DocumentHistory {
                         // 自賠責
                         setBackground(JIBAISEKI_INSURANCE_COLOR);
                         
-                    }                 
+                    } 
+//minagawa^ Kuroiwa specific  下記をコメントアウト                  
                     else if (Project.getBoolean("docHistory.coloring.jihi") && info.getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
                         // 自費
                         setBackground(SELF_INSURANCE_COLOR);   
-                    }                 
+                    } 
+//minagawa$                    
 //                    else if ((row & (1)) == 0) {
 //                        setBackground(DEFAULT_EVENN_COLOR);
 //                    } else {

@@ -500,15 +500,17 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
                     int totalHeight = 0;
                     for (KarteViewer view : karteList) {
                         int w = view.panel2.getPreferredSize().width;
-                       
+//minagawa^ Kuroiwa specific                        
 //s.oh^ 2013/03/28 入力行が一行の場合に文字が全部表示されない。
-                       //int h = view.getActualHeight() + 30;
+                        //int h = view.getActualHeight() + 30;
 //s.oh^ 2014/06/02 複数カルテ表示時に全部表示されない
                         //int h = view.getActualHeight() + KARTE_OFFSET_HEIGHT;
                         int offset = (view.getModel().getModules() != null) ? view.getModel().getModules().size() * 20 : 0;
                         int h = view.getActualHeight() + KARTE_OFFSET_HEIGHT + offset;
 //s.oh$
 //s.oh$
+                        //int h = view.getActualHeight() + KARTE_OFFSET_HEIGHT; -<kuroiwa specific
+//minagawa$                        
                         totalHeight += h;
                         view.panel2.setPreferredSize(new Dimension(w, h));
                     }

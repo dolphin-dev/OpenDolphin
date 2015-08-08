@@ -1,19 +1,10 @@
 package open.dolphin.delegater;
 
-//import com.fasterxml.jackson.core.type.TypeReference;
-//import com.sun.jersey.api.client.ClientResponse;
-//import com.sun.jersey.core.util.MultivaluedMapImpl;
-import java.io.BufferedReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import javax.ws.rs.core.MediaType;
 import open.dolphin.infomodel.*;
 import open.dolphin.util.BeanUtils;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.jboss.resteasy.client.ClientRequest;
-import org.jboss.resteasy.client.ClientResponse;
 
 /**
  * MasudaDelegater
@@ -286,31 +277,6 @@ public class MasudaDelegater extends BusinessDelegater {
             return null;
         }
         
-//        String path = RES_BASE + "moduleSearch/" + String.valueOf(karteId);
-//        MultivaluedMap<String, String> qmap = new MultivaluedMapImpl();
-//        qmap.add("fromDate", REST_DATE_FRMT.format(fromDate));
-//        qmap.add("toDate", REST_DATE_FRMT.format(toDate));
-//        qmap.add("entities", getConverter().fromList(entities));
-//
-//        ClientResponse response = getResource(path, qmap)
-//                .accept(MEDIATYPE_JSON_UTF8)
-//                .get(ClientResponse.class);
-//
-//        int status = response.getStatus();
-//        String entityStr = response.getEntity(String.class);
-//        debug(status, entityStr);
-//        
-//        if (status != HTTP200) {
-//            return null;
-//        }
-//        
-//        TypeReference typeRef = new TypeReference<List<ModuleModel>>(){};
-//        List<ModuleModel> list = (List<ModuleModel>)
-//                getConverter().fromJson(entityStr, typeRef);
-//        
-//        for (ModuleModel module : list) {
-//            module.setModel((InfoModel) BeanUtils.xmlDecode(module.getBeanBytes()));
-//        }
         StringBuilder sb = new StringBuilder();
         sb.append(RES_BASE);
         sb.append("/moduleSearch/");
@@ -324,17 +290,8 @@ public class MasudaDelegater extends BusinessDelegater {
         String path = sb.toString();
         
         try {
-            // GET
-            ClientRequest request = getRequest(path);
-            request.accept(MediaType.APPLICATION_JSON);
-            ClientResponse<String> response = request.get(String.class);
-
-            // Wrapper
-            BufferedReader br = getReader(response);
-            ObjectMapper mapper = new ObjectMapper();
-            // 2013/06/24
-            mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            ModuleList result = mapper.readValue(br, ModuleList.class);
+            
+            ModuleList result = getEasyJson(path, ModuleList.class);
             
             if (result!=null) {
                 List<ModuleModel> list = result.getList();

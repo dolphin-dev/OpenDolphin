@@ -1,12 +1,9 @@
 package open.dolphin.delegater;
 
-//import com.fasterxml.jackson.core.type.TypeReference;
-//import com.sun.jersey.api.client.ClientResponse;
-import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.ws.rs.core.MediaType;
 import open.dolphin.converter.PatientVisitModelConverter;
 import open.dolphin.infomodel.HealthInsuranceModel;
 import open.dolphin.infomodel.PVTHealthInsuranceModel;
@@ -15,10 +12,7 @@ import open.dolphin.infomodel.PatientVisitList;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.util.BeanUtils;
 import open.dolphin.util.Log;
-import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.jboss.resteasy.client.ClientRequest;
-import org.jboss.resteasy.client.ClientResponse;
 
 /**
  * PVT 関連の Business Delegater　クラス。
@@ -48,52 +42,25 @@ public class PVTDelegater extends BusinessDelegater {
      * 受付情報 PatientVisitModel をデータベースに登録する。
      *
      * @param pvtModel 受付情報 PatientVisitModel
-     * @param principal UserId と FacilityId
      * @return 保存に成功した個数
      */
     public int addPvt(PatientVisitModel pvtModel) {
-
-//        // convert
-//        String json = getConverter().toJson(pvtModel);
-//
-//        // resource post
-//        String path = RES_PVT;
-//        ClientResponse response = getResource(path, null)
-//                .type(MEDIATYPE_JSON_UTF8)
-//                .post(ClientResponse.class, json);
-//
-//        int status = response.getStatus();
-//        String enityStr = response.getEntity(String.class);
-//        debug(status, enityStr);
-//
-//        // result = count
-//        int cnt = Integer.parseInt(enityStr);
-//        return cnt;
         
         try {
             // Converter
             PatientVisitModelConverter conv = new PatientVisitModelConverter();
             conv.setModel(pvtModel);
-            Log.outputFuncLog(Log.LOG_LEVEL_0,"I",pvtModel.getPatientId());
-            // JSON
-            ObjectMapper mapper = new ObjectMapper();
-            String json = mapper.writeValueAsString(conv);
-            byte[] data = json.getBytes(UTF8);
-
-            // POST
-            ClientRequest request = getRequest(RES_PVT);
-            request.body(MediaType.APPLICATION_JSON, data);
-            org.jboss.resteasy.client.ClientResponse<String> response = request.post(String.class);
             
-            Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-            Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
-            Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-            Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-            // Count
-            String entityStr = getString(response);
+            // JSON
+            ObjectMapper mapper = this.getSerializeMapper();
+            byte[] data = mapper.writeValueAsBytes(conv);
+            
+            // POST
+            String entityStr = postEasyJson(RES_PVT, data, String.class);
+            
             return Integer.parseInt(entityStr);
             
-        } catch (Exception e) {
+        } catch (IOException | NumberFormatException e) {
             Log.outputFuncLog(Log.LOG_LEVEL_0,"E",e.toString());
             e.printStackTrace(System.err);
         }
@@ -101,18 +68,6 @@ public class PVTDelegater extends BusinessDelegater {
     }
 
     public int removePvt(long id) {
-
-//        String path = RES_PVT + String.valueOf(id);
-//
-//        ClientResponse response = getResource(path, null)
-//                .accept(MEDIATYPE_TEXT_UTF8)
-//                .delete(ClientResponse.class);
-//
-//        int status = response.getStatus();
-//        String enityStr = "delete response";
-//        debug(status, enityStr);
-//
-//        return 1;
         
         try {
             // PATH
@@ -120,18 +75,10 @@ public class PVTDelegater extends BusinessDelegater {
             sb.append(RES_PVT);
             sb.append(id);
             String path = sb.toString();
-            Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
-
+            
             // DELETE
-            ClientRequest request = getRequest(path);
-            ClientResponse<String> response = request.delete(String.class);
-            Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-            Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-            Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-
-            // Check
-            checkStatus(response);
-
+            deleteEasy(path);
+            
             // Count
             return 1;
         } catch (Exception e) {
@@ -148,53 +95,12 @@ public class PVTDelegater extends BusinessDelegater {
         sb.append(RES_PVT);
         sb.append("/pvtList");
         String path = sb.toString();
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
-
-//        ClientResponse response = getResource(path, null)
-//                .accept(MEDIATYPE_JSON_UTF8)
-//                .get(ClientResponse.class);
-//
-//        int status = response.getStatus();
-//        String entityStr = response.getEntity(String.class);
-//        debug(status, entityStr);
-//
-//        if (status != HTTP200) {
-//            return null;
-//        }
-//
-//        TypeReference typeRef = new TypeReference<List<PatientVisitModel>>(){};
-//        List<PatientVisitModel> pvtList = (List<PatientVisitModel>)
-//                getConverter().fromJson(entityStr, typeRef);
-//
-//        // 保険をデコード
-//        if (pvtList != null && !pvtList.isEmpty()) {
-//            for (PatientVisitModel pvt : pvtList) {
-//                PatientModel pm = pvt.getPatientModel();
-//                decodeHealthInsurance(pm);
-//            }
-//        }
-//
-//        return pvtList;
-        
         
         try {
+
             // GET
-            ClientRequest request = getRequest(path);
-            request.accept(MediaType.APPLICATION_JSON);
-            ClientResponse<String> response = request.get(String.class);
+            PatientVisitList result = getEasyJson(path, PatientVisitList.class);
             
-            Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-            Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
-            Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-            Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-
-            // Wrapper
-            BufferedReader br = getReader(response);
-            ObjectMapper mapper = new ObjectMapper();
-            // 2013/06/24
-            mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            PatientVisitList result = mapper.readValue(br, PatientVisitList.class);
-
             // Decode
             List<PatientVisitModel> list = result.getList();
             if (list != null && list.size() > 0) {
@@ -203,13 +109,13 @@ public class PVTDelegater extends BusinessDelegater {
                 }
             }
             //return list;
-            return (list != null) ? list : new ArrayList<PatientVisitModel>(1);
+            return (list != null) ? list : new ArrayList<>(1);
         } catch (Exception e) {
             Log.outputFuncLog(Log.LOG_LEVEL_0,"E",e.toString());
             e.printStackTrace(System.err);
         }
         
-        return new ArrayList<PatientVisitModel>(1);
+        return new ArrayList<>(1);
     }
 
     /**
@@ -224,7 +130,7 @@ public class PVTDelegater extends BusinessDelegater {
 
         if (c != null && c.size() > 0) {
 
-            List<PVTHealthInsuranceModel> list = new ArrayList<PVTHealthInsuranceModel>(c.size());
+            List<PVTHealthInsuranceModel> list = new ArrayList<>(c.size());
 
             for (HealthInsuranceModel model : c) {
                 try {

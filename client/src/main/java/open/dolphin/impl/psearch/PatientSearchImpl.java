@@ -11,6 +11,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.event.*;
 import open.dolphin.client.*;
@@ -435,11 +437,9 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
             }
         }
         
-//minagawa^ こんなん　駄目        
 ////s.oh^ 2014/10/22 Icon表示
 //        view.getSearchLabel().setIcon(ClientContext.getImageIconArias("icon_search_large"));
 ////s.oh$
-//minagawa$        
         
 //s.oh^ 2014/04/16 メニュー制御
         view.getTable().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

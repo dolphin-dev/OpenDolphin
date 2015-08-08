@@ -1,51 +1,49 @@
 package open.dolphin.mbean;
 
 import java.io.*;
-import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Properties;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.enterprise.concurrent.ManagedThreadFactory;
 import javax.inject.Inject;
 import javax.jms.*;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
 import open.dolphin.infomodel.HealthInsuranceModel;
-import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.session.PVTServiceBean;
+import open.orca.rest.ORCAConnection;
 
 /**
  *
  * @author Kazushi Minagawa. Digital Globe, Inc.
+ * 
+ * minagawa^ WildFly 8.2
+ *   1) MBean 化廃止
+ *   2) Server threadにManagedThreadFactoryを使用
+ *   3) custom.properits の読み込みを ORCAConnection 一箇所
  */
 @Singleton
 @Startup
-public class PvtService implements PvtServiceMBean {
+public class PvtService implements Runnable {
    
     private static final int EOT = 0x04;
     private static final int ACK = 0x06;
     private static final int NAK = 0x15;
     private static final String UTF8 = "UTF-8";
-    
-    private MBeanServer platformMBeanServer;
-    private ObjectName objectName;
-    
-//    @Resource(mappedName = "java:/JmsXA")
-//    private ConnectionFactory connectionFactory;
-//    
-//    @Resource(mappedName = "java:/queue/dolphin")
-//    private javax.jms.Queue queue;
+//minagawa^     
+    @Resource(lookup="java:jboss/ee/concurrency/factory/default")
+    private ManagedThreadFactory threadFactory;
+//minagawa$    
     
     @Inject
     PVTServiceBean pvtServiceBean;
@@ -56,18 +54,12 @@ public class PvtService implements PvtServiceMBean {
     private String FACILITY_ID;
     private boolean DEBUG;
     
-    
     @PostConstruct
-    @Override
     public void register() {
         
         DEBUG = Logger.getLogger("open.dolphin").getLevel().equals(java.util.logging.Level.FINE);
         
         try {
-            objectName = new ObjectName("PVTService:type=" + this.getClass().getName());
-            platformMBeanServer = ManagementFactory.getPlatformMBeanServer();
-            platformMBeanServer.registerMBean(this, objectName);
-            
             startService();
             
         } catch (FileNotFoundException e) {
@@ -76,23 +68,11 @@ public class PvtService implements PvtServiceMBean {
         }
     }
 
-    @Override
     public void startService() throws FileNotFoundException, Exception {
-        
-        Properties config = new Properties();
-        
-        // コンフィグファイルをチェックする
-        StringBuilder sb = new StringBuilder();
-        sb.append(System.getProperty("jboss.home.dir"));
-        sb.append(File.separator);
-        sb.append("custom.properties");
-        File f = new File(sb.toString());
-        
-        // 読み込む
-        FileInputStream fin = new FileInputStream(f);
-        InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect");
-        config.load(r);
-        r.close();
+ 
+//minagawa^        
+        Properties config = ORCAConnection.getInstance().getProperties();
+//minagawa$
         
         FACILITY_ID = config.getProperty("dolphin.facilityId");
         
@@ -125,14 +105,14 @@ public class PvtService implements PvtServiceMBean {
         listenSocket.bind(socketAddress);
         log("PVT Server is binded " + socketAddress + " with encoding: " + encoding);
         
-        serverThread = new Thread(this);
-        serverThread.setPriority(Thread.NORM_PRIORITY);
+//minagawa^ Use ManagedThreadFactory
+        serverThread = threadFactory.newThread(this);
+//minagawa$        
         serverThread.start();
         log("server thread started"); 
     }
 
     @PreDestroy
-    @Override
     public void stopService() {
         log("PreDestroy did call");
         
@@ -146,14 +126,7 @@ public class PvtService implements PvtServiceMBean {
                 listenSocket = null;
                 log("PVT Server is closed");
             } catch (IOException e) {
-            }
-        }
-        
-        if (objectName!=null) {
-            try {
-                platformMBeanServer.unregisterMBean(objectName);
-                log("PvtService did unregister");
-            } catch (Exception e) {
+                e.printStackTrace(System.err);
             }
         }
     }

@@ -1,6 +1,5 @@
 package open.dolphin.delegater;
 
-import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -11,11 +10,7 @@ import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.UserList;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
-import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.jboss.resteasy.client.ClientRequest;
-import org.jboss.resteasy.client.ClientResponse;
 
 /**
  * User 関連の Business Delegater　クラス。
@@ -35,32 +30,9 @@ public final class UserDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/user/"+userPK;
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
-        ClientRequest request = getRequest(path, userPK, password);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.get(String.class);
-        BufferedReader br = getReader(response);
-
-        // UserModel
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        UserModel user = mapper.readValue(br, UserModel.class);
-        br.close();
-        
-        //20130225
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","INFO",user.getUserId()+"/"+user.getCommonName()+"/"+user.getFacilityModel().getFacilityName());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-//        if (false) {
-//            System.err.println(user.getUserId());
-//            System.err.println(user.getCommonName());
-//            System.err.println(user.getFacilityModel().getFacilityName());
-//        }
+        UserModel user = getEasy(path, userPK, password, MediaType.APPLICATION_JSON, UserModel.class);
         
         return user;
     }
@@ -69,30 +41,9 @@ public final class UserDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/user/"+userPK;
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.get(String.class);
-        BufferedReader br = getReader(response);
-
-        // UserModel
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        UserModel user = mapper.readValue(br, UserModel.class);
-        br.close();
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-//        if (false) {
-//            System.err.println(user.getUserId());
-//            System.err.println(user.getCommonName());
-//            System.err.println(user.getFacilityModel().getFacilityName());
-//        }
+        UserModel user = getEasyJson(path, UserModel.class);
         
         return user;
     }
@@ -101,23 +52,9 @@ public final class UserDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/user";
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
-        // GET
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.get(String.class);
         
-        // Wrapper
-        BufferedReader br = getReader(response);
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        UserList list = mapper.readValue(br, UserList.class);
-        br.close();
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        // GET
+        UserList list = getEasyJson(path, UserList.class);
         
         // List
         return (ArrayList)list.getList();
@@ -127,32 +64,18 @@ public final class UserDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/user";
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
+        
         // Converter
         UserModelConverter conv = new UserModelConverter();
         conv.setModel(userModel);
-        
+
         // JSON
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String json = mapper.writeValueAsString(conv);
-        byte[] data = json.getBytes(UTF8);
+        ObjectMapper mapper = this.getSerializeMapper();
+        byte[] data = mapper.writeValueAsBytes(conv);
         
         // POST
-        ClientRequest request = getRequest(path);
-        request.body(MediaType.APPLICATION_JSON, data);
-        ClientResponse<String> response = request.post(String.class);
-        
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-
-        // Count
-        String entityStr = getString(response);
+        String entityStr = postEasyJson(path, data, String.class);      
         int cnt = Integer.parseInt(entityStr);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RET",String.valueOf(cnt));
         
         return cnt;
     }
@@ -161,34 +84,19 @@ public final class UserDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/user";
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Converter
         UserModelConverter conv = new UserModelConverter();
         conv.setModel(userModel);
-        
+
         // JSON
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String json = mapper.writeValueAsString(conv);
-        byte[] data = json.getBytes(UTF8);
+        ObjectMapper mapper = this.getSerializeMapper();
+        byte[] data = mapper.writeValueAsBytes(conv);
         
         // PUT
-        ClientRequest request = getRequest(path);
-        request.body(MediaType.APPLICATION_JSON, data);
-        ClientResponse<String> response = request.put(String.class);
-        
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-
-        // Count
-        String entityStr = getString(response);
+        String entityStr = putEasyJson(path, data, String.class);       
         int cnt = Integer.parseInt(entityStr);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RET",String.valueOf(cnt));
-        
+   
         return cnt;
     }
     
@@ -196,17 +104,9 @@ public final class UserDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/user/"+uid;
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // DELETE
-        ClientRequest request = getRequest(path);
-        ClientResponse<String> response = request.delete(String.class);
-        
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RET",String.valueOf(1));
+        deleteEasy(path);
         
         // Count
         return 1;
@@ -216,33 +116,18 @@ public final class UserDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/user/facility";
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // Converter
         UserModelConverter conv = new UserModelConverter();
         conv.setModel(user);
-        
+
         // JSON
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String json = mapper.writeValueAsString(conv);
-        byte[] data = json.getBytes(UTF8);
+        ObjectMapper mapper = this.getSerializeMapper();
+        byte[] data = mapper.writeValueAsBytes(conv);
         
         // PUT
-        ClientRequest request = getRequest(path);
-        request.body(MediaType.APPLICATION_JSON, data);
-        ClientResponse<String> response = request.put(String.class);
-
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON,json);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        // Count
-        String entityStr = getString(response);
+        String entityStr = putEasyJson(path, data, String.class); 
         int cnt = Integer.parseInt(entityStr);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RET",String.valueOf(cnt));
         
         return cnt;
     }
@@ -263,26 +148,9 @@ public final class UserDelegater extends BusinessDelegater {
         sb.append("/hiuchi/activity/");
         sb.append(year).append(CAMMA).append(month).append(CAMMA).append(numMonth);
         String path = sb.toString();
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
-        //ResteasyWebTarget target = getWebTarget(path);
-        //ActivityModel[] am = target.request(MediaType.APPLICATION_JSON).get(ActivityModel[].class);
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.get(String.class);
-        
-        // Wrapper
-        BufferedReader br = getReader(response);
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        ActivityModel[] am = mapper.readValue(br, ActivityModel[].class);
-        br.close();
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
+        ActivityModel[] am = getEasyJson(path, ActivityModel[].class);
         
         return am;
     }
@@ -291,23 +159,13 @@ public final class UserDelegater extends BusinessDelegater {
         StringBuilder sb = new StringBuilder();
         sb.append("/hiuchi/license");
         String path = sb.toString();
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // body
         byte[] data = uid.getBytes(UTF8);
+
+        // POST Text
+        String entityStr = postEasyText(path, data, String.class);
         
-        // PUT
-        ClientRequest request = getRequest(path);
-        request.body(MediaType.TEXT_PLAIN, data);
-        ClientResponse<String> response = request.post(String.class);
-        
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.TEXT_PLAIN,uid);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        // Count
-        String entityStr = getString(response);
         return Integer.parseInt(entityStr);
     }
 //s.oh$

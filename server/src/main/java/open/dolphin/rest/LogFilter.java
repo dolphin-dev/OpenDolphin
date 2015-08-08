@@ -1,7 +1,6 @@
 package open.dolphin.rest;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.servlet.*;
@@ -32,10 +31,6 @@ public class LogFilter implements Filter {
     @Inject
     private UserCache userCache;
 
-    /**
-     * @param filterConfig
-     * @throws ServletException
-     */
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
     }
@@ -44,20 +39,25 @@ public class LogFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 
         HttpServletRequest req = (HttpServletRequest)request;
-
-        String userName = req.getHeader(USER_NAME);
-        String password = req.getHeader(PASSWORD);
         
-        Map<String, String> userMap = userCache.getMap();
-        boolean authentication = password.equals(userMap.get(userName));
+        String userName;
+        String password;
+        boolean authentication;
+        
+        // Headerから取得する
+        userName = req.getHeader(USER_NAME);
+        password = req.getHeader(PASSWORD);
+        authentication = password.equals(userCache.getMap().get(userName));
         
         if (!authentication) {
             
             String requestURI = req.getRequestURI();
-            authentication = (userName.equals(SYSAD_USER_ID) && password.equals(SYSAD_PASSWORD) && requestURI.endsWith(SYSAD_PATH));
+            authentication = authentication || (SYSAD_USER_ID.equals(userName) && SYSAD_PASSWORD.equals(password) && requestURI.endsWith(SYSAD_PATH));
             
             if (!authentication) {
+                
                 authentication = userService.authenticate(userName, password);
+                
                 if (!authentication) {
                     HttpServletResponse res = (HttpServletResponse)response;
                     StringBuilder sbd = new StringBuilder();
@@ -65,17 +65,17 @@ public class LogFilter implements Filter {
                     sbd.append(userName).append(": ").append(req.getRequestURI());
                     String msg = sbd.toString();
                     Logger.getLogger("open.dolphin").warning(msg);
-                    res.sendError(401);
+                    res.sendError(HttpServletResponse.SC_FORBIDDEN);
                     return;
                 } else {
-                    userMap.put(userName, password);
+                    userCache.getMap().put(userName, password);
                 }
             }
         } 
 
         BlockWrapper wrapper = new BlockWrapper(req);
         wrapper.setRemoteUser(userName);
-
+        
         StringBuilder sb = new StringBuilder();
         sb.append(wrapper.getRemoteAddr()).append(" ");
         sb.append(wrapper.getShortUser()).append(" ");

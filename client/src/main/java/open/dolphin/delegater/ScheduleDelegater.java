@@ -2,11 +2,9 @@ package open.dolphin.delegater;
 
 //import com.fasterxml.jackson.core.type.TypeReference;
 //import com.sun.jersey.api.client.ClientResponse;
-import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.ws.rs.core.MediaType;
 import open.dolphin.infomodel.HealthInsuranceModel;
 import open.dolphin.infomodel.PVTHealthInsuranceModel;
 import open.dolphin.infomodel.PatientModel;
@@ -15,10 +13,7 @@ import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.infomodel.PostSchedule;
 import open.dolphin.util.BeanUtils;
 import open.dolphin.util.Log;
-import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.jboss.resteasy.client.ClientRequest;
-import org.jboss.resteasy.client.ClientResponse;
 
 /**
  * PVT 関連の Business Delegater　クラス。
@@ -52,18 +47,10 @@ public class ScheduleDelegater extends BusinessDelegater {
         sb.append(RES_SCHEDULE).append("/pvt/");
         sb.append(pvtPK).append(",").append(ptPK).append(",").append(startDate);
         String path = sb.toString();
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // DELETE
-        ClientRequest request = getRequest(path);
-        ClientResponse<String> response = request.delete(String.class);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-
-        // Check
-        checkStatus(response);
-
+        deleteEasy(path);
+        
         // Count
         return 1;
     }
@@ -74,23 +61,9 @@ public class ScheduleDelegater extends BusinessDelegater {
         StringBuilder sb = new StringBuilder();
         sb.append(RES_SCHEDULE).append("/pvt/").append(pvtDate);
         String path = sb.toString();
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.get(String.class);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","PRM",MediaType.APPLICATION_JSON);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        // Wrapper
-        BufferedReader br = getReader(response);
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        PatientVisitList result = mapper.readValue(br, PatientVisitList.class);
+        PatientVisitList result = getEasyJson(path, PatientVisitList.class);
         
         // Decode
         List<PatientVisitModel> list = result.getList();
@@ -116,22 +89,9 @@ public class ScheduleDelegater extends BusinessDelegater {
         sb.append(unassignedId).append(",");
         sb.append(pvtDate);
         String path = sb.toString();
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
         
         // GET
-        ClientRequest request = getRequest(path);
-        request.accept(MediaType.APPLICATION_JSON);
-        ClientResponse<String> response = request.get(String.class);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        
-        // Wrapper
-        BufferedReader br = getReader(response);
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        PatientVisitList result = mapper.readValue(br, PatientVisitList.class);
+        PatientVisitList result = getEasyJson(path, PatientVisitList.class);
         
         // Decode
         List<PatientVisitModel> list = result.getList();
@@ -152,22 +112,15 @@ public class ScheduleDelegater extends BusinessDelegater {
         
         // PATH
         String path = "/schedule/document";
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
-         // JSON
-        ObjectMapper mapper = new ObjectMapper();
-        // 2013/06/24
-        mapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String json = mapper.writeValueAsString(ps);
-        byte[] data = json.getBytes(UTF8);
+        
+        // JSON
+        ObjectMapper mapper = this.getSerializeMapper();
+        byte[] data = mapper.writeValueAsBytes(ps);
         
         // POST
-        ClientRequest request = getRequest(path);
-        request.body(MediaType.APPLICATION_JSON, data);
-        ClientResponse<String> response = request.post(String.class);
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","REQ",request.getUri().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","RES",String.valueOf(response.getStatus()), response.getResponseStatus().toString());
-        Log.outputFuncLog(Log.LOG_LEVEL_5,"I","ENT",getString(response));
-        String entityStr = getString(response);
+        String entityStr = postEasyJson(path, data, String.class);
+        
+        // Count
         return Integer.parseInt(entityStr);
     }
 

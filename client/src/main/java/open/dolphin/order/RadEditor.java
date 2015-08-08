@@ -917,9 +917,9 @@ public final class RadEditor extends AbstractStampEditor {
         if(editorButtonTypeIsIcon()) {
             view.getOkCntBtn().setIcon(ClientContext.getImageIconArias("icon_gear_small"));
         }
-//s.oh^ 2014/10/22 Icon表示
-        view.getSearchLabel().setIcon(ClientContext.getImageIconArias("icon_search_small"));
-//s.oh$
+////s.oh^ 2014/10/22 Icon表示
+//        view.getSearchLabel().setIcon(ClientContext.getImageIconArias("icon_search_small"));
+////s.oh$
 //minagawa$         
         view.getOkCntBtn().addActionListener(new ActionListener() {
             @Override

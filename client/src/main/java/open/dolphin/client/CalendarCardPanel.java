@@ -2,7 +2,6 @@ package open.dolphin.client;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -21,39 +20,39 @@ public class CalendarCardPanel extends JPanel  {
     
     public static final String PICKED_DATE = "pickedDate";
     
-    private JPanel cardPanel = new JPanel();
-    private CardLayout cardLayout = new CardLayout();
+    private final JPanel cardPanel = new JPanel();
+    private final CardLayout cardLayout = new CardLayout();
 //minagawa^ Icon Server    
     //private ImageIcon backIcon = ClientContext.getImageIcon("pback_16.png");
     //private ImageIcon stopIcon = ClientContext.getImageIcon("splay_16.gif");
     //private ImageIcon forwardIcon = ClientContext.getImageIcon("play_16.gif");
-    private ImageIcon backIcon = ClientContext.getImageIconArias("icon_play_back");
-    private ImageIcon stopIcon = ClientContext.getImageIconArias("icon_stop_play");
-    private ImageIcon forwardIcon = ClientContext.getImageIconArias("icon_play");
+    private final ImageIcon backIcon = ClientContext.getImageIconArias("icon_play_back");
+    private final ImageIcon stopIcon = ClientContext.getImageIconArias("icon_stop_play");
+    private final ImageIcon forwardIcon = ClientContext.getImageIconArias("icon_play");
 //minagawa$    
-    private JButton backBtn = new JButton(backIcon);
-    private JButton stopBtn = new JButton(stopIcon);
-    private JButton forwardBtn = new JButton(forwardIcon);
+    private final JButton backBtn = new JButton(backIcon);
+    private final JButton stopBtn = new JButton(stopIcon);
+    private final JButton forwardBtn = new JButton(forwardIcon);
     private int current;
     private int[] range;
 //minagawa^ 予定カルテ    (予定カルテ対応)
     private SimpleDate[] acceptRange;
 //minagawa$    
-    private HashMap<String, LiteCalendarPanel> calendars = new HashMap<String, LiteCalendarPanel>(12,1.0f);
-    private HashMap colorTable;
+    private final HashMap<String, LiteCalendarPanel> calendars = new HashMap<>(12,1.0f);
+    private final HashMap colorTable;
     private ArrayList markList;
-    private PropertyChangeSupport boundSupport = new PropertyChangeSupport(this);
-    private PropertyChangeListener calendarListener;
+    private final PropertyChangeSupport boundSupport = new PropertyChangeSupport(this);
+    private final PropertyChangeListener calendarListener;
     
     private static final int TITLE_ALIGN = SwingConstants.CENTER;
     private static final int TITLE_FONT_SIZE = 14;
     private static final Font TITLE_FONT = new Font("Dialog", Font.PLAIN, TITLE_FONT_SIZE);
     
-    private JLabel titleLable;
-    private Color titleFore = ClientContext.getColor("color.calendar.title.fore");
-    private Color titleBack = ClientContext.getColor("color.calendar.title.back");
-    private int titleAlign = TITLE_ALIGN;
-    private Font titleFont = TITLE_FONT;
+    private final JLabel titleLable;
+    private final Color titleFore = ClientContext.getColor("color.calendar.title.fore");
+    private final Color titleBack = ClientContext.getColor("color.calendar.title.back");
+    private final int titleAlign = TITLE_ALIGN;
+    private final Font titleFont = TITLE_FONT;
     
     /**
      * CalendarCardPanelを生成する。
@@ -79,31 +78,22 @@ public class CalendarCardPanel extends JPanel  {
         stopBtn.setMargin(new Insets(0,0,0,0));
         forwardBtn.setMargin(new Insets(0,0,0,0));
         
-        backBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                current -= 1;
-                controlNavigation();
-                showCalendar();
-            }
+        backBtn.addActionListener((ActionEvent e) -> {
+            current -= 1;
+            controlNavigation();
+            showCalendar();
         });
         
-        stopBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                current = 0;
-                controlNavigation();
-                showCalendar();
-            }
+        stopBtn.addActionListener((ActionEvent e) -> {
+            current = 0;
+            controlNavigation();
+            showCalendar();
         });
         
-        forwardBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                current+=1;
-                controlNavigation();
-                showCalendar();
-            }
+        forwardBtn.addActionListener((ActionEvent e) -> {
+            current+=1;
+            controlNavigation();
+            showCalendar();
         });
         
         titleLable = new JLabel();
@@ -253,7 +243,7 @@ public class CalendarCardPanel extends JPanel  {
     
     class CalendarListener implements PropertyChangeListener {
         
-        private CalendarCardPanel owner;
+        private final CalendarCardPanel owner;
         
         public CalendarListener(CalendarCardPanel owner) {
             this.owner = owner;
