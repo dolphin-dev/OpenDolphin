@@ -15,7 +15,9 @@
   - 新宿ヒロクリニック
   - 日本RedHat Takayoshi KimuraさんのJBoss as7 へのポーティング
 
-これらの部分の著作権はそれぞれの先生に帰属します。  
+これらの部分の著作権はそれぞれの先生に帰属します。またOpenDolphinには
+コミッターが存在しません。フォークされた場合はそれぞれ独立した開発者になっていただき、
+GitHub 等でソースの共有をお願いしています。  
 
 #### ３．開発環境  
  * jdk 1.8.0_51  
@@ -42,5 +44,14 @@ mvn install:install-file -Dfile=/path/to/AppleJavaExtensions.jar -DgroupId=com.a
  * mvn package  
 
 #### ６．Docker Image  
-dolphin-dev リポジトリに Docker コンテナイメージ（docke-images）を置いています。[この手順](https://github.com/dolphin-dev/docker-images)
-に従うと最も簡単にOpenDolphinサーバーを構築することができます。
+[Dockerのコンテナイメージ](https://github.com/dolphin-dev/docker-images)があります。これを利用するとOpenDolphinサーバーを簡単に構築することができます。
+
+#### ７．改良&問題点
+ * ターミノロジーが Janglish
+ * （今にして思えば）不要なJava Interface Class が多数
+ * バイナリによるデータ格納があり後利用に工夫が要る
+ * 紹介状等の文書管理機能が弱い
+ * ドキュメントが不足
+
+#### ８．参考情報
+ * [オブジェクトモデル](http://www.digital-globe.co.jp/architecture.html)
