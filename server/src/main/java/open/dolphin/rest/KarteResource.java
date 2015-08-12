@@ -136,7 +136,7 @@ public class KarteResource extends AbstractResource {
     @Produces(MediaType.TEXT_PLAIN)
     public String postDocument(String json) throws IOException {
         
-        System.err.println(json);
+        //System.err.println(json);
         
         // Karte 保存 ddl.putKarte()
         ObjectMapper mapper = new ObjectMapper();
@@ -147,23 +147,23 @@ public class KarteResource extends AbstractResource {
         // 関係を構築する
         List<ModuleModel> modules = document.getModules();
         if (modules!=null && modules.size()>0) {
-            for (ModuleModel m : modules) {
+            modules.stream().forEach((m) -> {
                 m.setDocumentModel(document);
-            }
+            });
         }
         // Schemaとの関係を構築する
         List<SchemaModel> schemas = document.getSchema();
         if (schemas!=null && schemas.size()>0) {
-            for (SchemaModel m : schemas) {
+            schemas.stream().forEach((m) -> {
                 m.setDocumentModel(document);
-            }
+            });
         }
         // Attachmentとの関係を構築する
         List<AttachmentModel> attachments = document.getAttachment();
         if (attachments!=null && attachments.size()>0) {
-            for (AttachmentModel m : attachments) {
+            attachments.stream().forEach((m) -> {
                 m.setDocumentModel(document);
-            }
+            });
         }
 
         long result = karteServiceBean.addDocument(document);
@@ -191,23 +191,23 @@ public class KarteResource extends AbstractResource {
         // 関係を構築する
         List<ModuleModel> modules = document.getModules();
         if (modules!=null && modules.size()>0) {
-            for (ModuleModel m : modules) {
+            modules.stream().forEach((m) -> {
                 m.setDocumentModel(document);
-            }
+            });
         }
         // Schemaとの関係を構築する
         List<SchemaModel> schemas = document.getSchema();
         if (schemas!=null && schemas.size()>0) {
-            for (SchemaModel m : schemas) {
+            schemas.stream().forEach((m) -> {
                 m.setDocumentModel(document);
-            }
+            });
         }
         // Attachmentとの関係を構築する
         List<AttachmentModel> attachments = document.getAttachment();
         if (attachments!=null && attachments.size()>0) {
-            for (AttachmentModel m : attachments) {
+            attachments.stream().forEach((m) -> {
                 m.setDocumentModel(document);
-            }
+            });
         }
 
         long result = karteServiceBean.addDocument(document);
@@ -269,8 +269,8 @@ public class KarteResource extends AbstractResource {
         long karteId = Long.parseLong(params[0]);
         String entity = params[1];
 
-        List<Date> fromList = new ArrayList<Date>();
-        List<Date> toList = new ArrayList<Date>();
+        List<Date> fromList = new ArrayList<>();
+        List<Date> toList = new ArrayList<>();
 
         int index = 2;
 
@@ -283,11 +283,13 @@ public class KarteResource extends AbstractResource {
         ModuleListList wrapper = new ModuleListList();
         
         List<List<ModuleModel>> result = karteServiceBean.getModules(karteId, entity, fromList, toList);
-        for (List<ModuleModel> list : result) {
+        result.stream().map((list) -> {
             ModuleList mlist = new ModuleList();
             mlist.setList(list);
+            return mlist;
+        }).forEach((mlist) -> {
             wrapper.addList(mlist);
-        }
+        });
         
         // Converter
         ModuleListListConverter conv = new ModuleListListConverter();
@@ -305,8 +307,8 @@ public class KarteResource extends AbstractResource {
         String[] params = param.split(CAMMA);
         long karteId = Long.parseLong(params[0]);
 
-        List<Date> fromList = new ArrayList<Date>();
-        List<Date> toList = new ArrayList<Date>();
+        List<Date> fromList = new ArrayList<>();
+        List<Date> toList = new ArrayList<>();
 
         int index = 1;
 
@@ -381,10 +383,12 @@ public class KarteResource extends AbstractResource {
 
         if (result!=null && result.size()>0) {
             StringBuilder sb = new StringBuilder();
-            for (Long l : result) {
+            result.stream().map((l) -> {
                 sb.append(String.valueOf(l));
+                return l;
+            }).forEach((_item) -> {
                 sb.append(CAMMA);
-            }
+            });
             String text = sb.substring(0, sb.length()-1);
             debug(text);
 
@@ -407,10 +411,12 @@ public class KarteResource extends AbstractResource {
         List<Long> result = karteServiceBean.addDiagnosis(list.getList());
 
         StringBuilder sb = new StringBuilder();
-        for (Long l : result) {
+        result.stream().map((l) -> {
             sb.append(String.valueOf(l));
+            return l;
+        }).forEach((_item) -> {
             sb.append(CAMMA);
-        }
+        });
         String text = sb.substring(0, sb.length()-1);
         debug(text);
 
@@ -441,7 +447,7 @@ public class KarteResource extends AbstractResource {
 
         debug(param);
         String[] params = param.split(CAMMA);
-        List<Long> list = new ArrayList<Long>(params.length);
+        List<Long> list = new ArrayList<>(params.length);
         for (String s : params) {
             list.add(Long.parseLong(s));
         }
@@ -492,10 +498,12 @@ public class KarteResource extends AbstractResource {
         List<Long> result = karteServiceBean.addObservations(list.getList());
 
         StringBuilder sb = new StringBuilder();
-        for (Long l : result) {
+        result.stream().map((l) -> {
             sb.append(String.valueOf(l));
+            return l;
+        }).forEach((_item) -> {
             sb.append(CAMMA);
-        }
+        });
         String text = sb.substring(0, sb.length()-1);
         debug(text);
 
@@ -527,7 +535,7 @@ public class KarteResource extends AbstractResource {
 
         debug(param);
         String[] params = param.split(CAMMA);
-        List<Long> list = new ArrayList<Long>(params.length);
+        List<Long> list = new ArrayList<>(params.length);
         for (String s : params) {
             list.add(Long.parseLong(s));
         }
@@ -609,8 +617,8 @@ public class KarteResource extends AbstractResource {
         String[] params = param.split(CAMMA);
         long karteId = Long.parseLong(params[0]);
 
-        List<Date> fromList = new ArrayList<Date>();
-        List<Date> toList = new ArrayList<Date>();
+        List<Date> fromList = new ArrayList<>();
+        List<Date> toList = new ArrayList<>();
 
         int index = 1;
 
@@ -624,11 +632,13 @@ public class KarteResource extends AbstractResource {
 
         // List List
         List<List<AppointmentModel>> result = karteServiceBean.getAppointmentList(karteId, fromList, toList);
-        for (List<AppointmentModel> list : result) {
+        result.stream().map((list) -> {
             AppoList mlist = new AppoList();
             mlist.setList(list);
+            return mlist;
+        }).forEach((mlist) -> {
             wrapper.addList(mlist);
-        }
+        });
         
         // Converter
         AppoListListConverter conv = new AppoListListConverter();
@@ -703,9 +713,9 @@ public class KarteResource extends AbstractResource {
         for(DocumentModel model : result) {
             List<AttachmentModel> attachments = model.getAttachment();
             if(attachments != null) {
-                for(AttachmentModel attachment : attachments) {
+                attachments.stream().forEach((attachment) -> {
                     attachment.setBytes(null);
-                }
+                });
             }
         }
 //s.oh$

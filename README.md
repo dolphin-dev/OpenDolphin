@@ -15,9 +15,7 @@
   - 新宿ヒロクリニック
   - 日本RedHat Takayoshi KimuraさんのJBoss as7 へのポーティング
 
-これらの部分の著作権はそれぞれの先生に帰属します。またOpenDolphinには
-コミッターが存在しません。フォークされた場合はそれぞれ独立した開発者になっていただき、
-GitHub 等でソースの共有をお願いしています。  
+これらの部分の著作権はそれぞれの先生に帰属します。またOpenDolphinにはコミッターが存在しません。フォークされた場合はそれぞれ独立した開発者になっていただき、 GitHub 等でソースの共有をお願いしています。  
 
 #### ３．開発環境  
  * jdk 1.8.0_51  
@@ -28,7 +26,7 @@ GitHub 等でソースの共有をお願いしています。
  * ソース/バイナリ形式は jdk1.8
 
 #### ４．依存性  
-OpenDolphinは、maven でプロジェクト管理を行っています。ビルドするにはext_lib内の  
+OpenDolphinは maven でプロジェクト管理を行っています。ビルドするにはext_lib内の  
  * iTextAsian.jar  
  * AppleJavaExtensions.jar
 
@@ -38,7 +36,7 @@ mvn install:install-file -Dfile=/path/to/iTextAsian.jar -DgroupId=opendolphin -D
 
 mvn install:install-file -Dfile=/path/to/AppleJavaExtensions.jar -DgroupId=com.apple -DartifactId=AppleJavaExtensions -Dversion=1.6 -Dpackaging=jar
 
-#### ５ ．コンパイル  
+#### ５．コンパイル  
  * git clone https&#58;//github.com/dolphin-dev/OpenDolphin.git ~/Desktop/OpenDolphin  
  * mvn clean  
  * mvn package  
