@@ -1,4 +1,4 @@
-# OpenDolphin
+## OpenDolphin
 皆川和史、王勝偉　[オープンドルフィン・ラボ](http://www.opendolphin.com)  
 
 #### １．OpenDolphin 2.6.0  
@@ -32,9 +32,9 @@ OpenDolphinは maven でプロジェクト管理を行っています。ビル�
 
 をローカルリポジトリーに手動でインストールする必要があります。  
 
-mvn install:install-file -Dfile=/path/to/iTextAsian.jar -DgroupId=opendolphin -DartifactId=itext-font -Dversion=1.0 -Dpackaging=jar  
+> mvn install:install-file -Dfile=/path/to/iTextAsian.jar -DgroupId=opendolphin -DartifactId=itext-font -Dversion=1.0 -Dpackaging=jar  
 
-mvn install:install-file -Dfile=/path/to/AppleJavaExtensions.jar -DgroupId=com.apple -DartifactId=AppleJavaExtensions -Dversion=1.6 -Dpackaging=jar
+> mvn install:install-file -Dfile=/path/to/AppleJavaExtensions.jar -DgroupId=com.apple -DartifactId=AppleJavaExtensions -Dversion=1.6 -Dpackaging=jar
 
 #### ５．コンパイル  
  * git clone https&#58;//github.com/dolphin-dev/OpenDolphin.git ~/Desktop/OpenDolphin  
@@ -52,4 +52,6 @@ mvn install:install-file -Dfile=/path/to/AppleJavaExtensions.jar -DgroupId=com.a
  * ドキュメントが不足
 
 #### ８．参考情報
- * [オブジェクトモデル](http://www.digital-globe.co.jp/architecture.html)
+ * [設計概要](http://www.digital-globe.co.jp/architecture.html)
+ * [Docker イメージ](https://github.com/dolphin-dev/docker-images)
+ * [ORCAとの接続](https://gist.github.com/dolphin-dev/c75e4ca63689779bfdf7)
