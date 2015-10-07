@@ -45,7 +45,7 @@ mvn install:install-file -Dfile=/path/to/AppleJavaExtensions.jar -DgroupId=com.a
  * mvn package  
 
 
- #### ６．ローカライゼイション  
+#### ６．ローカライゼイション  
   * 最後が resources となっているパッケージ（フォルダ）内にクラス別のリソースファイルがあります。
   * 例）open.dolphin.client.ChartImpl クラスのリソース -> open.dolphin.client.resources.ChartImpl.properties
   * このファイルをコピーし、iso3166 国名コード（タガログ語であれば tl）をアンダーバーでつないだ  ChartImpl_tl.properties として保存します。
