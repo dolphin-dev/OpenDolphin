@@ -10,7 +10,7 @@ import javax.swing.text.JTextComponent;
  */
 public class AutoRomanListener implements FocusListener {
     
-    private static AutoRomanListener instance = new AutoRomanListener();
+    private static final AutoRomanListener instance = new AutoRomanListener();
     
     /** Creates a new instance of AutoRomanListener */
     private AutoRomanListener() {
@@ -23,7 +23,7 @@ public class AutoRomanListener implements FocusListener {
     @Override
     public void focusGained(FocusEvent e) {
         Object source = e.getSource();
-        if (source != null && source instanceof JTextComponent) {
+        if (source != null && source instanceof JTextComponent && ClientContext.isJaJp()) {
             JTextComponent tc = (JTextComponent) source;
             if (tc.getInputContext() != null) {
                 tc.getInputContext().setCharacterSubsets(null);

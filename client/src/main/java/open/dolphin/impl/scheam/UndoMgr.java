@@ -27,14 +27,14 @@ public class UndoMgr {
     /** DrawingHolder の切り抜き */
     public static final int CLIP = 5;
 
-    private SchemaEditorImpl context;
-    private Deque<Model> undoQueue;
-    private Deque<Model> redoQueue;
+    private final SchemaEditorImpl context;
+    private final Deque<Model> undoQueue;
+    private final Deque<Model> redoQueue;
 
     public UndoMgr(SchemaEditorImpl context) {
         this.context = context;
-        undoQueue = new LinkedList<Model>();
-        redoQueue = new LinkedList<Model>();
+        undoQueue = new LinkedList<>();
+        redoQueue = new LinkedList<>();
     }
 
     /**
@@ -258,7 +258,7 @@ public class UndoMgr {
      */
     private class Model {
         private int code;
-        private List<DrawingHolder> drawingList;
+        private final List<DrawingHolder> drawingList;
         private BufferedImage baseImage;
         private double theta;
         private double x;
@@ -268,7 +268,7 @@ public class UndoMgr {
 
         public Model(int code) {
             this.code = code;
-            drawingList = new ArrayList<DrawingHolder>();
+            drawingList = new ArrayList<>();
             for (DrawingHolder h : context.getDrawingList()) drawingList.add(h);
         }
 

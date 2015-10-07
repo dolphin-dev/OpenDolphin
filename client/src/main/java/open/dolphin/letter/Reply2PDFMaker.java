@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.Date;
 import open.dolphin.client.ClientContext;
 import open.dolphin.helper.UserDocumentHelper;
@@ -18,9 +19,6 @@ import open.dolphin.project.Project;
  * @author Kazushi Minagawa, Digital Globe, Inc.
  */
 public class Reply2PDFMaker extends AbstractLetterPDFMaker {
-
-    private static final String DOC_TITLE = "ご　報　告";
-    private static final String FILE_TITLE = "ご報告";
  
     @Override
     public String create() {
@@ -36,25 +34,23 @@ public class Reply2PDFMaker extends AbstractLetterPDFMaker {
             
             String path = UserDocumentHelper.createPathToDocument(
                     getDocumentDir(),       // PDF File を置く場所
-                    FILE_TITLE,             // 文書名
+                    ClientContext.getMyBundle(Reply2PDFMaker.class).getString("docTitle.report"),             // 文書名
                     EXT_PDF,                // 拡張子 
                     model.getPatientName(), // 患者氏名 
                     new Date());            // 日付
-//minagawa^ jdk7           
+          
             Path pathObj = Paths.get(path);
             setPathToPDF(pathObj.toAbsolutePath().toString());         // 呼び出し側で取り出せるように保存する
-            // Open Document
-            //PdfWriter.getInstance(document, new FileOutputStream(pathToPDF));
             PdfWriter.getInstance(document, Files.newOutputStream(pathObj));
             document.open();
-//minagawa$            
+            
             // Font
             baseFont = BaseFont.createFont(HEISEI_MIN_W3, UNIJIS_UCS2_HW_H, false);
             titleFont = new Font(baseFont, getTitleFontSize());
             bodyFont = new Font(baseFont, getBodyFontSize());
 
             // タイトル
-            Paragraph para = new Paragraph(DOC_TITLE, titleFont);
+            Paragraph para = new Paragraph(ClientContext.getMyBundle(Reply2PDFMaker.class).getString("paragrap.report"), titleFont);
             para.setAlignment(Element.ALIGN_CENTER);
             document.add(para);
 
@@ -80,8 +76,8 @@ public class Reply2PDFMaker extends AbstractLetterPDFMaker {
                 para2.setAlignment(Element.ALIGN_LEFT);
                 document.add(para2);
             } else {
-                if (!dept.endsWith("科")) {
-                    dept += "科";
+                if (!dept.endsWith(ClientContext.getMyBundle(Reply2PDFMaker.class).getString("paragrap.dept"))) {
+                    dept += ClientContext.getMyBundle(Reply2PDFMaker.class).getString("paragrap.dept");
                 }
                 para2 = new Paragraph(dept, bodyFont);
                 para2.setAlignment(Element.ALIGN_LEFT);
@@ -94,11 +90,11 @@ public class Reply2PDFMaker extends AbstractLetterPDFMaker {
                 sb.append(model.getClientDoctor());
                 sb.append(" ");
             }
-            sb.append("先生　");
+            sb.append(ClientContext.getMyBundle(Reply2PDFMaker.class).getString("text.doctorTitle"));
             // title
             String title = Project.getString("letter.atesaki.title");
             if (title!=null && (!title.equals("無し"))) {
-                sb.append(title);
+                sb.append(" ").append(title);
             }
             para2 = new Paragraph(sb.toString(), bodyFont);
             para2.setAlignment(Element.ALIGN_LEFT);
@@ -107,45 +103,45 @@ public class Reply2PDFMaker extends AbstractLetterPDFMaker {
             document.add(new Paragraph("　"));
 
             // 拝啓
-            para2 = new Paragraph("拝啓", bodyFont);
+            para2 = new Paragraph(ClientContext.getMyBundle(Reply2PDFMaker.class).getString("paragrap.dearSirs"), bodyFont);
             para2.setAlignment(Element.ALIGN_LEFT);
             document.add(para2);
 
             // 挨拶
-            para2 = new Paragraph("時下ますますご清祥の段、お慶び申し上げます。", bodyFont);
+            para2 = new Paragraph(ClientContext.getMyBundle(Reply2PDFMaker.class).getString("paragrap.greetings"), bodyFont);
             para2.setAlignment(Element.ALIGN_LEFT);
             document.add(para2);
 
             // 患者受診
             String visitedDate = model.getItemValue(Reply2Impl.ITEM_VISITED_DATE);
             String informed = model.getTextValue(Reply2Impl.TEXT_INFORMED_CONTENT);
-
-            sb = new StringBuilder();
-            sb.append(model.getPatientName());
-            sb.append(" 殿(生年月日: ");
-            sb.append(getDateString(model.getPatientBirthday()));
-            sb.append(" ").append(model.getPatientAge()).append("歳").append(")、");
-            sb.append(getDateString(visitedDate));
-            sb.append(" に受診されました。");
-            para2 = new Paragraph(sb.toString(), bodyFont);
+            
+            String fmt = ClientContext.getMyBundle(Reply2PDFMaker.class).getString("meesageFormat.patientVisit");
+            String text = new MessageFormat(fmt).format(new Object[]{
+                model.getPatientName(),
+                getDateString(model.getPatientBirthday()),
+                model.getPatientAge(),
+                getDateString(visitedDate)
+            });
+            para2 = new Paragraph(text, bodyFont);
             para2.setAlignment(Element.ALIGN_LEFT);
             document.add(para2);
 
             sb = new StringBuilder();
-            sb.append("下記ご報告させていただきます。");
+            sb.append(ClientContext.getMyBundle(Reply2PDFMaker.class).getString("paragrap.greetings2"));
             para2 = new Paragraph(sb.toString(), bodyFont);
             para2.setAlignment(Element.ALIGN_LEFT);
             document.add(para2);
 
             // 敬具
-            para2 = new Paragraph("敬具", bodyFont);
+            para2 = new Paragraph(ClientContext.getMyBundle(Reply2PDFMaker.class).getString("paragrap.yoursSincerely"), bodyFont);
             para2.setAlignment(Element.ALIGN_RIGHT);
             document.add(para2);
 
             document.add(new Paragraph("　"));
 
             // 所見等
-            para2 = new Paragraph("所見等", bodyFont);
+            para2 = new Paragraph(ClientContext.getMyBundle(Reply2PDFMaker.class).getString("paragraph.objectiveNotes"), bodyFont);
             para2.setAlignment(Element.ALIGN_LEFT);
             document.add(para2);
 
@@ -165,10 +161,7 @@ public class Reply2PDFMaker extends AbstractLetterPDFMaker {
             //document.add(new Paragraph("　"));
 
             // 日付
-//minagawa^ LSC 1.4 bug fix 文書の印刷日付 2013/06/24
-            //String dateStr = getDateString(model.getConfirmed());
             String dateStr = getDateString(model.getStarted());
-//minagawa$  
             para = new Paragraph(dateStr, bodyFont);
             para.setAlignment(Element.ALIGN_RIGHT);
             document.add(para);
@@ -197,14 +190,14 @@ public class Reply2PDFMaker extends AbstractLetterPDFMaker {
             
             if (model.getConsultantTelephone()==null) {
                 sb = new StringBuilder();
-                sb.append("電話　");
+                sb.append(ClientContext.getMyBundle(Reply2PDFMaker.class).getString("paragrap.telephone")).append(" ");
                 sb.append(Project.getUserModel().getFacilityModel().getTelephone());
                 para2 = new Paragraph(sb.toString(), bodyFont);
                 para2.setAlignment(Element.ALIGN_RIGHT);
                 document.add(para2);
             } else {
                 sb = new StringBuilder();
-                sb.append("電話　");
+                sb.append(ClientContext.getMyBundle(Reply2PDFMaker.class).getString("paragrap.telephone")).append(" ");
                 sb.append(model.getConsultantTelephone());
                 para2 = new Paragraph(sb.toString(), bodyFont);
                 para2.setAlignment(Element.ALIGN_RIGHT);
@@ -219,7 +212,7 @@ public class Reply2PDFMaker extends AbstractLetterPDFMaker {
             // 差出人医師
             sb = new StringBuilder();
             sb.append(model.getConsultantDoctor());
-            sb.append(" 印");
+            sb.append(" ").append(ClientContext.getMyBundle(Reply2PDFMaker.class).getString("paragraph.seal"));
             para2 = new Paragraph(sb.toString(), bodyFont);
             para2.setAlignment(Element.ALIGN_RIGHT);
             document.add(para2);
@@ -231,10 +224,10 @@ public class Reply2PDFMaker extends AbstractLetterPDFMaker {
             return getPathToPDF();
 
         } catch (IOException ex) {
-            ClientContext.getBootLogger().warn(ex);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
             throw new RuntimeException(ERROR_IO);
         } catch (DocumentException ex) {
-            ClientContext.getBootLogger().warn(ex);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
             throw new RuntimeException(ERROR_PDF);
         }
     }

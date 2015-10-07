@@ -8,7 +8,7 @@ import javax.swing.*;
  * @author pns
  */
 public class ShortcutKey extends AbstractAction {
-    private AbstractButton button;
+    private final AbstractButton button;
     
     private ShortcutKey(AbstractButton button) {
         this.button = button;
@@ -21,6 +21,7 @@ public class ShortcutKey extends AbstractAction {
         am.put(name, new ShortcutKey(b));
     }
 
+    @Override
     public void actionPerformed(ActionEvent e) {
         button.doClick();
     }

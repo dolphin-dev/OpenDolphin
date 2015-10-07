@@ -2,7 +2,6 @@ package open.dolphin.system;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ComponentListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -17,8 +16,6 @@ import open.dolphin.client.GUIFactory;
 import open.dolphin.client.ServerInfo;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.util.HashUtil;
-import open.dolphin.util.Log;
-import org.apache.log4j.Logger;
 
 
 /**
@@ -40,7 +37,7 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
     private JButton nextBtn;
     private JButton backBtn;
     
-    private PropertyChangeSupport boundSupport;
+    private final PropertyChangeSupport boundSupport;
     private ServerInfo serverInfo;
     
     private OIDGetter oidGetter;
@@ -58,12 +55,9 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
     private JProgressBar bar;
     private JDialog progressDialog;
     
-    private Logger logger;
-    
     
     public AddFacilityDialog() {
         super((Frame)null, null, true);
-        logger = ClientContext.getBootLogger();
         boundSupport = new PropertyChangeSupport(this);
     }
     
@@ -95,31 +89,38 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
      */
     private void initialize() {
         
-        // リソースから値を取得する
-        String windowTitleitle = ClientContext.getString("account.window.tile");
+        // ResourceBundle
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(AddFacilityDialog.class);
+        
+        // Title
+        String windowTitleitle = bundle.getString("title.window");
 
+        // Window size
         int windowWidth = 741;
         int windowHeight = 613;
         
-        String backBtnText = ClientContext.getString("account.backBtn.text");
-        String nextBtnText = ClientContext.getString("account.nextBtn.text");
+        // Button Text
+        String backBtnText = bundle.getString("actionText.back");
+        String nextBtnText = bundle.getString("actionText.next");
         String cancelBtnText = (String)UIManager.get("OptionPane.cancelButtonText");
-        String addBtnText = ClientContext.getString("account.addBtn.text");
+        String addBtnText = bundle.getString("actionText.add");
         
-        // 通信テストパネルを生成する
+        // Creates communication test panel
         oidGetter = new OIDGetter();
         
-        // 使用許諾パネルを生成する
+        // Creates agreement panel
         AgreementModel agreeModel = new AgreementModel();
         try {
+            // Read the agreement text
             InputStream ir = this.getClass().getResourceAsStream("/open/dolphin/system/asp-agreement.txt");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(ir, "UTF-8"));
-            String line;
-            StringBuilder sb = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append("\n");
+            StringBuilder sb;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(ir, "UTF-8"))) {
+                String line;
+                sb = new StringBuilder();
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line).append("\n");
+                }
             }
-            reader.close();
             agreeModel.setAgreeText(sb.toString());
         } catch (Exception e) {
             e.printStackTrace(System.err);
@@ -127,10 +128,10 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
         }
         agreement = new AgreementPanel(agreeModel);
         
-        // アカウント情報パネルを生成する
+        // Creates account information panel
         accountInfo = new AccountInfoPanel();
         
-        // カードレアイウトへ配置する
+        // Put them into card layout
         cardPanel = new JPanel();
         cardLayout = new CardLayout();
         cardPanel.setLayout(cardLayout);
@@ -141,22 +142,22 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
         cardPanel.add(agreement, "agreement");
         cardPanel.add(accountInfo, "accountInfo");
         
-        // 戻るボタンを生成する
+        // Create Return Button
         backBtn = new JButton(backBtnText);
         backBtn.setEnabled(false);
         
-        // 次項ボタンを生成する
+        // Creates Next Button
         nextBtn = new JButton(nextBtnText);
         nextBtn.setEnabled(false);
         
-        // 登録ボタンを生成する
+        // Creates Add Button
         okBtn = new JButton(addBtnText);
         okBtn.setEnabled(false);
         
-        // キャンセルボタンを生成する
+        // Creates Cancel Button
         cancelBtn = new JButton(cancelBtnText);
         
-        // ボタンパネルを生成する
+        // Creates a panel contains buttons
         JPanel btnPanel;
         if (ClientContext.isMac()) {
             btnPanel = GUIFactory.createCommandButtonPanel(
@@ -167,16 +168,16 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
                     new JButton[]{backBtn, nextBtn, okBtn, cancelBtn});
         }
         
-        // 全体を配置する
+        // Layout all
         JPanel content = new JPanel(new BorderLayout(0, 17));
         content.add(cardPanel, BorderLayout.CENTER);
         content.add(btnPanel,BorderLayout.SOUTH);
         content.setBorder(BorderFactory.createEmptyBorder(12, 12, 11, 11));
         
-        // コンテントにする
+        // Add content panel
         this.getContentPane().add(content, BorderLayout.CENTER);
         
-        // Window の設定を行う
+        // Locate the window
         this.setTitle(ClientContext.getFrameTitle(windowTitleitle));
         this.setSize(new Dimension(windowWidth, windowHeight));
         Dimension size = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
@@ -196,44 +197,32 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
         
         accountInfo.addValidInfoPropertyListener(new AccountInfoListener());
         
-        backBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (state == AccountState.AGREEMENT) {
-                    setState(AccountState.COM_TEST);
-                    cardLayout.show(cardPanel, "comTest");
-                } else if (state == AccountState.ACCOUNT_INFO) {
-                    setState(AccountState.AGREEMENT);
-                    cardLayout.show(cardPanel, "agreement");
-                }
+        backBtn.addActionListener((ActionEvent e) -> {
+            if (state == AccountState.AGREEMENT) {
+                setState(AccountState.COM_TEST);
+                cardLayout.show(cardPanel, "comTest");
+            } else if (state == AccountState.ACCOUNT_INFO) {
+                setState(AccountState.AGREEMENT);
+                cardLayout.show(cardPanel, "agreement");
             }
         });
         
-        nextBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (state == AccountState.COM_TEST) {
-                    setState(AccountState.AGREEMENT);
-                    cardLayout.show(cardPanel, "agreement");
-                } else if (state == AccountState.AGREEMENT) {
-                    setState(AccountState.ACCOUNT_INFO);
-                    cardLayout.show(cardPanel, "accountInfo");
-                }
+        nextBtn.addActionListener((ActionEvent e) -> {
+            if (state == AccountState.COM_TEST) {
+                setState(AccountState.AGREEMENT);
+                cardLayout.show(cardPanel, "agreement");
+            } else if (state == AccountState.AGREEMENT) {
+                setState(AccountState.ACCOUNT_INFO);
+                cardLayout.show(cardPanel, "accountInfo");
             }
         });
         
-        okBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                addFacilityAdmin();
-            }
+        okBtn.addActionListener((ActionEvent e) -> {
+            addFacilityAdmin();
         });
         
-        cancelBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                close();
-            }
+        cancelBtn.addActionListener((ActionEvent e) -> {
+            close();
         });
         
         this.addComponentListener(this);
@@ -243,7 +232,7 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
         @Override
         public void propertyChange(PropertyChangeEvent e) {
             String oid = (String)e.getNewValue();
-            comTestOk = (oid != null && (!oid.equals("")) ) ? true : false;
+            comTestOk = (oid != null && (!oid.equals("")) );
             controlButton();
         }
     }
@@ -251,7 +240,7 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
     class AgreementListener implements PropertyChangeListener {
         @Override
         public void propertyChange(PropertyChangeEvent e) {
-            boolean agree = ((Boolean)e.getNewValue()).booleanValue();
+            boolean agree = ((Boolean)e.getNewValue());
             agreementOk = agree;
             controlButton();
         }
@@ -260,7 +249,7 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
     class AccountInfoListener implements PropertyChangeListener {
         @Override
         public void propertyChange(PropertyChangeEvent e) {
-            boolean account = ((Boolean)e.getNewValue()).booleanValue();
+            boolean account = ((Boolean)e.getNewValue());
             accountInfoOk = account;
             controlButton();
         }
@@ -313,15 +302,12 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
         model.setPassword(hashPass);
         
         task = new AddFacilityTask(model);
-        pl = new PropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                if ("state".equals(evt.getPropertyName())) {
-                    if (SwingWorker.StateValue.DONE==evt.getNewValue()) {
-                        stopProgress2();
-                    } else if (SwingWorker.StateValue.STARTED==evt.getNewValue()) {
-                        startProgress2();
-                    }
+        pl = (PropertyChangeEvent evt) -> {
+            if ("state".equals(evt.getPropertyName())) {
+                if (SwingWorker.StateValue.DONE==evt.getNewValue()) {
+                    stopProgress2();
+                } else if (SwingWorker.StateValue.STARTED==evt.getNewValue()) {
+                    startProgress2();
                 }
             }
         };
@@ -331,7 +317,8 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
     }
     
     private void startProgress2() {
-        String note = "アカウント情報を登録しています...";
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(AddFacilityDialog.class);
+        String note = bundle.getString("note.progress.AddingAccount");
         bar = new JProgressBar(0, 100);
         Object[] message = new Object[]{note, bar};
         JButton cancel = new JButton((String)UIManager.get("OptionPane.cancelButtonText"));
@@ -343,7 +330,7 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
                 null,
                 new Object[]{cancel});
         
-        String title = ClientContext.getFrameTitle("アカウント登録");
+        String title = ClientContext.getFrameTitle(bundle.getString("title.optionPane"));
         Component c = SwingUtilities.getWindowAncestor(this);
         progressDialog = pane.createDialog(c, title);
         progressDialog.setModal(false);
@@ -358,19 +345,19 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
     /**
      * AddFacilityTask
      */
-    class AddFacilityTask extends SwingWorker<Void, Void> {
+    class AddFacilityTask extends SwingWorker<String, Void> {
         
-        private UserModel user;
+        private final UserModel user;
         
         public AddFacilityTask(UserModel user) {
             this.user = user;
         }
        
         @Override
-        protected Void doInBackground() throws Exception {
+        protected String doInBackground() throws Exception {
             SystemDelegater sdl = new SystemDelegater();
-            sdl.addFacilityUser(user);
-            return null;
+            String result = sdl.addFacilityUser(user);
+            return result;
         }
         
         @Override
@@ -381,8 +368,8 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
                 return;
             }
             try {
-                get();
-                succeeded(null);
+                String result = get();
+                succeeded(result);
             } catch (InterruptedException ex) {
                 interrupted(ex);
             } catch (ExecutionException ex) {
@@ -390,26 +377,26 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
             }
         }
         
-        protected void succeeded(Void result) {
-            logger.debug("Task succeeded");
+        protected void succeeded(String result) {
             okBtn.setEnabled(false);
                     
             // 成功メッセージを表示する
-            StringBuilder sb = new StringBuilder();
-            sb.append(ClientContext.getString("account.task.successMsg1")).append("\n");
-            sb.append(ClientContext.getString("account.task.successMsg2")).append("\n");
-            sb.append(ClientContext.getString("account.task.successMsg3")).append("\n");
-            sb.append(ClientContext.getString("account.task.successMsg4"));
+            String thanks = ClientContext.getMyBundle(AddFacilityDialog.class).getString("message.thanks");
+            
             JOptionPane.showMessageDialog(
                     AddFacilityDialog.this,
-                    sb.toString(),
+                    thanks,
                     AddFacilityDialog.this.getTitle(),
                     JOptionPane.INFORMATION_MESSAGE);
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION,  AddFacilityDialog.this.getTitle(), sb.toString());
-
+            
             // サーバアカウント情報を通知する
+            // rsult = fid:uid
+            String[] spec = result.split(":");
             ServerInfo info = new ServerInfo();
-            info.setAdminId(user.getUserId());
+            info.setFacilityId(spec[0]);
+            info.setAdminId(spec[1]);
+            
+            // 通知する
             setServerInfo(info);
 
             AddFacilityDialog.this.setVisible(false);
@@ -417,31 +404,29 @@ public class AddFacilityDialog extends JDialog implements ComponentListener, Run
         }
         
         protected void failed(java.lang.Throwable cause) {
-
-            logger.warn(cause.getMessage());
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
             
             String errMsg = cause.getMessage();
             String title = AddFacilityDialog.this.getTitle();
             JOptionPane.showMessageDialog(AddFacilityDialog.this, errMsg, title, JOptionPane.WARNING_MESSAGE);
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, errMsg);
         }
 
         protected void interrupted(java.lang.InterruptedException e) {
-            logger.warn(e.getMessage());
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(e.getMessage());
         }
     }
     
     @Override
     public void componentMoved(java.awt.event.ComponentEvent componentEvent) {
         Point loc = getLocation();
-        System.out.println(getTitle() + " : x=" + loc.x+ " y=" + loc.y);
+        //System.out.println(getTitle() + " : x=" + loc.x+ " y=" + loc.y);
     }
     
     @Override
     public void componentResized(java.awt.event.ComponentEvent componentEvent) {
         int width = getWidth();
         int height = getHeight();
-        System.out.println(getTitle() + " : width=" + width + " height=" + height);
+        //System.out.println(getTitle() + " : width=" + width + " height=" + height);
     }
     
     @Override

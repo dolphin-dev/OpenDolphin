@@ -40,7 +40,6 @@ public class ImagePalette extends JPanel implements DragSourceListener, DragGest
     private int imageHeight;
     private JTable imageTable;
     private DragSource dragSource;
-    //private File imageDirectory;
     private Path imageDirectory;
     private String[] suffix = DEFAULT_IMAGE_SUFFIX;
     private boolean showHeader;
@@ -79,7 +78,7 @@ public class ImagePalette extends JPanel implements DragSourceListener, DragGest
     }
 
     public void setupDefaultSchema() {
-        ArrayList<ImageEntry> imageList = new ArrayList<ImageEntry>();
+        ArrayList<ImageEntry> imageList = new ArrayList<>();
         for (int j= 1; j <= RES_COUNT; j++) {
             try {
                 StringBuilder sb = new StringBuilder();
@@ -139,26 +138,6 @@ public class ImagePalette extends JPanel implements DragSourceListener, DragGest
         }
         
         imageTableModel.setImageList(imageList);
-//        URI uri = path.toUri();
-//                    URL url = uri.toURL();
-//                    String pathStr = path.toAbsolutePath().toString();
-//                    String fileName = path.getFileName().toString();
-//
-//        File[] imageFiles = listImageFiles(imageDirectory, suffix);
-//        if (imageFiles != null && imageFiles.length > 0) {
-//            ArrayList<ImageEntry> imageList = new ArrayList();
-//            for (int j= 0; j < imageFiles.length; j++) {
-//                try {
-//                    URL url = imageFiles[j].toURI().toURL();
-//                    ImageEntry entry = new ImageEntry();
-//                    entry.setUrl(url.toString());
-//                    imageList.add(entry);
-//                } catch (Exception e) {
-//                    e.printStackTrace(System.err);
-//                }
-//            }
-//            imageTableModel.setImageList(imageList);
-//        }
     }
     
     private void initComponent(int columnCount) {
@@ -204,16 +183,10 @@ public class ImagePalette extends JPanel implements DragSourceListener, DragGest
         dragSource = new DragSource();
         dragSource.createDefaultDragGestureRecognizer(imageTable, DnDConstants.ACTION_COPY_OR_MOVE, this);
     }
-    
-    private File[] listImageFiles(File dir, String[] suffix) {
         
-        ImageFileFilter filter = new ImageFileFilter(suffix);
-        return dir.listFiles(filter);
-    }
-    
     class ImageFileFilter implements FilenameFilter {
         
-        private String[] suffix;
+        private final String[] suffix;
         
         public ImageFileFilter(String[] suffix) {
             this.suffix = suffix;
@@ -223,8 +196,8 @@ public class ImagePalette extends JPanel implements DragSourceListener, DragGest
         public boolean accept(File dir, String name) {
             
             boolean accept = false;
-            for (int i = 0; i < suffix.length; i++) {
-                if (name.toLowerCase().endsWith(suffix[i])) {
+            for (String suffix1 : suffix) {
+                if (name.toLowerCase().endsWith(suffix1)) {
                     accept = true;
                     break;
                 }

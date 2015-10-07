@@ -44,43 +44,44 @@ public class AttachmentOrInlineView extends javax.swing.JPanel {
         jLabel11 = new javax.swing.JLabel();
         digestLbl = new javax.swing.JLabel();
 
-        jLabel1.setText("処理方法とタイトルを編集して下さい。");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/client/resources/AttachmentOrInlineView"); // NOI18N
+        jLabel1.setText(bundle.getString("jLabel1.text")); // NOI18N
 
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel2.setText("ファイル名:");
+        jLabel2.setText(bundle.getString("jLabel2.text")); // NOI18N
 
         fileNameLbl.setText("jLabel3");
 
         jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel4.setText("場所:");
+        jLabel4.setText(bundle.getString("jLabel4.text")); // NOI18N
 
         locationLbl.setText("jLabel5");
 
         jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel6.setText("タイプ:");
+        jLabel6.setText(bundle.getString("jLabel6.text")); // NOI18N
 
         typeLbl.setText("jLabel7");
 
         jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel8.setText("サイズ:");
+        jLabel8.setText(bundle.getString("jLabel8.text")); // NOI18N
 
         sizeLbl.setText("jLabel9");
 
-        attachmentRadio.setText("添付");
+        attachmentRadio.setText(bundle.getString("attachmentRadio.text")); // NOI18N
 
-        inlineRadio.setText("カルテに展開（画像のみ）");
+        inlineRadio.setText(bundle.getString("inlineRadio.text")); // NOI18N
 
-        jLabel10.setText("添付時のタイトル:");
+        jLabel10.setText(bundle.getString("jLabel10.text")); // NOI18N
 
         titleFld.setText("jTextField1");
 
         jLabel9.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel9.setText("最終更新日:");
+        jLabel9.setText(bundle.getString("jLabel9.text")); // NOI18N
 
         lastModifiedLbl.setText("jLabel9");
 
         jLabel11.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel11.setText("Hash(MD5):");
+        jLabel11.setText(bundle.getString("jLabel11.text")); // NOI18N
 
         digestLbl.setText("jLabel9");
 

@@ -16,7 +16,6 @@ import open.dolphin.infomodel.StampModel;
 import open.dolphin.project.Project;
 import open.dolphin.stampbox.StampTreeNode;
 import open.dolphin.util.BeanUtils;
-import open.dolphin.util.Log;
 
 /**
  * StampHolderTransferHandler
@@ -26,8 +25,8 @@ import open.dolphin.util.Log;
  */
 public class StampHolderTransferHandler extends TransferHandler implements IKarteTransferHandler {
 
-    private KartePane pPane;
-    private StampHolder stampHolder;
+    private final KartePane pPane;
+    private final StampHolder stampHolder;
 
     public StampHolderTransferHandler(KartePane pPane, StampHolder sh) {
         this.pPane = pPane;
@@ -53,30 +52,22 @@ public class StampHolderTransferHandler extends TransferHandler implements IKart
 
     private void replaceStamp(final StampHolder target, final ModuleInfoBean stampInfo) {
         
-        Runnable r = new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    StampDelegater sdl = new StampDelegater();
-                    StampModel getStamp = sdl.getStamp(stampInfo.getStampId());
-                    final ModuleModel stamp = new ModuleModel();
-                    if (getStamp != null) {
-                        stamp.setModel((IInfoModel) BeanUtils.xmlDecode(getStamp.getStampBytes()));
-                        stamp.setModuleInfoBean(stampInfo);
-                    }
-                    Runnable awt = new Runnable() {
-
-                        @Override
-                        public void run() {
-                            target.importStamp(stamp);
-                        }
-                    };
-                    EventQueue.invokeLater(awt);
-                    
-                } catch (Exception e) {
-                    e.printStackTrace(System.err);
+        Runnable r = () -> {
+            try {
+                StampDelegater sdl = new StampDelegater();
+                StampModel getStamp = sdl.getStamp(stampInfo.getStampId());
+                final ModuleModel stamp = new ModuleModel();
+                if (getStamp != null) {
+                    stamp.setModel((IInfoModel) BeanUtils.xmlDecode(getStamp.getStampBytes()));
+                    stamp.setModuleInfoBean(stampInfo);
                 }
+                Runnable awt = () -> {
+                    target.importStamp(stamp);
+                };
+                EventQueue.invokeLater(awt);
+                
+            } catch (Exception e) {
+                e.printStackTrace(System.err);
             }
         };
         Thread t = new Thread(r);
@@ -87,45 +78,36 @@ public class StampHolderTransferHandler extends TransferHandler implements IKart
     private void confirmReplace(StampHolder target, ModuleInfoBean stampInfo) {
         
         Window w = SwingUtilities.getWindowAncestor(target);
-        String replace = "置き換える";
-        String cancel = "取消し";
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampHolderTransferHandler.class);
+        String replace = bundle.getString("optionText.replace");
+        String cancel = GUIFactory.getCancelButtonText();
+        String question = bundle.getString("question.replaceStamp");
+        String title = bundle.getString("title.optionPane");
+        title = ClientContext.getFrameTitle(title);
         
          int option = JOptionPane.showOptionDialog(
                  w, 
-                 "スタンプを置き換えますか?", 
-                 "スタンプ Drag and Drop", 
+                 question, 
+                 title, 
                  JOptionPane.DEFAULT_OPTION, 
                  JOptionPane.QUESTION_MESSAGE, 
                  null, 
                  new String[]{replace, cancel}, replace);
-         Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "スタンプ Drag and Drop", "スタンプを置き換えますか?");
-         
-         if (option == 0) {
-             Log.outputOperLogDlg(pPane.getParent(), Log.LOG_LEVEL_0, replace);
-             replaceStamp(target, stampInfo);
-         }else{
-             Log.outputOperLogDlg(pPane.getParent(), Log.LOG_LEVEL_0, cancel);
-         }
     }
 
     @Override
-//minagawa^ Paste problem 2013/04/14 不具合修正(スタンプが消える)
-    //public boolean importData(JComponent c, Transferable tr) {
     public boolean importData(TransferHandler.TransferSupport support) {    
 
-        //if (canImport(c, tr.getTransferDataFlavors())) {
         if (canImport(support)) {    
             
-            //final StampHolder target = (StampHolder) c;
             final StampHolder target = (StampHolder)support.getComponent();
             Transferable tr = support.getTransferable();
-//minagawa$
             StampTreeNode droppedNode;
 
             try {
                 droppedNode = (StampTreeNode) tr.getTransferData(LocalStampTreeNodeTransferable.localStampTreeNodeFlavor);
                 
-            } catch (Exception e) {
+            } catch (UnsupportedFlavorException | IOException e) {
                 e.printStackTrace(System.err);
                 return false;
             }
@@ -145,11 +127,8 @@ public class StampHolderTransferHandler extends TransferHandler implements IKart
                 replaceStamp(target, stampInfo);
                 
             } else {
-                Runnable r = new Runnable() {
-                    @Override
-                    public void run() {
-                        confirmReplace(target, stampInfo);
-                    }
+                Runnable r = () -> {
+                    confirmReplace(target, stampInfo);
                 };
                 EventQueue.invokeLater(r);
             } 
@@ -177,17 +156,8 @@ public class StampHolderTransferHandler extends TransferHandler implements IKart
 
     /**
      * インポート可能かどうかを返す。
+     * @return 
      */
-//minagawa^ Paste problem 2013/04/14 不具合修正(スタンプが消える)
-//   @Override
-//    public boolean canImport(JComponent c, DataFlavor[] flavors) {
-//        StampHolder test = (StampHolder) c;
-//        JTextPane tc = (JTextPane) test.getKartePane().getTextPane();
-//        if (tc.isEditable() && hasFlavor(flavors)) {
-//            return true;
-//        }
-//        return false;
-//    }
     @Override
     public boolean canImport(TransferHandler.TransferSupport support) {
         StampHolder test = (StampHolder)support.getComponent();
@@ -196,7 +166,6 @@ public class StampHolderTransferHandler extends TransferHandler implements IKart
         ok = ok && hasFlavor(support.getDataFlavors());
         return ok;
     }
-//minagawa$
     
     protected boolean hasFlavor(DataFlavor[] flavors) {
         for (DataFlavor flavor : flavors) {

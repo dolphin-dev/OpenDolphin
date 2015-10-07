@@ -7,7 +7,6 @@ import open.dolphin.client.Chart;
 import open.dolphin.client.ChartDocument;
 import open.dolphin.client.ClientContext;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  * ImageBrowser plugin の proxy class.
@@ -24,7 +23,6 @@ public class ImageBrowserProxy implements ChartDocument {
     @Override
     public void start() {
         getBrowser().start();
-        // menu control
         enter();
     }
 
@@ -71,7 +69,6 @@ public class ImageBrowserProxy implements ChartDocument {
     @Override
     public void save() {
         getBrowser().save();
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, getTitle(), "保存成功。");
     }
 
     @Override
@@ -94,7 +91,6 @@ public class ImageBrowserProxy implements ChartDocument {
             // Projectに指定されているブラウザを生成する
             String name = Project.getString("image.browser.name");
             boolean win = ClientContext.isWin();
-            //win = true; // test with Mac
 
             if (win && name!=null && name.equals("unitea")) {
                 browser = (ChartDocument)create("open.dolphin.impl.img.UniteaBrowser");
@@ -102,19 +98,10 @@ public class ImageBrowserProxy implements ChartDocument {
             } else if (win && name!=null && name.equals("tfs")) {
                 browser = (ChartDocument)create("open.dolphin.impl.img.TFSBrowser");
 
-//s.oh^ FCR連携/他プロセス連携/Xronos連携
+//s.oh^ FCR連携
             // FCR連携
             } else if (name!=null && name.equals("fcr")) {
-                browser = (ChartDocument)create("open.dolphin.impl.img.FCRBrowser");
-                
-            // 他プロセス連携
-            } else if (name != null && name.equals("defaultex")) {
-                browser = (ChartDocument)create("open.dolphin.impl.img.DefaultBrowserEx");
-                
-            // Xronos連携
-            } else if (win && name != null && name.equals("xronos")) {
-                browser = (ChartDocument)create("open.dolphin.impl.xronos.XronosLinkDocument");
-                
+                browser = (ChartDocument)create("open.dolphin.impl.img.FCRBrowser");    
 //s.oh$
             } else {
                 browser = (ChartDocument)create("open.dolphin.impl.img.DefaultBrowser");
@@ -126,11 +113,7 @@ public class ImageBrowserProxy implements ChartDocument {
     private Object create(String clsName) {
         try {
             return Class.forName(clsName).newInstance();
-        } catch (InstantiationException ex) {
-            ex.printStackTrace(System.err);
-        } catch (IllegalAccessException ex) {
-            ex.printStackTrace(System.err);
-        } catch (ClassNotFoundException ex) {
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
             ex.printStackTrace(System.err);
         }
         return null;

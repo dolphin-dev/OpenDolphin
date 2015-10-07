@@ -3,6 +3,7 @@ package open.dolphin.stampbox;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import open.dolphin.client.ClientContext;
 import open.dolphin.infomodel.ModuleInfoBean;
 
@@ -20,16 +21,32 @@ public class ASpStampTreeBuilder extends AbstractStampTreeBuilder {
     private LinkedList<StampTreeNode> linkedList;
     private List<StampTree> products;
     
-    private boolean DEBUG;
+    // Logger
+    private static final boolean DEBUG=false;
+    private static final java.util.logging.Logger logger;
+    static {
+        logger = java.util.logging.Logger.getLogger(ASpStampTreeBuilder.class.getName());
+        logger.setLevel(DEBUG ? Level.FINE : Level.INFO);
+    }
     
     // Goddy conversion
-    private boolean goddyConversion = true;
+    private final boolean goddyConversion = true;
     private boolean shidoParsing;
     private boolean zaitakuParsing;
     
+    private final String convMatchInstraction;
+    private final String convReplaceInstraction;
+    private final String convMatchZaitaku;
+    private final String treeNameFromEditor;
     
     /** Creates new DefaultStampTreeBuilder */
     public ASpStampTreeBuilder() {
+        super();
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(ASpStampTreeBuilder.class);
+        convMatchInstraction = bundle.getString("text.instraction.conversion");
+        convReplaceInstraction = bundle.getString("text.replaceInstraction.conversion");
+        convMatchZaitaku = bundle.getString("text.zaitaku.conversion");
+        treeNameFromEditor = bundle.getString("treeName.fromEditor");
     }
     
     /**
@@ -43,29 +60,26 @@ public class ASpStampTreeBuilder extends AbstractStampTreeBuilder {
     
     @Override
     public void buildStart() {
-        products = new ArrayList<StampTree>();
-        if (DEBUG) {
-            ClientContext.getBootLogger().debug("Build StampTree start");
-        }
+        products = new ArrayList<>();
+        logger.fine("Build StampTree start");
     }
     
     @Override
     public void buildRoot(String name, String entity) {
         // New root
-        if (DEBUG) {
-            ClientContext.getBootLogger().debug("Root=" + name);
-        }
+        logger.log(Level.FINE, "Root={0}", name);
+        
         // Goddy conversion.
-        if (name.equals("指導") && goddyConversion){
-            name = "指導・在宅";
+        if (name.equals(convMatchInstraction) && goddyConversion){
+            name = convReplaceInstraction;
             shidoParsing = true;
         }
-        else if (name.equals("在宅") && goddyConversion) {
+        else if (name.equals(convMatchZaitaku) && goddyConversion) {
             zaitakuParsing = true;
             return;
         }
         //--------------------------------------
-        linkedList = new LinkedList<StampTreeNode>();
+        linkedList = new LinkedList<>();
         
         // TreeInfo を rootNode に保存する
         TreeInfo treeInfo = new TreeInfo();
@@ -78,9 +92,7 @@ public class ASpStampTreeBuilder extends AbstractStampTreeBuilder {
     @Override
     public void buildNode(String name) {
         // New node
-        if (DEBUG) {
-            ClientContext.getBootLogger().debug("Node=" + name);
-        }
+        logger.log(Level.FINE, "Node={0}", name);
         
         node = new StampTreeNode(name);
         getCurrentNode().add(node);
@@ -110,11 +122,11 @@ public class ASpStampTreeBuilder extends AbstractStampTreeBuilder {
             sb.append(memo);
             sb.append(",");
             sb.append(id);
-            ClientContext.getBootLogger().debug(sb.toString());
+            logger.fine(sb.toString());
         }
         
          // ASP Tree なのでエディタから発行を無視する
-        if (name.equals("エディタから発行...") && (id == null) && (role.equals("p")) ) {
+        if (name.equals(treeNameFromEditor) && (id == null) && (role.equals("p")) ) {
             return;
         }
         
@@ -123,7 +135,7 @@ public class ASpStampTreeBuilder extends AbstractStampTreeBuilder {
         info.setStampRole(role);
         info.setEntity(entity);
         if (editable != null) {
-            info.setEditable(Boolean.valueOf(editable).booleanValue());
+            info.setEditable(Boolean.valueOf(editable));
         }
         if (memo != null) {
             info.setStampMemo(memo);
@@ -139,9 +151,7 @@ public class ASpStampTreeBuilder extends AbstractStampTreeBuilder {
     
     @Override
     public void buildNodeEnd() {
-        if (DEBUG) {
-            ClientContext.getBootLogger().debug("End node");
-        }
+        logger.fine("End node");
         linkedList.removeFirst();
     }
     
@@ -156,21 +166,18 @@ public class ASpStampTreeBuilder extends AbstractStampTreeBuilder {
         StampTree tree = new StampTree(new StampTreeModel(rootNode));
         products.add(tree);
         
-        if (DEBUG) {
-            int pCount = products.size();
-            ClientContext.getBootLogger().debug("End root " + "count=" + pCount);
-        }
+        int pCount = products.size();
+        logger.log(Level.FINE, "End root count={0}", String.valueOf(pCount));
     }
     
     @Override
     public void buildEnd() {
         if (DEBUG) {
-            ClientContext.getBootLogger().debug("Build end");
+            logger.fine("Build end");
         }
     }
     
     private StampTreeNode getCurrentNode() {
         return (StampTreeNode) linkedList.getFirst();
     }
-    
 }

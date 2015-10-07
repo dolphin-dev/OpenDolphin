@@ -17,9 +17,10 @@ public final class ImageIconTransferable implements Transferable, ClipboardOwner
 
     public static final DataFlavor[] flavors = {ImageIconTransferable.imageIconFlavor};
      
-    private ImageIcon icon;
+    private final ImageIcon icon;
 
-    /** Creates new ImgeIconTransferable */
+    /** Creates new ImgeIconTransferable
+     * @param icon */
     public ImageIconTransferable(ImageIcon icon) {
         this.icon = icon;
     }
@@ -31,7 +32,7 @@ public final class ImageIconTransferable implements Transferable, ClipboardOwner
      
     @Override
     public boolean isDataFlavorSupported(DataFlavor flavor) {
-	return flavor.equals(imageIconFlavor) ? true : false;
+	return flavor.equals(imageIconFlavor);
     }
 
     @Override

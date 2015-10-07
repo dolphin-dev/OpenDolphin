@@ -5,9 +5,9 @@ import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -56,7 +56,6 @@ public class CheckInteractionPanel {
         context = chart;
         karteId = context.getKarte().getId();
         
-//minagawa^
         final SwingWorker worker = new SwingWorker<Void, Void>() {
 
             @Override
@@ -72,9 +71,7 @@ public class CheckInteractionPanel {
                     progressBar.stop();
                     progressBar = null;
                     showDialog();
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace(System.err);
-                } catch (ExecutionException ex) {
+                } catch (InterruptedException | ExecutionException ex) {
                     ex.printStackTrace(System.err);
                 }
             }    
@@ -85,7 +82,7 @@ public class CheckInteractionPanel {
             @Override
             public void propertyChange(PropertyChangeEvent e) {
                 if (e.getNewValue()==SwingWorker.StateValue.STARTED) {
-                    progressBar = new InfiniteProgressBar("相互作用チェック", "投薬歴を収集しています...", context.getFrame());
+                    progressBar = new InfiniteProgressBar(ClientContext.getMyBundle(CheckInteractionPanel.class).getString("message.progress.checkInteraction"), ClientContext.getMyBundle(CheckInteractionPanel.class).getString("note.progress.fetchingRPHistory"), context.getFrame());
                     progressBar.start();
                 } else if (e.getNewValue()==SwingWorker.StateValue.DONE) {
                     worker.removePropertyChangeListener(this);
@@ -93,24 +90,19 @@ public class CheckInteractionPanel {
             }
         });
         
-        worker.execute();
-//minagawa$        
+        worker.execute();       
     }
 
     private void showDialog(){
         
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(CheckInteractionPanel.class);
         if (rirekiItems!=null) {
             int cnt = rirekiItems.size();
             StringBuilder sb = new StringBuilder();
-            sb.append("投薬種類数=").append(cnt);
+            sb.append(bundle.getString("totalKindsOfMedication")).append(cnt);
             lbl_Past_count.setText(sb.toString());
         }
-//minagawa^        
-        //dialog = new JDialog((Frame) null, true);
-        //ClientContext.setDolphinIcon(dialog);
-        //dialog.setModal(true);
-        dialog = new JDialog((Frame)context.getFrame(), true);
-//minagawa$        
+        dialog = new JDialog((Frame)context.getFrame(), true);      
         dialog.setContentPane(view);
 
         blockGlass = new BlockGlass();
@@ -124,7 +116,7 @@ public class CheckInteractionPanel {
         sb.append(context.getPatient().getKanaName());
         sb.append(") : ");
         sb.append(context.getPatient().getPatientId());
-        sb.append(" - 薬剤併用情報検索");
+        sb.append(bundle.getString("contraindicationsSearch"));
         dialog.setTitle(ClientContext.getFrameTitle(sb.toString()));
         dialog.pack();
         ComponentMemory cm = new ComponentMemory(dialog, new Point(100, 100), dialog.getPreferredSize(), CheckInteractionPanel.this);
@@ -134,22 +126,21 @@ public class CheckInteractionPanel {
 
     private void collectMedicine() {
 
-        rirekiItems = new HashMap<String, String[]>();
+        rirekiItems = new HashMap<>();
 
         // 過去３ヶ月の薬剤・注射ののModuleModelを取得する
         MasudaDelegater del = MasudaDelegater.getInstance();
-        List<String> entities = new ArrayList<String>();
+        List<String> entities = new ArrayList<>();
         entities.add(IInfoModel.ENTITY_MED_ORDER);
         entities.add(IInfoModel.ENTITY_INJECTION_ORDER);
 
-//minagawa^ LSC Test 今日も含める
         GregorianCalendar gcTo = new GregorianCalendar();
         gcTo.add(GregorianCalendar.DAY_OF_MONTH,1);
         Date toDate = gcTo.getTime();
         GregorianCalendar gcFrom = new GregorianCalendar();
         gcFrom.add(GregorianCalendar.MONTH, -searchPeriod);
         Date fromDate = gcFrom.getTime();
-//minagawa$        
+        
         List<ModuleModel> pastModuleList = del.getModulesEntitySearch(karteId, fromDate, toDate, entities);
         if (pastModuleList == null) {
             return;
@@ -189,7 +180,7 @@ public class CheckInteractionPanel {
                 try {
                     get();
                     blockGlass.unblock();
-                } catch (Exception ex) {
+                } catch (InterruptedException | ExecutionException ex) {
                 }
             }
         };
@@ -206,19 +197,24 @@ public class CheckInteractionPanel {
             resultArea.setText("");
             return;
         }
+        
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(CheckInteractionPanel.class);
+        
         // キーワードが短すぎるなら
         if (targetName.length() < minKeywordLength) {
-            resultArea.setText("薬剤名は" + minKeywordLength + "文字以上入力してください。");
+            String fmt = bundle.getString("meesageFormat.medicineNameLength");
+            String msg = new MessageFormat(fmt).format(new Object[]{minKeywordLength});
+            resultArea.setText(msg);
             return;
         }
         // 処方履歴がなかったら
         if (rirekiItems.isEmpty()) {
-            resultArea.setText("処方履歴がありません。");
+            resultArea.setText(bundle.getString("noHistory"));
             return;
         }
 
         StringBuilder sb = new StringBuilder();
-        kensakuItems = new HashMap<String, String>();
+        kensakuItems = new HashMap<>();
         // ORCAでキーワードに当てはまる薬剤を取得する。
         SimpleDateFormat effectiveFormat = new SimpleDateFormat("yyyyMMdd");
         String d = effectiveFormat.format(new Date());
@@ -231,13 +227,10 @@ public class CheckInteractionPanel {
             medicineEntries = daoMaster.getTensuMasterByName(targetName, d, false);
         } catch (Exception e) {
         }
-//        if (!daoMaster.isNoError()) {
-//            resultArea.setText("ORCAに接続できません。");
-//            return;
-//        }
+        
         // 検索薬剤がなかったら
         if (medicineEntries==null || medicineEntries.isEmpty()) {
-            resultArea.setText("対象薬剤が見つかりません");
+            resultArea.setText(bundle.getString("cannotFindTargetMedicine"));
             return;
         }
         // 検索対象のコードと薬剤名を記録する
@@ -250,22 +243,18 @@ public class CheckInteractionPanel {
         Collection<String> codes2 = rirekiItems.keySet();
 
         // データベースで検索する。まとめてSQLをなげる
-        //SqlMiscDao daoMisc = SqlMiscDao.getInstance();
         OrcaDelegater odl = OrcaDelegaterFactory.create();
         List<DrugInteractionModel> list = null;
         try {
             list = odl.checkInteraction(codes1, codes2);
-        }catch (Exception e) {
+        } catch (Exception e) {
         }
-//        if (!daoMisc.isNoError()) {
-//            resultArea.setText("ORCAに接続できません。");
-//            return;
-//        }
+        
         // 結果の処理
         if (list != null && !list.isEmpty()) {
             for (DrugInteractionModel model : list){
                 sb.append(kensakuItems.get(model.getSrycd1()));
-                sb.append(" と ");
+                sb.append(bundle.getString("text.and"));
                 String[] data = rirekiItems.get(model.getSrycd2());
                 sb.append(data[0]);
                 sb.append(" (");
@@ -279,12 +268,12 @@ public class CheckInteractionPanel {
         }
 
         if (sb.length() == 0) {
-            sb.append("検索対象薬剤：\n");
+            sb.append(bundle.getString("targetMedicineToSearch"));
             for (String str : kensakuItems.values()) {
                 sb.append(str);
                 sb.append("\n");
             }
-            sb.append("相互作用情報は見つかりませんでした。");
+            sb.append(bundle.getString("CouldnotFindTheInteractionData"));
         }
 
         resultArea.setText(sb.toString());
@@ -292,13 +281,15 @@ public class CheckInteractionPanel {
 
     private void initComponents() {
         
-        lbl_Info = new JLabel("過去３ヶ月間の投薬との併用情報を調べます。");
-        lbl_Past_count = new JLabel("投薬数=0");
-        lbl_Name = new JLabel("薬剤名");
-        lbl_Result = new JLabel("結果");
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(CheckInteractionPanel.class);
+        
+        lbl_Info = new JLabel(bundle.getString("checkPast3monthOfMedicationANdContradication"));
+        lbl_Past_count = new JLabel(bundle.getString("numMedications"));
+        lbl_Name = new JLabel(bundle.getString("medicineName"));
+        lbl_Result = new JLabel(bundle.getString("results"));
         keywordFld = new JTextField();
-        btn_Exit = new JButton("終了");
-        btn_Search = new JButton("検索");
+        btn_Exit = new JButton(bundle.getString("quit"));
+        btn_Search = new JButton(bundle.getString("search"));
         resultArea = new JTextArea();
         JScrollPane scroll = new JScrollPane(resultArea);
 
@@ -339,28 +330,16 @@ public class CheckInteractionPanel {
         view.setBorder(BorderFactory.createEmptyBorder(12, 12, 11, 11));
 
         resultArea.setLineWrap(true);
-        btn_Search.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                search();
-            }
+        btn_Search.addActionListener((ActionEvent e) -> {
+            search();
         });
-        btn_Exit.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                closePanel();
-            }
+        btn_Exit.addActionListener((ActionEvent e) -> {
+            closePanel();
         });
         
         keywordFld.addFocusListener(AutoKanjiListener.getInstance());
-        keywordFld.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                search();
-            }
+        keywordFld.addActionListener((ActionEvent e) -> {
+            search();
         });
     }
 }

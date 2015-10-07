@@ -2,6 +2,8 @@ package open.dolphin.order;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JTable;
@@ -18,7 +20,7 @@ import open.dolphin.table.ListTableModel;
  */
 public final class RegisteredDiagnosisTransferHandler extends TransferHandler {
     
-    private DataFlavor registeredDiagnosisFlavor = RegisteredDiagnosisTransferable.registeredDiagnosisFlavor;
+    private final DataFlavor registeredDiagnosisFlavor = RegisteredDiagnosisTransferable.registeredDiagnosisFlavor;
     
     private JTable sourceTable;
     private boolean shouldRemove;
@@ -57,7 +59,7 @@ public final class RegisteredDiagnosisTransferHandler extends TransferHandler {
                 RegisteredDiagnosisModel dropItem = (RegisteredDiagnosisModel) t.getTransferData(registeredDiagnosisFlavor);
                 JTable dropTable = (JTable) support.getComponent();
                 ListTableModel<RegisteredDiagnosisModel> tableModel = (ListTableModel<RegisteredDiagnosisModel>) dropTable.getModel();
-                shouldRemove = dropTable == sourceTable ? true : false;
+                shouldRemove = dropTable == sourceTable;
 
                 if (toIndex<tableModel.getObjectCount()) {
                     tableModel.addObject(toIndex, dropItem);
@@ -68,7 +70,7 @@ public final class RegisteredDiagnosisTransferHandler extends TransferHandler {
                 return true;
             }
 
-        } catch (Exception ioe) {
+        } catch (UnsupportedFlavorException | IOException ioe) {
             ioe.printStackTrace(System.err);
         }
         
@@ -95,8 +97,6 @@ public final class RegisteredDiagnosisTransferHandler extends TransferHandler {
 
     @Override
     public boolean canImport(TransferHandler.TransferSupport support) {
-        return (support.isDrop() && support.isDataFlavorSupported(registeredDiagnosisFlavor))
-                ? true
-                : false;
+        return (support.isDrop() && support.isDataFlavorSupported(registeredDiagnosisFlavor));
     }
 }

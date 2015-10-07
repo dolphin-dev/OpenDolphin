@@ -14,7 +14,6 @@ import open.dolphin.delegater.ChartEventDelegater;
 import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
 import open.dolphin.util.BeanUtils;
-import open.dolphin.util.Log;
 
 /**
  * カルテオープンなどの状態の変化をまとめて管理する
@@ -113,7 +112,7 @@ public class ChartEventHandler implements PropertyChangeListener {
     
     private void logAndSetChartEventModel(boolean notify, ChartEventModel evt) {
         if (DEBUG) {
-            String notifyOrReceived = notify ? "通知" : "受信";
+            String notifyOrReceived = notify ? "Notify" : "Received";
             System.err.println("----------------------------------------");
             StringBuilder sb = new StringBuilder();
             sb.append(notifyOrReceived).append("\n");
@@ -201,9 +200,7 @@ public class ChartEventHandler implements PropertyChangeListener {
         
         publish(evt);
     }
-
-// 2013/07/18    
-//minagawa^ LSC red flag    
+  
     public int publishKarteClosedInWorkerThread(PatientVisitModel pvt) throws Exception {
         
         // 閲覧のみの処理、ええい！面倒だ！
@@ -226,8 +223,7 @@ public class ChartEventHandler implements PropertyChangeListener {
         // サーバーへ通知
         ChartEventDelegater del = ChartEventDelegater.getInstance();
         return del.putChartEvent(evt);
-    }
-//minagawa$    
+    }  
 
     public void start() {
 
@@ -263,8 +259,6 @@ public class ChartEventHandler implements PropertyChangeListener {
         }
     }
     
-//minagawa^ 2013/08/29
-   // Commetでサーバーと同期するスレッド
    private class EventListenTask2 implements Runnable {
    
         private Future<ChartEventModel> future;
@@ -296,16 +290,14 @@ public class ChartEventHandler implements PropertyChangeListener {
                 } catch (Exception e) {
                     System.err.print("future exception");
                     System.out.println(e.toString());
-                    Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_WARNING, "subscribe2 warning：", e.toString());
 //s.oh^ 2013/08/01
                     if(Project.getBoolean("subscribe.retry.check", true)) {
                         retryCnt += 1;
                         if(retryCnt > retryLimit) {
                             isRunning = false;
-//minagawa^ 2015/03/11                            
+//minagawa^ 2015/03/11 メッセージの評判がよくないので表示なし                            
                             //JOptionPane.showMessageDialog(null, "同期通信に異常が発生したため、アプリを再起動してください。", ClientContext.getString("productString"), JOptionPane.WARNING_MESSAGE);
 //minagawa$                            
-                            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_WARNING, "同期通信に異常が発生したため、アプリを再起動してください。");
                         }else{
                             if(Project.getBoolean("subscribe.retry.restart", false)) {
 //                                listenTask.stop();
@@ -319,7 +311,6 @@ public class ChartEventHandler implements PropertyChangeListener {
 //                                thread.start();
                                 setRetryChartEvent(true);
                                 isRunning = false;
-                                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_WARNING, "同期通信に異常が発生したためsubscribeをリスタート。");
                                 break;
                             }
                             try{
@@ -331,8 +322,7 @@ public class ChartEventHandler implements PropertyChangeListener {
                 }
             }
         }
-    }    
-//minagawa$
+    } 
     
     // 自クライアントの状態変更後、サーバーに通知するタスク
     private class LocalOnEventTask implements Runnable {

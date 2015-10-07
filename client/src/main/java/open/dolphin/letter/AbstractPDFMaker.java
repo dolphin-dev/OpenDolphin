@@ -8,12 +8,8 @@ import java.awt.Desktop;
 import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import open.dolphin.client.Chart;
 import open.dolphin.client.ClientContext;
@@ -21,7 +17,6 @@ import open.dolphin.helper.UserDocumentHelper;
 import open.dolphin.infomodel.LetterModule;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.project.Project;
-import org.apache.log4j.Logger;
 
 /**
  * AbstractPDFMaker
@@ -34,8 +29,8 @@ public abstract class AbstractPDFMaker {
     protected static final String HEISEI_MIN_W3 = "HeiseiMin-W3";
     protected static final String UNIJIS_UCS2_HW_H = "UniJIS-UCS2-HW-H";
     
-    protected static final String ERROR_IO = "ファイル IO エラー";
-    protected static final String ERROR_PDF = "PDF 生成エラー";
+    protected static final String ERROR_IO = java.util.ResourceBundle.getBundle("open/dolphin/letter/resources/AbstractPDFMaker").getString("errorText.fileIO");
+    protected static final String ERROR_PDF = java.util.ResourceBundle.getBundle("open/dolphin/letter/resources/AbstractPDFMaker").getString("errorText.pdfCreation");
 
     protected static final int TOP_MARGIN = 50;
     protected static final int LEFT_MARGIN = 50;
@@ -67,8 +62,8 @@ public abstract class AbstractPDFMaker {
     private static final String HEISEI_GO_W5 = "HeiseiKakuGo-W5";
     private static final String DOC_FOOTER = "OpenDolphin, Japanese open source EHR. (c)Digital Globe, Inc.";
     protected static final SimpleDateFormat FRMT_DATE_WITH_TIME = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-    protected static final SimpleDateFormat FRMT_FILE_DATE = new SimpleDateFormat("yyyyMMdd");
-    protected static final SimpleDateFormat FRMT_SIMPLE_DATE =  new SimpleDateFormat("yyyy-MM-dd");
+    //protected static final SimpleDateFormat FRMT_FILE_DATE = new SimpleDateFormat("yyyyMMdd");
+    //protected static final SimpleDateFormat FRMT_SIMPLE_DATE =  new SimpleDateFormat("yyyy-MM-dd");
     
     protected Chart context;
     
@@ -111,12 +106,12 @@ public abstract class AbstractPDFMaker {
     
         
     protected String getDateString(Date d) {
-        return ModelUtils.getDateAsFormatString(d, "yyyy年M月d日");
+        return ModelUtils.getDateAsFormatString(d, ClientContext.getMyBundle(AbstractPDFMaker.class).getString("dateFormat.simple"));
     }
 
     protected String getDateString(String date) {
         Date d = ModelUtils.getDateAsObject(date);
-        return ModelUtils.getDateAsFormatString(d, "yyyy年M月d日");
+        return ModelUtils.getDateAsFormatString(d, ClientContext.getMyBundle(AbstractPDFMaker.class).getString("dateFormat.simple"));
     }
     
     protected PdfPCell createNoBorderCell(String text) {
@@ -246,10 +241,6 @@ public abstract class AbstractPDFMaker {
         
         setPathToPDF(path);// 呼び出し側で取り出せるように保存する
         return path;
-    }
-    
-    protected final Logger getBootLogger() {
-        return ClientContext.getBootLogger();
     }
 
     protected final HeaderFooter getDolphinFooter() {

@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import open.dolphin.client.KartePane;
+import open.dolphin.client.ClientContext;
 
 /**
  * 新規カルテの PDF メーカー。
@@ -29,10 +29,10 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
     public static final int KM_SOA              = 0;    // Karte SOA mode
     public static final int KM_PLAN             = 1;    // Karte Plan mode
 
-    private String patID;                               // Patient ID
-    private String patName;                             // Patient Name
-    private String pdfTitle;                            // Title
-    private Date saveDate;                              // Save Date
+    private final String patID;                               // Patient ID
+    private final String patName;                             // Patient Name
+    private final String pdfTitle;                            // Title
+    private final Date saveDate;                              // Save Date
     private Document pdfDoc;                            // PDF Document
     private PdfWriter pdfWriter;                        // PDF Writer
     private int pdfTop;                                 // PDF Top
@@ -47,16 +47,19 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
     private int paragraphAlign;                         // Paragraph align
     private boolean bCreating;                          // Creating paragraph
     private boolean bInitialized;                       // Initialized PDF
-    private String docID;                               // Karte ID
-    private String docNo;                               // Karte Number
+    private final String docID;                               // Karte ID
+    private final String docNo;                               // Karte Number
     
     private boolean border;                             // Border   // Attachment追加
 
     /**
      * コンストラクタ
-     * @param valPath フォルダパス
-     * @param valPathID タイトル
+     * @param valPatID
+     * @param valPatName
+     * @param valTitle
      * @param valDate 保存時刻
+     * @param docID
+     * @param docNo
      */
     public KartePDFMaker2(String valPatID, String valPatName, String valTitle, Date valDate, String docID, String docNo) {
         // 患者ID
@@ -86,6 +89,7 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
     
     /**
      * カルテモードの取得
+     * @return 
      */
     public int getKarteMode() {
         return karteMode;
@@ -151,7 +155,9 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
             StringBuilder sbFooter = new StringBuilder();
             sbFooter.append("【");
             sbFooter.append(patName);
-            sbFooter.append(" 様】");
+            sbFooter.append(" ");
+            sbFooter.append(ClientContext.getMyBundle(KartePDFMaker2.class).getString("person.title"));
+            sbFooter.append("】");
             sbFooter.append(" Page ");
             HeaderFooter footer = new HeaderFooter(new Phrase(sbFooter.toString(), bodyFont), true);
 //s.oh$
@@ -322,6 +328,10 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
 
     /**
      * テーブルへデータの追加
+     * @param data
+     * @param fontSize
+     * @param style
+     * @param color
      */
     public void addKartePDFData(String data, int fontSize, int style, Color color) {
         Font font = new Font(baseFont, (float)fontSize, style, color);
@@ -338,6 +348,8 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
     
     /**
      * テーブルへ画像の追加
+     * @param buf
+     * @param align
      */
     public void addKartePDFImage(byte[] buf, int align) {
         try {

@@ -10,10 +10,10 @@ import java.awt.geom.Rectangle2D;
  */
 public class Line2DHolder implements DrawingHolder {
     
-    private Line2D.Double line2D;
-    private Stroke stroke;
-    private Paint paint;
-    private AlphaComposite ac;
+    private final Line2D.Double line2D;
+    private final Stroke stroke;
+    private final Paint paint;
+    private final AlphaComposite ac;
     private boolean p1;
     private boolean p2;
     
@@ -43,10 +43,7 @@ public class Line2DHolder implements DrawingHolder {
             return true;
         }
         
-        if (line2D.intersects(r)) {
-            return true;
-        }
-        return false;
+        return line2D.intersects(r);
     }
     
     @Override

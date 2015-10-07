@@ -10,7 +10,8 @@ import open.dolphin.infomodel.ModuleInfoBean;
  */
 public class StampTreeNode extends DefaultMutableTreeNode {
 
-    /** コンストラクタ */
+    /** コンストラクタ
+     * @param userObject */
     public StampTreeNode(Object userObject) {
         
         super(userObject);
@@ -23,6 +24,7 @@ public class StampTreeNode extends DefaultMutableTreeNode {
     
     /**
      * 葉かどうかを返す
+     * @return 
      */
     @Override
     public boolean isLeaf() {
@@ -31,6 +33,7 @@ public class StampTreeNode extends DefaultMutableTreeNode {
     
     /**
      * StampInfo を返す
+     * @return 
      */
     public ModuleInfoBean getStampInfo() {
         return (ModuleInfoBean) userObject;

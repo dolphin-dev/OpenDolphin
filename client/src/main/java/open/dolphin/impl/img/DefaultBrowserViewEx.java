@@ -61,12 +61,6 @@ public class DefaultBrowserViewEx extends javax.swing.JPanel {
         ));
         jScrollPane1.setViewportView(table);
 
-        otherProcess1Btn.setLabel("List");
-
-        otherProcess2Btn.setLabel("Image");
-
-        otherProcess3Btn.setLabel("Today");
-
         newdirBtn.setText("新規");
         newdirBtn.setToolTipText("ディレクトリの新規作成");
 

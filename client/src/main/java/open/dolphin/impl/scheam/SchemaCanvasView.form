@@ -4,11 +4,12 @@
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="0"/>
     <Property name="alwaysOnTop" type="boolean" value="true"/>
-    <Property name="resizable" type="boolean" value="false"/>
     <Property name="undecorated" type="boolean" value="true"/>
+    <Property name="resizable" type="boolean" value="false"/>
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
+    <SyntheticProperty name="generateCenter" type="boolean" value="false"/>
   </SyntheticProperties>
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
@@ -26,27 +27,26 @@
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
           <Component id="titlePanel" alignment="1" max="32767" attributes="0"/>
-          <Group type="102" alignment="1" attributes="0">
-              <EmptySpace max="32767" attributes="0"/>
-              <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+          <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="titleFld" min="-2" pref="456" max="-2" attributes="2"/>
-              <EmptySpace max="-2" attributes="0"/>
-          </Group>
-          <Group type="102" alignment="0" attributes="0">
-              <EmptySpace max="-2" attributes="0"/>
-              <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
-              <Component id="roleCombo" min="-2" max="-2" attributes="2"/>
-              <EmptySpace pref="56" max="32767" attributes="0"/>
-              <Component id="cancelBtn" min="-2" max="-2" attributes="0"/>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
-              <Component id="okBtn" min="-2" pref="142" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
-          </Group>
-          <Group type="102" alignment="0" attributes="0">
-              <EmptySpace max="-2" attributes="0"/>
-              <Component id="canvasPanel" pref="522" max="32767" attributes="2"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="1" attributes="0">
+                      <EmptySpace min="0" pref="92" max="32767" attributes="0"/>
+                      <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="titleFld" min="-2" pref="456" max="-2" attributes="2"/>
+                  </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="roleCombo" min="-2" max="-2" attributes="2"/>
+                      <EmptySpace max="32767" attributes="0"/>
+                      <Component id="cancelBtn" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="okBtn" min="-2" pref="98" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="canvasPanel" alignment="0" max="32767" attributes="2"/>
+              </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
@@ -88,60 +88,68 @@
     </Container>
     <Component class="javax.swing.JLabel" name="jLabel1">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x30bf;&#x30a4;&#x30c8;&#x30eb;:"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/impl/scheam/resources/SchemaCanvasView.properties" key="titleLabel.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="titleFld">
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x7528;&#x9014;:"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/impl/scheam/resources/SchemaCanvasView.properties" key="usageLabel.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JComboBox" name="roleCombo">
       <Properties>
         <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
           <StringArray count="27">
-            <StringItem index="0" value="&#x691c;&#x4f53;&#x691c;&#x67fb;"/>
-            <StringItem index="1" value="&#x5185;&#x8996;&#x93e1;&#x691c;&#x67fb;"/>
-            <StringItem index="2" value="&#x5358;&#x7d14;&#x30ec;&#x30f3;&#x30c8;&#x30b2;&#x30f3;&#x5199;&#x771f;"/>
-            <StringItem index="3" value="&#x4e0a;&#x90e8;&#x6d88;&#x5316;&#x7ba1;&#x9020;&#x5f71;&#x691c;&#x67fb;"/>
-            <StringItem index="4" value="&#x30d0;&#x30ea;&#x30a6;&#x30e0;&#x6ce8;&#x8178;&#x691c;&#x67fb;"/>
-            <StringItem index="5" value="CT&#x30b9;&#x30ad;&#x30e3;&#x30f3;&#x6ce8;&#x8178;&#x691c;&#x67fb;"/>
+            <StringItem index="0" value="Laboratory specimen test"/>
+            <StringItem index="1" value="Endoscope test"/>
+            <StringItem index="2" value="Simple X-ray"/>
+            <StringItem index="3" value="Upper gastrointestinal tract test"/>
+            <StringItem index="4" value="Barium enema test"/>
+            <StringItem index="5" value="CT scan"/>
             <StringItem index="6" value="MRI"/>
-            <StringItem index="7" value="R&#x753b;&#x50cf;&#x691c;&#x67fb;"/>
-            <StringItem index="8" value="&#x8840;&#x7ba1;&#x9020;&#x5f71;"/>
-            <StringItem index="9" value="&#x305d;&#x306e;&#x4ed6;&#x306e;&#x653e;&#x5c04;&#x7dda;&#x5b66;&#x7684;&#x691c;&#x67fb;"/>
-            <StringItem index="10" value="&#x30a8;&#x30b3;&#x30fc;"/>
-            <StringItem index="11" value="&#x5fc3;&#x96fb;&#x56f3;"/>
-            <StringItem index="12" value="&#x8133;&#x6ce2;"/>
-            <StringItem index="13" value="&#x7b4b;&#x96fb;&#x56f3;"/>
-            <StringItem index="14" value="&#x5fc3;&#x96fb;&#x56f3;"/>
-            <StringItem index="15" value="&#x80ba;&#x6a5f;&#x80fd;&#x691c;&#x67fb;"/>
-            <StringItem index="16" value="&#x305d;&#x306e;&#x4ed6;&#x306e;&#x751f;&#x7406;&#x5b66;&#x7684;&#x691c;&#x67fb;"/>
-            <StringItem index="17" value="&#x51e6;&#x65b9;&#x7b8b;"/>
-            <StringItem index="18" value="&#x71b1;&#x578b;&#x8868;"/>
-            <StringItem index="19" value="&#x7406;&#x5b66;&#x7684;&#x6240;&#x898b;&#xff08;&#x56f3;&#x306a;&#x3069;&#xff09;"/>
-            <StringItem index="20" value="&#x9ebb;&#x9154;&#x7d4c;&#x904e;&#x8868;"/>
-            <StringItem index="21" value="&#x75c5;&#x7406;&#x691c;&#x67fb;&#xff08;&#x753b;&#x50cf;&#x306a;&#x3069;&#xff09;"/>
-            <StringItem index="22" value="&#x624b;&#x8853;&#x8a18;&#x9332;"/>
-            <StringItem index="23" value="&#x53c2;&#x8003;&#x6587;&#x732e;"/>
-            <StringItem index="24" value="&#x53c2;&#x8003;&#x56f3;"/>
-            <StringItem index="25" value="&#x51e6;&#x7f6e;&#xff08;&#x6307;&#x793a;&#x3001;&#x8a18;&#x9332;&#x306a;&#x3069;&#xff09;"/>
-            <StringItem index="26" value="&#x4e0a;&#x8a18;&#x306b;&#x542b;&#x307e;&#x308c;&#x306a;&#x3044;&#x3082;&#x306e;"/>
+            <StringItem index="7" value="RI image test"/>
+            <StringItem index="8" value="Angiography"/>
+            <StringItem index="9" value="Other radiological tests"/>
+            <StringItem index="10" value="Echo"/>
+            <StringItem index="11" value="Electrocardiography"/>
+            <StringItem index="12" value="Electroencephalography"/>
+            <StringItem index="13" value="Electromyography"/>
+            <StringItem index="14" value="Phonocardiography"/>
+            <StringItem index="15" value="Pulmonary function test"/>
+            <StringItem index="16" value="Other physiological tests"/>
+            <StringItem index="17" value="Prescription"/>
+            <StringItem index="18" value="Vital sign table"/>
+            <StringItem index="19" value="Physical findings (e.g. chart)&#xff09;"/>
+            <StringItem index="20" value="Anesthesia record table"/>
+            <StringItem index="21" value="Pathological test (e.g. image)"/>
+            <StringItem index="22" value="Surgical record figure"/>
+            <StringItem index="23" value="Reference document"/>
+            <StringItem index="24" value="Reference figure"/>
+            <StringItem index="25" value="Treatment (instruction, record, etc.)"/>
+            <StringItem index="26" value="Items other than the above"/>
           </StringArray>
         </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="okBtn">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x30ab;&#x30eb;&#x30c6;&#x306b;&#x5c55;&#x958b;"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/impl/scheam/resources/SchemaCanvasView.properties" key="okBtn.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
         <Property name="selected" type="boolean" value="true"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="cancelBtn">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x7834;&#x68c4;"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/impl/scheam/resources/SchemaCanvasView.properties" key="cancelBtn.text.discard" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Container class="javax.swing.JPanel" name="titlePanel">
@@ -149,7 +157,7 @@
       <Layout>
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Component id="titleLabel" alignment="1" pref="562" max="32767" attributes="0"/>
+              <Component id="titleLabel" alignment="1" max="32767" attributes="0"/>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
@@ -165,7 +173,9 @@
               <Font name="Lucida Grande" size="9" style="0"/>
             </Property>
             <Property name="horizontalAlignment" type="int" value="0"/>
-            <Property name="text" type="java.lang.String" value="&#x30b7;&#x30a7;&#x30fc;&#x30de;&#x30a8;&#x30c7;&#x30a3;&#x30bf;"/>
+            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="open/dolphin/impl/scheam/resources/SchemaCanvasView.properties" key="editorTitleLabel.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+            </Property>
             <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
               <Dimension value="[10000, 16]"/>
             </Property>

@@ -1,12 +1,12 @@
 package open.dolphin.client;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
-import open.dolphin.infomodel.IInfoModel;
+import open.dolphin.helper.SpringUtilities;
 import open.dolphin.infomodel.SimpleAddressModel;
 import open.dolphin.project.Project;
 import open.dolphin.util.AgeCalculater;
@@ -25,11 +25,12 @@ public class BasicInfoInspector {
     private Color unknownColor;
     
     // Context このインスペクタの親コンテキスト
-    private ChartImpl context;
+    private final ChartImpl context;
 
 
     /**
      * BasicInfoInspectorオブジェクトを生成する。
+     * @param context
      */
     public BasicInfoInspector(ChartImpl context) {
         this.context = context;
@@ -68,12 +69,15 @@ public class BasicInfoInspector {
             addressLabel.setText("　");
         }
 
-        String gender = context.getPatient().getGenderDesc();
+        //String gender = context.getPatient().getGenderDesc();
+        String gender = context.getPatient().getGender();
+        gender = gender!=null ? gender.toLowerCase() : "u";
 
         Color color;
-        if (gender.equals(IInfoModel.MALE_DISP)) {
+        java.util.ResourceBundle bundle = ClientContext.getBundle();
+        if (gender.startsWith("m")) {
             color = maleColor;
-        } else if (gender.equals(IInfoModel.FEMALE_DISP)) {
+        } else if (gender.startsWith("f")) {
             color = femaleColor;
         } else {
             color = unknownColor;
@@ -89,11 +93,10 @@ public class BasicInfoInspector {
     private void initComponent() {
         
         // 性別によって変えるパネルのバックグランドカラー
-        Color foreground = ClientContext.getColor("patientInspector.basicInspector.foreground"); // new
-        maleColor = ClientContext.getColor("color.male"); // Color.CYAN;
-        femaleColor = ClientContext.getColor("color.female"); // Color.PINK;
-        unknownColor = ClientContext.getColor("color.unknown"); // Color.LIGHT_GRAY;
-        //int[] size = ClientContext.getIntArray("patientInspector.basicInspector.size");
+        maleColor = GUIConst.BASIC_INFO_MALE_COLOR;
+        femaleColor = GUIConst.BASIC_INFO_FEMALE_COLOR;
+        unknownColor = GUIConst.BASIC_INFO_UNKNOW_COLOR;
+        Color foreground = GUIConst.BASIC_INFO_FOREGROUND;
         
         nameLabel = new JLabel("　");
         nameLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -111,13 +114,16 @@ public class BasicInfoInspector {
         addressLabel.setMaximumSize(new Dimension(271, 20));
         addressLabel.setMaximumSize(new Dimension(271, 20));
 
-
-        basePanel = new JPanel(new BorderLayout(0, 2));
-        //Dimension dim = new Dimension(size[0], size[1]);
-        basePanel.setMinimumSize(new Dimension(271, 40));
-        basePanel.setMaximumSize(new Dimension(271, 40));
-        basePanel.setPreferredSize(new Dimension(271, 40));
-        basePanel.add(nameLabel, BorderLayout.NORTH);
-        basePanel.add(addressLabel, BorderLayout.SOUTH);
+//        basePanel = new JPanel(new BorderLayout(0, 2));
+//        basePanel.setMinimumSize(new Dimension(271, 40));
+//        basePanel.setMaximumSize(new Dimension(271, 40));
+//        basePanel.setPreferredSize(new Dimension(271, 40));
+//        basePanel.add(nameLabel, BorderLayout.NORTH);
+//        basePanel.add(addressLabel, BorderLayout.SOUTH);
+        
+        basePanel = new JPanel(new SpringLayout());
+        basePanel.add(nameLabel);
+        basePanel.add(addressLabel);
+        SpringUtilities.makeCompactGrid(basePanel, 2, 1, 0, 0, 0, 0);
     }
 }

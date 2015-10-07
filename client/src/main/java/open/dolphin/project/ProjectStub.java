@@ -8,40 +8,21 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.ResourceBundle;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.GUIConst;
 import open.dolphin.exception.DolphinException;
 import open.dolphin.infomodel.UserModel;
-import open.dolphin.util.Log;
 
 /**
  * プロジェクト情報管理クラス。
  *
  * @author  Kazushi Minagawa, Digital Globe, Inc.
  */
-public final class ProjectStub implements java.io.Serializable {
-
-    // デフォルトのプロジェクト名
-    private final String DEFAULT_PROJECT_NAME = "OpenDolphin";
-    
-    // OpenDolphin ASP Service の Server URI
-    private final String OPEN_DOLPHIN_URI = "http://localhost:8080";
-    
-//minagawa^  Self Cert Test
-    private final String OPEN_DOLPHIN_SELF_CERT_URI = "https://localhost:443";
-//minagawa$    
-    
-    // 5分間テストの Server URI
-    private final String TEST_5M_URI = "http://localhost:8080";
+public abstract class ProjectStub implements java.io.Serializable {
     
     // OpenDolphin のデフォルト施設ID
     private final String DEFAULT_FACILITY_ID = "1.3.6.1.4.1.9414.10.1";
-    
-    // OpenDolphinPRO のデフォルト施設ID
-    private final String DEFAULT_FACILITY_ID_PRO = "1.3.6.1.4.1.9414.70.1";
-    
-    // REST context
-    private final String REST_BASE_RESOURCE = "/dolphin/openSource";
 
     // 有効な設定ファイルかどうか
     private boolean valid;
@@ -57,9 +38,6 @@ public final class ProjectStub implements java.io.Serializable {
 
     // ユーザー設定を上書きするプロパティ
     private Properties customDefaults;
-    
-    // REST baseURI = ServerURI + REST_BASE_RESOURCE
-    private String baseURI;
     
     /** ヒロクリニック 医療機関基本情報(ORCA登録) */
     private String basicInfo;
@@ -78,15 +56,21 @@ public final class ProjectStub implements java.io.Serializable {
     public ProjectStub() {
 
         try {
-            // デフォルトプロパティを読み込む
-            InputStream in = ClientContext.getResourceAsStream("Defaults.properties");
-            try (BufferedInputStream bin = new BufferedInputStream(in)) {
-                applicationDefaults = new Properties();
-                applicationDefaults.load(bin);
+            // デフォルトプロパティ
+            applicationDefaults = new Properties();
+            
+            // デフォルト設定を読み込む
+            ResourceBundle bundle = ResourceBundle.getBundle("open.dolphin.resources.Defaults");
+            Enumeration bundleKeys = bundle.getKeys();
+
+            while (bundleKeys.hasMoreElements()) {
+                String key = (String)bundleKeys.nextElement();
+                String value = bundle.getString(key);
+                applicationDefaults.put(key, value);
             }
             
             // ASPの場合はClaimConnection==clientにする
-            if (ClientContext.isOpenDolphin()) {
+            if (ClientContext.isAsp()) {
                 applicationDefaults.put("claim.sender", "client");
             }
 
@@ -146,17 +130,6 @@ public final class ProjectStub implements java.io.Serializable {
             e.printStackTrace(System.err);
         }
     }
-    
-    public void outputUserDefaults() {
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "設定の読込：", "user-defaults.properties");
-        Enumeration e = userDefaults.propertyNames();
-        while (e.hasMoreElements()) {
-            String key = (String)e.nextElement();
-            String val = userDefaults.getProperty(key);
-            if(val == null) val = "";
-            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, key, val);
-        }
-    }
 
     /**
      * 設定ファイルが有効かどうかを返す。
@@ -169,22 +142,6 @@ public final class ProjectStub implements java.io.Serializable {
         ok = ok && (getBaseURI()!=null);
         valid = ok;
         return valid;
-    }
-
-    /**
-     * プロジェクト名を返す。
-     * @return プロジェクト名 (Dolphin ASP, HOT, MAIKO, HANIWA ... etc)
-     */
-    public String getName() {
-        return getString(Project.PROJECT_NAME, DEFAULT_PROJECT_NAME);
-    }
-
-    /**
-     * プロジェクト名を返す。
-     * @param projectName
-     */
-    public void setName(String projectName) {
-        setString(Project.PROJECT_NAME, projectName);
     }
 
     /**
@@ -208,9 +165,10 @@ public final class ProjectStub implements java.io.Serializable {
      * @return ログイン画面に表示するFacilityID
      */
     public String getFacilityId() {
-        return ClientContext.isOpenDolphin() 
-               ? getString(Project.FACILITY_ID, DEFAULT_FACILITY_ID)
-               : getString(Project.FACILITY_ID, DEFAULT_FACILITY_ID_PRO);
+//        return ClientContext.isOpenDolphin() 
+//               ? getString(Project.FACILITY_ID, DEFAULT_FACILITY_ID)
+//               : getString(Project.FACILITY_ID, DEFAULT_FACILITY_ID_PRO);
+        return getString(Project.FACILITY_ID, DEFAULT_FACILITY_ID);
     }
 
     /**
@@ -236,59 +194,45 @@ public final class ProjectStub implements java.io.Serializable {
     public void setUserId(String val) {
         setString(Project.USER_ID, val);
     }
+    
+    //-----------------------------------------------------------
+    // 
+    //-----------------------------------------------------------
+    public abstract String getServerURI();
 
-    public String getServerURI() {
-        return getString(Project.SERVER_URI, null);
+    public abstract void setServerURI(String val);
+
+    public abstract String getBaseURI();
+    
+    protected String createBaseURI(String baseURI, String contextRoot) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(baseURI).append(contextRoot);
+        return sb.toString();
     }
-
-    public void setServerURI(String val) {
-        setString(Project.SERVER_URI, val);
-        baseURI = null;
-    }
-
-    /**
-     * REST の base URI を返す。
-     * @return ServerURI + resource context
-     */
-    public String getBaseURI() {
-
-        if (baseURI==null) {
-            
-            if (ClientContext.isOpenDolphin()) {
-                StringBuilder sb = new StringBuilder();
-                sb.append(OPEN_DOLPHIN_URI);
-                sb.append(REST_BASE_RESOURCE);
-                baseURI = sb.toString();
-                
-            } else if (ClientContext.isDolphinPro()) {
-                StringBuilder sb = new StringBuilder();
-                String test = getServerURI();
-                if (test != null) {
-                    if (test.endsWith("/")) {
-                        int len = test.length();
-                        test = test.substring(0, len-1);
-                    }
-                    sb.append(test);
-                    sb.append(REST_BASE_RESOURCE);
-                    baseURI = sb.toString();
-                }
-                
-            } else if (ClientContext.is5mTest()) {
-                StringBuilder sb = new StringBuilder();
-                sb.append(TEST_5M_URI);
-                sb.append(REST_BASE_RESOURCE);
-                baseURI = sb.toString();
-            
-//minagawa^  Self Cert Test
-            } else if (ClientContext.isSelfCertTest()) {
-                StringBuilder sb = new StringBuilder();
-                sb.append(OPEN_DOLPHIN_SELF_CERT_URI);
-                sb.append(REST_BASE_RESOURCE);
-                baseURI = sb.toString();
-//minagawa$
-            }
-        }
-        return baseURI;
+    
+    public abstract String getSchema();
+    
+    public abstract String getServer();
+    
+    public abstract String getPort();
+    
+    public abstract boolean isTester();
+    
+    public abstract boolean claimSenderIsClient();
+    
+    public abstract boolean claimSenderIsServer();
+    
+    public abstract boolean canAccessToOrca();
+    
+    public abstract boolean canSearchMaster();
+    
+    public abstract boolean canGlobalPublish();
+    
+    // 有効なアドレスかどうか
+    protected boolean claimAddressIsValid() {
+        // null empty のみチェック ToDo
+        String host = getString(Project.CLAIM_ADDRESS);
+        return (host!=null && (!host.equals("")));
     }
 
     //------------------------------------------
@@ -337,7 +281,7 @@ public final class ProjectStub implements java.io.Serializable {
 
             if (!parent.exists()) {
                 if (!parent.mkdirs()) {
-                    throw new DolphinException("ディレクトリを作成できません。 " + parent);
+                    throw new DolphinException("Can not create the directory " + parent);
                 }
             }
 
@@ -379,7 +323,7 @@ public final class ProjectStub implements java.io.Serializable {
         File target = new File(parent, name);
         if (!parent.exists()) {
             if (!parent.mkdirs()) {
-                throw new DolphinException("ディレクトリを作成できません。 " + parent);
+                throw new DolphinException("Can not create the directory " + parent);
             }
         }
 
@@ -447,18 +391,10 @@ public final class ProjectStub implements java.io.Serializable {
             File parent = getSettingDirectory();
             if (!parent.exists()) {
                 if (!parent.mkdirs()) {
-                    throw new DolphinException("ディレクトリを作成できません。 " + parent);
+                    throw new DolphinException("Can not create the directory " + parent);
                 }
             }
             File target = new File(parent, "user-defaults.properties");
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "設定の保存：", target.getPath());
-            Enumeration e = toSave.propertyNames();
-            while (e.hasMoreElements()) {
-                String key = (String)e.nextElement();
-                String val = toSave.getProperty(key);
-                if(val == null) val = "";
-                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, key, val);
-            }
             fout = new BufferedOutputStream(new FileOutputStream(target));
             toSave.store(fout, "1.0");
 
@@ -550,7 +486,9 @@ public final class ProjectStub implements java.io.Serializable {
     }
 
     public void setString(String key, String value) {
-        getUserDefaults().setProperty(key, value);
+        if (key!=null && value!=null) {
+            getUserDefaults().setProperty(key, value);
+        }
     }
 
     public String[] getStringArray(String key) {
@@ -564,7 +502,9 @@ public final class ProjectStub implements java.io.Serializable {
     }
 
     public void setStringArray(String key, String[] value) {
-        getUserDefaults().setProperty(key, arrayToLine(value));
+        if (key!=null && value!=null) {
+            getUserDefaults().setProperty(key, arrayToLine(value));
+        }
     }
 
     public int getInt(String key) {
@@ -578,7 +518,9 @@ public final class ProjectStub implements java.io.Serializable {
     }
 
     public void setInt(String key, int value) {
-        getUserDefaults().setProperty(key, String.valueOf(value));
+        if (key!=null) {
+            getUserDefaults().setProperty(key, String.valueOf(value));
+        }
     }
 
     public float getFloat(String key) {
@@ -592,7 +534,9 @@ public final class ProjectStub implements java.io.Serializable {
     }
 
     public void setFloat(String key, float value) {
-        getUserDefaults().setProperty(key, String.valueOf(value));
+        if (key!=null) {
+            getUserDefaults().setProperty(key, String.valueOf(value));
+        }
     }
 
     public double getDouble(String key) {
@@ -606,7 +550,9 @@ public final class ProjectStub implements java.io.Serializable {
     }
 
     public void setDouble(String key, double value) {
-        getUserDefaults().setProperty(key, String.valueOf(value));
+        if (key!=null) {
+            getUserDefaults().setProperty(key, String.valueOf(value));
+        }
     }
 
     public boolean getBoolean(String key) {
@@ -620,7 +566,9 @@ public final class ProjectStub implements java.io.Serializable {
     }
 
     public void setBoolean(String key, boolean value) {
-        getUserDefaults().setProperty(key, String.valueOf(value));
+        if (key!=null) {
+            getUserDefaults().setProperty(key, String.valueOf(value));
+        }
     }
 
     public Rectangle getRectangle(String key) {
@@ -648,7 +596,9 @@ public final class ProjectStub implements java.io.Serializable {
     }
 
     public void setRectangle(String key, Rectangle value) {
-        getUserDefaults().setProperty(key, rectToLine(value));
+        if (key!=null && value!=null) {
+            getUserDefaults().setProperty(key, rectToLine(value));
+        }
     }
 
     public Color getColor(String key) {
@@ -674,9 +624,10 @@ public final class ProjectStub implements java.io.Serializable {
     }
 
     public void setColor(String key, Color value) {
-        getUserDefaults().setProperty(key, colorToLine(value));
+        if (key!=null && value!=null) {
+            getUserDefaults().setProperty(key, colorToLine(value));
+        }
     }
-
 
     //---------------------------------------------------
 

@@ -6,7 +6,6 @@ import java.util.Properties;
 import javax.swing.ImageIcon;
 import open.dolphin.impl.scheam.schemahelper.SchemaUtils;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  * SchemaEditor で使われる変数を一括管理する
@@ -20,8 +19,8 @@ public class SchemaEditorProperties {
     private static Properties props;
 //masuda$
     
-    public static final String DEFAULT_ROLE = "参考図";
-    public static final String DEFAULT_TITLE = "参考画像";
+    public static final String DEFAULT_ROLE = java.util.ResourceBundle.getBundle("open/dolphin/impl/scheam/resources/SchemaEditorProperties").getString("defaultRole.refFig");
+    public static final String DEFAULT_TITLE = java.util.ResourceBundle.getBundle("open/dolphin/impl/scheam/resources/SchemaEditorProperties").getString("defaultTitle.refImage");
     public static final Dimension SHAPEICON_SIZE = new Dimension(48,8);
     public static final Dimension CPALETTE_SIZE = new Dimension(16,16);
     
@@ -287,7 +286,8 @@ public class SchemaEditorProperties {
     }
     /**
      * SchemaView の bounds をセットする
-     * @param r
+     * @param cv
+     * @param tv
      */
     public void setSchemaViewRect(SchemaCanvasView cv, SchemaToolView tv) {
         canvasViewRect = cv.getBounds();
@@ -354,13 +354,13 @@ public class SchemaEditorProperties {
         prefs.putInt(PN_FONT_SIZE, fontSize);
 */
 //masuda$
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "シェーマプロパティ", "保存成功。");
     }
     /**
      * canvasView, toolView の表示位置を計算して設定する
      * 設定前の値として preferences の値を使うバージョン
-     * @param srcImage
-     * @return
+     * @param cv
+     * @param tv
+     * @param baseImage
      */
     public void computeViewBounds(SchemaCanvasView cv, SchemaToolView tv, BufferedImage baseImage) {
         computeViewBounds(cv, tv, baseImage, canvasViewRect, toolViewRect);
@@ -425,7 +425,7 @@ public class SchemaEditorProperties {
     }
     /**
      * baseImage から必要な view の大きさを計算する（試行錯誤で見つけ出した値）
-     * @param srcImage
+     * @param baseImage
      * @return
      */
     public Rectangle getCanvasViewRectangle(BufferedImage baseImage) {

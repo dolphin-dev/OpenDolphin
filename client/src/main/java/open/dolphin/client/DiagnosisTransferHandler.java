@@ -24,7 +24,7 @@ import open.dolphin.table.ListTableModel;
  */
 public class DiagnosisTransferHandler extends TransferHandler {
     
-    private DiagnosisDocument parent;
+    private final DiagnosisDocument parent;
     
     public DiagnosisTransferHandler(DiagnosisDocument parent) {
         super();
@@ -68,10 +68,6 @@ public class DiagnosisTransferHandler extends TransferHandler {
     private boolean importFromStampTree(TransferHandler.TransferSupport support) {
         
         try {
-            //JTable.DropLocation dl = (JTable.DropLocation)support.getDropLocation();
-            //int toIndex = dl.getRow();
-            //boolean insertRow = dl.isInsertRow();   // StampTree->diagTable: false
-            
             int toIndex = 0;
             Transferable t = support.getTransferable();
 
@@ -79,7 +75,7 @@ public class DiagnosisTransferHandler extends TransferHandler {
             StampTreeNode importNode = (StampTreeNode)t.getTransferData(LocalStampTreeNodeTransferable.localStampTreeNodeFlavor);
 
             // Import するイストを生成する
-            ArrayList<ModuleInfoBean> importList = new ArrayList<ModuleInfoBean>(3);
+            ArrayList<ModuleInfoBean> importList = new ArrayList<>(3);
 
             // 葉の場合
             if (importNode.isLeaf()) {
@@ -120,7 +116,7 @@ public class DiagnosisTransferHandler extends TransferHandler {
                 return false;
             }
             
-        } catch (Exception ioe) {
+        } catch (UnsupportedFlavorException | IOException ioe) {
             ioe.printStackTrace(System.err);
         }
         
@@ -144,9 +140,7 @@ public class DiagnosisTransferHandler extends TransferHandler {
                 tableModel.addObject(0,rd);
             }
             return true;
-        } catch (UnsupportedFlavorException ex) {
-            ex.printStackTrace(System.err);
-        } catch (IOException ex) {
+        } catch (UnsupportedFlavorException | IOException ex) {
             ex.printStackTrace(System.err);
         }
         
@@ -155,6 +149,7 @@ public class DiagnosisTransferHandler extends TransferHandler {
     
     /**
      * インポート可能かどうかを返す。
+     * @return 
      */
     @Override
     public boolean canImport(TransferHandler.TransferSupport support) {

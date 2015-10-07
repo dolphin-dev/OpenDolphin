@@ -13,25 +13,25 @@ import open.dolphin.impl.scheam.schemastate.*;
  */
 public class StateMgr {
     
-    private SchemaEditorImpl context;
-    private SchemaEditorProperties properties;
-    private ArrayList<DrawingHolder> drawingList;
-    private UndoMgr undoMgr;
+    private final SchemaEditorImpl context;
+    private final SchemaEditorProperties properties;
+    private final ArrayList<DrawingHolder> drawingList;
+    private final UndoMgr undoMgr;
 
-    private AbstractState selectState;
-    private AbstractState lineState;
-    private AbstractState rectState;
-    private AbstractState ellipseState;
-    private AbstractState polygonState;
-    private AbstractState pencilState;
-    private AbstractState eraserState;
-    private AbstractState textState;
-    private RotationState rotationState;
+    private final AbstractState selectState;
+    private final AbstractState lineState;
+    private final AbstractState rectState;
+    private final AbstractState ellipseState;
+    private final AbstractState polygonState;
+    private final AbstractState pencilState;
+    private final AbstractState eraserState;
+    private final AbstractState textState;
+    private final RotationState rotationState;
     private AbstractState curState;
-    private AbstractState clippingState;
+    private final AbstractState clippingState;
 
-    private DotsState dotsState;
-    private ExpandState expandState;
+    private final DotsState dotsState;
+    private final ExpandState expandState;
 
     public StateMgr(SchemaEditorImpl context) {
         this.context = context;

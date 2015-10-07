@@ -2,16 +2,17 @@ package open.dolphin.impl.claim;
 
 import java.io.*;
 import java.net.Socket;
+import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 import javax.swing.JOptionPane;
 import open.dolphin.client.ClaimMessageEvent;
 import open.dolphin.client.ClaimMessageListener;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.MainWindow;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 import org.apache.log4j.Logger;
 
 
@@ -36,16 +37,12 @@ public class SendClaimImpl implements ClaimMessageListener {
     private final int TT_SENDING_TROUBLE    = 2;
     private final int TT_CONNECTION_REJECT  = 3;
     
-    // Strings
-    private final String proceedString      = "継続";
-    private final String dumpString         = "ログへ記録";
-    
     // Properties
     private String host;
     private int port;
     private String enc;
     private int tryCount 	= DEFAULT_TRY_COUNT;
-    private long sleepTime 	= DEFAULT_SLEEP_TIME;
+    private final long sleepTime 	= DEFAULT_SLEEP_TIME;
     private int alertQueueSize 	= MAX_QUEU_SIZE;
     
     private Thread sendThread;
@@ -81,10 +78,6 @@ public class SendClaimImpl implements ClaimMessageListener {
     public void setContext(MainWindow context) {
         this.context = context;
     }
-
-    private Logger getLogger() {
-        return ClientContext.getClaimLogger();
-    }
     
     private void setup() {
         setHost(Project.getString(Project.CLAIM_ADDRESS));
@@ -107,7 +100,7 @@ public class SendClaimImpl implements ClaimMessageListener {
         sendThread = new Thread(new Consumer(orcaSocket));
         sendThread.start();
         
-        getLogger().info("SendClaim started with = host = " + getHost() + " port = " + getPort());
+        java.util.logging.Logger.getLogger(this.getClass().getName()).log(Level.INFO, "SendClaim started with = host = {0} port = {1}", new Object[]{getHost(), getPort()});
     }
     
     /**
@@ -173,6 +166,7 @@ public class SendClaimImpl implements ClaimMessageListener {
     
     /**
      * カルテで CLAIM データが生成されるとこの通知を受ける。
+     * @param e
      */
     @Override
     public void claimMessageEvent(ClaimMessageEvent e) {
@@ -209,7 +203,7 @@ public class SendClaimImpl implements ClaimMessageListener {
 
             while (iter.hasNext()) {
                 ClaimMessageEvent evt = (ClaimMessageEvent) iter.next();
-                getLogger().warn(evt.getClaimInsutance());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(evt.getClaimInsutance());
             }
 
             queue.clear();
@@ -218,20 +212,24 @@ public class SendClaimImpl implements ClaimMessageListener {
     
     private int alertDialog(int code) {
         
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(SendClaimImpl.class);
+        String proceedString = bundle.getString("optionText.continue");
+        String dumpString = bundle.getString("optionText.outputLog");
+        String title = bundle.getString("title.sendClaim");
+        
         int option = -1;
-        String title = "OpenDolphin: CLAIM 送信";
         StringBuffer buf;
         
         switch(code) {
             
             case TT_QUEUE_SIZE:
                 buf = new StringBuffer();
-                buf.append("未送信のCLAIM(レセプト)データが");
+                buf.append(bundle.getString("messageCompo_0"));
                 buf.append(getQueueSize());
-                buf.append(" 個あります。CLAIM サーバとの接続を確認してください。").append("\n");
-                buf.append("1. このまま処理を継続することもできます。").append("\n");;
-                buf.append("2. 未送信データをログに記録することができます。").append("\n");;
-                buf.append("   この場合、データは送信されず、診療報酬は手入力となります。");
+                buf.append(bundle.getString("messageCompo_1")).append("\n");
+                buf.append(bundle.getString("messageCompo_2")).append("\n");;
+                buf.append(bundle.getString("messageCompo_3")).append("\n   ");
+                buf.append(bundle.getString("messageCompo_4"));
                 
                 option = JOptionPane.showOptionDialog(
                         null,
@@ -240,46 +238,38 @@ public class SendClaimImpl implements ClaimMessageListener {
                         JOptionPane.DEFAULT_OPTION,
                         JOptionPane.WARNING_MESSAGE,null,
                         new String[]{proceedString, dumpString},proceedString);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, title, buf.toString());
                 break;
                 
             case TT_NAK_SIGNAL:
                 buf = new StringBuffer();
-                buf.append("CLAIM(レセプト)データがサーバにより拒否されました。").append("\n");;
-                buf.append("送信中のデータはログに記録します。診療報酬の自動入力はできません。");
+                buf.append(bundle.getString("messageCompo_5")).append("\n");
+                buf.append(bundle.getString("messageCompo_6"));
                 JOptionPane.showMessageDialog(
                         null,
                         buf.toString(),
                         title,
                         JOptionPane.ERROR_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, title, buf.toString());
                 break;
                 
             case TT_SENDING_TROUBLE:
                 buf = new StringBuffer();
-                buf.append("CLAIM(レセプト)データの送信中にエラーがおきました。").append("\n");;
-                buf.append("送信中のデータはログに記録します。診療報酬の自動入力はできません。");
+                buf.append(bundle.getString("messageCompo_7")).append("\n");
+                buf.append(bundle.getString("messageCompo_8"));
                 JOptionPane.showMessageDialog(
                         null,
                         buf.toString(),
                         title,
                         JOptionPane.ERROR_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, title, buf.toString());
                 break;
                 
             case TT_CONNECTION_REJECT:
                 buf = new StringBuffer();
-                buf.append("CLAIM(レセプト)サーバ ");
-                buf.append("Host=");
-                buf.append(host);
-                buf.append(" Port=");
-                buf.append(port);
-                buf.append(" が応答しません。").append("\n");;
-                //buf.append(tryCount*sleepTime);
-                buf.append("サーバの電源及び接続を確認してください。").append("\n");;
-                buf.append("1. このまま接続を待つこともできます。").append("\n");;
-                buf.append("2. データをログに記録することもできます。").append("\n");;
-                buf.append("   この場合、データは送信されず、診療報酬は手入力となります。");
+                String fmt = bundle.getString("messageFormat.noResponse");
+                buf.append(new MessageFormat(fmt).format(new Object[]{host,port})).append("\n");
+                buf.append(bundle.getString("messageCompo_9")).append("\n");
+                buf.append(bundle.getString("messageCompo_10")).append("\n");
+                buf.append(bundle.getString("messageCompo_11")).append("\n   ");
+                buf.append(bundle.getString("messageCompo_12"));
                 
                 option = JOptionPane.showOptionDialog(
                         null,
@@ -288,25 +278,19 @@ public class SendClaimImpl implements ClaimMessageListener {
                         JOptionPane.DEFAULT_OPTION,
                         JOptionPane.WARNING_MESSAGE,null,
                         new String[]{proceedString, dumpString},proceedString);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, title, buf.toString());
                 break;
-        }
-        if(option == 0) {
-            Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, proceedString);
-        }else if(option == 1) {
-            Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, dumpString);
         }
         
         return option;
     }
     
     private void warnLog(String result, ClaimMessageEvent evt) {
-        getLogger().warn(getBasicInfo(result, evt));
-        getLogger().warn(evt.getClaimInsutance());
+        java.util.logging.Logger.getLogger(this.getClass().getName()).warning(getBasicInfo(result, evt));
+        java.util.logging.Logger.getLogger(this.getClass().getName()).warning(evt.getClaimInsutance());
     }
     
     private void log(String result, ClaimMessageEvent evt) {
-        getLogger().info(getBasicInfo(result, evt));
+        java.util.logging.Logger.getLogger(this.getClass().getName()).info(getBasicInfo(result, evt));
     }
     
     private String getBasicInfo(String result, ClaimMessageEvent evt) {
@@ -339,7 +323,7 @@ public class SendClaimImpl implements ClaimMessageListener {
      */
     protected class Consumer implements Runnable {
         
-        private OrcaSocket orcaSocket;
+        private final OrcaSocket orcaSocket;
         
         public Consumer(OrcaSocket orcaSocket) {
             this.orcaSocket = orcaSocket;
@@ -357,60 +341,50 @@ public class SendClaimImpl implements ClaimMessageListener {
                     ClaimMessageEvent claimEvent = (ClaimMessageEvent) getCLAIM();
                     String instance = claimEvent.getClaimInsutance();
 
-                    // Gets connection
-                    Socket socket = orcaSocket.getSocket();
-                    if ( socket == null ) {
-                        int option = alertDialog(TT_CONNECTION_REJECT);
-                        if (option == 1) {
-                            warnLog("CLAIM  Socket Error", claimEvent);
-                            continue;
-                        } else {
-                            // push back to the queue
-                            claimMessageEvent(claimEvent);
-                            continue;
+                    try ( // Gets connection
+                            Socket socket = orcaSocket.getSocket()) {
+                        if ( socket == null ) {
+                            int option = alertDialog(TT_CONNECTION_REJECT);
+                            if (option == 1) {
+                                warnLog("CLAIM  Socket Error", claimEvent);
+                                continue;
+                            } else {
+                                // push back to the queue
+                                claimMessageEvent(claimEvent);
+                                continue;
+                            }
                         }
+                        
+                        // Gets io stream
+                        OutputStream out = socket.getOutputStream();
+                        DataOutputStream dout = new DataOutputStream(out);
+                        BufferedInputStream reader;
+                        try (BufferedOutputStream writer = new BufferedOutputStream(dout)) {
+                            InputStream in = socket.getInputStream();
+                            DataInputStream din = new DataInputStream(in);
+                            reader = new BufferedInputStream(din);
+                            // Writes UTF8 data
+                            writer.write(instance.getBytes(enc));
+                            writer.write(EOT);
+                            writer.flush();
+                            // Reads result
+                            int c = reader.read();
+                            if (c == ACK) {
+                                log("CLAIM ACK", claimEvent);
+                            } else if (c == NAK) {
+                                warnLog("received NAK", claimEvent);
+                            }
+                        }
+                        reader.close();
                     }
-
-                    // Gets io stream
-                    OutputStream out = socket.getOutputStream();
-                    DataOutputStream dout = new DataOutputStream(out);
-                    BufferedOutputStream writer = new BufferedOutputStream(dout);
-                    
-                    InputStream in = socket.getInputStream();
-                    DataInputStream din = new DataInputStream(in);
-                    BufferedInputStream reader = new BufferedInputStream(din);
-
-                    // Writes UTF8 data
-                    writer.write(instance.getBytes(enc));
-                    writer.write(EOT);
-                    writer.flush();
-
-                    // Reads result
-                    int c = reader.read();
-                    if (c == ACK) {
-                        log("CLAIM ACK", claimEvent);
-                    } else if (c == NAK) {
-                        warnLog("received NAK", claimEvent);
-                    }
-
-                    writer.close();
-                    reader.close();
-                    socket.close();
 
                 } catch (IOException e) {
                     e.printStackTrace(System.err);
-                    getLogger().warn(e.getMessage());
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning(e.getMessage());
                     alertDialog(TT_SENDING_TROUBLE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, e.toString());
 
                 } catch (InterruptedException e) {
-                    getLogger().warn("Interrupted sending CLAIM");
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, e.toString());
-
-                } catch (Exception e) {
-                    e.printStackTrace(System.err);
-                    getLogger().warn(e.getMessage());
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, e.toString());
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning("Interrupted sending CLAIM");
                 }
             }
         }

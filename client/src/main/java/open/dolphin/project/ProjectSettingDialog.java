@@ -11,12 +11,11 @@ import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.logging.Level;
 import javax.swing.*;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.GUIFactory;
 import open.dolphin.plugin.PluginLoader;
-import open.dolphin.util.Log;
-import org.apache.log4j.Logger;
 
 /**
  * 環境設定ダイアログ。
@@ -35,8 +34,8 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
     //
     // 全体のモデル
     //
-    private HashMap<String, AbstractSettingPanel> settingMap;
-    private ArrayList<AbstractSettingPanel> allSettings;
+    private HashMap<String, AbstractPropertySheet> settingMap;
+    private ArrayList<AbstractPropertySheet> allSettings;
     private ArrayList<JToggleButton> allBtns;
     private String startSettingName;
     private boolean loginState;
@@ -44,13 +43,10 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
     private static final String SETTING_PROP = "SETTING_PROP";
     private boolean okState;
 
-    private Logger logger;
-
     /**
      * Creates new ProjectSettingDialog
      */
     public ProjectSettingDialog() {
-        logger = ClientContext.getBootLogger();
     }
 
     public void addPropertyChangeListener(String prop, PropertyChangeListener l) {
@@ -81,13 +77,14 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
 
     public void notifyResult() {
         if (boundSupport!=null) {
-            boolean valid = Project.getProjectStub().isValid() ? true : false;
+            boolean valid = Project.getProjectStub().isValid();
             boundSupport.firePropertyChange(SETTING_PROP, !valid, valid);
         }
     }
 
     /**
      * オープン時に表示する設定画面をセットする。
+     * @param startSettingName
      */
     public void setProject(String startSettingName) {
         this.startSettingName = startSettingName;
@@ -98,87 +95,69 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
      */
     public void start() {
 
-        Runnable r = new Runnable() {
-
-            @Override
-            public void run() {
-
-                // モデルを得る
-                // 全ての設定プラグイン(Reference)を得、リストに格納する
-                try {
-                    allSettings = new ArrayList<AbstractSettingPanel>();
-                    PluginLoader<AbstractSettingPanel> loader = PluginLoader.load(AbstractSettingPanel.class);
-                    Iterator<AbstractSettingPanel> iter = loader.iterator();
-                    while (iter.hasNext()) {
-                        AbstractSettingPanel setting = iter.next();
-                        logger.debug(setting.getClass().getName());
-                        allSettings.add(setting);
-                    }
-
-                } catch (Exception e) {
-                    e.printStackTrace(System.err);
-                    return;
-                }
-
-                // 設定パネル(AbstractSettingPanel)を格納する Hashtableを生成する
-                // key=設定プラグインの名前 value=設定プラグイン
-                settingMap = new HashMap<String, AbstractSettingPanel>();
-
-                // GUI を構築しモデルをバインドする
-                initComponents();
-
-                // オープン時に表示する設定画面を決定する
-                int index = 0;
-
-                if (startSettingName != null) {
-                    logger.debug("startSettingName = " + startSettingName);
-                    for (AbstractSettingPanel setting : allSettings) {
-                        if (startSettingName.equals(setting.getId())) {
-                            logger.debug("found index " + index);
-                            break;
-                        }
-                        index++;
-                    }
-                }
-                
-                index = (index >= 0 && index < allSettings.size()) ? index : 0;
-
-                // ボタンを押して表示する
-                allBtns.get(index).doClick();
+        Runnable r = () -> {
+            // モデルを得る
+            // 全ての設定プラグイン(Reference)を得、リストに格納する
+            allSettings = new ArrayList<>();
+            PluginLoader<AbstractPropertySheet> loader = PluginLoader.load(AbstractPropertySheet.class);
+            Iterator<AbstractPropertySheet> iter = loader.iterator();
+            while (iter.hasNext()) {
+                AbstractPropertySheet setting = iter.next();
+                java.util.logging.Logger.getLogger(this.getClass().getName()).fine(setting.getClass().getName());
+                allSettings.add(setting);
             }
+            
+            // 設定パネル(AbstractSettingPanel)を格納する Hashtableを生成する
+            // key=設定プラグインの名前 value=設定プラグイン
+            settingMap = new HashMap<>();
+            
+            // GUI を構築しモデルをバインドする
+            initComponents();
+            
+            // オープン時に表示する設定画面を決定する
+            int index = 0;
+            
+            if (startSettingName != null) {
+                java.util.logging.Logger.getLogger(this.getClass().getName()).fine("startSettingName = " + startSettingName);
+                for (AbstractPropertySheet setting : allSettings) {
+                    if (startSettingName.equals(setting.getId())) {
+                        java.util.logging.Logger.getLogger(this.getClass().getName()).fine("found index " + index);
+                        break;
+                    }
+                    index++;
+                }
+            }
+            
+            index = (index >= 0 && index < allSettings.size()) ? index : 0;
+            
+            // Click the toggle button
+            allBtns.get(index).doClick();
         };
 
         SwingUtilities.invokeLater(r);
     }
 
     /**
-     * GUI を構築する。
+     * Setup the user interface
      */
     private void initComponents() {
 
+        // Panel contains all toggle buttons
         itemPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
         // 設定プラグインを起動するためのトグルボタンを生成し
         // パネルへ加える
-        allBtns = new ArrayList<JToggleButton>();
+        allBtns = new ArrayList<>();
         ButtonGroup bg = new ButtonGroup();
-        for (AbstractSettingPanel setting : allSettings) {
+        for (AbstractPropertySheet setting : allSettings) {
             String id = setting.getId();
             String text = setting.getTitle();
             String iconStr = setting.getIcon();
-            logger.debug("id = " + id);
-            logger.debug("text = " + text);
-            logger.debug("icon = " + iconStr);
-            //System.err.println("icon = " + iconStr);
-//minagawa^ Icon Server            
-            //ImageIcon icon = ClientContext.getImageIcon(iconStr);
-            ImageIcon icon = ClientContext.getImageIconArias(iconStr);
-//minagawa$            
+            java.util.logging.Logger.getLogger(this.getClass().getName()).log(Level.FINE, "id = {0}", id);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).log(Level.FINE, "text = {0}", text);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).log(Level.FINE, "icon = {0}", iconStr);           
+            ImageIcon icon = ClientContext.getImageIconArias(iconStr);            
             JToggleButton tb = new JToggleButton(text, icon);
-//            if (ClientContext.isWin()) {
-//                Dimension dim = tb.getPreferredSize();
-//                tb.setPreferredSize(new Dimension(dim.width-20,dim.height));
-//            }
             tb.setHorizontalTextPosition(SwingConstants.CENTER);
             tb.setVerticalTextPosition(SwingConstants.BOTTOM);
             itemPanel.add(tb);
@@ -191,17 +170,16 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
         cardPanel = new JPanel();
         cardLayout = new CardLayout();
         cardPanel.setLayout(cardLayout);
+        
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(ProjectSettingDialog.class);
 
         // コマンドボタン
-        String text = ClientContext.getString("settingDialog.saveButtonText");
+        String text = bundle.getString("optionText.save");
         okButton = GUIFactory.createButton(text, null, null);
         okButton.setEnabled(false);
 
-        // Cancel
-//minagawa^ mac jdk7        
-        //text = (String) UIManager.get("OptionPane.cancelButtonText");
-        text = GUIFactory.getCancelButtonText();
-//minagawa$        
+        // Cancel     
+        text = GUIFactory.getCancelButtonText();       
         cancelButton = GUIFactory.createButton(text, "C", null);
 
         // 全体ダイアログのコンテントパネル
@@ -210,7 +188,7 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
         panel.add(cardPanel, BorderLayout.CENTER);
 
         // ダイアログを生成する
-        String title = ClientContext.getString("settingDialog.title");
+        String title = bundle.getString("title.settingWindow");
         Object[] options = new Object[]{okButton, cancelButton};
 
         JOptionPane jop = new JOptionPane(
@@ -223,11 +201,10 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
 
         dialog = jop.createDialog((Frame) null, ClientContext.getFrameTitle(title));
         dialog.setResizable(true);
-        logger.debug("dialog created");
+        java.util.logging.Logger.getLogger(this.getClass().getName()).fine("dialog created");
 
         // イベント接続を行う
         connect();
-
     }
 
     /**
@@ -236,28 +213,23 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
     private void connect() {
 
         // 設定項目ボタンに追加するアクションリスナを生成する
-        ActionListener al = new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent event) {
-
-                AbstractSettingPanel theSetting = null;
-
-                // Action Command に設定パネルのIDが設定してある
-                String name = event.getActionCommand();
-                
-                for (AbstractSettingPanel setting : allSettings) {
-                    String id = setting.getId();
-                    if (id.equals(name)) {
-                        theSetting = setting;
-                        break;
-                    }
+        ActionListener al = (ActionEvent event) -> {
+            AbstractPropertySheet theSetting = null;
+            
+            // Action Command に設定パネルのIDが設定してある
+            String name = event.getActionCommand();
+            
+            for (AbstractPropertySheet setting : allSettings) {
+                String id = setting.getId();
+                if (id.equals(name)) {
+                    theSetting = setting;
+                    break;
                 }
-
-                // ボタンに対応する設定パネルにスタートをかける
-                if (theSetting != null) {
-                    startSetting(theSetting);
-                }
+            }
+            
+            // ボタンに対応する設定パネルにスタートをかける
+            if (theSetting != null) {
+                startSetting(theSetting);
             }
         };
 
@@ -273,22 +245,14 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
         //Server-ORCA連携$
 
         // Save
-        okButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                doOk();
-            }
+        okButton.addActionListener((ActionEvent e) -> {
+            doOk();
         });
         okButton.setEnabled(false);
 
         // Cancel
-        cancelButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                doCancel();
-            }
+        cancelButton.addActionListener((ActionEvent e) -> {
+            doCancel();
         });
 
         // Dialog
@@ -304,7 +268,7 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
     /**
      * 選択された項目(SettingPanel)の編集を開始する.
      */
-    private void startSetting(final AbstractSettingPanel sp) {
+    private void startSetting(final AbstractPropertySheet sp) {
 
         // 既に生成されている場合はそれを表示する
         if (sp.getContext() != null) {
@@ -312,43 +276,34 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
             return;
         }
 
-        Runnable r = new Runnable() {
-
-            @Override
-            public void run() {
-
-                // まだ生成されていない場合は
-                // 選択された設定パネルを生成しカードに追加する
-                try {
-                    settingMap.put(sp.getId(), sp);
-                    sp.setContext(ProjectSettingDialog.this);
-                    sp.setProjectStub(Project.getProjectStub());
-                    sp.start();
-
-                    SwingUtilities.invokeLater(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            cardPanel.add(sp.getUI(), sp.getTitle());
-                            cardLayout.show(cardPanel, sp.getTitle());
-                            dialog.validate();
-                            dialog.pack();
-
-                            if (!dialog.isVisible()) {
-                                Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-                                int x = (size.width - dialog.getPreferredSize().width) / 2;
-                                int y = (size.height - dialog.getPreferredSize().height) / 3;
-                                dialog.setLocation(x, y);
-                                dialog.setVisible(true);
-                            } else {
-                                dialog.repaint();
-                            }
-                        }
-                    });
-
-                } catch (Exception e) {
-                    e.printStackTrace(System.err);
-                }
+        Runnable r = () -> {
+            // まだ生成されていない場合は
+            // 選択された設定パネルを生成しカードに追加する
+            try {
+                settingMap.put(sp.getId(), sp);
+                sp.setContext(ProjectSettingDialog.this);
+                sp.setProjectStub(Project.getProjectStub());
+                sp.start();
+                
+                SwingUtilities.invokeLater(() -> {
+                    cardPanel.add(sp.getUI(), sp.getTitle());
+                    cardLayout.show(cardPanel, sp.getTitle());
+                    dialog.validate();
+                    dialog.pack();
+                    
+                    if (!dialog.isVisible()) {
+                        Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+                        int x = (size.width - dialog.getPreferredSize().width) / 2;
+                        int y = (size.height - dialog.getPreferredSize().height) / 3;
+                        dialog.setLocation(x, y);
+                        dialog.setVisible(true);
+                    } else {
+                        dialog.repaint();
+                    }
+                });
+                
+            } catch (Exception e) {
+                e.printStackTrace(System.err);
             }
         };
 
@@ -360,23 +315,24 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
     /**
      * SettingPanel の state が変化した場合に通知を受け、
      * 全てのカードをスキャンして OK ボタンをコントロールする。
+     * @param e
      */
     @Override
     public void propertyChange(PropertyChangeEvent e) {
 
         String prop = e.getPropertyName();
-        if (!prop.equals(AbstractSettingPanel.STATE_PROP)) {
+        if (!prop.equals(AbstractPropertySheet.STATE_PROP)) {
             return;
         }
 
         // 全てのカードをスキャンして OK ボタンをコントロールする
         boolean newOk = true;
-        Iterator<AbstractSettingPanel> iter = settingMap.values().iterator();
+        Iterator<AbstractPropertySheet> iter = settingMap.values().iterator();
         int cnt = 0;
         while (iter.hasNext()) {
             cnt++;
-            AbstractSettingPanel p = iter.next();
-            if (p.getState().equals(AbstractSettingPanel.State.INVALID_STATE)) {
+            AbstractPropertySheet p = iter.next();
+            if (p.getState().equals(AbstractPropertySheet.State.INVALID_STATE)) {
                 newOk = false;
                 break;
             }
@@ -390,10 +346,10 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
 
     public void doOk() {
 
-        Iterator<AbstractSettingPanel> iter = settingMap.values().iterator();
+        Iterator<AbstractPropertySheet> iter = settingMap.values().iterator();
         while (iter.hasNext()) {
-            AbstractSettingPanel p = iter.next();
-            logger.debug(p.getTitle());
+            AbstractPropertySheet p = iter.next();
+            java.util.logging.Logger.getLogger(this.getClass().getName()).fine(p.getTitle());
             p.save();
         }
         //----------------------------------------
@@ -403,14 +359,11 @@ public final class ProjectSettingDialog implements PropertyChangeListener {
         dialog.setVisible(false);
         dialog.dispose();
         notifyResult();
-        
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "設定の保存");
     }
 
     public void doCancel() {
         dialog.setVisible(false);
         dialog.dispose();
         notifyResult();
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "設定の保存キャンセル");
     }
 }

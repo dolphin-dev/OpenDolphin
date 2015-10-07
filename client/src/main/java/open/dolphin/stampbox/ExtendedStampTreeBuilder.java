@@ -4,6 +4,7 @@ package open.dolphin.stampbox;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import open.dolphin.client.ClientContext;
 import open.dolphin.delegater.StampDelegater;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModuleInfoBean;
@@ -31,7 +32,8 @@ public class ExtendedStampTreeBuilder {
     private static final String[] MATCHES = new String[] { "&amp;", "&lt;", "&gt;", "&apos;", "&quot;" };
     
     /** エディタから発行のスタンプ名 */
-    private static final String FROM_EDITOR = "エディタから発行...";
+//    private static final String FROM_EDITOR = "エディタから発行...";
+    private final String FROM_EDITOR;
     
     /** rootノードの名前 */
     private String rootName;
@@ -59,6 +61,8 @@ public class ExtendedStampTreeBuilder {
 
     // Creates new ExtendedStampTreeBuilder
     public ExtendedStampTreeBuilder() {
+        super();
+        FROM_EDITOR = ClientContext.getMyBundle(ExtendedStampTreeBuilder.class).getString("treeName.fromEditor");
     }
 
     public List<StampTree> getProduct() {
@@ -67,7 +71,7 @@ public class ExtendedStampTreeBuilder {
 
     //build を開始する。
     public void buildStart() {
-        products = new ArrayList<StampTree>();
+        products = new ArrayList<>();
         if (logger != null) {
             logger.debug("Build StampTree start");
         }
@@ -76,14 +80,14 @@ public class ExtendedStampTreeBuilder {
     /**
      * Root を生成する。
      * @param name root名
-     * @param Stamptree の Entity
+     * @param entity
      */
     public void buildRoot(String name, String entity) {
 
         if (logger != null) {
             logger.debug("Root=" + name);
         }
-        linkedList = new LinkedList<StampTreeNode>();
+        linkedList = new LinkedList<>();
 
         // TreeInfo を 生成し rootNode に保存する
         TreeInfo treeInfo = new TreeInfo();
@@ -115,12 +119,14 @@ public class ExtendedStampTreeBuilder {
     /**
      * StampInfo を UserObject にするノードを生成する。
      * @param name ノード名
-     * @param entity エンティティ
+     * @param role
+     * @param entity
      * @param editable 編集可能かどうかのフラグ
      * @param memo メモ
      * @param id DB key
      * @param stampHexBytes StampModelのstampByetsをHex文字列にしたもの
      */
+    
     public void buildStampInfo(String name,
             String role,
             String entity,
@@ -153,7 +159,7 @@ public class ExtendedStampTreeBuilder {
         info.setStampRole(role);
         info.setEntity(entity);
         if (editable != null) {
-            info.setEditable(Boolean.valueOf(editable).booleanValue());
+            info.setEditable(Boolean.valueOf(editable));
         }
         if (memo != null) {
             info.setStampMemo(toXmlText(memo));
@@ -273,12 +279,13 @@ public class ExtendedStampTreeBuilder {
         }
 
         if (!hasOrca) {
+            java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open.dolphin.stampbox.StampBoxResource");
             TreeInfo treeInfo = new TreeInfo();
-            treeInfo.setName(IInfoModel.TABNAME_ORCA);
+            treeInfo.setName(bundle.getString("TABNAME_ORCA"));
             treeInfo.setEntity(IInfoModel.ENTITY_ORCA);
             rootNode = new StampTreeNode(treeInfo);
             OrcaTree tree = new OrcaTree(new StampTreeModel(rootNode));
-            products.add(IInfoModel.TAB_INDEX_ORCA, tree);
+            products.add((int)bundle.getObject("TAB_INDEX_ORCA"), tree);
             if (logger != null) {
                 logger.debug("ORCAセットを加えました");
             }
@@ -304,8 +311,9 @@ public class ExtendedStampTreeBuilder {
         if (rootName == null) {
             return ret;
         }
+        String[] stampNames = (String[])java.util.ResourceBundle.getBundle("open.dolphin.stampbox.StampBoxResource").getObject("STAMP_NAMES");
         for (int i = 0; i < IInfoModel.STAMP_ENTITIES.length; i++) {
-            if (IInfoModel.STAMP_NAMES[i].equals(rootName)) {
+            if (stampNames[i].equals(rootName)) {
                 ret = IInfoModel.STAMP_ENTITIES[i];
                 break;
             }

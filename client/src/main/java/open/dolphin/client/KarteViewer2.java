@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.MouseListener;
+import java.text.MessageFormat;
 import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 import javax.swing.text.BadLocationException;
@@ -73,7 +74,7 @@ public class KarteViewer2 extends KarteViewer {
         // TimeStampLabel を生成する
         timeStampLabel = kp2.getTimeStampLabel();
         timeStampLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        timeStampLabel.setForeground(timeStampFore);
+        timeStampLabel.setForeground(GUIConst.KARTE_TIME_STAMP_FORE_COLOR);
         timeStampLabel.setFont(timeStampFont);
         
 //s.oh^ 2013/01/29 過去カルテの修正操作(選択状態)
@@ -119,34 +120,31 @@ public class KarteViewer2 extends KarteViewer {
         // Model を表示する
         if (this.getModel() != null) {
             
+            String dateFmt = ClientContext.getBundle().getString("KARTE_DATE_FORMAT");
+            String selfPrefix = ClientContext.getClaimBundle().getString("INSURANCE_SELF_PREFIX");
+            
             // 確定日を分かりやすい表現に変える
             String timeStamp = ModelUtils.getDateAsFormatString(
                     model.getDocInfoModel().getFirstConfirmDate(),
-                    IInfoModel.KARTE_DATE_FORMAT);
+                    dateFmt);
             
             if (model.getDocInfoModel().getStatus().equals(IInfoModel.STATUS_TMP)) {
                 // (予定カルテ対応)
                 Color bkColor = model.getDocInfoModel().isScheduled() ? GUIConst.SCHEDULE_KARTE_BK_COLOR : GUIConst.TEMP_SAVE_KARTE_BK_COLOR;
                 Color foreColor = model.getDocInfoModel().isScheduled() ? GUIConst.SCHEDULE_KARTE_FORE_COLOR : GUIConst.TEMP_SAVE_KARTE_FORE_COLOR;
-                StringBuilder sb = new StringBuilder();
-                sb.append(timeStamp);
-                sb.append(UNDER_TMP_SAVE);
-                timeStamp = sb.toString();
+                String underTemp = ClientContext.getMyBundle(KarteViewer2.class).getString("messageFormat.temporarySave");
+                MessageFormat msf = new MessageFormat(underTemp);
+                timeStamp = msf.format(new Object[]{timeStamp});
                 // 背景が DarkBlue、foreを白にする
                 KartePanel2M kp2 = (KartePanel2M)panel2;
                 kp2.getTimeStampPanel().setOpaque(true);
-                // (予定カルテ対応)
-                //kp2.getTimeStampPanel().setBackground(GUIConst.TEMP_SAVE_KARTE_COLOR);
-                //timeStampLabel.setOpaque(true);
-                //timeStampLabel.setBackground(GUIConst.TEMP_SAVE_KARTE_COLOR);
-                //timeStampLabel.setForeground(Color.WHITE);
                 kp2.getTimeStampPanel().setBackground(bkColor);
                 timeStampLabel.setOpaque(true);
                 timeStampLabel.setBackground(bkColor);
                 timeStampLabel.setForeground(foreColor);
             }
 //s.oh^ 2014/10/07 自費カルテタイトル帯色変更
-            else if(model.getDocInfoModel().getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
+            else if(model.getDocInfoModel().getHealthInsurance().startsWith(selfPrefix)) {
                 KartePanel2M kp2 = (KartePanel2M)panel2;
                 kp2.getTimeStampPanel().setOpaque(true);
                 kp2.getTimeStampPanel().setBackground(Color.YELLOW);

@@ -20,6 +20,8 @@ public class GUIDGenerator {
      *
      * Usage: Add an id field (type java.lang.String) to your EJB, and add
      * setId(XXXUtil.generateGUID(this)); to the ejbCreate method.
+     * @param o
+     * @return 
      */
     public static String generate(Object o) {
         StringBuilder tmpBuffer = new StringBuilder(16);

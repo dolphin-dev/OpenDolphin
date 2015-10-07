@@ -29,43 +29,43 @@ public class AreaHolder implements DrawingHolder {
         setFill(fill);
     }
     
-    public Shape getArea() {
+    public final Shape getArea() {
         return area;
     }
 
-    public void setArea(Area area) {
+    public final void setArea(Area area) {
         this.area = area;
     }
 
-    public Paint getPaint() {
+    public final Paint getPaint() {
         return paint;
     }
 
-    public void setPaint(Paint color) {
+    public final void setPaint(Paint color) {
         this.paint = color;
     }
 
-    public boolean isFill() {
+    public final boolean isFill() {
         return fill;
     }
 
-    public void setFill(boolean fill) {
+    public final void setFill(boolean fill) {
         this.fill = fill;
     }
 
-    public Stroke getStroke() {
+    public final Stroke getStroke() {
         return stroke;
     }
 
-    public void setStroke(Stroke stroke) {
+    public final void setStroke(Stroke stroke) {
         this.stroke = stroke;
     }
     
-    public AlphaComposite getAlphaComposite() {
+    public final AlphaComposite getAlphaComposite() {
         return ac;
     }
     
-    public void setAlphaComposite(AlphaComposite ac) {
+    public final void setAlphaComposite(AlphaComposite ac) {
         this.ac = ac;
     }
     

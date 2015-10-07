@@ -1,7 +1,5 @@
 package open.dolphin.stampbox;
 
-import open.dolphin.stampbox.StampTreeNode;
-import open.dolphin.stampbox.StampTree;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -25,7 +23,8 @@ public class StampTreePanel extends JPanel implements TreeSelectionListener {
     protected StampTree stampTree;
     protected JTextArea infoArea;
 
-    /** Creates a new instance of StampTreePanel */
+    /** Creates a new instance of StampTreePanel
+     * @param tree */
     public StampTreePanel(StampTree tree) {
 
         this.stampTree = tree;

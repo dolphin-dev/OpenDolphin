@@ -14,7 +14,8 @@ public final class Period extends EventObject {
     private String startDate;
     private String endDate;
     
-    /** Creates a new instance of Period */
+    /** Creates a new instance of Period
+     * @param source */
     public Period(Object source) {
         super(source);
     }

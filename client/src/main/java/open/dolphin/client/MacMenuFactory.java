@@ -1,6 +1,5 @@
 package open.dolphin.client;
 
-import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -15,7 +14,9 @@ import open.dolphin.project.Project;
 /**
  * Menu Factory for Mac. 
  * 
- * @author Minagawa, Kazushi
+ * @author Minagawa, Kazushi.
+ * 2015/04/21 ハードコードされたアクション名を GUIConst定数で置き換え
+ * 2015/04/21 setName() 廃止 
  */
 public class MacMenuFactory extends AbstractMenuFactory {
     
@@ -66,126 +67,112 @@ public class MacMenuFactory extends AbstractMenuFactory {
 
         // New Karte
         String text = resource.getString("newKarte.Action.text");
-//minagawa^ Icon Server        
-        //ImageIcon icon = ClientContext.getImageIcon(resource.getString("newKarte.Action.icon"));
         ImageIcon icon = ClientContext.getImageIconArias("icon_new_karte");
-//minagawa$        
         AbstractAction newKarte = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("newKarte");
+                chart.sendToChain(GUIConst.ACTION_NEW_KARTE);
             }
         };
-        map.put("newKarte", newKarte);
+        map.put(GUIConst.ACTION_NEW_KARTE, newKarte);
 
         // New Document
         text = resource.getString("newDocument.Action.text");
-//minagawa^ Icon Server        
-        //icon = ClientContext.getImageIcon(resource.getString("newDocument.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_new_document");
-//minagawa$        
+        icon = ClientContext.getImageIconArias("icon_new_document");       
         AbstractAction newDocument = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("newDocument");
+                chart.sendToChain(GUIConst.ACTION_NEW_DOCUMENT);
             }
         };
-        map.put("newDocument", newDocument);
+        map.put(GUIConst.ACTION_NEW_DOCUMENT, newDocument);
 
         // Open Karte
         text = resource.getString("openKarte.Action.text");
         AbstractAction openKarte = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                main.sendToChain("openKarte");
+                main.sendToChain(GUIConst.ACTION_OPEN_KARTE);
             }
         };
-        map.put("openKarte", openKarte);
+        map.put(GUIConst.ACTION_OPEN_KARTE, openKarte);
 
         // Close
         text = resource.getString("close.Action.text");
         AbstractAction close = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("close");
+                chart.sendToChain(GUIConst.ACTION_CLOSE);
             }
         };
-        map.put("close", close);
+        map.put(GUIConst.ACTION_CLOSE, close);
 
         // Save
         text = resource.getString("save.Action.text");
-//minagawa^ Icon Server         
-        //icon = ClientContext.getImageIcon(resource.getString("save.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_save");
-//minagawa$        
+        icon = ClientContext.getImageIconArias("icon_save");       
         AbstractAction save = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("save");
+                chart.sendToChain(GUIConst.ACTION_SAVE);
             }
         };
-        map.put("save", save);
+        map.put(GUIConst.ACTION_SAVE, save);
 
         // Delete
         text = resource.getString("delete.Action.text");
         AbstractAction delete = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("delete");
+                chart.sendToChain(GUIConst.ACTION_DELETE);
             }
         };
-        map.put("delete", delete);
+        map.put(GUIConst.ACTION_DELETE, delete);
 
         // Printer Setup
         text = resource.getString("printerSetup.Action.text");
         AbstractAction printerSetup = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                main.sendToChain("printerSetup");
+                main.sendToChain(GUIConst.ACTION_PRINTER_SETUP);
             }
         };
-        map.put("printerSetup", printerSetup);
+        map.put(GUIConst.ACTION_PRINTER_SETUP, printerSetup);
 
         // Print
         text = resource.getString("print.Action.text");
-//minagawa^ Icon Server         
-        //icon = ClientContext.getImageIcon(resource.getString("print.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_printer");
-//minagawa$        
+        icon = ClientContext.getImageIconArias("icon_printer");       
         AbstractAction print = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("print");
+                chart.sendToChain(GUIConst.ACTION_PRINT);
             }
         };
-        map.put("print", print);
+        map.put(GUIConst.ACTION_PRINT, print);
 
         // Exit
         text = resource.getString("processExit.Action.text");
         AbstractAction processExit = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                main.sendToChain("processExit");
+                main.sendToChain(GUIConst.ACTION_PROCESS_EXIT);
             }
         };
-        map.put("processExit", processExit);
+        map.put(GUIConst.ACTION_PROCESS_EXIT, processExit);
 
         // Modify
         text = resource.getString("modifyKarte.Action.text");
-//minagawa^ Icon Server         
-        //icon = ClientContext.getImageIcon(resource.getString("modifyKarte.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_edit_karte_document");
-//minagawa$        
+        icon = ClientContext.getImageIconArias("icon_edit_karte_document");       
         AbstractAction modifyKarte = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("modifyKarte");
+                chart.sendToChain(GUIConst.ACTION_MODIFY_KARTE);
             }
         };
-        map.put("modifyKarte", modifyKarte);
+        map.put(GUIConst.ACTION_MODIFY_KARTE, modifyKarte);
         
 //s.oh^ 2014/04/03 文書の複製
-        text = "複製";
+        //text = "複製";
+        text = resource.getString("copyDocument.Action.text");
         icon = ClientContext.getImageIconArias("icon_edit_karte_document");
         AbstractAction copyDocument = new AbstractAction(text, icon) {
             @Override
@@ -198,113 +185,98 @@ public class MacMenuFactory extends AbstractMenuFactory {
 
         // Undo
         text = resource.getString("undo.Action.text");
-//minagawa^ Icon Server         
-        //icon = ClientContext.getImageIcon(resource.getString("undo.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_undo");
-//minagawa$        
+        icon = ClientContext.getImageIconArias("icon_undo");       
         AbstractAction undo = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("undo");
+                chart.sendToChain(GUIConst.ACTION_UNDO);
             }
         };
-        map.put("undo", undo);
+        map.put(GUIConst.ACTION_UNDO, undo);
 
         // Redo
         text = resource.getString("redo.Action.text");
-//minagawa^ Icon Server         
-        //icon = ClientContext.getImageIcon(resource.getString("redo.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_redo");
-//minagawa$        
+        icon = ClientContext.getImageIconArias("icon_redo");        
         AbstractAction redo = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("redo");
+                chart.sendToChain(GUIConst.ACTION_REDO);
             }
         };
-        map.put("redo", redo);
+        map.put(GUIConst.ACTION_REDO, redo);
 
         // Cut
         text = resource.getString("cut.Action.text");
-//minagawa^ Icon Server         
-        //icon = ClientContext.getImageIcon(resource.getString("cut.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_cut");
-//minagawa$        
+        icon = ClientContext.getImageIconArias("icon_cut");        
         AbstractAction cut = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
                 chart.cut();
             }
         };
-        map.put("cut", cut);
+        map.put(GUIConst.ACTION_CUT, cut);
 
         // Copy
         text = resource.getString("copy.Action.text");
-//minagawa^ Icon Server         
-        //icon = ClientContext.getImageIcon(resource.getString("copy.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_copy");
-//minagawa$        
+        icon = ClientContext.getImageIconArias("icon_copy");       
         AbstractAction copy = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
                 chart.copy();
             }
         };
-        map.put("copy", copy);
+        map.put(GUIConst.ACTION_COPY, copy);
 
         // Paste
         text = resource.getString("paste.Action.text");
-//minagawa^ Icon Server         
-        //icon = ClientContext.getImageIcon(resource.getString("paste.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_paste");
-//minagawa$        
+        icon = ClientContext.getImageIconArias("icon_paste");       
         AbstractAction paste = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
                 chart.paste();
             }
         };
-        map.put("paste", paste);
+        map.put(GUIConst.ACTION_PASTE, paste);
 
         // 昇順
         text = resource.getString("ascending.Action.text");
         AbstractAction ascending = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("ascending");
+                chart.sendToChain(GUIConst.ACTION_ASCENDING);
             }
         };
-        map.put("ascending", ascending);
+        map.put(GUIConst.ACTION_ASCENDING, ascending);
 
         // 降順
         text = resource.getString("descending.Action.text");
         AbstractAction descending = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("descending");
+                chart.sendToChain(GUIConst.ACTION_DESCENDING);
             }
         };
-        map.put("descending", descending);
+        map.put(GUIConst.ACTION_DESCENDING, descending);
 
         // 修正履歴表示
         text = resource.getString("showModified.Action.text");
         AbstractAction showModified = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("showModified");
+                chart.sendToChain(GUIConst.ACTION_SHOW_MODIFIED);
             }
         };
-        map.put("showModified", showModified);
+        map.put(GUIConst.ACTION_SHOW_MODIFIED, showModified);
 
         // 環境設定
         text = resource.getString("setKarteEnviroment.Action.text");
         AbstractAction setKarteEnviroment = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                main.sendToChain("setKarteEnviroment");
+                main.sendToChain(GUIConst.ACTION_SET_KARTE_ENVIROMENT);
             }
         };
-        map.put("setKarteEnviroment", setKarteEnviroment);
+        map.put(GUIConst.ACTION_SET_KARTE_ENVIROMENT, setKarteEnviroment);
         
         // 保険選択
         AbstractAction selectInsurance = new AbstractAction() {
@@ -312,17 +284,17 @@ public class MacMenuFactory extends AbstractMenuFactory {
             public void actionPerformed(ActionEvent ae) {
             }
         };
-        map.put("selectInsurance", selectInsurance);
+        map.put(GUIConst.ACTION_SELECT_INSURANCE, selectInsurance);
         
         // 処方日数一括変更
         text = resource.getString("changeNumOfDatesAll.Action.text");
         AbstractAction changeNumOfDatesAll = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("changeNumOfDatesAll");
+                chart.sendToChain(GUIConst.ACTION_CHANGE_NUM_OF_DATES_ALL);
             }
         };
-        map.put("changeNumOfDatesAll", changeNumOfDatesAll);
+        map.put(GUIConst.ACTION_CHANGE_NUM_OF_DATES_ALL, changeNumOfDatesAll);
         
         // 処方箋印刷
         text = resource.getString("createPrescription.Action.text");
@@ -339,20 +311,20 @@ public class MacMenuFactory extends AbstractMenuFactory {
         AbstractAction sendClaim = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("sendClaim");
+                chart.sendToChain(GUIConst.ACTION_SEND_CLAIM);
             }
         };
-        map.put("sendClaim", sendClaim);
+        map.put(GUIConst.ACTION_SEND_CLAIM, sendClaim);
 
         // 併用禁忌チェック
         text = resource.getString("checkInteraction.Action.text");
         AbstractAction checkInteraction = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("checkInteraction");
+                chart.sendToChain(GUIConst.ACTION_CHECK_INTERACTION);
             }
         };
-        map.put("checkInteraction", checkInteraction);
+        map.put(GUIConst.ACTION_CHECK_INTERACTION, checkInteraction);
 
         // 挿入　病名
         text = resource.getString("insertDisease.Action.text");
@@ -361,7 +333,7 @@ public class MacMenuFactory extends AbstractMenuFactory {
             public void actionPerformed(ActionEvent ae) {
             }
         };
-        map.put("insertDisease", insertDisease);
+        map.put(GUIConst.ACTION_INSERT_DISEASE, insertDisease);
 
         // 挿入　テキスト
         text = resource.getString("insertText.Action.text");
@@ -370,7 +342,7 @@ public class MacMenuFactory extends AbstractMenuFactory {
             public void actionPerformed(ActionEvent ae) {
             }
         };
-        map.put("insertText", insertText);
+        map.put(GUIConst.ACTION_INSERT_TEXT, insertText);
 
         // 挿入　シェーマ
         text = resource.getString("insertSchema.Action.text");
@@ -379,17 +351,17 @@ public class MacMenuFactory extends AbstractMenuFactory {
             public void actionPerformed(ActionEvent ae) {
             }
         };
-        map.put("insertSchema", insertSchema);
+        map.put(GUIConst.ACTION_INSERT_SCHEMA, insertSchema);
         
         // 添付/挿入
         text = resource.getString("attachment.Action.text");
         AbstractAction attachment = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("attachment");
+                chart.sendToChain(GUIConst.ACTION_ATTACHMENT);
             }
         };
-        map.put("attachment", attachment);
+        map.put(GUIConst.ACTION_ATTACHMENT, attachment);
 
         // 挿入　スタンプ
         text = resource.getString("insertStamp.Action.text");
@@ -398,7 +370,7 @@ public class MacMenuFactory extends AbstractMenuFactory {
             public void actionPerformed(ActionEvent ae) {
             }
         };
-        map.put("insertStamp", insertStamp);
+        map.put(GUIConst.ACTION_INSERT_STAMP, insertStamp);
 
         // Size
         text = resource.getString("size.text");
@@ -407,37 +379,37 @@ public class MacMenuFactory extends AbstractMenuFactory {
             public void actionPerformed(ActionEvent ae) {
             }
         };
-        map.put("size", size);
+        map.put(GUIConst.ACTION_SIZE, size);
 
         // 大きく
         text = resource.getString("fontLarger.Action.text");
         AbstractAction fontLarger = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("fontLarger");
+                chart.sendToChain(GUIConst.ACTION_FONT_LARGER);
             }
         };
-        map.put("fontLarger", fontLarger);
+        map.put(GUIConst.ACTION_FONT_LARGER, fontLarger);
 
         // 小さく
         text = resource.getString("fontSmaller.Action.text");
         AbstractAction fontSmaller = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("fontSmaller");
+                chart.sendToChain(GUIConst.ACTION_FONT_SMALLER);
             }
         };
-        map.put("fontSmaller", fontSmaller);
+        map.put(GUIConst.ACTION_FONT_SMALLER, fontSmaller);
 
         // 標準
         text = resource.getString("fontStandard.Action.text");
         AbstractAction fontStandard = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("fontStandard");
+                chart.sendToChain(GUIConst.ACTION_FONT_STANDARD);
             }
         };
-        map.put("fontStandard", fontStandard);
+        map.put(GUIConst.ACTION_FONT_STANDARD, fontStandard);
 
         // スタイル
         text = resource.getString("style.text");
@@ -446,37 +418,37 @@ public class MacMenuFactory extends AbstractMenuFactory {
             public void actionPerformed(ActionEvent ae) {
             }
         };
-        map.put("style", style);
+        map.put(GUIConst.ACTION_STYLE, style);
 
         // ボールド
         text = resource.getString("fontBold.Action.text");
         AbstractAction fontBold = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("fontBold");
+                chart.sendToChain(GUIConst.ACTION_FONT_BOLD);
             }
         };
-        map.put("fontBold", fontBold);
+        map.put(GUIConst.ACTION_FONT_BOLD, fontBold);
 
         // イタリック
         text = resource.getString("fontItalic.Action.text");
         AbstractAction fontItalic = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("fontItalic");
+                chart.sendToChain(GUIConst.ACTION_FONT_ITALIC);
             }
         };
-        map.put("fontItalic", fontItalic);
+        map.put(GUIConst.ACTION_FONT_ITALIC, fontItalic);
 
         // 下線
         text = resource.getString("fontUnderline.Action.text");
         AbstractAction fontUnderline = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("fontUnderline");
+                chart.sendToChain(GUIConst.ACTION_FONT_UNDERLINE);
             }
         };
-        map.put("fontUnderline", fontUnderline);
+        map.put(GUIConst.ACTION_FONT_UNDERLINE, fontUnderline);
 
         // Justify
         text = resource.getString("justify.text");
@@ -485,37 +457,37 @@ public class MacMenuFactory extends AbstractMenuFactory {
             public void actionPerformed(ActionEvent ae) {
             }
         };
-        map.put("justify", justify);
+        map.put(GUIConst.ACTION_JUSTIFY, justify);
 
         // 左揃え
         text = resource.getString("leftJustify.Action.text");
         AbstractAction leftJustify = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("leftJustify");
+                chart.sendToChain(GUIConst.ACTION_LEFT_JUSTIFY);
             }
         };
-        map.put("leftJustify", leftJustify);
+        map.put(GUIConst.ACTION_LEFT_JUSTIFY, leftJustify);
 
         // 中央
         text = resource.getString("centerJustify.Action.text");
         AbstractAction centerJustify = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("centerJustify");
+                chart.sendToChain(GUIConst.ACTION_CENTER_JUSTIFY);
             }
         };
-        map.put("centerJustify", centerJustify);
+        map.put(GUIConst.ACTION_CENTER_JUSTIFY, centerJustify);
 
         // 右よせ
         text = resource.getString("rightJustify.Action.text");
         AbstractAction rightJustify = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("rightJustify");
+                chart.sendToChain(GUIConst.ACTION_RIGHT_JUSTIFY);
             }
         };
-        map.put("rightJustify", rightJustify);
+        map.put(GUIConst.ACTION_RIGHT_JUSTIFY, rightJustify);
 
         // カラー
         text = resource.getString("color.text");
@@ -524,87 +496,87 @@ public class MacMenuFactory extends AbstractMenuFactory {
             public void actionPerformed(ActionEvent ae) {
             }
         };
-        map.put("color", color);
+        map.put(GUIConst.ACTION_COLOR, color);
 
         // 赤
         text = resource.getString("fontRed.Action.text");
         AbstractAction fontRed = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("fontRed");
+                chart.sendToChain(GUIConst.ACTION_FONT_RED);
             }
         };
-        map.put("fontRed", fontRed);
+        map.put(GUIConst.ACTION_FONT_RED, fontRed);
 
         // オレンジ
         text = resource.getString("fontOrange.Action.text");
         AbstractAction fontOrange = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("fontOrange");
+                chart.sendToChain(GUIConst.ACTION_FONT_ORANGE);
             }
         };
-        map.put("fontOrange", fontOrange);
+        map.put(GUIConst.ACTION_FONT_ORANGE, fontOrange);
 
         // 黄色
         text = resource.getString("fontYellow.Action.text");
         AbstractAction fontYellow = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("fontYellow");
+                chart.sendToChain(GUIConst.ACTION_FONT_YELLOW);
             }
         };
-        map.put("fontYellow", fontYellow);
+        map.put(GUIConst.ACTION_FONT_YELLOW, fontYellow);
 
         // 緑
         text = resource.getString("fontGreen.Action.text");
         AbstractAction fontGreen = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("fontGreen");
+                chart.sendToChain(GUIConst.ACTION_FONT_GREEN);
             }
         };
-        map.put("fontGreen", fontGreen);
+        map.put(GUIConst.ACTION_FONT_GREEN, fontGreen);
 
         // 青
         text = resource.getString("fontBlue.Action.text");
         AbstractAction fontBlue = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("fontBlue");
+                chart.sendToChain(GUIConst.ACTION_FONT_BLUE);
             }
         };
-        map.put("fontBlue", fontBlue);
+        map.put(GUIConst.ACTION_FONT_BLUE, fontBlue);
 
         // 紫
         text = resource.getString("fontPurple.Action.text");
         AbstractAction fontPurple = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("fontPurple");
+                chart.sendToChain(GUIConst.ACTION_FONT_PURPLE);
             }
         };
-        map.put("fontPurple", fontPurple);
+        map.put(GUIConst.ACTION_FONT_PURPLE, fontPurple);
 
         // グレー
         text = resource.getString("fontGray.Action.text");
         AbstractAction fontGray = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("fontGray");
+                chart.sendToChain(GUIConst.ACTION_FONT_GRAY);
             }
         };
-        map.put("fontGray", fontGray);
+        map.put(GUIConst.ACTION_FONT_GRAY, fontGray);
 
         // ブラック
         text = resource.getString("fontBlack.Action.text");
         AbstractAction fontBlack = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                chart.sendToChain("fontBlack");
+                chart.sendToChain(GUIConst.ACTION_FONT_BLACK);
             }
         };
-        map.put("fontBlack", fontBlack);
+        map.put(GUIConst.ACTION_FONT_BLACK, fontBlack);
 
         // リセット　未使用？
         AbstractAction resetStyle = new AbstractAction() {
@@ -620,50 +592,50 @@ public class MacMenuFactory extends AbstractMenuFactory {
         AbstractAction showStampBox = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                main.sendToChain("showStampBox");
+                main.sendToChain(GUIConst.ACTION_SHOW_STAMPBOX);
             }
         };
-        map.put("showStampBox", showStampBox);
+        map.put(GUIConst.ACTION_SHOW_STAMPBOX, showStampBox);
 
         // シェーマBox
         text = resource.getString("showSchemaBox.Action.text");
         AbstractAction showSchemaBox = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                main.sendToChain("showSchemaBox");
+                main.sendToChain(GUIConst.ACTION_SHOW_SCHEMABOX);
             }
         };
-        map.put("showSchemaBox", showSchemaBox);
+        map.put(GUIConst.ACTION_SHOW_SCHEMABOX, showSchemaBox);
 
         // パスワード変更
         text = resource.getString("changePassword.Action.text");
         AbstractAction changePassword = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                main.sendToChain("changePassword");
+                main.sendToChain(GUIConst.ACTION_CHANGE_PASSWORD);
             }
         };
-        map.put("changePassword", changePassword);
+        map.put(GUIConst.ACTION_CHANGE_PASSWORD, changePassword);
         
         // 施設情報編集
         text = resource.getString("editFacilityInfo.Action.text");
         AbstractAction editFacilityInfo = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                main.sendToChain("editFacilityInfo");
+                main.sendToChain(GUIConst.ACTION_EDIT_FACILITY_INFO);
             }
         };
-        map.put("editFacilityInfo", editFacilityInfo);
+        map.put(GUIConst.ACTION_EDIT_FACILITY_INFO, editFacilityInfo);
 
         // ユーザー追加
         text = resource.getString("addUser.Action.text");
         AbstractAction addUser = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                main.sendToChain("addUser");
+                main.sendToChain(GUIConst.ACTION_ADD_USER);
             }
         };
-        map.put("addUser", addUser);
+        map.put(GUIConst.ACTION_ADD_USER, addUser);
         
 //s.oh^ 2014/07/08 クラウド0対応
 //minagawa^ 統計情報
@@ -671,10 +643,10 @@ public class MacMenuFactory extends AbstractMenuFactory {
         AbstractAction fetchActivities = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                main.sendToChain("fetchActivities");
+                main.sendToChain(GUIConst.ACTION_FETCH_ACTIVITIES);
             }
         };
-        map.put("fetchActivities", fetchActivities);
+        map.put(GUIConst.ACTION_FETCH_ACTIVITIES, fetchActivities);
 //minagawa$        
 //s.oh$
         
@@ -683,57 +655,54 @@ public class MacMenuFactory extends AbstractMenuFactory {
         AbstractAction fetchFacilityCode = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                main.sendToChain("fetchFacilityCode");
+                main.sendToChain(GUIConst.ACTION_FETCH_FACILITY_CODE);
             }
         };
-        map.put("fetchFacilityCode", fetchFacilityCode);
+        map.put(GUIConst.ACTION_FETCH_FACILITY_CODE, fetchFacilityCode);
 
         // Support
         text = resource.getString("browseDolphinSupport.Action.text");
         AbstractAction browseDolphinSupport = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                main.sendToChain("browseDolphinSupport");
+                main.sendToChain(GUIConst.ACTION_BROWS_DOLPHIN);
             }
         };
-        map.put("browseDolphinSupport", browseDolphinSupport);
+        map.put(GUIConst.ACTION_BROWS_DOLPHIN, browseDolphinSupport);
 
         // Dolphin
         text = resource.getString("browseDolphinProject.Action.text");
         AbstractAction browseDolphinProject = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                main.sendToChain("browseDolphinProject");
+                main.sendToChain(GUIConst.ACTION_BROWS_DOLPHIN_PROJECT);
             }
         };
-        map.put("browseDolphinProject", browseDolphinProject);
+        map.put(GUIConst.ACTION_BROWS_DOLPHIN_PROJECT, browseDolphinProject);
 
         // MedXML
         text = resource.getString("browseMedXml.Action.text");
         AbstractAction browseMedXml = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                main.sendToChain("browseMedXml");
+                main.sendToChain(GUIConst.ACTION_BROWS_MEDXML);
             }
         };
-        map.put("browseMedXml", browseMedXml);
+        map.put(GUIConst.ACTION_BROWS_MEDXML, browseMedXml);
 
         // About
         text = resource.getString("showAbout.Action.text");
         AbstractAction showAbout = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                main.sendToChain("showAbout");
+                main.sendToChain(GUIConst.ACTION_SHOW_ABOUT);
             }
         };
-        map.put("showAbout", showAbout);
+        map.put(GUIConst.ACTION_SHOW_ABOUT, showAbout);
         
 //s.oh^ テキストの挿入 2013/08/12
         text = resource.getString("soapane.Action.text");
-//minagawa^ Icon Server         
-        //icon = ClientContext.getImageIcon(resource.getString("soapane.Action.icon"));
         icon = ClientContext.getImageIconArias(resource.getString("soapane.Action.icon"));
-//minagawa$
         AbstractAction insertSOAText = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -743,10 +712,7 @@ public class MacMenuFactory extends AbstractMenuFactory {
         map.put("insertSOAText", insertSOAText);
         
         text = resource.getString("ppane.Action.text");
-//minagawa^ Icon Server         
-        //icon = ClientContext.getImageIcon(resource.getString("ppane.Action.icon"));
         icon = ClientContext.getImageIconArias(resource.getString("ppane.Action.icon"));
-//minagawa$
         AbstractAction insertPText = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -814,7 +780,7 @@ public class MacMenuFactory extends AbstractMenuFactory {
     public void build(JMenuBar menuBar) {
         
         this.menuBar = menuBar;
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
+        ResourceBundle resource = ClientContext.getMyBundle(MacMenuFactory.class);
         actionMap = new ActionMap();
         storeActions(actionMap, resource);
         
@@ -832,85 +798,69 @@ public class MacMenuFactory extends AbstractMenuFactory {
             toolPanel.add(toolBar);
         }
 
-        //----------------
-        // ファイル
-        //----------------
+        //******************************************************
+        // File Menu
+        //******************************************************
         JMenu file = new JMenu();
-        file.setName("fileMenu");
 
-        //----------------
         // 新規カルテ
-        //----------------
         JMenuItem newKarte = new JMenuItem();
-        newKarte.setName("newKarte");
-        newKarte.setAction(actionMap.get("newKarte"));
+        newKarte.setAction(actionMap.get(GUIConst.ACTION_NEW_KARTE));
         setAccelerator(newKarte, KeyEvent.VK_N);
         newKarte.setIcon(null);
         file.add(newKarte);
         if (chart != null) {
             JButton newKarteBtn = new JButton();
-            newKarteBtn.setAction(actionMap.get("newKarte"));
+            newKarteBtn.setAction(actionMap.get(GUIConst.ACTION_NEW_KARTE));
             newKarteBtn.setText(null);
-            newKarteBtn.setToolTipText("カルテを新規に作成します。");
+            newKarteBtn.setToolTipText(resource.getString("newKarte.Action.toolTipText"));
             newKarteBtn.setMargin(new Insets(3,3,3,3));
             newKarteBtn.setFocusable(false);
             newKarteBtn.setBorderPainted(false);
             toolBar.add(newKarteBtn);
         }
 
-        //----------------
         // 新規文書
-        //----------------
         JMenuItem newDocument = new JMenuItem();
-        newDocument.setName("newDocument");
-        newDocument.setAction(actionMap.get("newDocument"));
+        newDocument.setAction(actionMap.get(GUIConst.ACTION_NEW_DOCUMENT));
         newDocument.setIcon(null);
         file.add(newDocument);
         if (chart != null) {
             JButton newDocBtn = new JButton();
-            newDocBtn.setAction(actionMap.get("newDocument"));
+            newDocBtn.setAction(actionMap.get(GUIConst.ACTION_NEW_DOCUMENT));
             newDocBtn.setText(null);
-            newDocBtn.setToolTipText("紹介状等の文書を新規に作成します。");
+            newDocBtn.setToolTipText(resource.getString("newDocument.Action.toolTipText"));
             newDocBtn.setMargin(new Insets(3,3,3,3));
             newDocBtn.setFocusable(false);
             newDocBtn.setBorderPainted(false);
             toolBar.add(newDocBtn);
         }
 
-        //----------------
         // 開く
-        //----------------
         JMenuItem openKarte = new JMenuItem();
-        openKarte.setName("openKarte");
-        openKarte.setAction(actionMap.get("openKarte"));
+        openKarte.setAction(actionMap.get(GUIConst.ACTION_OPEN_KARTE));
         setAccelerator(openKarte, KeyEvent.VK_O);
         file.add(openKarte);
         
         file.add(new JSeparator());
 
-        //----------------
         // 閉じる
-        //----------------
         JMenuItem close = new JMenuItem();
-        close.setName("close");
-        close.setAction(actionMap.get("close"));
+        close.setAction(actionMap.get(GUIConst.ACTION_CLOSE));
         setAccelerator(close, KeyEvent.VK_W);
         file.add(close);
 
-        //----------------
         // 保存
-        //----------------
         JMenuItem save = new JMenuItem();
-        save.setName("save");
-        save.setAction(actionMap.get("save"));
+        save.setAction(actionMap.get(GUIConst.ACTION_SAVE));
         setAccelerator(save, KeyEvent.VK_S);
         save.setIcon(null);
         file.add(save);
         if (chart != null) {
             JButton saveBtn = new JButton();
-            saveBtn.setAction(actionMap.get("save"));
+            saveBtn.setAction(actionMap.get(GUIConst.ACTION_SAVE));
             saveBtn.setText(null);
-            saveBtn.setToolTipText("カルテや文書を保存します。");
+            saveBtn.setToolTipText(resource.getString("save.Action.toolTipText"));
             saveBtn.setMargin(new Insets(3,3,3,3));
             saveBtn.setFocusable(false);
             saveBtn.setBorderPainted(false);
@@ -919,71 +869,56 @@ public class MacMenuFactory extends AbstractMenuFactory {
         
         file.add(new JSeparator());
 
-        //----------------
         // 削除
-        //----------------
 //s.oh^ 2013/09/05
         if(Project.getBoolean("delete.karte.enable", true)) {
 //s.oh$
             JMenuItem delete = new JMenuItem();
-            delete.setName("delete");
-            delete.setAction(actionMap.get("delete"));
+            delete.setAction(actionMap.get(GUIConst.ACTION_DELETE));
             file.add(delete);
 
             file.add(new JSeparator());
         }
 
-        //----------------
         // 印刷設定
-        //----------------
         JMenuItem printerSetup = new JMenuItem();
-        printerSetup.setName("printerSetup");
-        printerSetup.setAction(actionMap.get("printerSetup"));
+        printerSetup.setAction(actionMap.get(GUIConst.ACTION_PRINTER_SETUP));
         file.add(printerSetup);
 
-        //----------------
         // 印刷
-        //----------------
         JMenuItem print = new JMenuItem();
-        print.setName("print");
-        print.setAction(actionMap.get("print"));
+        print.setAction(actionMap.get(GUIConst.ACTION_PRINT));
         setAccelerator(print, KeyEvent.VK_P);
         print.setIcon(null);
         file.add(print);
         if (chart != null) {
             JButton printBtn = new JButton();
-            printBtn.setAction(actionMap.get("print"));
+            printBtn.setAction(actionMap.get(GUIConst.ACTION_PRINT));
             printBtn.setText(null);
-            printBtn.setToolTipText("印刷します。");
+            printBtn.setToolTipText(resource.getString("print.Action.toolTipText"));
             printBtn.setMargin(new Insets(3,3,3,3));
             printBtn.setFocusable(false);
             printBtn.setBorderPainted(false);
             toolBar.add(printBtn);
         }
-        
-        /******************************************************/
 
-        //----------------
-        // Edit
-        //----------------
+        //******************************************************
+        // Edit Menu
+        //******************************************************
         JMenu edit = new JMenu();
-        edit.setName("editMenu");
         toolBar.addSeparator();
 
-        //----------------
         // 修正
-        //----------------
         JMenuItem modifyKarte = new JMenuItem();
-        modifyKarte.setName("modifyKarte");
-        modifyKarte.setAction(actionMap.get("modifyKarte"));
+        modifyKarte.setAction(actionMap.get(GUIConst.ACTION_MODIFY_KARTE));
         setAccelerator(modifyKarte, KeyEvent.VK_M);
         modifyKarte.setIcon(null);
         edit.add(modifyKarte);
         if (chart != null) {
             JButton modifyKarteBtn = new JButton();
-            modifyKarteBtn.setAction(actionMap.get("modifyKarte"));
+            modifyKarteBtn.setAction(actionMap.get(GUIConst.ACTION_MODIFY_KARTE));
             modifyKarteBtn.setText(null);
-            modifyKarteBtn.setToolTipText("カルテや文書を修正します。");
+            modifyKarteBtn.setToolTipText(resource.getString("modifyKarte.Action.toolTipText"));
             modifyKarteBtn.setMargin(new Insets(3,3,3,3));
             modifyKarteBtn.setFocusable(false);
             modifyKarteBtn.setBorderPainted(false);
@@ -992,40 +927,34 @@ public class MacMenuFactory extends AbstractMenuFactory {
         
         edit.add(new JSeparator());
 
-        //----------------
         // Undo
-        //----------------
         JMenuItem undo = new JMenuItem();
-        undo.setName("undo");
-        undo.setAction(actionMap.get("undo"));
+        undo.setAction(actionMap.get(GUIConst.ACTION_UNDO));
         setAccelerator(undo, KeyEvent.VK_Z);
         undo.setIcon(null);
         edit.add(undo);
         if (chart != null) {
             JButton undoBtn = new JButton();
-            undoBtn.setAction(actionMap.get("undo"));
+            undoBtn.setAction(actionMap.get(GUIConst.ACTION_UNDO));
             undoBtn.setText(null);
-            undoBtn.setToolTipText("操作をやり直します。");
+            undoBtn.setToolTipText(resource.getString("undo.Action.toolTipText"));
             undoBtn.setMargin(new Insets(3,3,3,3));
             undoBtn.setFocusable(false);
             undoBtn.setBorderPainted(false);
             toolBar.add(undoBtn);
         }
 
-        //----------------
         // Redo
-        //----------------
         JMenuItem redo = new JMenuItem();
-        redo.setName("redo");
-        redo.setAction(actionMap.get("redo"));
+        redo.setAction(actionMap.get(GUIConst.ACTION_REDO));
         setAccelerator(redo, KeyEvent.VK_Z, true);
         redo.setIcon(null);
         edit.add(redo);
         if (chart != null) {
             JButton redoBtn = new JButton();
-            redoBtn.setAction(actionMap.get("redo"));
+            redoBtn.setAction(actionMap.get(GUIConst.ACTION_REDO));
             redoBtn.setText(null);
-            redoBtn.setToolTipText("操作を再実行します。");
+            redoBtn.setToolTipText(resource.getString("redo.Action.toolTipText"));
             redoBtn.setMargin(new Insets(3,3,3,3));
             redoBtn.setFocusable(false);
             redoBtn.setBorderPainted(false);
@@ -1034,92 +963,71 @@ public class MacMenuFactory extends AbstractMenuFactory {
         
         edit.add(new JSeparator());
 
-        //----------------
         // Cut
-        //----------------
         JMenuItem cut = new JMenuItem();
-        cut.setName("cut");
-        cut.setAction(actionMap.get("cut"));
+        cut.setAction(actionMap.get(GUIConst.ACTION_CUT));
         setAccelerator(cut, KeyEvent.VK_X);
         cut.setIcon(null);
         edit.add(cut);
         if (chart != null) {
             JButton cutBtn = new JButton();
-            cutBtn.setAction(actionMap.get("cut"));
+            cutBtn.setAction(actionMap.get(GUIConst.ACTION_CUT));
             cutBtn.setText(null);
-            cutBtn.setToolTipText("テキスト、スタンプ、画像をカットします。");
+            cutBtn.setToolTipText(resource.getString("cut.Action.toolTipText"));
             cutBtn.setMargin(new Insets(3,3,3,3));
             cutBtn.setFocusable(false);
             cutBtn.setBorderPainted(false);
             toolBar.add(cutBtn);
         }
 
-        //----------------
         // Copy
-        //----------------
         JMenuItem copy = new JMenuItem();
-        copy.setName("copy");
-        copy.setAction(actionMap.get("copy"));
+        copy.setAction(actionMap.get(GUIConst.ACTION_COPY));
         setAccelerator(copy, KeyEvent.VK_C);
         copy.setIcon(null);
         edit.add(copy);
         if (chart != null) {
             JButton copyBtn = new JButton();
-            copyBtn.setAction(actionMap.get("copy"));
+            copyBtn.setAction(actionMap.get(GUIConst.ACTION_COPY));
             copyBtn.setText(null);
-            copyBtn.setToolTipText("テキスト、スタンプ、画像をコピーします。");
+            copyBtn.setToolTipText(resource.getString("copy.Action.toolTipText"));
             copyBtn.setMargin(new Insets(3,3,3,3));
             copyBtn.setFocusable(false);
             copyBtn.setBorderPainted(false);
             toolBar.add(copyBtn);
         }
 
-        //----------------
         // Paste
-        //----------------
         JMenuItem paste = new JMenuItem();
-        paste.setName("paste");
-        paste.setAction(actionMap.get("paste"));
+        paste.setAction(actionMap.get(GUIConst.ACTION_PASTE));
         setAccelerator(paste, KeyEvent.VK_V);
         paste.setIcon(null);
         edit.add(paste);
         if (chart != null) {
             JButton pasteBtn = new JButton();
-            pasteBtn.setAction(actionMap.get("paste"));
+            pasteBtn.setAction(actionMap.get(GUIConst.ACTION_PASTE));
             pasteBtn.setText(null);
-            pasteBtn.setToolTipText("テキスト、スタンプ、画像をペーストします。");
+            pasteBtn.setToolTipText(resource.getString("paste.Action.toolTipText"));
             pasteBtn.setMargin(new Insets(3,3,3,3));
             pasteBtn.setFocusable(false);
             pasteBtn.setBorderPainted(false);
             toolBar.add(pasteBtn);
         }
         
-        /******************************************************/
-
-        //----------------
-        // Karte
-        //----------------
+        //******************************************************
+        // Karte Menu
+        //******************************************************
         JMenu karte = new JMenu();
-        karte.setName("karteMenu");
-//        if (chart != null) {
-//            karte.addMenuListener(chart);
-//        }
 
-        //-------------------
-        // 処方日数変更 createPrescription
-        //-------------------
+        // 処方日数変更
         JMenuItem changeNumOfDatesAll = new JMenuItem();
-        changeNumOfDatesAll.setName("changeNumOfDatesAll");
-        changeNumOfDatesAll.setAction(actionMap.get("changeNumOfDatesAll"));
+        changeNumOfDatesAll.setAction(actionMap.get(GUIConst.ACTION_CHANGE_NUM_OF_DATES_ALL));
         setAccelerator(changeNumOfDatesAll, KeyEvent.VK_R);
         karte.add(changeNumOfDatesAll);
 
-        //--------------------
         // 元町皮ふ科 CLAIM 送信
-        //--------------------
         JMenuItem sendClaim = new JMenuItem();
-        sendClaim.setName("sendClaim");
-        sendClaim.setAction(actionMap.get("sendClaim"));
+        sendClaim.setAction(actionMap.get(GUIConst.ACTION_SEND_CLAIM));
         setAccelerator(sendClaim, KeyEvent.VK_L);
         karte.add(sendClaim);
         
@@ -1137,271 +1045,211 @@ public class MacMenuFactory extends AbstractMenuFactory {
         //-------------------
         // 併用禁忌チェック checkInteraction
         //-------------------
-//s.oh^ 2013/01/24 不要機能の削除(復活)
+//s.oh^ 2013/01/24 不要機能の削除(復活) -> 不要機能とは何事???
         JMenuItem checkInteraction = new JMenuItem();
-        checkInteraction.setName("checkInteraction");
-        checkInteraction.setAction(actionMap.get("checkInteraction"));
+        checkInteraction.setAction(actionMap.get(GUIConst.ACTION_CHECK_INTERACTION));
         setAccelerator(checkInteraction, KeyEvent.VK_I);
         karte.add(checkInteraction);
 //s.oh$
         
         karte.add(new JSeparator());
 
-        //----------------
         // 昇順
-        //----------------
         JRadioButtonMenuItem ascending = new JRadioButtonMenuItem();
-        ascending.setName("ascending");
-        ascending.setAction(actionMap.get("ascending"));
-        actionMap.get("ascending").putValue("menuItem",ascending);
+        ascending.setAction(actionMap.get(GUIConst.ACTION_ASCENDING));
+        actionMap.get(GUIConst.ACTION_ASCENDING).putValue("menuItem",ascending);
         karte.add(ascending);
 
-        //----------------
         // 降順
-        //----------------
         JRadioButtonMenuItem descending = new JRadioButtonMenuItem();
-        descending.setName("descending");
-        descending.setAction(actionMap.get("descending"));
-        actionMap.get("descending").putValue("menuItem",descending);
+        descending.setAction(actionMap.get(GUIConst.ACTION_DESCENDING));
+        actionMap.get(GUIConst.ACTION_DESCENDING).putValue("menuItem",descending);
         karte.add(descending);
 
-        //----------------
         // RadiButtonGroup
-        //----------------
         ButtonGroup bg = new ButtonGroup();
         bg.add(ascending);
         bg.add(descending);
         
-        //----------------
         // 修正履歴表示
-        //----------------
         JCheckBoxMenuItem showModified = new JCheckBoxMenuItem();
-        showModified.setName("showModified");
-        showModified.setAction(actionMap.get("showModified"));
-        actionMap.get("showModified").putValue("menuItem",showModified);
+        showModified.setAction(actionMap.get(GUIConst.ACTION_SHOW_MODIFIED));
+        actionMap.get(GUIConst.ACTION_SHOW_MODIFIED).putValue("menuItem",showModified);
         karte.add(showModified);
         
         karte.add(new JSeparator());
 
-        //----------------
         // 環境設定
-        //----------------
         JMenuItem setKarteEnviroment = new JMenuItem();
-        setKarteEnviroment.setName("setKarteEnviroment");
-        setKarteEnviroment.setAction(actionMap.get("setKarteEnviroment"));
+        setKarteEnviroment.setAction(actionMap.get(GUIConst.ACTION_SET_KARTE_ENVIROMENT));
         setAccelerator(setKarteEnviroment, KeyEvent.VK_E);
         karte.add(setKarteEnviroment);
         
-        /******************************************************/
-
-        //----------------
-        // Insert
-        //----------------
+        //******************************************************
+        // Insert Menu
+        //******************************************************
         JMenu insert = new JMenu();
-        insert.setName("insertMenu");
+        insert.setName(GUIConst.MENU_NAME_INSERT);
         if (chart != null) {
             insert.addMenuListener(chart);
         }
         
         JMenu insertDisease = new JMenu();
-        insertDisease.setName("insertDisease");
-        insertDisease.setAction(actionMap.get("insertDisease"));
+        insertDisease.setAction(actionMap.get(GUIConst.ACTION_INSERT_DISEASE));
         insert.add(insertDisease);
         
         JMenu insertText = new JMenu();
-        insertText.setName("insertText");
-        insertText.setAction(actionMap.get("insertText"));
+        insertText.setAction(actionMap.get(GUIConst.ACTION_INSERT_TEXT));
         insert.add(insertText);
         
         JMenu insertSchema = new JMenu();
-        insertSchema.setName("insertSchema");
-        insertSchema.setAction(actionMap.get("insertSchema"));
+        insertSchema.setAction(actionMap.get(GUIConst.ACTION_INSERT_SCHEMA));
         insert.add(insertSchema);
         
         JMenu insertStamp = new JMenu();
-        insertStamp.setName("insertStamp");
-        insertStamp.setAction(actionMap.get("insertStamp"));
+        insertStamp.setAction(actionMap.get(GUIConst.ACTION_INSERT_STAMP));
         insert.add(insertStamp);
         
-        /******************************************************/
-
-        //----------------
-        // Text
-        //----------------
+        //******************************************************
+        // Text Menu
+        //******************************************************
         JMenu text = new JMenu();
-        text.setName("textMenu");
+        text.setName(GUIConst.MENU_NAME_TEXT);
         if (chart != null) {
             text.addMenuListener(chart);
         }
         
         //// size ////
         JMenu size = new JMenu();
-        size.setName("size");
-        size.setAction(actionMap.get("size"));
+        size.setAction(actionMap.get(GUIConst.ACTION_SIZE));
         text.add(size);
         
         JMenuItem fontLarger = new JMenuItem();
-        fontLarger.setName("fontLarger");
-        fontLarger.setAction(actionMap.get("fontLarger"));
-        //setAccelerator(fontLarger, KeyEvent.VK_PLUS, true);
+        fontLarger.setAction(actionMap.get(GUIConst.ACTION_FONT_LARGER));
         size.add(fontLarger);
         
         JMenuItem fontSmaller = new JMenuItem();
-        fontSmaller.setName("fontSmaller");
-        fontSmaller.setAction(actionMap.get("fontSmaller"));
-        //setAccelerator(fontSmaller, KeyEvent.VK_MINUS);
+        fontSmaller.setAction(actionMap.get(GUIConst.ACTION_FONT_SMALLER));
         size.add(fontSmaller);
         
         JMenuItem fontStandard = new JMenuItem();
-        fontStandard.setName("fontStandard");
-        fontStandard.setAction(actionMap.get("fontStandard"));
-        //setAccelerator(fontStandard, KeyEvent.VK_NUMBER_SIGN, true);
+        fontStandard.setAction(actionMap.get(GUIConst.ACTION_FONT_STANDARD));
         size.add(fontStandard);  
         
         //// style ////
         JMenu style = new JMenu();
-        style.setName("style");
-        style.setAction(actionMap.get("style"));
+        style.setAction(actionMap.get(GUIConst.ACTION_STYLE));
         text.add(style);
         
         JMenuItem fontBold = new JMenuItem();
-        fontBold.setName("fontBold");
-        fontBold.setAction(actionMap.get("fontBold"));
+        fontBold.setAction(actionMap.get(GUIConst.ACTION_FONT_BOLD));
         setAccelerator(fontBold, KeyEvent.VK_B);
         style.add(fontBold);
         
         JMenuItem fontItalic = new JMenuItem();
-        fontItalic.setName("fontItalic");
-        fontItalic.setAction(actionMap.get("fontItalic"));
+        fontItalic.setAction(actionMap.get(GUIConst.ACTION_FONT_ITALIC));
         setAccelerator(fontItalic, KeyEvent.VK_I);
         style.add(fontItalic);
         
         JMenuItem fontUnderline = new JMenuItem();
-        fontUnderline.setName("fontUnderline");
-        fontUnderline.setAction(actionMap.get("fontUnderline"));
+        fontUnderline.setAction(actionMap.get(GUIConst.ACTION_FONT_UNDERLINE));
         setAccelerator(fontUnderline, KeyEvent.VK_U);
         style.add(fontUnderline);
 
         //// justify ////
         JMenu justify = new JMenu();
-        justify.setName("justify");
-        justify.setAction(actionMap.get("justify"));
+        justify.setAction(actionMap.get(GUIConst.ACTION_JUSTIFY));
         text.add(justify);
         
         JMenuItem leftJustify = new JMenuItem();
-        leftJustify.setName("leftJustify");
-        leftJustify.setAction(actionMap.get("leftJustify"));
-        //setAccelerator(leftJustify, KeyEvent.VK_OPEN_BRACKET);
+        leftJustify.setAction(actionMap.get(GUIConst.ACTION_LEFT_JUSTIFY));
         justify.add(leftJustify);
         
         JMenuItem centerJustify = new JMenuItem();
-        centerJustify.setName("centerJustify");
-        centerJustify.setAction(actionMap.get("centerJustify"));
-        //setAccelerator(centerJustify, KeyEvent.VK_CIRCUMFLEX);
+        centerJustify.setAction(actionMap.get(GUIConst.ACTION_CENTER_JUSTIFY));
         justify.add(centerJustify);
         
         JMenuItem rightJustify = new JMenuItem();
-        rightJustify.setName("rightJustify");
-        rightJustify.setAction(actionMap.get("rightJustify"));
-        //setAccelerator(rightJustify, KeyEvent.VK_CLOSE_BRACKET);
+        rightJustify.setAction(actionMap.get(GUIConst.ACTION_RIGHT_JUSTIFY));
         justify.add(rightJustify);
         
         //// Color ////
         JMenu color = new JMenu();
-        color.setName("color");
-        color.setAction(actionMap.get("color"));
+        color.setAction(actionMap.get(GUIConst.ACTION_COLOR));
         text.add(color);
         
         JMenuItem fontRed = new JMenuItem();
-        fontRed.setName("fontRed");
-        fontRed.setAction(actionMap.get("fontRed"));
+        fontRed.setAction(actionMap.get(GUIConst.ACTION_FONT_RED));
         color.add(fontRed);
         
         JMenuItem fontOrange = new JMenuItem();
-        fontOrange.setName("fontOrange");
-        fontOrange.setAction(actionMap.get("fontOrange"));
+        fontOrange.setAction(actionMap.get(GUIConst.ACTION_FONT_ORANGE));
         color.add(fontOrange);
         
         JMenuItem fontYellow = new JMenuItem();
-        fontYellow.setName("fontYellow");
-        fontYellow.setAction(actionMap.get("fontYellow"));
+        fontYellow.setAction(actionMap.get(GUIConst.ACTION_FONT_YELLOW));
         color.add(fontYellow);
         
         JMenuItem fontGreen = new JMenuItem();
-        fontGreen.setName("fontGreen");
-        fontGreen.setAction(actionMap.get("fontGreen"));
+        fontGreen.setAction(actionMap.get(GUIConst.ACTION_FONT_GREEN));
         color.add(fontGreen);
         
         JMenuItem fontBlue = new JMenuItem();
-        fontBlue.setName("fontBlue");
-        fontBlue.setAction(actionMap.get("fontBlue"));
+        fontBlue.setAction(actionMap.get(GUIConst.ACTION_FONT_BLUE));
         color.add(fontBlue);
         
         JMenuItem fontPurple = new JMenuItem();
-        fontPurple.setName("fontPurple");
-        fontPurple.setAction(actionMap.get("fontPurple"));
+        fontPurple.setAction(actionMap.get(GUIConst.ACTION_FONT_PURPLE));
         color.add(fontPurple);
         
         JMenuItem fontGray = new JMenuItem();
-        fontGray.setName("fontGray");
-        fontGray.setAction(actionMap.get("fontGray"));
+        fontGray.setAction(actionMap.get(GUIConst.ACTION_FONT_GRAY));
         color.add(fontGray);
         
         JMenuItem fontBlack = new JMenuItem();
-        fontBlack.setName("fontBlack");
-        fontBlack.setAction(actionMap.get("fontBlack"));
+        fontBlack.setAction(actionMap.get(GUIConst.ACTION_FONT_BLACK));
         color.add(fontBlack);
         
-        /******************************************************/
-        
-        // Tool
+        //******************************************************
+        // Tool menu
+        //******************************************************
         JMenu tool = new JMenu();
-        tool.setName("toolMenu");
         
         JMenuItem showStampBox = new JMenuItem();
-        showStampBox.setName("showStampBox");
-        showStampBox.setAction(actionMap.get("showStampBox"));
+        showStampBox.setAction(actionMap.get(GUIConst.ACTION_SHOW_STAMPBOX));
         tool.add(showStampBox);
         
         JMenuItem showSchemaBox = new JMenuItem();
-        showSchemaBox.setName("showSchemaBox");
-        showSchemaBox.setAction(actionMap.get("showSchemaBox"));
+        showSchemaBox.setAction(actionMap.get(GUIConst.ACTION_SHOW_SCHEMABOX));
         tool.add(showSchemaBox);
         
         tool.add(new JSeparator());
         
         JMenuItem changePassword = new JMenuItem();
-        changePassword.setName("changePassword");
-        changePassword.setAction(actionMap.get("changePassword"));
+        changePassword.setAction(actionMap.get(GUIConst.ACTION_CHANGE_PASSWORD));
         tool.add(changePassword);
         
         JMenuItem editFacilityInfo = new JMenuItem();
-        editFacilityInfo.setName("editFacilityInfo");
-        editFacilityInfo.setAction(actionMap.get("editFacilityInfo"));
+        editFacilityInfo.setAction(actionMap.get(GUIConst.ACTION_EDIT_FACILITY_INFO));
         tool.add(editFacilityInfo);
         
         JMenuItem addUser = new JMenuItem();
-        addUser.setName("addUser");
-        addUser.setAction(actionMap.get("addUser"));//fetchFacilityCode
+        addUser.setAction(actionMap.get(GUIConst.ACTION_ADD_USER));
         tool.add(addUser);
         
         tool.add(new JSeparator());
        
-//s.oh^ 2014/07/08 クラウド0対応
-//minagawa^ 統計情報        
+//s.oh^ 2014/07/08 クラウド0対応    
         if(Project.isCloudZero()) {
             JMenuItem activities = new JMenuItem();
-            activities.setName("activities");
-            activities.setAction(actionMap.get("fetchActivities"));
+            activities.setAction(actionMap.get(GUIConst.ACTION_FETCH_ACTIVITIES));
             tool.add(activities);
-        }
-//mingawa$        
+        }       
 //s.oh$
         
-        // 不要機能の削除(復活)
+        // 不要機能の削除(復活) -> 不要機能とは何事 ???
         JMenuItem fetchFacilityCode = new JMenuItem();
-        fetchFacilityCode.setName("fetchFacilityCode");
-        fetchFacilityCode.setAction(actionMap.get("fetchFacilityCode"));//
+        fetchFacilityCode.setAction(actionMap.get(GUIConst.ACTION_FETCH_FACILITY_CODE));
         tool.add(fetchFacilityCode);
         
         LinkedHashMap<String, String> toolProviders = ClientContext.getToolProviders();
@@ -1430,8 +1278,7 @@ public class MacMenuFactory extends AbstractMenuFactory {
 //s.oh^ 2014/08/19 受付バーコード対応
         tool.add(new JSeparator());
         JMenuItem receiptBarcode = new JMenuItem();
-        receiptBarcode.setName("receiptBarcode");
-        receiptBarcode.setAction(actionMap.get("receiptBarcode"));
+        receiptBarcode.setAction(actionMap.get(GUIConst.ACTION_RECEIPT_BARCODE));
         tool.add(receiptBarcode);
 //s.oh$
         
@@ -1439,33 +1286,26 @@ public class MacMenuFactory extends AbstractMenuFactory {
         if(!Project.isReadOnly() && Project.getBoolean("output.all.karte.pdf")) {
             tool.add(new JSeparator());
             JMenuItem outputAllKartePdf = new JMenuItem();
-            outputAllKartePdf.setName("outputAllKartePdf");
-            outputAllKartePdf.setAction(actionMap.get("outputAllKartePdf"));
+            outputAllKartePdf.setAction(actionMap.get(GUIConst.ACTION_OUTPUT_ALLKARTEPDF));
             tool.add(outputAllKartePdf);
         }
 //s.oh$
         
-        /******************************************************/
-
-        //----------------
-        // Help
-        //----------------
+        //*****************************************************
+        // Help Menu
+        //*****************************************************
         JMenu help = new JMenu();
-        help.setName("helpMenu");
         
         JMenuItem browseDolphinSupport = new JMenuItem();
-        browseDolphinSupport.setName("browseDolphinSupport");
-        browseDolphinSupport.setAction(actionMap.get("browseDolphinSupport"));
+        browseDolphinSupport.setAction(actionMap.get(GUIConst.ACTION_BROWS_DOLPHIN));
         help.add(browseDolphinSupport);
         
         JMenuItem browseDolphinProject = new JMenuItem();
-        browseDolphinProject.setName("browseDolphinProject");
-        browseDolphinProject.setAction(actionMap.get("browseDolphinProject"));
+        browseDolphinProject.setAction(actionMap.get(GUIConst.ACTION_BROWS_DOLPHIN_PROJECT));
         help.add(browseDolphinProject);
         
         JMenuItem browseMedXml = new JMenuItem();
-        browseMedXml.setName("browseMedXml");
-        browseMedXml.setAction(actionMap.get("browseMedXml"));
+        browseMedXml.setAction(actionMap.get(GUIConst.ACTION_BROWS_MEDXML));
         help.add(browseMedXml);
         
         /******************************************************/
@@ -1489,7 +1329,6 @@ public class MacMenuFactory extends AbstractMenuFactory {
             menuBar.add(help,   7);
         }
 //s.oh$
-        
         /******************************************************/
         file.setText(resource.getString("fileMenu.text"));
         edit.setText(resource.getString("editMenu.text"));
@@ -1502,6 +1341,7 @@ public class MacMenuFactory extends AbstractMenuFactory {
         style.setText(resource.getString("style.text"));
         justify.setText(resource.getString("justify.text"));
         color.setText(resource.getString("color.text"));
+        /******************************************************/
     }
     
     private void setAccelerator(JMenuItem item, int key) {
@@ -1513,18 +1353,3 @@ public class MacMenuFactory extends AbstractMenuFactory {
                         KeyStroke.getKeyStroke(key, (java.awt.event.InputEvent.SHIFT_MASK | (Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()))));
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -114,10 +114,9 @@
   <SubComponents>
     <Component class="javax.swing.JLabel" name="infoLabel">
       <Properties>
-        <Property name="icon" type="javax.swing.Icon" noResource="true" editor="org.netbeans.modules.form.editors2.IconEditor">
-          <Image iconType="3" name="/open/dolphin/resources/images/about_16.gif"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="infoLabel.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="&#x50b7;&#x75c5;&#x540d;" noResource="true"/>
       </Properties>
     </Component>
     <Container class="javax.swing.JScrollPane" name="jScrollPane1">
@@ -143,14 +142,20 @@
     </Container>
     <Component class="javax.swing.JCheckBox" name="diseaseCheck">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x50b7;&#x75c5;&#x540d;" noResource="true"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x50b7;&#x75c5;&#x540d;&#x304c;&#x542b;&#x307e;&#x308c;&#x3066;&#x3044;&#x308c;&#x3070;&#x30c1;&#x30a7;&#x30c3;&#x30af;&#x3055;&#x308c;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="diseaseCheck.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="diseaseCheck.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x9023;&#x7d50;&#x50b7;&#x75c5;&#x540d;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="jLabel2.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="stampNameField">
@@ -158,51 +163,77 @@
         <Property name="background" type="java.awt.Color" noResource="true" editor="org.netbeans.beaninfo.editors.ColorEditor">
           <Color blue="0" green="ff" red="ff" type="rgb"/>
         </Property>
-        <Property name="toolTipText" type="java.lang.String" value="&#x75c5;&#x540d;&#x3092;&#x4fee;&#x98fe;&#x3059;&#x308b;&#x5834;&#x5408;&#x306f;&#x3001;&#x6b63;&#x3057;&#x304f;&#x8aad;&#x3081;&#x308b;&#x3088;&#x3046;&#x30c6;&#x30fc;&#x30d6;&#x30eb;&#x306e;&#x9806;&#x756a;&#x3092;&#x5165;&#x308c;&#x66ff;&#x3048;&#x3066;&#x304f;&#x3060;&#x3055;&#x3044;&#x3002;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="stampNameField.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="okCntBtn">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x5c55;&#x958b;&#x7d99;&#x7d9a;" noResource="true"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x50b7;&#x75c5;&#x540d;&#x3092;&#x30ab;&#x30eb;&#x30c6;&#x306b;&#x5c55;&#x958b;&#x3057;&#x7d99;&#x7d9a;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="okCntBtn.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="okCntBtn.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="okBtn">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x5c55;&#x958b;" noResource="true"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x50b7;&#x75c5;&#x540d;&#x3092;&#x30ab;&#x30eb;&#x30c6;&#x306b;&#x5c55;&#x958b;&#x3057;&#x7d42;&#x4e86;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="okBtn.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="okBtn.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="clearBtn">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x30af;&#x30ea;&#x30a2;" noResource="true"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x30c6;&#x30fc;&#x30d6;&#x30eb;&#x306e;&#x5185;&#x5bb9;&#x3092;&#x30af;&#x30ea;&#x30a2;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="clearBtn.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="clearBtn.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="deleteBtn">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x524a;&#x9664;" noResource="true"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x9078;&#x629e;&#x3057;&#x305f;&#x50b7;&#x75c5;&#x540d;&#x3092;&#x524a;&#x9664;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="deleteBtn.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="deleteBtn.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel3">
     </Component>
     <Component class="javax.swing.JTextField" name="searchTextField">
       <Properties>
-        <Property name="toolTipText" type="java.lang.String" value="&#x691c;&#x7d22;&#x3057;&#x305f;&#x3044;&#x50b7;&#x75c5;&#x540d;&#x3092;&#x5165;&#x529b;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="searchTextField.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JCheckBox" name="rtBtn">
       <Properties>
-        <Property name="text" type="java.lang.String" value="RT" noResource="true"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x30c1;&#x30a7;&#x30c3;&#x30af;&#x3059;&#x308b;&#x3068;&#x5165;&#x529b;&#x4e2d;&#x306b;&#x30ea;&#x30a2;&#x30eb;&#x30bf;&#x30a4;&#x30e0;&#x3067;&#x691c;&#x7d22;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="rtBtn.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="rtBtn.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="countField">
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel4">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x4ef6;&#x6570;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="jLabel4.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Container class="javax.swing.JScrollPane" name="jScrollPane2">
@@ -228,8 +259,12 @@
     </Container>
     <Component class="javax.swing.JCheckBox" name="partialChk">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x90e8;&#x5206;&#x4e00;&#x81f4;" noResource="true"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x90e8;&#x5206;&#x4e00;&#x81f4;&#x691c;&#x7d22;&#x3092;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="partialChk.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/DiseaseView.properties" key="partialChk.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
   </SubComponents>

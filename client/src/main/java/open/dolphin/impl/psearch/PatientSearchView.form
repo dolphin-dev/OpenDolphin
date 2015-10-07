@@ -26,7 +26,7 @@
                       <Component id="sortItem" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="autoIme" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="132" max="32767" attributes="0"/>
+                      <EmptySpace pref="189" max="32767" attributes="0"/>
                       <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="keywordFld" min="-2" pref="188" max="-2" attributes="0"/>
@@ -92,40 +92,50 @@
     </Container>
     <Component class="javax.swing.JTextField" name="keywordFld">
       <Properties>
-        <Property name="toolTipText" type="java.lang.String" value="&#x60a3;&#x8005;&#x6c0f;&#x540d;&#x3001;&#x96fb;&#x8a71;&#x756a;&#x53f7;&#x3001;ID&#x7b49;&#x306e;&#x4e00;&#x90e8;&#x3001;&#x53f3;&#x30af;&#x30ea;&#x30c3;&#x30af;&#x3067;&#x6765;&#x9662;&#x65e5;&#x3092;&#x5165;&#x529b;&#x3057;&#x307e;&#x3059;&#x3002;"/>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/impl/psearch/resources/PatientSearchView.properties" key="keywordFld.tooTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel1">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x30c7;&#x30d5;&#x30a9;&#x30eb;&#x30c8;&#x30bd;&#x30fc;&#x30c8;: "/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/impl/psearch/resources/PatientSearchView.properties" key="jLabel1.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JCheckBox" name="autoIme">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x81ea;&#x52d5;IME"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/impl/psearch/resources/PatientSearchView.properties" key="autoIme.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="countLbl">
       <Properties>
         <Property name="horizontalAlignment" type="int" value="4"/>
-        <Property name="text" type="java.lang.String" value="0 &#x4ef6;"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/impl/psearch/resources/PatientSearchView.properties" key="countLbl.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JComboBox" name="sortItem">
       <Properties>
         <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
           <StringArray count="2">
-            <StringItem index="0" value="&#x60a3;&#x8005;ID"/>
-            <StringItem index="1" value="&#x30ab; &#x30ca;"/>
+            <StringItem index="0" value="Patient ID"/>
+            <StringItem index="1" value="Name in Kana"/>
           </StringArray>
         </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="tmpKarteButton">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x4eee;&#x4fdd;&#x5b58;&#x30ab;&#x30eb;&#x30c6;"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/impl/psearch/resources/PatientSearchView.properties" key="tmpKarteButton.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
   </SubComponents>

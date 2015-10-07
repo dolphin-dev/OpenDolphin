@@ -9,10 +9,10 @@ import java.net.Socket;
  */
 public class OrcaSocket {
     
-    private String host;
-    private int port;
-    private long period;
-    private int tryCnt;
+    private final String host;
+    private final int port;
+    private final long period;
+    private final int tryCnt;
     
     public OrcaSocket(String host, int port, long period, int tryCnt) {
         this.host = host;

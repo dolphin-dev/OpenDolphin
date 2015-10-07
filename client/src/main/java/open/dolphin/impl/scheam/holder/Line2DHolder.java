@@ -12,10 +12,10 @@ import java.awt.geom.Rectangle2D;
  */
 public class Line2DHolder implements DrawingHolder {
     
-    private Line2D.Double line2D;
-    private Stroke stroke;
-    private Paint paint;
-    private AlphaComposite ac;
+    private final Line2D.Double line2D;
+    private final Stroke stroke;
+    private final Paint paint;
+    private final AlphaComposite ac;
     private boolean p1;
     private boolean p2;
     
@@ -27,6 +27,7 @@ public class Line2DHolder implements DrawingHolder {
         this.ac = ac;
     }
     
+    @Override
     public boolean contains(Point p) {
         
         p1 = false;
@@ -50,6 +51,7 @@ public class Line2DHolder implements DrawingHolder {
         return false;
     }
     
+    @Override
     public void draw(Graphics2D g2d) {
         
         g2d.setStroke(stroke); 
@@ -58,6 +60,7 @@ public class Line2DHolder implements DrawingHolder {
         g2d.draw(line2D);
     }
     
+    @Override
     public void translate(double x, double y) {
         
         double x1 = line2D.getX1() + x;
@@ -125,6 +128,7 @@ public class Line2DHolder implements DrawingHolder {
         line2D.setLine(x1, y1, x2, y2);
     }
 
+    @Override
     public void rotate(double theta) {
         //WIND_EVEN_ODD	= 0;
         //WIND_NON_ZERO	= 1;
@@ -138,6 +142,7 @@ public class Line2DHolder implements DrawingHolder {
         transform(trans);
     }
 
+    @Override
     public void expand(double sx, double sy) {
         AffineTransform expand = AffineTransform.getScaleInstance(sx, sy);
         transform(expand);

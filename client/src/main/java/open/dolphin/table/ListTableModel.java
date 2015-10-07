@@ -2,6 +2,7 @@ package open.dolphin.table;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,6 +12,7 @@ import javax.swing.table.AbstractTableModel;
 /**
  *
  * @author Kazushi Minagawa, Digital Globe, Inc.
+ * @param <T>
  */
 public class ListTableModel<T> extends AbstractTableModel {
     
@@ -24,7 +26,7 @@ public class ListTableModel<T> extends AbstractTableModel {
 
     private Class[] columnClasses;
 
-    private List<T> dataProvider = new ArrayList<T>();
+    private List<T> dataProvider = new ArrayList<>();
 
     private PropertyChangeSupport boundSupport;
 
@@ -111,7 +113,7 @@ public class ListTableModel<T> extends AbstractTableModel {
                 Method targetMethod = object.getClass().getMethod(prop, (Class[]) null);
                 return targetMethod.invoke(object, (Object[]) null);
 
-            } catch (Exception e) {
+            } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 e.printStackTrace(System.err);
             }
         }
@@ -241,9 +243,7 @@ public class ListTableModel<T> extends AbstractTableModel {
         return (dataProvider != null &&
                 (!dataProvider.isEmpty()) &&
                 row >= 0 &&
-                row < dataProvider.size() )
-                ? true
-                : false;
+                row < dataProvider.size() );
     }
     
 //masuda^

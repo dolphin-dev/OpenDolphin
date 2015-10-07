@@ -31,7 +31,7 @@ public class Panel2 extends JPanel implements Printable {
                            int numOfCopies,
                            boolean useDialog, String patientName, int height, boolean printName) {
         
-        this.patientName = patientName + " 様カルテ";
+        this.patientName = patientName + ClientContext.getMyBundle(Panel2.class).getString("title.patientKarte");
         this.height = height;
         this.printName = printName;
         
@@ -63,7 +63,7 @@ public class Panel2 extends JPanel implements Printable {
     public int print(Graphics g, PageFormat pf, int pi) throws PrinterException {
         
         Graphics2D g2 = (Graphics2D) g;
-        Font f = new Font("Courier", Font.ITALIC, 9);
+        Font f = new Font(ClientContext.getMyBundle(Panel2.class).getString("g2Font"), Font.ITALIC, 9);
         g2.setFont(f);
         g2.setPaint(Color.black);
         g2.setColor(Color.black);
@@ -105,7 +105,7 @@ public class Panel2 extends JPanel implements Printable {
         int strW = SwingUtilities.computeStringWidth(g2.getFontMetrics(), footerString);
 //s.oh^ 不具合修正
         if(ClientContext.isWin()) {
-            Font footerFont = new Font("MS UI Gothic", Font.PLAIN, 9);
+            Font footerFont = new Font(ClientContext.getMyBundle(Panel2.class).getString("g2FooterFont"), Font.PLAIN, 9);
             g2.setFont(footerFont);
             fontDescent = g2.getFontMetrics().getDescent();
         }

@@ -3,10 +3,11 @@ package open.dolphin.message;
 import java.io.*;
 import open.dolphin.client.ClientContext;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
-import org.apache.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.apache.velocity.exception.MethodInvocationException;
+import org.apache.velocity.exception.ParseErrorException;
+import org.apache.velocity.exception.ResourceNotFoundException;
 
 /**
  * DML を 任意のMessage に翻訳するクラス。
@@ -25,11 +26,9 @@ public final class MessageBuilder {
     /** テンプレートファイルのエンコーディング */
     private String encoding = ENCODING;
     
-    private Logger logger;
     
     public MessageBuilder() {
-        logger = ClientContext.getBootLogger();
-        logger.debug("MessageBuilder constracted");
+        java.util.logging.Logger.getLogger(this.getClass().getName()).fine("MessageBuilder constracted");
     }
     
     public String getTemplateFile() {
@@ -48,39 +47,9 @@ public final class MessageBuilder {
         this.encoding = encoding;
     }
     
-    //@Override
-//    public String build(String dml) {
-//
-//        String ret = null;
-//
-//        try {
-//            // Document root をVelocity 変数にセットする
-//            SAXBuilder sbuilder = new SAXBuilder();
-//            Document root = sbuilder.build(new BufferedReader(new StringReader(dml)));
-//            VelocityContext context = ClientContext.getVelocityContext();
-//            context.put("root", root);
-//
-//            // Merge する
-//            StringWriter sw = new StringWriter();
-//            BufferedWriter bw = new BufferedWriter(sw);
-//            InputStream instream = ClientContext.getTemplateAsStream(templateFile);
-//            BufferedReader reader = new BufferedReader(new InputStreamReader(instream, encoding));
-//            Velocity.evaluate(context, bw, "MessageBuilder", reader);
-//            bw.flush();
-//            bw.close();
-//
-//            ret = sw.toString();
-//
-//        } catch (Exception e) {
-//            e.printStackTrace(System.err);
-//        }
-//
-//        return ret;
-//    }
-    
     public String build(Object helper) {
         
-        logger.debug("MessageBuilder build");
+        java.util.logging.Logger.getLogger(this.getClass().getName()).fine("MessageBuilder build");
         
         String ret = null;
         String name = helper.getClass().getName();
@@ -92,7 +61,7 @@ public final class MessageBuilder {
         name = sb.toString();
         
         try {
-            logger.debug("MessageBuilder try");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).fine("MessageBuilder try");
             VelocityContext context = ClientContext.getVelocityContext();
             context.put(name, helper);
             
@@ -106,7 +75,7 @@ public final class MessageBuilder {
             }
 //            tFile = name + "_02.vm";
 //s.oh$
-            logger.debug("template file = " + tFile);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).fine("template file = " + tFile);
             
             // Merge する
             StringWriter sw = new StringWriter();
@@ -114,16 +83,15 @@ public final class MessageBuilder {
             InputStream instream = ClientContext.getTemplateAsStream(tFile);
             BufferedReader reader = new BufferedReader(new InputStreamReader(instream, encoding));
             Velocity.evaluate(context, bw, name, reader);
-            logger.debug("Velocity.evaluated");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).fine("Velocity.evaluated");
             bw.flush();
             bw.close();
             reader.close();
             
             ret = sw.toString();
             
-        } catch (Exception e) {
-            logger.warn(e);
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, e.toString());
+        } catch (ParseErrorException | MethodInvocationException | ResourceNotFoundException | IOException e) {
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(e.getMessage());
         }
         
         return ret;

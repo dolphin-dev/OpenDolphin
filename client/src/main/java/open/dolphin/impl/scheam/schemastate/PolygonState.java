@@ -12,7 +12,7 @@ import open.dolphin.impl.scheam.SchemaEditorImpl;
  */
 public class PolygonState extends AbstractState {
 
-    private Stroke outlineStroke = properties.getOutlineStroke();
+    private final Stroke outlineStroke = properties.getOutlineStroke();
 
     public PolygonState(SchemaEditorImpl context) {
         super(context);

@@ -25,6 +25,8 @@ public class PCodeHelper extends AbstractCodeHelper {
     
     /**
      * Creates a new instance of CodeHelper
+     * @param pPane
+     * @param mediator
      */
     public PCodeHelper(KartePane pPane, ChartMediator mediator) {
         super(pPane, mediator);
@@ -37,9 +39,7 @@ public class PCodeHelper extends AbstractCodeHelper {
         String test = text.toLowerCase();
         String entity = null;
         
-        //
         // StampTree のキーワードに一致しているかどうかを判定する
-        //
         if (Project.getString(IInfoModel.ENTITY_TEXT).startsWith(test)) {
             entity = IInfoModel.ENTITY_TEXT;
         
@@ -91,9 +91,7 @@ public class PCodeHelper extends AbstractCodeHelper {
             buildEntityPopup(entity);
         
         } else {
-            //
             // 全てのスタンプツリーをなめる
-            //
             buildMatchPopup(text);
         }
     }
@@ -101,9 +99,7 @@ public class PCodeHelper extends AbstractCodeHelper {
     
     protected void buildMatchPopup(String text) {
         
-        //
         // current StampBoxのP関連 StampTree を取得する
-        //
         StampBoxPlugin stampBox = mediator.getStampBox();
         List<StampTree> allTree = stampBox.getAllPTrees();
         if (allTree == null || allTree.isEmpty()) {
@@ -112,20 +108,14 @@ public class PCodeHelper extends AbstractCodeHelper {
         
         popup = new JPopupMenu();
         
-        //
         // メニューのスタックを生成する
-        //
         LinkedList menus = new LinkedList();
         menus.addFirst(popup);
         
-        //
         // 親ノードのスタックを生成する
-        //
         LinkedList parents = new LinkedList();
         
-        //
         // Stamp の名前がキーワードで始まり、それが１個以上あるものを補完メニューに加える
-        //
         pattern = Pattern.compile("^" + text + ".*");
         
         for (StampTree tree : allTree) {
@@ -140,33 +130,25 @@ public class PCodeHelper extends AbstractCodeHelper {
                 
                 while (e.hasMoreElements()) {
                     
-                    //
                     // 調査対象のノードを得る
-                    //
                     StampTreeNode node = (StampTreeNode) e.nextElement();
                     
-                    // 
                     // その親を得る
-                    //
                     StampTreeNode parent = (StampTreeNode) node.getParent();
                     
-                    //
                     // 親がリストに含まれているかどうか
-                    //
                     int index = parents.indexOf(parent);
                     if (index > -1) {
-                        //
+                        
                         // 自分の親がインデックス=0になるまでポップする
-                        //
                         for (int i = 0; i < index; i++) {
                             parents.removeFirst();
                             menus.removeFirst();
                         }
                         
                         if (!node.isLeaf()) {
-                            //
+                            
                             // フォルダの場合
-                            //
                             String folderName = node.getUserObject().toString();
                             JMenu subMenu = new JMenu(folderName);
                             if (menus.getFirst() instanceof JPopupMenu) {
@@ -194,13 +176,11 @@ public class PCodeHelper extends AbstractCodeHelper {
                         }
                     
                     } else {
-                        //
+                        
                         // 含まれていないのでマッチ検査が必要
-                        //
                         if (!node.isLeaf()) {
-                            //
+                            
                             // フォルダの場合
-                            //
                             String completion = node.getUserObject().toString();
                             Matcher matcher = pattern.matcher(completion);
                             if (matcher.matches()) {
@@ -218,9 +198,7 @@ public class PCodeHelper extends AbstractCodeHelper {
                                 menus.addFirst(subMenu);
                                 parents.addFirst(node);
                                 
-                                //
                                 // フォルダ選択のアイテムを生成しサブメニューの要素にする
-                                //
                                 JMenuItem item = new JMenuItem(folderName);
                                 item.setIcon(icon);
                                 subMenu.add(item);
@@ -228,9 +206,7 @@ public class PCodeHelper extends AbstractCodeHelper {
                             }
                             
                         } else {
-                            //
                             // 葉の場合
-                            //
                             ModuleInfoBean info = (ModuleInfoBean) node.getUserObject();
                             String completion = info.getStampName();
                             Matcher matcher = pattern.matcher(completion);

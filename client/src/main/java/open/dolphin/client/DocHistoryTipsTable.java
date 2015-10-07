@@ -19,9 +19,10 @@ public class DocHistoryTipsTable extends JTable {
         ListTableModel<DocInfoModel> model = (ListTableModel<DocInfoModel>)getModel();
         int row = rowAtPoint(e.getPoint());
         DocInfoModel info = model.getObject(row);
+        java.util.ResourceBundle clBundle = ClientContext.getClaimBundle();
         return (info!=null && info.getDocType().equals(IInfoModel.DOCTYPE_KARTE) && (
-                info.getHealthInsurance().startsWith(IInfoModel.INSURANCE_ROSAI_PREFIX) ||
-                info.getHealthInsurance().startsWith(IInfoModel.INSURANCE_JIBAISEKI_PREFIX) ||
-                info.getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX))) ? info.getHealthInsuranceDesc() : null;
+                info.getHealthInsurance().startsWith(clBundle.getString("INSURANCE_ROSAI_PREFIX")) ||
+                info.getHealthInsurance().startsWith(clBundle.getString("INSURANCE_JIBAISEKI_PREFIX")) ||
+                info.getHealthInsurance().startsWith(clBundle.getString("INSURANCE_SELF_PREFIX")))) ? info.getHealthInsuranceDesc() : null;
     }
 }

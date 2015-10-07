@@ -10,7 +10,7 @@ import javax.swing.text.JTextComponent;
  */
 public class AutoKanjiListener implements FocusListener {
     
-    private static AutoKanjiListener instance = new AutoKanjiListener();
+    private static final AutoKanjiListener instance = new AutoKanjiListener();
     
     /** Creates a new instance of AutoIMEListener */
     private AutoKanjiListener() {
@@ -22,7 +22,7 @@ public class AutoKanjiListener implements FocusListener {
 
     @Override
     public void focusGained(FocusEvent e) {
-        if (ClientContext.isWin()) {
+        if (ClientContext.isWin() && ClientContext.isJaJp()) {
             Object source = e.getSource();
             if (source != null && source instanceof JTextComponent) {
                 JTextComponent tc = (JTextComponent) source;
@@ -35,7 +35,7 @@ public class AutoKanjiListener implements FocusListener {
 
     @Override
     public void focusLost(FocusEvent e) {
-        if (ClientContext.isWin()) {
+        if (ClientContext.isWin() && ClientContext.isJaJp()) {
             Object source = e.getSource();
             if (source != null && source instanceof JTextComponent) {
                 JTextComponent tc = (JTextComponent) source;

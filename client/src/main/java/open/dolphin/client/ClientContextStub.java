@@ -4,23 +4,19 @@ import java.awt.*;
 import java.io.*;
 import java.net.URL;
 import java.text.DateFormat;
+import java.text.MessageFormat;
 import java.util.*;
-import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
-import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.basic.BasicTextPaneUI;
 import open.dolphin.exception.DolphinException;
 import open.dolphin.infomodel.DepartmentModel;
-import open.dolphin.infomodel.DiagnosisCategoryModel;
-import open.dolphin.infomodel.DiagnosisOutcomeModel;
 import open.dolphin.infomodel.LicenseModel;
 import open.dolphin.project.Project;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.log4j.BasicConfigurator;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 
@@ -32,11 +28,12 @@ import org.apache.velocity.app.Velocity;
 public final class ClientContextStub {
 
     //--------------------------------------------------------------------------
+    private final String PLUGIN_LOCATION = "/META-INF/plugins/";
     private final String RESOURCE_LOCATION = "/open/dolphin/resources/";
     private final String TEMPLATE_LOCATION = "/open/dolphin/resources/templates/";
     private final String IMAGE_LOCATION = "/open/dolphin/resources/images/";
     private final String SCHEMA_LOCATION = "/open/dolphin/resources/schema/";
-    private final String RESOURCE = "open.dolphin.resources.Dolphin_ja";
+    private final String RESOURCE = "open.dolphin.resources.Dolphin";
     private final String PROPERTY_OS = "os.name";
     private final String OS_WIN = "windows";
     private final String OS_MAC = "mac";
@@ -51,226 +48,98 @@ public final class ClientContextStub {
 
     private String pathToDolphin;
 
-    private boolean dolphinPro;
-    private boolean dolphin5mTest;
     private boolean dolphin;
-//minagawa^ Self Cert Test    
-    private boolean dolphinSerfCertTest;
-//minagawa$
-    //private URLClassLoader pluginClassLoader;
+    private boolean asp;
+    private boolean i18n;
 
     /**
-     * ClientContextStub オブジェクトを生成する。
-     * @param mode
+     * Creates a new ClientContextStub.
+     * @param mode project mode
      */
     public ClientContextStub(String mode) {
-//minagawa^ jdk7 packaging
-        if (mode==null) {
-            dolphin = true;
-            dolphinPro = false;
-            dolphin5mTest = false;
-//minagawa^ Self Cert Test             
-            dolphinSerfCertTest = false;
-//minagawa$            
-        } else {
-            dolphinPro = (mode.equals("pro"));
-            dolphin5mTest = (mode.equals("5m"));
-            dolphin = (mode.equals("asp"));
-//minagawa^ Self Cert Test             
-            dolphinSerfCertTest = (mode.equals("self"));
-//minagawa$            
-        }
-//minagawa$
+        
+        // Logger format
+        System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS %4$s %2$s %5$s%6$s%n");
+        
+        asp = mode!=null && (mode.equals("asp")); 
+        i18n = mode!=null && (mode.equals("i18n"));
+        dolphin = !asp && !i18n;
+            
         try {
-            //----------------------------------------
-            // user.home に Dolphin directoryを生成する
-            //----------------------------------------
-            if (dolphinPro || dolphin5mTest) {
-                pathToDolphin = createDirectory(System.getProperty("user.home"), "OpenDolphinPro");
-            } else {
-                pathToDolphin = createDirectory(System.getProperty("user.home"), "OpenDolphin");
-            }
-            String pathToSetting = createDirectory(pathToDolphin, "setting");
+            //--------------------------------------------------
+            // Creates the directories in the user's home
+            //--------------------------------------------------
+            pathToDolphin = createDirectory(System.getProperty("user.home"), "OpenDolphin");
+            createDirectory(pathToDolphin, "setting");
             createDirectory(pathToDolphin, "log");
             createDirectory(pathToDolphin, "pdf");
             createDirectory(pathToDolphin, "schema");
             createDirectory(pathToDolphin, "odt_template");
             createDirectory(pathToDolphin, "temp");
-
+            
             //------------------------------
-            // Log4J のコンフィグレーションを行う
+            // Configure Log4j properties
             //------------------------------
-            File log4jProp = new File(pathToSetting, "log4j.properties");
-
-            if (log4jProp.exists()) {
-                PropertyConfigurator.configure(log4jProp.getPath());
-
-            } else {
-                Properties prop = new Properties();
-                try (BufferedInputStream in = new BufferedInputStream(getResourceAsStream("log4j.properties"))) {
-                    prop.load(in);
-                }
-                prop.setProperty("log4j.appender.bootAppender.File", pathToLogFile("boot.log"));
-                prop.setProperty("log4j.appender.part11Appender.File", pathToLogFile("part11.log"));
-                prop.setProperty("log4j.appender.delegaterAppender.File", pathToLogFile("delegater.log"));
-                prop.setProperty("log4j.appender.pvtAppender.File", pathToLogFile("pvt.log"));
-                prop.setProperty("log4j.appender.labTestAppender.File", pathToLogFile("labTest.log"));
-                prop.setProperty("log4j.appender.claimAppender.File", pathToLogFile("claim.log"));
-                prop.setProperty("log4j.appender.mmlAppender.File", pathToLogFile("mml.log"));
-                try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(log4jProp))) {
-                    prop.store(out, getVersion());
-                }
-                PropertyConfigurator.configure(prop);
-            }
-
-            //------------------------------
-            // 基本情報を出力する
-            //------------------------------
-            if (getBootLogger().getLevel()==Level.DEBUG) {
-                getBootLogger().debug("boot.time = " + DateFormat.getDateTimeInstance().format(new Date()));
-                getBootLogger().debug("os.name = " + System.getProperty("os.name"));
-                getBootLogger().debug("java.version = " + System.getProperty("java.version"));
-                getBootLogger().debug("dolphin.version = " + getVersion());
-                getBootLogger().debug("base.directory = " + getBaseDirectory());
-                getBootLogger().debug("setting.directory = " + getSettingDirectory());
-                getBootLogger().debug("log.directory = " + getLogDirectory());
-                getBootLogger().debug("pdf.directory = " + getPDFDirectory());
-                getBootLogger().debug("schema.directory = " + getSchemaDirectory());
-                getBootLogger().debug("temp.directory = " + getTempDirectory());
-                getBootLogger().debug("log.config.file = " + getString("log.config.file"));
-                getBootLogger().debug("veleocity.log.file = " + getString("application.velocity.log.file"));
-            }
-
-//            //------------------------------
-//            // Plugin Class Loader を生成する
-//            //------------------------------
-//            List<String> test = new ArrayList<String>();
-//            File pluginDir = new File(getLocation("plugins"));
-//            listJars(test, pluginDir);
-//            List<URL> list = new ArrayList<URL>();
-//            StringBuilder sb;
-//            for (String path : test) {
-//                sb = new StringBuilder();
-//                if (isWin()) {
-//                    sb.append("jar:file:/");
-//                } else {
-//                    sb.append("jar:file://");
-//                }
-//                sb.append(path);
-//                sb.append("!/");
-//                URL url = new URL(sb.toString());
-//                list.add(url);
-//            }
-//            URL[] urls = list.toArray(new URL[list.size()]);
-//            pluginClassLoader = new URLClassLoader(urls);
-
-            //------------------------------
-            // Velocityを初期化する
-            //------------------------------
-            StringBuilder sb = new StringBuilder();
-            sb.append(getLogDirectory());
-            sb.append(File.separator);
-            sb.append(getString("application.velocity.log.file"));
-            Velocity.setProperty("runtime.log", sb.toString());
+            BasicConfigurator.configure();
+            org.apache.log4j.Logger.getRootLogger().setLevel(org.apache.log4j.Level.INFO);
+            
+            //----------------------------------------
+            // Inits Velocity with custom log handler
+            //----------------------------------------
+            Velocity.setProperty(Velocity.RUNTIME_LOG_LOGSYSTEM, new CustomVelocityLogger());
             Velocity.init();
-            getBootLogger().debug("Velocity did initialize");
 
             //------------------------------
-            // LookANdFeel、フォント、mac Menubarを変更する
+            // Outputs the basic info.
             //------------------------------
-            //setUI();
+            //-Djava.util.logging.SimpleFormatter.format='%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS %4$s %2$s %5$s%6$s%n' 
+            Logger logger = Logger.getLogger(this.getClass().getName());
+            logger.log(java.util.logging.Level.INFO, "boot.time = {0}", DateFormat.getDateTimeInstance().format(new Date()));
+            logger.log(java.util.logging.Level.INFO, "os.name = {0}", System.getProperty("os.name"));
+            logger.log(java.util.logging.Level.INFO, "java.version = {0}", System.getProperty("java.version"));
+            logger.log(java.util.logging.Level.INFO, "dolphin.version = {0}", getVersion());
+            logger.log(java.util.logging.Level.INFO, "base.directory = {0}", getBaseDirectory());
+            logger.log(java.util.logging.Level.INFO, "setting.directory = {0}", getSettingDirectory());
+            logger.log(java.util.logging.Level.INFO, "log.directory = {0}", getLogDirectory());
+            logger.log(java.util.logging.Level.INFO, "pdf.directory = {0}", getPDFDirectory());
+            logger.log(java.util.logging.Level.INFO, "schema.directory = {0}", getSchemaDirectory());
+            logger.log(java.util.logging.Level.INFO, "temp.directory = {0}", getTempDirectory());
+            logger.log(java.util.logging.Level.INFO, "locale = {0}", Locale.getDefault().toString());
+            logger.log(java.util.logging.Level.INFO, "country = {0}", Locale.getDefault().getCountry());
+            logger.log(java.util.logging.Level.INFO, "language = {0}", Locale.getDefault().getLanguage());
 
-        } catch (DolphinException | IOException e) {
-            e.printStackTrace(System.err);
+        } catch (DolphinException e) {
+            Logger.getLogger(this.getClass().getName()).severe(e.getMessage());
             System.exit(1);
         }
     }
 
+    /**
+     * Creates a directory at the specified location.
+     * @param parent parent directory
+     * @param child  child directory name
+     * @return path to the created directory
+     * @throws DolphinException 
+     */
     private String createDirectory(String parent, String child) throws DolphinException {
 
         File dir = new File(parent, child);
         if (!dir.exists()) {
             if (!dir.mkdirs()) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("ディレクトリ");
-                sb.append(parent).append(File.separator).append(child);
-                sb.append("を作成できません。");
-                throw new DolphinException(sb.toString());
+                String fmt = "Can not create the directory {0}.";
+                String err = new MessageFormat(fmt).format(new Object[]{child});
+                throw new DolphinException(err);
             }
         }
         return dir.getPath();
-    }
-
-    private String pathToLogFile(String logFile) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getLogDirectory()).append("/").append(logFile);
-        return sb.toString();
     }
     
     public LinkedHashMap<String, String> getToolProviders() {
         return toolProviders;
     }
 
-//    public URLClassLoader getPluginClassLoader() {
-//        return pluginClassLoader;
-//    }
-
     public VelocityContext getVelocityContext() {
         return new VelocityContext();
-    }
-
-    public ResourceBundle getBundle(Class cls) {
-
-        String path = getClassResource(cls);
-
-        // No cache
-        return ResourceBundle.getBundle(path, Locale.getDefault(), cls.getClassLoader(), new ResourceBundle.Control() {
-
-            @Override
-            public long getTimeToLive(String baseName, Locale locale) {
-                return ResourceBundle.Control.TTL_DONT_CACHE;
-            }
-        });
-    }
-
-    private static String getClassResource(Class cls) {
-        StringBuilder sb = new StringBuilder();
-        String clsName = cls.getName();
-        int index = clsName.lastIndexOf(".");
-        sb.append(clsName.subSequence(0, index));
-        sb.append(".resources.");
-        sb.append(clsName.substring(index+1));
-        return sb.toString();
-    }
-
-    //---------------------------------------------------------
-
-    public Logger getBootLogger() {
-        return Logger.getLogger("boot.logger");
-    }
-
-    public Logger getPart11Logger() {
-        return Logger.getLogger("part11.logger");
-    }
-
-    public Logger getClaimLogger() {
-        return Logger.getLogger("claim.logger");
-    }
-
-    public Logger getMmlLogger() {
-        return Logger.getLogger("mml.logger");
-    }
-
-    public Logger getPvtLogger() {
-        return Logger.getLogger("pvt.logger");
-    }
-
-    public Logger getDelegaterLogger() {
-        return Logger.getLogger("delegater.logger");
-    }
-
-    public Logger getLaboTestLogger() {
-        return Logger.getLogger("labTest.logger");
     }
 
     //-----------------------------------------------------------
@@ -286,24 +155,22 @@ public final class ClientContextStub {
     public boolean isLinux() {
         return System.getProperty(PROPERTY_OS).toLowerCase().startsWith(OS_LINUX);
     }
+    
+    public boolean isJaJp() {
+        return Locale.getDefault().toString().equals("ja_JP");
+    }
 
     public boolean isOpenDolphin() {
         return dolphin;
     }
-
-    public boolean isDolphinPro() {
-        return dolphinPro;
+    
+    public boolean isAsp() {
+        return asp;
     }
     
-    public boolean is5mTest() {
-        return dolphin5mTest;
+    public boolean isI18N() {
+        return i18n;
     }
-    
-//minagawa^ Self Cert Test    
-    public boolean isSelfCertTest() {
-        return dolphinSerfCertTest;
-    }
-//minagawa$     
 
     //-----------------------------------------------------------
 
@@ -316,11 +183,7 @@ public final class ClientContextStub {
     public String getBaseDirectory() {
         return pathToDolphin;
     }
-
-//    public String getPluginsDirectory() {
-//        return getLocation("plugins");
-//    }
-
+    
     public String getSettingDirectory() {
         return getLocation("setting");
     }
@@ -346,6 +209,26 @@ public final class ClientContextStub {
     }
 
     //-----------------------------------------------------------
+    
+    public ResourceBundle getBundle() {
+        return ResourceBundle.getBundle(RESOURCE);
+    }
+    
+    public ResourceBundle getClaimBundle() {
+        return ResourceBundle.getBundle("open.dolphin.order.ClaimResource");
+    }
+    
+    public ResourceBundle getMyBundle(Class cls) {
+        StringBuilder sb = new StringBuilder();
+//        sb.append(cls.getPackage()).append(".resources.").append(cls.getSimpleName());
+        String clsName = cls.getName();
+        int index = clsName.lastIndexOf(".");
+        sb.append(clsName.subSequence(0, index));   // package part
+        sb.append(".resources.");                   // packageName.resources.
+        sb.append(clsName.substring(index+1));      // packageName.resources.className
+        String path = sb.toString();
+        return ResourceBundle.getBundle(path);
+    }
 
     public String getVersion() {
         return getString(RESNAME_VERSION);
@@ -388,6 +271,13 @@ public final class ClientContextStub {
         }
         return this.getClass().getResourceAsStream(name);
     }
+    
+    public InputStream getPluginResourceAsStream(String name) {
+        if (!name.startsWith("/")) {
+            name = PLUGIN_LOCATION + name;
+        }
+        return this.getClass().getResourceAsStream(name);
+    }
 
     public InputStream getTemplateAsStream(String name) {
         if (!name.startsWith("/")) {
@@ -401,6 +291,10 @@ public final class ClientContextStub {
             return new ImageIcon(getImageResource(name));
         }
         return null;
+    }
+    
+    public ImageIcon getImageIconArias(String name) {
+        return this.getImageIcon(getString(name));
     }
 
     public ImageIcon getSchemaIcon(String name) {
@@ -442,38 +336,6 @@ public final class ClientContextStub {
         return ret;
     }
 
-    public DiagnosisOutcomeModel[] getDiagnosisOutcomeModel() {
-        String[] desc = getStringArray("diagnosis.outcomeDesc");
-        String[] code = getStringArray("diagnosis.outcome");
-        String codeSys = getString("diagnosis.outcomeCodeSys");
-        DiagnosisOutcomeModel[] ret = new DiagnosisOutcomeModel[desc.length];
-        DiagnosisOutcomeModel model;
-        for (int i = 0; i < desc.length; i++) {
-            model = new DiagnosisOutcomeModel();
-            model.setOutcome(code[i]);
-            model.setOutcomeDesc(desc[i]);
-            model.setOutcomeCodeSys(codeSys);
-            ret[i] = model;
-        }
-        return ret;
-    }
-
-    public DiagnosisCategoryModel[] getDiagnosisCategoryModel() {
-        String[] desc = getStringArray("diagnosis.outcomeDesc");
-        String[] code = getStringArray("diagnosis.outcome");
-        String[] codeSys = getStringArray("diagnosis.outcomeCodeSys");
-        DiagnosisCategoryModel[] ret = new DiagnosisCategoryModel[desc.length];
-        DiagnosisCategoryModel model;
-        for (int i = 0; i < desc.length; i++) {
-            model = new DiagnosisCategoryModel();
-            model.setDiagnosisCategory(code[i]);
-            model.setDiagnosisCategoryDesc(desc[i]);
-            model.setDiagnosisCategoryCodeSys(codeSys[i]);
-            ret[i] = model;
-        }
-        return ret;
-    }
-
     public NameValuePair[] getNameValuePair(String key) {
         NameValuePair[] ret;
         String[] code = getStringArray(key + ".value");
@@ -496,7 +358,7 @@ public final class ClientContextStub {
 
     private void setupEventColorTable() {
         // イベントカラーを定義する
-        eventColorTable = new HashMap<String, Color>(10, 0.75f);
+        eventColorTable = new HashMap<>(10, 0.75f);
         eventColorTable.put("TODAY", getColor("color.TODAY_BACK"));
         eventColorTable.put("BIRTHDAY", getColor("color.BIRTHDAY_BACK"));
         eventColorTable.put("PVT", getColor("color.PVT"));
@@ -640,46 +502,30 @@ public final class ClientContextStub {
         return 20;
     }
     
-    private void listJars(List list, File dir) {
-        File[] files = dir.listFiles();
-        for (File file : files) {
-            if (file.isDirectory()) {
-                listJars(list, file);
-            } else if (file.isFile()) {
-                String path = file.getPath();
-                if (path.toLowerCase().endsWith(".jar")) {
-                    list.add(path);
-                }
-            }
-        }
-    }
-
     /**
-     * LookAndFeel、フォント、Mac メニューバー使用を設定する。
+     * Setup LookAndFeel、Mac button text and menu bar.
      */
     public void setupUI() {
         
         try {
-            Font font;
-            int size = 13;
-            if (isWin() || isLinux()) {
-                size = isLinux() ? 13: 12;
-            }
-        
-            if (isMac()) {
-                 System.setProperty("apple.laf.useScreenMenuBar", String.valueOf(true));
-                 UIManager.put("OptionPane.cancelButtonText", "キャンセル");
-                 UIManager.put("OptionPane.okButtonText", "OK");
-                 font = new Font("Hiragino Kaku Gothic", Font.PLAIN, size);
-                 
-            } else if (isWin()) {
-                font = new Font("MSGothic", Font.PLAIN, size);
-                
-            } else {
-                font = new Font("Lucida Grande", Font.PLAIN, size);
-            }
+            ResourceBundle bundle = getBundle();
             
-            if (isWin() || isLinux()) {
+            // Mac 
+            if (isMac()) {
+                // ScreenMenuBar
+                System.setProperty("apple.laf.useScreenMenuBar", String.valueOf(true));
+                
+                // Cancel Text
+                if (bundle.getString("cancelButtonText.mac")!=null) {
+                    UIManager.put("OptionPane.cancelButtonText", bundle.getString("cancelButtonText.mac"));
+                }
+                // OK Text
+                if (bundle.getString("okButtonText.mac")!=null) {
+                    UIManager.put("OptionPane.okButtonText", bundle.getString("okButtonText.mac"));
+                }
+            }
+            // LAF
+            else if (isWin() || isLinux()) {
                 if (Project.getString("lookAndFeel")!=null) {
                     UIManager.setLookAndFeel(Project.getString("lookAndFeel"));
                 }  else {
@@ -688,72 +534,20 @@ public final class ClientContextStub {
                     UIManager.setLookAndFeel(nimbusCls);
                 }
             }
-            
-            // ToolBarの Dropdown menu制御
-            UIManager.put("PopupMenu.consumeEventOnClose", Boolean.TRUE);
-            
-            // Font 設定
-            FontUIResource fontUIResource = new FontUIResource(font);
-            UIManager.put("Label.font", fontUIResource);
-            UIManager.put("Button.font", fontUIResource);
-            UIManager.put("ToggleButton.font", fontUIResource);
-            UIManager.put("Menu.font", fontUIResource);
-            UIManager.put("MenuItem.font", fontUIResource);
-            UIManager.put("CheckBox.font", fontUIResource);
-            UIManager.put("CheckBoxMenuItem.font", fontUIResource);
-            UIManager.put("RadioButton.font", fontUIResource);
-            UIManager.put("RadioButtonMenuItem.font", fontUIResource);
-            UIManager.put("ToolBar.font", fontUIResource);
-            UIManager.put("ComboBox.font", fontUIResource);
-            UIManager.put("TabbedPane.font", fontUIResource);
-            UIManager.put("TitledBorder.font", fontUIResource);
-            UIManager.put("List.font", fontUIResource);
-//minagawa^ mak jdk7 で : が表示されない            
-//UIManager.put("TextField.font", fontUIResource);
-//UIManager.put("TextArea.font", fontUIResource);
-//minagawa$            
-            UIManager.put("TextPane.font", fontUIResource);
-            // 2013/04/22
-//masuda先生^ tweet            
+//masuda^ tweet            
             if (UIManager.getLookAndFeel().getName().toLowerCase().startsWith("nimbus")) {
                 UIManager.put("TextPaneUI", BasicTextPaneUI.class.getName());
                 UIManager.put("TextPane.selectionBackground", new Color(57, 105, 138));
                 UIManager.put("TextPane.selectionForeground", Color.WHITE);
                 UIManager.put("TextPane.border", new EmptyBorder(4,6,4,6));
             }
-//masuda$                 
+//masuda$     
+            // ToolBarの Dropdown menu制御
+            UIManager.put("PopupMenu.consumeEventOnClose", Boolean.TRUE);
+            
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
             e.printStackTrace(System.err);
-            getBootLogger().warn(e.getMessage());
+            Logger.getLogger(this.getClass().getName()).severe(e.getMessage());
         }        
-//        // List up fonts
-//        String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-//        for (int i = 0; i < fonts.length; i++) {
-//            System.out.println(fonts[i]);
-//        }
-        
-//        for (java.util.Map.Entry<?, ?> entry : UIManager.getDefaults().entrySet()) {
-//            System.err.println(UIManager.get(entry.getKey()));
-//        }
-    
-//        font = new Font("SansSerif", Font.PLAIN, size);
-//        } else {
-//            //font = new Font("Hiragino Kaku Gothic", Font.PLAIN, size);
-//            font = new Font("Lucida Grande", Font.PLAIN, size);
-//        }
-//        font = new Font("Lucida Grande", Font.PLAIN, size);
-//        for (java.util.Map.Entry<?, ?> entry : UIManager.getDefaults().entrySet()) {
-//            if (entry.getKey().toString().toLowerCase().endsWith("font")) {
-//                System.err.println(entry.getKey());
-//                UIManager.put(entry.getKey(), fontUIResource);
-//            }
-//        }
-        getBootLogger().debug("デフォルトのフォントを変更しました。");
-    }
-    
-//minagawa^ Icon Server
-    public ImageIcon getImageIconArias(String name) {
-        return this.getImageIcon(getString(name));
-    }
-//minagawa$    
+    }   
 }

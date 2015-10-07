@@ -30,7 +30,7 @@ public class PVTKanaToAscii {
     List<ConvData> m_DataAry;
 
     public PVTKanaToAscii() {
-        m_DataAry = new ArrayList<ConvData>();
+        m_DataAry = new ArrayList<>();
         ConvData pData;
         pData = new ConvData("A", "ア");
         m_DataAry.add(pData);
@@ -436,13 +436,13 @@ public class PVTKanaToAscii {
     public String CHGKanatoASCII(String strKana, String strASCII) {
 
         String strCHG = "";
-        boolean bTrue = false;
-        int nLen = 0;
+        boolean bTrue;
+        int nLen;
         ConvData dic;
 
 
         for (nLen = 0; nLen < strKana.length(); nLen++) {
-            String strSub = "";
+            String strSub;
             bTrue = false;
             if (nLen + 1 < strKana.length()) {
                 strSub = strKana.substring((nLen), nLen + 2);

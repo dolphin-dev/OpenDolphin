@@ -46,23 +46,27 @@ public class LoginPanelFacility extends javax.swing.JPanel {
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/resources/images/splash.jpg"))); // NOI18N
 
-        jLabel2.setText("医療機関:");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/impl/login/resources/LoginPanelFacility"); // NOI18N
+        jLabel2.setText(bundle.getString("jLabel2.text")); // NOI18N
 
-        jLabel3.setText("ユーザーID:");
+        jLabel3.setText(bundle.getString("jLabel3.text")); // NOI18N
 
-        jLabel4.setText("パスワード:");
+        jLabel4.setText(bundle.getString("jLabel4.text")); // NOI18N
 
         facilityCmb.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        facilityCmb.setToolTipText(bundle.getString("facilityCmb.toolTipText")); // NOI18N
 
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 2, 0));
 
-        settingBtn.setText("設 定");
+        settingBtn.setText(bundle.getString("settingBtn.text")); // NOI18N
+        settingBtn.setToolTipText(""); // NOI18N
         jPanel1.add(settingBtn);
 
-        cancelBtn.setText("キャンセル");
+        cancelBtn.setText(bundle.getString("cancelBtn.text")); // NOI18N
+        cancelBtn.setToolTipText(""); // NOI18N
         jPanel1.add(cancelBtn);
 
-        loginBtn.setText("ログイン");
+        loginBtn.setText(bundle.getString("loginBtn.toolTipText")); // NOI18N
         jPanel1.add(loginBtn);
 
         progressBar.setPreferredSize(new java.awt.Dimension(146, 15));
@@ -74,12 +78,10 @@ public class LoginPanelFacility extends javax.swing.JPanel {
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
                 .addContainerGap()
-                .add(jLabel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 374, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .add(jLabel1)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(layout.createSequentialGroup()
-                        .add(jPanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())
+                    .add(jPanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                     .add(layout.createSequentialGroup()
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                             .add(org.jdesktop.layout.GroupLayout.TRAILING, jLabel2)
@@ -90,8 +92,8 @@ public class LoginPanelFacility extends javax.swing.JPanel {
                             .add(org.jdesktop.layout.GroupLayout.LEADING, facilityCmb, 0, 152, Short.MAX_VALUE)
                             .add(org.jdesktop.layout.GroupLayout.LEADING, userIdFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
                             .add(org.jdesktop.layout.GroupLayout.LEADING, passwordFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
-                            .add(org.jdesktop.layout.GroupLayout.LEADING, progressBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE))
-                        .add(66, 66, 66))))
+                            .add(org.jdesktop.layout.GroupLayout.LEADING, progressBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE))))
+                .addContainerGap())
         );
 
         layout.linkSize(new java.awt.Component[] {facilityCmb, passwordFld, progressBar, userIdFld}, org.jdesktop.layout.GroupLayout.HORIZONTAL);

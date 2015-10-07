@@ -16,28 +16,17 @@ import open.dolphin.client.GUIFactory;
  */
 public class DefaultSetting {
 
-    private AbstractBrowser context;
-    private Component parent;
+    private final AbstractBrowser context;
+    private final Component parent;
     private DefaultConfigView view;
     private JDialog dialog;
-    private Properties properties;
+    private final Properties properties;
    
     public DefaultSetting(AbstractBrowser context, Component parent) {
         this.context = context;
         this.parent = parent;
         this.properties = context.properties;
     }
-    
-//    private String selectApp() {
-//        JFileChooser chooser = new JFileChooser();
-//        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-//        int returnVal = chooser.showOpenDialog(null);
-//        if (returnVal == JFileChooser.APPROVE_OPTION) {
-//            String app = chooser.getSelectedFile().getPath();
-//            return app;
-//        }
-//        return null;
-//    }
     
     private ActionMap getAction(ResourceBundle resource) {
 
@@ -116,7 +105,7 @@ public class DefaultSetting {
 
         // カラム数
         int spiInt = context.columnCount();
-        view.getColumnSpinner().setValue(new Integer(spiInt));
+        view.getColumnSpinner().setValue(spiInt);
 
         // ソート属性
         boolean last = context.sortIsLastModified();
@@ -142,7 +131,7 @@ public class DefaultSetting {
         orderRgp.add(view.getDescRadio());
 
         // Inject Actions
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
+        ResourceBundle resource = ClientContext.getMyBundle(DefaultSetting.class);
         ActionMap map = getAction(resource);
 
         view.getBaseDirBtn().setAction(map.get("setBaseDirectory"));
@@ -164,7 +153,8 @@ public class DefaultSetting {
                 options,
                 saveBtn);
         
-        dialog = jop.createDialog(parent, ClientContext.getFrameTitle("イメージブラウザ設定"));
+        String title = ClientContext.getMyBundle(DefaultSetting.class).getString("title.imageBrowser.setting");
+        dialog = jop.createDialog(parent, ClientContext.getFrameTitle(title));
         dialog.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {

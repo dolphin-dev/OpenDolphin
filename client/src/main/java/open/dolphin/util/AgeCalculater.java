@@ -2,14 +2,13 @@ package open.dolphin.util;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import open.dolphin.client.ClientContext;
 
 /**
  *
  * @author Kazushi Minagawa, Digital Globe, Inc.
  */
 public class AgeCalculater {
-    
-    private static final String SAI = "歳";
 
     public static String getAgeAndBirthday(String mmlBirthday, int monthAge) {
 
@@ -24,7 +23,7 @@ public class AgeCalculater {
                 sb.append(".").append(spec[1]);
             }
 
-            sb.append(" ").append(SAI);
+            sb.append(" ").append(ClientContext.getBundle().getString("yearsOld"));
             sb.append(" (").append(mmlBirthday).append(")");
             return sb.toString();
         }

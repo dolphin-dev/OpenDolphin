@@ -5,8 +5,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import javax.swing.*;
@@ -16,13 +16,11 @@ import open.dolphin.client.AbstractChartDocument;
 import open.dolphin.client.ClientContext;
 import open.dolphin.delegater.PatientDelegater;
 import open.dolphin.helper.DBTask;
-import open.dolphin.impl.psearch.PatientTransferable;
 import open.dolphin.infomodel.PVTHealthInsuranceModel;
 import open.dolphin.infomodel.PVTPublicInsuranceItemModel;
 import open.dolphin.infomodel.PatientModel;
 import open.dolphin.table.StripeTableCellRenderer;
 import open.dolphin.util.AgeCalculater;
-import open.dolphin.util.Log;
 
 /**
  * Documet to show Patient and Health Insurance info.
@@ -30,9 +28,6 @@ import open.dolphin.util.Log;
  * @author Kazushi Minagawa, Digital Globe, Inc.
  */
 public class PatientInfoDocument extends AbstractChartDocument {
-    
-    // Title
-    private static final String TITLE = "患者情報";
     
     // 患者属性名
 //s.oh^ 2014/08/29 患者情報の追加
@@ -42,34 +37,21 @@ public class PatientInfoDocument extends AbstractChartDocument {
     //private static final String[] PATIENT_ATTRS_TEMP = { 
     //    "患者 ID", "氏  名", "カナ", "ローマ字","性  別", "生年月日", "国  籍", "婚姻状況", "郵便番号", "住  所", "電  話", "携帯電話", "電子メール"
     //};
-    private static final String[] PATIENT_ATTRS = { 
-        "患者 ID", "氏  名", "カナ", "ローマ字 *","性  別", "生年月日", "国  籍 *", "婚姻状況 *", "郵便番号", "住  所", "電  話", "携帯電話 *", "電子メール *", "ケアマネ *", "訪問看護ステーション *", "デイサービス *", "調剤薬局 *", "キーパーソン *", "訪問入浴 *"
-    };
-    private static final String[] PATIENT_ATTRS_TEMP = { 
-        "患者 ID", "氏  名", "カナ", "ローマ字","性  別", "生年月日", "国  籍", "婚姻状況", "郵便番号", "住  所", "電  話", "携帯電話", "電子メール", "ケアマネ", "訪問看護ステーション", "デイサービス", "調剤薬局", "キーパーソン", "訪問入浴"
-    };
-//s.oh$
-
-//minagawa^ Icon Server    
-    // Info アイコン
-    //private static final String INFO_BUTTON_IMAGE   = "about_16.gif";
-//minagawa$    
+    private final String[] PATIENT_ATTRS;
+    private final String[] PATIENT_ATTRS_TEMP;
     
-    private static final String INFO = "* の項目は編集が可能です";
+//s.oh$   
+    
+    private final String INFO;
     
     // カラム名
-    private static final String[] COLUMN_NAMES = { "項   目", "値" };
+    private final String[] COLUMN_NAMES;
     
     // 編集可能な行
 //s.oh^ 2014/08/29 患者情報の追加
     //private static final int[] EDITABLE_ROWS = {3, 6, 7, 11, 12};
     private static final int[] EDITABLE_ROWS = {3, 6, 7, 11, 12, 13, 14, 15, 16, 17, 18};
-//s.oh$
- 
-//minagawa^ Icon Server     
-    // 保存アイコン
-    //private static final String SAVE_ICON = "save_16.gif";
-//minagawa$      
+//s.oh$     
     
     // 保存ボタン
     private JButton saveBtn;
@@ -87,39 +69,38 @@ public class PatientInfoDocument extends AbstractChartDocument {
      * Creates new PatientInfoDocument 
      */
     public PatientInfoDocument() {
-        setTitle(TITLE);
         
+        // Resource Injection 
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(PatientInfoDocument.class);
+        setTitle(bundle.getString("title.document"));
+        
+        PATIENT_ATTRS = bundle.getString("attributes.patient").split(",");
+        PATIENT_ATTRS_TEMP = bundle.getString("attributes.patient.tmp").split(",");
+        
+        INFO = bundle.getString("labelText.editing");
+        
+        COLUMN_NAMES = bundle.getString("columnHeader.table").split(",");
     }
     
     private void initialize() {
        
         JComponent compo = createComponent();
        
-        //
         // 保存ボタンを生成する
-        //
         JPanel cmdPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
- //minagawa^ Icon Server       
-        //cmdPanel.add(new JLabel(ClientContext.getImageIcon(INFO_BUTTON_IMAGE)));
         cmdPanel.add(new JLabel(ClientContext.getImageIconArias("icon_info_small")));
         cmdPanel.add(new JLabel(INFO));
-        //saveBtn = new JButton(ClientContext.getImageIcon(SAVE_ICON));
-        saveBtn = new JButton(ClientContext.getImageIconArias("icon_save_small"));
- //minagawa$         
+        
+        saveBtn = new JButton(ClientContext.getImageIconArias("icon_save_small"));       
         saveBtn.setEnabled(false);
-        //saveBtn.setMargin(new Insets(0,0,0,0));
-        saveBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                save();
-            }
+        saveBtn.addActionListener((ActionEvent e) -> {
+            save();
         });
         cmdPanel.add(saveBtn);
 
         JPanel content = new JPanel(new BorderLayout());
         content.add(cmdPanel, BorderLayout.NORTH);
         content.add(compo, BorderLayout.CENTER);
-        //content.setBorder(BorderFactory.createTitledBorder("患者情報"));
 
         JPanel myPanel = getUI();
         myPanel.setLayout(new BorderLayout());
@@ -175,16 +156,11 @@ public class PatientInfoDocument extends AbstractChartDocument {
             
             @Override
             public void succeeded(Void result) {
-//minagawa^ Chartの close box 押下で保存する場合、保存終了を通知しておしまい。                    
-                // 2013/04/19
                 if (boundSupport!=null) {
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "患者情報", "保存成功", "インスペクタの終了");
                     setChartDocDidSave(true);
                     return;
-                }
-//minagawa$                
+                }               
                 stateMgr.processSavedEvent();
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "患者情報", "保存成功");
             }
         };
         
@@ -202,7 +178,6 @@ public class PatientInfoDocument extends AbstractChartDocument {
         pTable = new JTable(pModel);
         
         // レンダラ
-        //pTable.setDefaultRenderer(Object.class, new OddEvenRowRenderer());
         StripeTableCellRenderer rederer = new StripeTableCellRenderer();
         rederer.setTable(pTable);
         rederer.setDefaultRenderer();
@@ -226,13 +201,14 @@ public class PatientInfoDocument extends AbstractChartDocument {
         //-----------------------------------------------
         // 家族カルテ機能を実装する^
         //-----------------------------------------------
-        pTable.setTransferHandler(new PatientInfoTableTransferHandler());
+//        pTable.setTransferHandler(new PatientInfoTableTransferHandler());
 
         //-----------------------------------------------
         // Copy 機能を実装する
         //-----------------------------------------------
         KeyStroke copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-        final AbstractAction copyAction = new AbstractAction("コピー") {
+        String actionText = ClientContext.getMyBundle(PatientInfoDocument.class).getString("actionText.copy");
+        final AbstractAction copyAction = new AbstractAction(actionText) {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
@@ -294,7 +270,6 @@ public class PatientInfoDocument extends AbstractChartDocument {
                 hTable.setIntercellSpacing(new Dimension(2,2));
 
                 // レンダラ
-                //hTable.setDefaultRenderer(Object.class, new OddEvenRowRenderer());
                 StripeTableCellRenderer sr = new StripeTableCellRenderer();
                 sr.setTable(hTable);
                 sr.setDefaultRenderer();
@@ -317,76 +292,76 @@ public class PatientInfoDocument extends AbstractChartDocument {
         return scroller;
     }
     
-    // Dropされた患者を家族カルテに登録する
-    private void importFamily(PatientModel model) {
-        
-        final JButton save = new JButton("登 録");
-        final JButton cancel = new JButton((String)UIManager.get("OptionPane.cancelButtonText"));
-        save.setEnabled(false);
-        
-        StringBuilder sb = new StringBuilder();
-        sb.append(model.getFullName());
-        sb.append(" さんを家族として登録します。");
-        String msg = sb.toString();
-        final String patientId = model.getPatientId();
-        
-        JLabel lbl = new JLabel("続柄:");
+//    // Dropされた患者を家族カルテに登録する
+//    private void importFamily(PatientModel model) {
+//        
+//        final JButton save = new JButton("登 録");
+//        final JButton cancel = new JButton((String)UIManager.get("OptionPane.cancelButtonText"));
+//        save.setEnabled(false);
+//        
+//        StringBuilder sb = new StringBuilder();
+//        sb.append(model.getFullName());
+//        sb.append(" さんを家族として登録します。");
+//        String msg = sb.toString();
+//        final String patientId = model.getPatientId();
+//        
+//        JLabel lbl = new JLabel("続柄:");
+////        final String[] relations = new String[]{
+////          "", "父", "母", "----","兄", "弟", "姉", "妹","----", "子供", "----", "祖父", "祖母","----","孫", "----","夫", "妻", "----","その他"
+////        };
 //        final String[] relations = new String[]{
-//          "", "父", "母", "----","兄", "弟", "姉", "妹","----", "子供", "----", "祖父", "祖母","----","孫", "----","夫", "妻", "----","その他"
+//          "", "兄弟姉妹", "------","親", "子供","------","祖父母","孫","------","夫婦", "------","その他"
 //        };
-        final String[] relations = new String[]{
-          "", "兄弟姉妹", "------","親", "子供","------","祖父母","孫","------","夫婦", "------","その他"
-        };
-        final JComboBox cmb = new JComboBox(relations);
-        cmb.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                if (e.getStateChange() == ItemEvent.SELECTED) {
-                    save.setEnabled(cmb.getSelectedIndex()!=0);
-                }
-            }
-        });
-        JPanel p = new JPanel();
-        p.setLayout(new FlowLayout(FlowLayout.LEFT));
-        p.add(lbl);
-        p.add(cmb);
-        
-        Object[] message = new Object[2];
-        message[0] = msg;
-        message[1] = p;
-        
-        JOptionPane pane = new JOptionPane(
-                message,
-                JOptionPane.QUESTION_MESSAGE,
-                JOptionPane.DEFAULT_OPTION,
-                null,
-                new Object[]{save, cancel},
-                save);
-        
-        final JDialog dialog = pane.createDialog(getUI(), ClientContext.getFrameTitle("家族登録"));
-        dialog.setModal(true);
-        
-        save.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                dialog.setVisible(false);
-                dialog.dispose();
-                StringBuilder sb = new StringBuilder();
-                sb.append((String)cmb.getSelectedItem());
-                sb.append("-");
-                sb.append(patientId);
-                System.err.println(sb.toString());
-            }
-        });
-        cancel.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                dialog.setVisible(false);
-                dialog.dispose();
-            }
-        });
-        dialog.setVisible(true);
-    }
+//        final JComboBox cmb = new JComboBox(relations);
+//        cmb.addItemListener(new ItemListener() {
+//            @Override
+//            public void itemStateChanged(ItemEvent e) {
+//                if (e.getStateChange() == ItemEvent.SELECTED) {
+//                    save.setEnabled(cmb.getSelectedIndex()!=0);
+//                }
+//            }
+//        });
+//        JPanel p = new JPanel();
+//        p.setLayout(new FlowLayout(FlowLayout.LEFT));
+//        p.add(lbl);
+//        p.add(cmb);
+//        
+//        Object[] message = new Object[2];
+//        message[0] = msg;
+//        message[1] = p;
+//        
+//        JOptionPane pane = new JOptionPane(
+//                message,
+//                JOptionPane.QUESTION_MESSAGE,
+//                JOptionPane.DEFAULT_OPTION,
+//                null,
+//                new Object[]{save, cancel},
+//                save);
+//        
+//        final JDialog dialog = pane.createDialog(getUI(), ClientContext.getFrameTitle("家族登録"));
+//        dialog.setModal(true);
+//        
+//        save.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent ae) {
+//                dialog.setVisible(false);
+//                dialog.dispose();
+//                StringBuilder sb = new StringBuilder();
+//                sb.append((String)cmb.getSelectedItem());
+//                sb.append("-");
+//                sb.append(patientId);
+//                System.err.println(sb.toString());
+//            }
+//        });
+//        cancel.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent ae) {
+//                dialog.setVisible(false);
+//                dialog.dispose();
+//            }
+//        });
+//        dialog.setVisible(true);
+//    }
 
     /**
      * 選択されている行をコピーする。
@@ -430,13 +405,13 @@ public class PatientInfoDocument extends AbstractChartDocument {
     protected class PatientInfoTableModel extends AbstractTableModel {
         
         // 患者モデル
-        private PatientModel patient;
+        private final PatientModel patient;
         
         // 属性名の配列
-        private String[] attributes;
+        private final String[] attributes;
         
         // カラム名の配列
-        private String[] columnNames;
+        private final String[] columnNames;
         
         public PatientInfoTableModel(PatientModel patient, String[] attrs, String[] columnNames) {
             this.patient = patient;
@@ -511,10 +486,13 @@ public class PatientInfoDocument extends AbstractChartDocument {
                     case 4:
                         ret = patient.getGender();
                         ret = ret.toLowerCase();
-                        if (ret.startsWith("m") || ret.startsWith("男")) {
-                            ret = "男性";
-                        } else if (ret.startsWith("f") || ret.startsWith("女")) {
-                            ret = "女性";
+                        java.util.ResourceBundle bundle = ClientContext.getMyBundle(PatientInfoDocument.class);
+                        String male = bundle.getString("text.male");
+                        String female = bundle.getString("text.female");
+                        if (ret.startsWith("m") || ret.startsWith(male)) {
+                            ret = male;
+                        } else if (ret.startsWith("f") || ret.startsWith(female)) {
+                            ret = female;
                         }
                         break;
                         
@@ -522,9 +500,9 @@ public class PatientInfoDocument extends AbstractChartDocument {
                         int[] spec = AgeCalculater.getAgeSpec(patient.getBirthday());
                         StringBuilder sb = new StringBuilder();
                         if (spec[0]!=-1) {
-                            sb.append(spec[0]).append("歳 ");
-                            sb.append(spec[1]).append("ヶ月 ");
-                            sb.append(spec[2]).append("日");
+                            String fmt = ClientContext.getMyBundle(PatientInfoDocument.class).getString("meesageFormat.age");
+                            MessageFormat msf = new MessageFormat(fmt);
+                            sb.append(msf.format(new Object[]{spec[0],spec[1],spec[2]}));
                         }
                         sb.append(" (").append(patient.getBirthday()).append(")");
                         ret = sb.toString();
@@ -679,9 +657,9 @@ public class PatientInfoDocument extends AbstractChartDocument {
      */
     protected class HealthInsuranceTableModel extends AbstractTableModel {
         
-        private String[] columnNames;
+        private final String[] columnNames;
         
-        private ArrayList<String[]> data;
+        private final ArrayList<String[]> data;
         
         public HealthInsuranceTableModel(PVTHealthInsuranceModel insurance,
                 String[] columnNames) {
@@ -695,51 +673,53 @@ public class PatientInfoDocument extends AbstractChartDocument {
                 return null;
             }
             
-            ArrayList<String[]> list = new ArrayList<String[]>();
+            ArrayList<String[]> list = new ArrayList<>();
+            
+            java.util.ResourceBundle bundle = ClientContext.getMyBundle(PatientInfoDocument.class);
             
             String[] rowData = new String[2];
-            rowData[0] = "保険種別";
+            rowData[0] = bundle.getString("hitem.0");
             rowData[1] = insurance.getInsuranceClass();
             list.add(rowData);
             
             rowData = new String[2];
-            rowData[0] = "保険種別コード";
+            rowData[0] = bundle.getString("hitem.1");
             rowData[1] = insurance.getInsuranceClassCode();
             list.add(rowData);
             
             rowData = new String[2];
-            rowData[0] = "保険者番号";
+            rowData[0] = bundle.getString("hitem.2");
             rowData[1] = insurance.getInsuranceNumber();
             list.add(rowData);
             
             rowData = new String[2];
-            rowData[0] = "被保険者記号";
+            rowData[0] = bundle.getString("hitem.3");
             rowData[1] = insurance.getClientGroup();
             list.add(rowData);
             
             rowData = new String[2];
-            rowData[0] = "被保険者番号";
+            rowData[0] = bundle.getString("hitem.4");
             rowData[1] = insurance.getClientNumber();
             list.add(rowData);
             
             rowData = new String[2];
-            rowData[0] = "本人家族区分";
+            rowData[0] = bundle.getString("hitem.5");
             String test = insurance.getFamilyClass();
             if (test.equals("true")) {
-                test = "本人";
+                test = bundle.getString("hitem.self");
             } else {
-                test = "家族";
+                test = bundle.getString("hitem.family");
             }
             rowData[1] = test;
             list.add(rowData);
             
             rowData = new String[2];
-            rowData[0] = "開始日";
+            rowData[0] = bundle.getString("hitem.6");
             rowData[1] = insurance.getStartDate();
             list.add(rowData);
             
             rowData = new String[2];
-            rowData[0] = "有効期限";
+            rowData[0] = bundle.getString("hitem.7");
             rowData[1] = insurance.getExpiredDate();
             list.add(rowData);
             
@@ -748,19 +728,19 @@ public class PatientInfoDocument extends AbstractChartDocument {
                 int count = vals.length;
                 for (int i = 0; i < count; i++) {
                     rowData = new String[2];
-                    rowData[0] = "継続適応疾患名";
+                    rowData[0] = bundle.getString("hitem.8");
                     rowData[1] = vals[i];
                     list.add(rowData);
                 }
             }
             
             rowData = new String[2];
-            rowData[0] = "入院時の負担率";
+            rowData[0] = bundle.getString("hitem.9");
             rowData[1] = insurance.getPayInRatio();
             list.add(rowData);
             
             rowData = new String[2];
-            rowData[0] = "外来時の負担率";
+            rowData[0] = bundle.getString("hitem.10");
             rowData[1] = insurance.getPayOutRatio();
             list.add(rowData);
             
@@ -774,42 +754,42 @@ public class PatientInfoDocument extends AbstractChartDocument {
                 PVTPublicInsuranceItemModel item = pbi[i];
                 
                 rowData = new String[2];
-                rowData[0] = "公費の優先順位";
+                rowData[0] = bundle.getString("hitem.11");
                 rowData[1] = item.getPriority();
                 list.add(rowData);
                 
                 rowData = new String[2];
-                rowData[0] = "公費負担名称";
+                rowData[0] = bundle.getString("hitem.12");
                 rowData[1] = item.getProviderName();
                 list.add(rowData);
                 
                 rowData = new String[2];
-                rowData[0] = "負担者番号";
+                rowData[0] = bundle.getString("hitem.13");
                 rowData[1] = item.getProvider();
                 list.add(rowData);
                 
                 rowData = new String[2];
-                rowData[0] = "受給者番号";
+                rowData[0] = bundle.getString("hitem.14");
                 rowData[1] = item.getRecipient();
                 list.add(rowData);
                 
                 rowData = new String[2];
-                rowData[0] = "開始日";
+                rowData[0] = bundle.getString("hitem.15");
                 rowData[1] = item.getStartDate();
                 list.add(rowData);
                 
                 rowData = new String[2];
-                rowData[0] = "有効期限";
+                rowData[0] = bundle.getString("hitem.16");
                 rowData[1] = item.getExpiredDate();
                 list.add(rowData);
                 
                 rowData = new String[2];
-                rowData[0] = "負担率";
+                rowData[0] = bundle.getString("hitem.17");
                 rowData[1] = item.getPaymentRatio();
                 list.add(rowData);
                 
                 rowData = new String[2];
-                rowData[0] = "負担率または負担金";
+                rowData[0] = bundle.getString("hitem.18");
                 rowData[1] = item.getPaymentRatioType();
                 list.add(rowData);
             }
@@ -869,8 +849,8 @@ public class PatientInfoDocument extends AbstractChartDocument {
     
     class StateContext {
         
-        private CleanState cleanState = new CleanState();
-        private DirtyState dirtyState = new DirtyState();
+        private final CleanState cleanState = new CleanState();
+        private final DirtyState dirtyState = new DirtyState();
         private State curState;
         
         public StateContext() {
@@ -894,44 +874,7 @@ public class PatientInfoDocument extends AbstractChartDocument {
         }
         
         public boolean isDirtyState() {
-            return curState == dirtyState ? true : false;
-        }
-    }
-    
-    class PatientInfoTableTransferHandler extends TransferHandler {
-        
-        @Override
-        public boolean importData(TransferHandler.TransferSupport support) {
-            
-            if (!canImport(support)) {
-                return false;
-            }
-            
-            try {
-                Transferable t = support.getTransferable();
-                final PatientModel dropItem = (PatientModel)t.getTransferData(PatientTransferable.patientFlavor);
-                if (dropItem.getPatientId().equals(getContext().getPatient().getPatientId())) {
-                    return false;
-                }
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        importFamily(dropItem);
-                    }
-                });
-                
-                return true;
-                
-            } catch (Exception e) {
-                e.printStackTrace(System.err);
-            }
-            
-            return false;
-        }
-        
-        @Override
-        public boolean canImport(TransferHandler.TransferSupport support) {
-            return (support.isDrop() && support.isDataFlavorSupported(PatientTransferable.patientFlavor));
+            return curState == dirtyState;
         }
     }
 }

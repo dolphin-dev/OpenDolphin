@@ -83,6 +83,7 @@ public final class LoginSet {
 
     /**
      * ハッシュ値を返す。
+     * @return 
      */
     @Override
     public int hashCode() {
@@ -92,6 +93,7 @@ public final class LoginSet {
     /**
      * 文書IDで eqaul かどうかを返す。
      *
+     * @param other
      * @return equal の時 true
      */
     @Override

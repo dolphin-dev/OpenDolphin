@@ -46,8 +46,9 @@ public class AbstractResource {
     // 2013/06/24    
     protected static ObjectMapper getSerializeMapper() {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        //mapper.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
         mapper.configure(SerializationConfig.Feature.WRITE_NULL_MAP_VALUES, false);
+        mapper.configure(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS, false);
         return mapper;
     }
 }

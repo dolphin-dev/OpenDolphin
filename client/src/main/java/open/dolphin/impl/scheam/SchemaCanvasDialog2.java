@@ -201,7 +201,8 @@ public class SchemaCanvasDialog2 extends javax.swing.JDialog {
         okBtn.setName("okBtn"); // NOI18N
         okBtn.setSelected(true);
 
-        cancelBtn.setText("キャンセル");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/impl/scheam/resources/SchemaCanvasDialog2"); // NOI18N
+        cancelBtn.setText(bundle.getString("cancelBtn.text")); // NOI18N
         cancelBtn.setName("cancelBtn"); // NOI18N
 
         javax.swing.GroupLayout btnPanelLayout = new javax.swing.GroupLayout(btnPanel);

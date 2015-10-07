@@ -15,7 +15,11 @@ import javax.swing.Icon;
  */
 public class ColorFillIcon implements Icon {
 
-    /** Creates new ColorFillIcon */
+    /** Creates new ColorFillIcon
+     * @param fill
+     * @param width
+     * @param height
+     * @param borderSize */
     public ColorFillIcon(Color fill, int width, int height, int borderSize) {
         super();
         

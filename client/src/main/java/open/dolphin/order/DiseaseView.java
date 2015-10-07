@@ -55,7 +55,8 @@ public class DiseaseView extends javax.swing.JPanel implements IDiseaseView {
         setMinimumSize(new java.awt.Dimension(700, 600));
         setPreferredSize(new java.awt.Dimension(700, 600));
 
-        infoLabel.setText("傷病名"); // NOI18N
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/order/resources/DiseaseView"); // NOI18N
+        infoLabel.setText(bundle.getString("infoLabel.text")); // NOI18N
 
         setTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -70,29 +71,29 @@ public class DiseaseView extends javax.swing.JPanel implements IDiseaseView {
         ));
         jScrollPane1.setViewportView(setTable);
 
-        diseaseCheck.setText("傷病名"); // NOI18N
-        diseaseCheck.setToolTipText("傷病名が含まれていればチェックされます。"); // NOI18N
+        diseaseCheck.setText(bundle.getString("diseaseCheck.text")); // NOI18N
+        diseaseCheck.setToolTipText(bundle.getString("diseaseCheck.toolTipText")); // NOI18N
         diseaseCheck.setEnabled(false);
 
-        jLabel2.setText("連結傷病名"); // NOI18N
+        jLabel2.setText(bundle.getString("jLabel2.text")); // NOI18N
 
         stampNameField.setBackground(new java.awt.Color(255, 255, 0));
-        stampNameField.setToolTipText("病名を修飾する場合は、正しく読めるようテーブルの順番を入れ替えてください。"); // NOI18N
+        stampNameField.setToolTipText(bundle.getString("stampNameField.toolTipText")); // NOI18N
 
-        okCntBtn.setToolTipText("傷病名をカルテに展開し継続します。"); // NOI18N
+        okCntBtn.setToolTipText(bundle.getString("okCntBtn.toolTipText")); // NOI18N
 
-        okBtn.setToolTipText("傷病名をカルテに展開し終了します。"); // NOI18N
+        okBtn.setToolTipText(bundle.getString("okBtn.toolTipText")); // NOI18N
 
-        clearBtn.setToolTipText("テーブルの内容をクリアします。"); // NOI18N
+        clearBtn.setToolTipText(bundle.getString("clearBtn.toolTipText")); // NOI18N
 
-        deleteBtn.setToolTipText("選択した傷病名を削除します。"); // NOI18N
+        deleteBtn.setToolTipText(bundle.getString("deleteBtn.toolTipText")); // NOI18N
 
-        searchTextField.setToolTipText("検索したい傷病名を入力します。"); // NOI18N
+        searchTextField.setToolTipText(bundle.getString("searchTextField.toolTipText")); // NOI18N
 
-        rtBtn.setText("RT"); // NOI18N
-        rtBtn.setToolTipText("チェックすると入力中にリアルタイムで検索します。"); // NOI18N
+        rtBtn.setText(bundle.getString("rtBtn.text")); // NOI18N
+        rtBtn.setToolTipText(bundle.getString("rtBtn.toolTipText")); // NOI18N
 
-        jLabel4.setText("件数"); // NOI18N
+        jLabel4.setText(bundle.getString("jLabel4.text")); // NOI18N
 
         searchResultTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -107,8 +108,8 @@ public class DiseaseView extends javax.swing.JPanel implements IDiseaseView {
         ));
         jScrollPane2.setViewportView(searchResultTable);
 
-        partialChk.setText("部分一致"); // NOI18N
-        partialChk.setToolTipText("部分一致検索をします。"); // NOI18N
+        partialChk.setText(bundle.getString("partialChk.text")); // NOI18N
+        partialChk.setToolTipText(bundle.getString("partialChk.toolTipText")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -116,10 +117,10 @@ public class DiseaseView extends javax.swing.JPanel implements IDiseaseView {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(infoLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 547, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(diseaseCheck))
-            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 677, Short.MAX_VALUE)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 677, Short.MAX_VALUE)
+            .addComponent(jScrollPane2)
+            .addComponent(jScrollPane1)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addGroup(layout.createSequentialGroup()
@@ -134,7 +135,7 @@ public class DiseaseView extends javax.swing.JPanel implements IDiseaseView {
                         .addComponent(rtBtn)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(partialChk)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 170, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(jLabel4)
@@ -174,7 +175,7 @@ public class DiseaseView extends javax.swing.JPanel implements IDiseaseView {
                     .addComponent(rtBtn)
                     .addComponent(partialChk))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 272, Short.MAX_VALUE))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 277, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 

@@ -17,7 +17,6 @@ public final class SaveParamsM {
     public static final int SCHEDULE_SCHEDULE = 4;
     public static final int SAVE_AS_FINAL   = 0;
     public static final int SAVE_AS_TMP     = 1;
-    //public static final int SAVE_AS_SCHEDULE = 2;
     
     // 文書タイトル
     private String title;
@@ -55,9 +54,7 @@ public final class SaveParamsM {
     // 保存しようとするカルテに検体検査があるかどうか
     private boolean hasLabtest;
     
-//minagawa^ CLAIM送信日
-    private Date claimDate;
-//minagawa$    
+    private Date claimDate; 
     
     // 保存ダイアログ開始時のカルテ属性
     private int enterOption;
@@ -174,15 +171,13 @@ public final class SaveParamsM {
     public void setHasLabtest(boolean sendLabtestEnabled) {
         this.hasLabtest = sendLabtestEnabled;
     }
-
-//minagawa^ CLAIM送信日    
+    
     public Date getClaimDate() {
         return claimDate;
     }
     public void setClaimDate(Date claimDate) {
         this.claimDate = claimDate;
     }   
-//minagawa$ 
     
     public int getEnterOption() {
         return enterOption;

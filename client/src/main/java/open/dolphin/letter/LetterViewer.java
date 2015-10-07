@@ -5,6 +5,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import open.dolphin.client.Chart;
 import open.dolphin.client.ChartImpl;
+import open.dolphin.client.ClientContext;
 import open.dolphin.client.DocumentViewer;
 import open.dolphin.delegater.LetterDelegater;
 import open.dolphin.helper.DBTask;
@@ -41,8 +42,7 @@ public class LetterViewer extends LetterImpl implements DocumentViewer {
             return;
         }
 
-        DocInfoModel docInfo = docs[0];
-//minagawa^ LSC Test        
+        DocInfoModel docInfo = docs[0];     
         docPK = docInfo.getDocPk();
 
         if (docPK == 0L) {
@@ -50,7 +50,6 @@ public class LetterViewer extends LetterImpl implements DocumentViewer {
         }
 
         LetterGetTask task = new LetterGetTask(getContext(), docPK, scroller);
-//minagawa$
         task.execute();
     }
     
@@ -58,7 +57,7 @@ public class LetterViewer extends LetterImpl implements DocumentViewer {
      * 紹介状を修正する。
      */
     public void modifyKarte() {
-//minagawa^ LSC Test
+        
         if (docPK==0L) {
             return;
         }
@@ -84,12 +83,11 @@ public class LetterViewer extends LetterImpl implements DocumentViewer {
                 editor.start();
                 ChartImpl chart = (ChartImpl)getContext();
                 StringBuilder sb = new StringBuilder();
-                sb.append("修正").append("(").append(editor.getTitle()).append(")");
+                sb.append(ClientContext.getMyBundle(LetterViewer.class).getString("modify")).append("(").append(editor.getTitle()).append(")");
                 chart.addChartDocument(editor, sb.toString());
             }
         };
-        task.execute();
-//minagawa$        
+        task.execute();       
     }
     
 //s.oh^ 2014/04/03 文書の複製
@@ -121,7 +119,7 @@ public class LetterViewer extends LetterImpl implements DocumentViewer {
                 editor.start();
                 ChartImpl chart = (ChartImpl)getContext();
                 StringBuilder sb = new StringBuilder();
-                sb.append("複製").append("(").append(editor.getTitle()).append(")");
+                sb.append(ClientContext.getMyBundle(LetterViewer.class).getString("dupuricate")).append("(").append(editor.getTitle()).append(")");
                 chart.addChartDocument(editor, sb.toString());
             }
         };
@@ -131,8 +129,8 @@ public class LetterViewer extends LetterImpl implements DocumentViewer {
 
     class LetterGetTask extends DBTask<LetterModule, Void> {
 
-        private long letterPk;
-        private JScrollPane scroller;
+        private final long letterPk;
+        private final JScrollPane scroller;
 
         public LetterGetTask(Chart app, long letterPk, JScrollPane scroller) {
             super(app);
@@ -152,11 +150,9 @@ public class LetterViewer extends LetterImpl implements DocumentViewer {
             model = letter;
             modelToView(model);
             setEditables(false);
-//minagawa^ センターへ表示
             JPanel p = new JPanel(new FlowLayout(FlowLayout.CENTER));
             p.add(view);            
-            scroller.setViewportView(p);
-//minagawa$            
+            scroller.setViewportView(p);           
             stateMgr.processCleanEvent();   // Claen State
             getContext().showDocument(0);
         }

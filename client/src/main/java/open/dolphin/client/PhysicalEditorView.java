@@ -38,15 +38,17 @@ public class PhysicalEditorView extends javax.swing.JPanel {
 
         heightFld.setName("heightFld"); // NOI18N
 
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/client/resources/PhysicalEditorView"); // NOI18N
+        identifiedDateFld.setToolTipText(bundle.getString("PhysicalEditorView.identifiedDateFld.toolTipText")); // NOI18N
         identifiedDateFld.setName("identifiedDateFld"); // NOI18N
 
-        jLabel1.setText("体重:"); // NOI18N
+        jLabel1.setText(bundle.getString("PhysicalEditorView.jLabel1.text")); // NOI18N
         jLabel1.setName("jLabel1"); // NOI18N
 
-        jLabel2.setText("身長:"); // NOI18N
+        jLabel2.setText(bundle.getString("PhysicalEditorView.jLabel2.text")); // NOI18N
         jLabel2.setName("jLabel2"); // NOI18N
 
-        jLabel3.setText("測定日:"); // NOI18N
+        jLabel3.setText(bundle.getString("PhysicalEditorView.jLabel3.text")); // NOI18N
         jLabel3.setName("jLabel3"); // NOI18N
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);

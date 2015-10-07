@@ -1,7 +1,5 @@
 package open.dolphin.client;
 
-//import com.sun.image.codec.jpeg.JPEGCodec;
-//import com.sun.image.codec.jpeg.JPEGImageEncoder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -17,6 +15,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -35,9 +34,7 @@ import open.dolphin.letter.KartePDFImpl2;
 import open.dolphin.plugin.PluginLoader;
 import open.dolphin.project.Project;
 import open.dolphin.util.BeanUtils;
-import open.dolphin.util.Log;
 import open.dolphin.util.ZenkakuUtils;
-import org.apache.log4j.Level;
 
 /**
  * 2号カルテクラス。
@@ -53,19 +50,17 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     public static final int DOUBLE_MODE = 2;
 
     // TimeStamp のカラー
-    private static final Color TIMESTAMP_FORE = new Color(0,51,153);
+    //private static final Color TIMESTAMP_FORE = new Color(0,51,153);
     private static final int TIMESTAMP_FONT_SIZE = 14;
     private static final Font TIMESTAMP_FONT = new Font("Dialog", Font.PLAIN, TIMESTAMP_FONT_SIZE);
 //s.oh^ 不具合修正
-    private static final Font TIMESTAMP_MSFONT = new Font("MS UI Gothic", Font.PLAIN, TIMESTAMP_FONT_SIZE);
+    private static final Font TIMESTAMP_MSFONT = new Font(java.util.ResourceBundle.getBundle("open/dolphin/client/resources/KarteEditor").getString("MS UI GOTHIC"), Font.PLAIN, TIMESTAMP_FONT_SIZE);
 //s.oh$
-    private static final String DEFAULT_TITLE = "経過記録";
-    private static final String UPDATE_TAB_TITLE = "更新";
     
 //masuda^ カルテ記載最低文字数
     //private static final int MinimalKarteLength = 5;
     
-    private static List<KarteEditor> allKarte = new CopyOnWriteArrayList<KarteEditor>();
+    private static final List<KarteEditor> allKarte = new CopyOnWriteArrayList<>();
 
     // このエディタのモード
     private int mode = 2;
@@ -99,9 +94,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     
     // Scroller
     private JScrollPane scroller;
-
-    // タイムスタンプの foreground
-    private final Color timeStampFore = TIMESTAMP_FORE;
 
     // タイムスタンプフォント
 //s.oh^ 不具合修正
@@ -137,10 +129,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     // State Manager
     private StateMgr stateMgr;
     
-//s.oh^ Xronos連携
-    private boolean closedFrame;
-//s.oh$
-    
 //s.oh^ 2014/06/17 複数カルテ修正制御
     private EditorFrame editorFrame;
 //s.oh$
@@ -149,7 +137,8 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
      * Creates new KarteEditor2 
      */
     public KarteEditor() {
-        setTitle(DEFAULT_TITLE);
+        String title = ClientContext.getMyBundle(KarteEditor.class).getString("editorTitle");
+        setTitle(title);
         allKarte.add(KarteEditor.this);
 //s.oh^ 不具合修正
         if(ClientContext.isWin()) {
@@ -157,10 +146,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         }else{
             timeStampFont = TIMESTAMP_FONT;
         }
-//s.oh$
-//s.oh^ Xronos連携
-        closedFrame = false;
-//s.oh$
     }
 
     public int getMode() {
@@ -197,22 +182,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
 
     private boolean isSendLabtest() {
         return sendLabtest;
-    }
-    
-    /**
-     * Xronos連携 
-     * @param close
-     */
-    public void setClosedFrame(boolean close) {
-        closedFrame = close;
-    }
-    
-    /**
-     * Xronos連携
-     * @return 
-     */
-    public boolean isClosedFrame() {
-        return closedFrame;
     }
     
 //s.oh^ 2014/06/17 複数カルテ修正制御
@@ -384,26 +353,10 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                 getContext().getFrame().setExtendedState(Frame.NORMAL);
                 getContext().getFrame().toFront();
             }
-            //int option = JOptionPane.showOptionDialog(
-            //        getContext().getFrame(),
-            //        "修正中のカルテがあります、新たにカルテを修正しますか？",
-            //        "カルテ修正",
-            //        JOptionPane.DEFAULT_OPTION,
-            //        JOptionPane.QUESTION_MESSAGE,
-            //        null,
-            //        new String[]{"はい", "いいえ"},
-            //        "いいえ"
-            //        );
-            //Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "カルテ修正", "修正中のカルテがあります、新たにカルテを修正しますか？");
-            //if(option == 0) {
-            //    Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "はい");
-            //    return true;
-            //}else{
-            //    Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "いいえ or キャンセル");
-            //    return false;
-            //}
-            JOptionPane.showMessageDialog(getContext().getFrame(), "既に修正中のカルテを開いています、確認してください。", "カルテ修正", JOptionPane.INFORMATION_MESSAGE);
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "既に修正中のカルテを開いています、確認してください。");
+            java.util.ResourceBundle bundle = ClientContext.getMyBundle(KarteEditor.class);
+            String msg = bundle.getString("message.confirm.modify");
+            String title = bundle.getString("dialog.title.modify");
+            JOptionPane.showMessageDialog(getContext().getFrame(), msg, ClientContext.getFrameTitle(title), JOptionPane.INFORMATION_MESSAGE);
             return false;
         }
         return true;
@@ -455,7 +408,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         // TimeStampLabel を生成する
         timeStampLabel = kp1.getTimeStampLabel();
         timeStampLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        timeStampLabel.setForeground(timeStampFore);
+        timeStampLabel.setForeground(GUIConst.KARTE_TIME_STAMP_FORE_COLOR);
         timeStampLabel.setFont(timeStampFont);
 
         // SOA Pane を生成する
@@ -494,7 +447,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         // TimeStampLabel を生成する
         timeStampLabel = kp2.getTimeStampLabel();
         timeStampLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        timeStampLabel.setForeground(timeStampFore);
+        timeStampLabel.setForeground(GUIConst.KARTE_TIME_STAMP_FORE_COLOR);
         timeStampLabel.setFont(timeStampFont);
         
 //s.oh^ 2013/01/29 過去カルテの修正操作(選択状態)
@@ -502,7 +455,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         //timeStampLabel.setBackground(KarteDocumentViewer.DEFAULT_BGCOLOR);
         //timeStampLabel.setForeground(KarteDocumentViewer.DEFAULT_FGCOLOR);
 //s.oh$
-
         // SOA Pane を生成する
         soaPane = new KartePane();
         soaPane.setTextPane(kp2.getSoaTextPane());
@@ -575,7 +527,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         soaPane.init(editable, mediator);
         pPane.init(editable, mediator);
         enter();
-//minagawa^ 予定カルテ 前回処方適用ですぐ保存できるようにするため        (予定カルテ対応)
+        
         boolean soaDirty = (soaPane.getTextPane().getDocument().getLength()>0);
         soaDirty = soaDirty && !modify;
         boolean pDirty = (pPane.getTextPane().getDocument().getLength()>0);
@@ -586,8 +538,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         }
         if (pDirty) {
             pPane.setDirty(true);
-        }
-//minagawa$        
+        }       
     }
 
     /**
@@ -596,21 +547,17 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     private void displayModel() {
 
         // Timestamp を表示する
-        //Date now = new Date();
         started = new Date();
-        timeStamp = ModelUtils.getDateAsFormatString(started, IInfoModel.KARTE_DATE_FORMAT);
+        String karteDateFormat = ClientContext.getBundle().getString("KARTE_DATE_FORMAT");
+        timeStamp = ModelUtils.getDateAsFormatString(started, karteDateFormat);
 
         // 修正の場合
         if (modify) {
             // 更新: YYYY-MM-DDTHH:MM:SS (firstConfirmDate)
-            StringBuilder buf = new StringBuilder();
-            buf.append(UPDATE_TAB_TITLE);
-            buf.append(": ");
-            buf.append(timeStamp);
-            buf.append(" [");
-            buf.append(ModelUtils.getDateAsFormatString(model.getDocInfoModel().getFirstConfirmDate(), IInfoModel.KARTE_DATE_FORMAT));
-            buf.append(" ]");
-            timeStamp = buf.toString();
+            String updateInfo = ClientContext.getMyBundle(KarteEditor.class).getString("info.update");
+            String firstConfirmed = ModelUtils.getDateAsFormatString(model.getDocInfoModel().getFirstConfirmDate(), karteDateFormat);
+            MessageFormat msf = new MessageFormat(updateInfo);
+            timeStamp = msf.format(new Object[]{timeStamp,firstConfirmed});
         }
 
         // 内容を表示する
@@ -650,17 +597,17 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         String selecteIns = null;
         String insGUID = getModel().getDocInfoModel().getHealthInsuranceGUID();
         if (insGUID != null) {
-            ClientContext.getBootLogger().debug("insGUID = " + insGUID);
-            for (int i = 0; i < ins.length; i++) {
-                String GUID = ins[i].getGUID();
+            java.util.logging.Logger.getLogger(this.getClass().getName()).log(java.util.logging.Level.FINE, "insGUID = {0}", insGUID);
+            for (PVTHealthInsuranceModel in : ins) {
+                String GUID = in.getGUID();
                 if (GUID != null && GUID.equals(insGUID)) {
-                    selecteIns = ins[i].toString();
-                    ClientContext.getBootLogger().debug("found ins = " + selecteIns);
+                    selecteIns = in.toString();
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).log(java.util.logging.Level.FINE, "found ins = {0}", selecteIns);
                     break;
                 }
             }
         } else {
-            ClientContext.getBootLogger().debug("insGUID is null");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).fine("insGUID is null");
         }
         
 //s.oh^ 2014/08/26 修正時の保険表示
@@ -693,7 +640,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         }
 
         PropertyChangeListener pcl = (PropertyChangeEvent pce) -> {
-            int number = ((Integer)pce.getNewValue()).intValue();
+            int number = ((Integer)pce.getNewValue());
             if (number>0) {
                 getPPane().changeAllRPNumDates(number);
             }
@@ -771,141 +718,13 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     /**
      * 保存ダイアログを表示し保存時のパラメータを取得する。
      * @params sendMML MML送信フラグ 送信するとき true
-     */
-    // (予定カルテ対応)
-    /*
-    private SaveParams getSaveParams(boolean joinAreaNetwork) {
-
-        // Title が設定されているか
-        String text = model.getDocInfoModel().getTitle();
-        if (text == null || text.equals("")) {
-
-            if (Project.getBoolean("useTop15AsTitle")) {
-                // SOAPane から最初の１５文字を文書タイトルとして取得する
-                text = soaPane.getTitle();
-            } else {
-                text = Project.getString("defaultKarteTitle");
-            }
-
-            if ((text == null) || text.equals("")) {
-                text = DEFAULT_TITLE;
-            }
-        }
-
-        SaveParams params;
-
-        //-------------------------------
-        // 新規カルテで保存の場合
-        // 仮保存から修正がかかっている場合
-        // 修正の場合
-        //-------------------------------
-        DocInfoModel docInfo = getModel().getDocInfoModel();
-
-        if (!modify && docInfo.getStatus().equals(IInfoModel.STATUS_NONE)) {
-            ClientContext.getBootLogger().debug("saveFromNew");
-            if (sendClaim) {
-                sendClaim = Project.getBoolean(Project.SEND_CLAIM_SAVE);    //Project.getSendClaimSave();
-            }
-
-        } else if (modify && docInfo.getStatus().equals(IInfoModel.STATUS_TMP)) {
-            ClientContext.getBootLogger().debug("saveFromTmp");
-            if (sendClaim) {
-                sendClaim = Project.getBoolean(Project.SEND_CLAIM_TMP); //Project.getSendClaimSave();
-            }
-
-        } else if (modify) {
-            ClientContext.getBootLogger().debug("saveFromModify");
-            if (sendClaim) {
-                sendClaim = Project.getBoolean(Project.SEND_CLAIM_MODIFY);  //Project.getSendClaimModify();
-            }
-            // 修正保存の場合
-            if (sendLabtest) {
-                sendLabtest = false;
-            }
-        }   
-
-        // 保存時に確認ダイアログを表示するかどうか
-        if (Project.getBoolean(Project.KARTE_SHOW_CONFIRM_AT_SAVE)) {
-
-            params = new SaveParams(joinAreaNetwork);
-            params.setTitle(text);
-            params.setDepartment(model.getDocInfoModel().getDepartmentDesc());
-
-            // 印刷枚数をPreferenceから取得する
-            int numPrint = Project.getInt("karte.print.count", 0);
-            params.setPrintCount(numPrint);
-
-            //----------------------------------
-            // 保存ダイアログの 送信CheckBox enabled
-            // ORCA accessの可否を追加^
-            //----------------------------------
-            boolean enabled = Project.canAccessToOrca();
-            enabled = enabled && (getMode()==DOUBLE_MODE);
-            params.setSendEnabled(enabled);
-
-            //-----------------------------
-            // CLAIM 送信
-            // 保存ダイアログで変更する事が可能
-            //-----------------------------
-            params.setSendClaim(sendClaim);
-
-            //-----------------------------
-            // Labtest 送信
-            //-----------------------------
-            params.setSendLabtest(sendLabtest);
-            if (getMode()==DOUBLE_MODE && pPane!=null) {
-                params.setHasLabtest(pPane.hasLabtest());
-            }
-
-            // 保存ダイアログを表示する
-            Window parent = SwingUtilities.getWindowAncestor(this.getUI());
-            SaveDialog sd = new SaveDialog(parent);
-            params.setAllowPatientRef(false);    // 患者の参照
-            params.setAllowClinicRef(false);     // 診療履歴のある医療機関
-            sd.setValue(params);
-            sd.start();                          // showDaialog
-            params = sd.getValue();
-
-            // 印刷枚数を保存する
-            if (params != null) {
-                Project.setInt("karte.print.count", params.getPrintCount());
-            }
-
-        } else {
-            //-----------------------------
-            // 確認ダイアログを表示しない
-            //-----------------------------
-            params = new SaveParams(false);
-            params.setTitle(text);
-            params.setDepartment(model.getDocInfoModel().getDepartmentDesc());
-            params.setPrintCount(Project.getInt(Project.KARTE_PRINT_COUNT, 0));
-
-            // 仮保存が指定されている端末の場合
-            int sMode = Project.getInt(Project.KARTE_SAVE_ACTION);
-            boolean tmpSave = sMode == 1 ? true : false;
-            params.setTmpSave(tmpSave);
-            if (tmpSave) {
-                params.setSendClaim(false);
-                params.setSendLabtest(false);
-            } else {
-                // 保存が実行される端末の場合
-                params.setSendClaim(sendClaim);
-                params.setSendLabtest(sendLabtest);
-            }
-
-            // 患者参照、施設参照不可
-            params.setAllowClinicRef(false);
-            params.setAllowPatientRef(false);
-
-        }
-
-        return params;
-    }
     */
     private SaveParamsM getSaveParams(boolean joinAreaNetwork) {
+        
+        String progressCourse = ClientContext.getMyBundle(KarteEditor.class).getString("title.progressCourse");
 
         final boolean useTop15 = Project.getBoolean("useTop15AsTitle", true);
-        final String defaultTitle = Project.getString("defaultKarteTitle", DEFAULT_TITLE);
+        final String defaultTitle = Project.getString("defaultKarteTitle", progressCourse);
 
         // 編集元のタイトルを取得
         String oldTitle = model.getDocInfoModel().getTitle();
@@ -913,11 +732,11 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         // 新しいタイトルを設定する
         String text = useTop15 ? soaPane.getTitle() : defaultTitle;     // newTitle
         if (text == null || "".equals(text)) {
-            text = DEFAULT_TITLE;
+            text = progressCourse;
         }
         text = text.trim();
         if ("".equals(text)) {
-            text = DEFAULT_TITLE;
+            text = progressCourse;
         }
         
         //SaveParams params;
@@ -1064,9 +883,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
             
             // MML
             params.setSendMML(sendMml);
-
- //minagawa^ 予定カルテ
-             // 仮保存ボタンが押された時のCLAIM送信設定によって保存ダイアログを表示する
+            
             AbstractSaveDialog sd;
             
             if (enterOption==SaveParamsM.SCHEDULE_SCHEDULE) {
@@ -1082,7 +899,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                 sd = new SaveDialogNoSendAtTmp();
             }
             sd.setWindowParent(SwingUtilities.getWindowAncestor(this.getUI()));
- //minagawa$           
+            
             params.setAllowPatientRef(false);    // 患者の参照
             params.setAllowClinicRef(false);     // 診療履歴のある医療機関
             sd.setValue(params);
@@ -1103,11 +920,9 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
             params.setTitle(text);
             params.setDepartment(model.getDocInfoModel().getDepartmentDesc());
             params.setPrintCount(Project.getInt(Project.KARTE_PRINT_COUNT, 0));
-//minagawa^ 予定カルテ
 //masuda^ 旧タイトルを設定
             params.setOldTitle(oldTitle);
-//masuda$
-//minagawa$            
+//masuda$            
             // 仮保存が指定されている端末の場合
             int sMode = Project.getInt(Project.KARTE_SAVE_ACTION);
             boolean tmpSave = sMode == 1;
@@ -1226,15 +1041,14 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     @Override
     public void save() {
 //s.oh^ 2013/11/06 Cliam項目20項目の制御
-        if(!checkClaimItemCount()) {
-//minagawa^ 2015/03/11      
-            //String[] options = {"はい", "いいえ"};
-            //String msg = "スタンプの数及びスタンプ内の項目が20項目を超えました。このまま保存しますか？";
-            String[] options = {"保存する", GUIFactory.getCancelButtonText()};
-            String msg = "診療行為が20項目を超えました。ORCAの制約で20を超えた分は取り込めません。\n保存する場合は収納にご注意ください。このまま保存しますか？";
-//minagawa$            
-            int ret = JOptionPane.showOptionDialog(getContext().getFrame(), msg, ClientContext.getFrameTitle("スタンプ項目"), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle("スタンプ項目"), msg, String.valueOf(ret));
+        if(!checkClaimItemCount()) {     
+            java.util.ResourceBundle bundle = ClientContext.getMyBundle(KarteEditor.class);
+            String optionSave = bundle.getString("option.save");
+            String msg = bundle.getString("question.over20.claimItems");
+            String title = bundle.getString("title.numStamps");
+            String[] options = {optionSave, GUIFactory.getCancelButtonText()};
+            
+            int ret = JOptionPane.showOptionDialog(getContext().getFrame(), msg, ClientContext.getFrameTitle(title), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[1]);
             if(ret != 0) {
                 return;
             }
@@ -1352,17 +1166,15 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                         break;
                 }
                 
-                if (ClientContext.getBootLogger().getLevel()==Level.DEBUG) {
-                    ClientContext.getBootLogger().info("enterOption="+params.getEnterOption());
-                    ClientContext.getBootLogger().info("returnOption="+params.getReturnOption());
-                    ClientContext.getBootLogger().info("status="+docInfo.getStatus());
-                    ClientContext.getBootLogger().info("firstConfirmDate="+docInfo.getFirstConfirmDate());
-                    ClientContext.getBootLogger().info("confirmDate="+docInfo.getConfirmDate());
-                    ClientContext.getBootLogger().info("sendClaim="+params.isSendClaim());
-                    ClientContext.getBootLogger().info("claimDate="+params.getClaimDate());
-                    ClientContext.getBootLogger().info("sendLabtest="+params.isSendLabtest());
-                    ClientContext.getBootLogger().info("sendMML="+params.isSendMML());
-                }
+                java.util.logging.Logger.getLogger(this.getClass().getName()).log(java.util.logging.Level.FINE, "enterOption={0}", params.getEnterOption());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).log(java.util.logging.Level.FINE, "returnOption={0}", params.getReturnOption());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).log(java.util.logging.Level.FINE, "status={0}", docInfo.getStatus());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).log(java.util.logging.Level.FINE, "firstConfirmDate={0}", docInfo.getFirstConfirmDate());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).log(java.util.logging.Level.FINE, "confirmDate={0}", docInfo.getConfirmDate());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).log(java.util.logging.Level.FINE, "sendClaim={0}", params.isSendClaim());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).log(java.util.logging.Level.FINE, "claimDate={0}", params.getClaimDate());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).log(java.util.logging.Level.FINE, "sendLabtest={0}", params.isSendLabtest());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).log(java.util.logging.Level.FINE, "sendMML={0}", params.isSendMML());
                 
                 // 次のステージを実行する
                 //------------------------
@@ -1376,17 +1188,14 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                     //save2(params);
                     checkInteraction(params);
                 }
-            } 
-//minagawa^ lsctest  saveAll でキャンセルした場合、ここで通知する          
+            }          
             else {
                 if (boundSupport!=null) {
                     setChartDocDidSave(false);
                 }
             }
-//minagawa$            
-
         } catch (DolphinException e) {
-            ClientContext.getBootLogger().warn(e);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(e.getMessage());
         }
     }
     
@@ -1446,16 +1255,14 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                     Boolean result = (Boolean)pce.getNewValue();
                     ci.removePropertyChangeListener(this);
                     // 禁忌がないか、禁忌あるが無視のときはfalseが帰ってくる masuda
-                    if (!result.booleanValue()) {
+                    if (!result) {
                         save2(params);
-                    } 
-//minagawa^ lsctest cancel at saveAll stage                    
+                    }             
                     else {
                        if (boundSupport!=null) {
                            setChartDocDidSave(false);
                        }
-                    }
-//minagawa$                    
+                    }        
                 }
             });
 
@@ -1467,288 +1274,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
 //masuda$           
     }
 
-    /**
-     * シングルモードの保存を行う。
-     **/
-    // (予定カルテ対応)
-    /*
-    private void save1(final SaveParams params) throws DolphinException {
-
-        //----------------------
-        // DocInfoに値を設定する
-        //----------------------
-        final DocInfoModel docInfo = model.getDocInfoModel();
-
-        // 現在時刻を ConfirmDate にする
-        Date confirmed = saved;
-        docInfo.setConfirmDate(confirmed);
-
-        //----------------------------------------------------
-        // 修正でない場合は FirstConfirmDate = ConfirmDate にする
-        // 修正の場合は FirstConfirmDate は既に設定されている
-        // 修正でない新規カルテは parentId = null である
-        //----------------------------------------------------
-        if (docInfo.getParentId() == null) {
-            docInfo.setFirstConfirmDate(confirmed);
-        }
-
-        //----------------------------------------------------
-        // Status 仮保存か確定保存かを設定する
-        // final の時は CLAIM 送信するが前の状態に依存する
-        //----------------------------------------------------
-        if (!params.isTmpSave()) {
-            // 
-            // 編集が開始された時の state を取得する
-            //
-            String oldStatus = docInfo.getStatus();
-
-            if (oldStatus.equals(STATUS_NONE)) {
-                //
-                // NONEから確定への遷移 newSave
-                //
-                sendClaim = false;
-                sendLabtest = false;
-
-            } else if (oldStatus.equals(STATUS_TMP)) {
-
-                sendClaim = false;
-                sendLabtest = false;
-
-            } else {
-                //
-                // 確定から確定（修正の場合に相当する）以前は sendClaim = false;
-                //
-                sendClaim = false;
-                sendLabtest = false;
-            }
-
-            //
-            // 保存時の state を final にセットする
-            //
-            docInfo.setStatus(STATUS_FINAL);
-
-        } else {
-            //
-            // 仮保存の場合 CLAIM 送信しない
-            //
-            sendClaim = false;
-            sendLabtest = false;
-            sendMml = false;
-            docInfo.setStatus(STATUS_TMP);
-        }
-
-        // titleを設定する
-        docInfo.setTitle(params.getTitle());
-
-        // デフォルトのアクセス権を設定をする TODO
-        AccessRightModel ar = new AccessRightModel();
-        ar.setPermission(PERMISSION_ALL);
-        ar.setLicenseeCode(ACCES_RIGHT_CREATOR);
-        ar.setLicenseeName(ACCES_RIGHT_CREATOR_DISP);
-        ar.setLicenseeCodeType(ACCES_RIGHT_FACILITY_CODE);
-        docInfo.addAccessRight(ar);
-
-        // 患者のアクセス権を設定をする
-        if (params.isAllowPatientRef()) {
-            ar = new AccessRightModel();
-            ar.setPermission(PERMISSION_READ);
-            ar.setLicenseeCode(ACCES_RIGHT_PATIENT);
-            ar.setLicenseeName(ACCES_RIGHT_PATIENT_DISP);
-            ar.setLicenseeCodeType(ACCES_RIGHT_PERSON_CODE);
-            docInfo.addAccessRight(ar);
-        }
-
-        // 診療履歴のある施設のアクセス権を設定をする
-        if (params.isAllowClinicRef()) {
-            ar = new AccessRightModel();
-            ar.setPermission(PERMISSION_READ);
-            ar.setLicenseeCode(ACCES_RIGHT_EXPERIENCE);
-            ar.setLicenseeName(ACCES_RIGHT_EXPERIENCE_DISP);
-            ar.setLicenseeCodeType(ACCES_RIGHT_EXPERIENCE_CODE);
-            docInfo.addAccessRight(ar);
-        }
-
-        // ProgressCourseModule の ModuleInfo を保存しておく
-        ModuleInfoBean[] progressInfo = model.getModuleInfo(MODULE_PROGRESS_COURSE);
-        if (progressInfo == null) {
-            // 存在しない場合は新規に作成する
-            progressInfo = new ModuleInfoBean[1];
-            ModuleInfoBean mi = new ModuleInfoBean();
-            mi.setStampName(MODULE_PROGRESS_COURSE);
-            mi.setEntity(MODULE_PROGRESS_COURSE);
-            mi.setStampRole(ROLE_SOA_SPEC);
-            progressInfo[0] = mi;
-        }
-
-        //----------------------------------------------
-        // モデルのモジュールをヌルに設定する
-        // エディタの画面をダンプして生成したモジュールを設定する
-        //----------------------------------------------
-        model.clearModules();
-        model.clearSchema();
-//minagawa^ lsctest
-        model.clearAttachment();
-//minagawa$        
-
-        //----------------------------------------------
-        // SOAPane をダンプし model に追加する
-        //----------------------------------------------
-        KartePaneDumper_2 dumper = new KartePaneDumper_2();
-        KarteStyledDocument doc = (KarteStyledDocument) soaPane.getTextPane().getDocument();
-        dumper.dump(doc);
-        ModuleModel[] soa = dumper.getModule();
-        if (soa != null && soa.length > 0) {
-            model.addModule(soa);
-        }
-
-        // ProgressCourse SOA を生成する
-        ProgressCourse pc = new ProgressCourse();
-        pc.setFreeText(dumper.getSpec());
-        ModuleModel progressSoa = new ModuleModel();
-        progressSoa.setModuleInfoBean(progressInfo[0]);
-        progressSoa.setModel(pc);
-        model.addModule(progressSoa);
-
-        // 
-        // Schema を追加する
-        //      
-        int maxImageWidth = ClientContext.getInt("image.max.width");
-        int maxImageHeight = ClientContext.getInt("image.max.height");
-        Dimension maxSImageSize = new Dimension(maxImageWidth, maxImageHeight);
-        
-//        SchemaModel[] schemas = dumper.getSchema();
-//        if (schemas != null && schemas.length > 0) {
-//            // 保存のため Icon を JPEG に変換する
-//            for (SchemaModel schema : schemas) {
-//                ImageIcon icon = schema.getIcon();
-//                icon = adjustImageSize(icon, maxSImageSize);
-//                byte[] jpegByte = getJPEGByte(icon.getImage());
-//                schema.setJpegByte(jpegByte);
-//                schema.setIcon(null);
-//                model.addSchema(schema);
-//            }
-//        }
-        
-        Object[] schemaOrAttachment = dumper.getSchema();
-        if (schemaOrAttachment != null && schemaOrAttachment.length > 0) {
-            // 保存のため Icon を JPEG に変換する
-            for (Object o : schemaOrAttachment) {
-                if (o instanceof SchemaModel) {
-                    SchemaModel schema = (SchemaModel)o;
-                    ImageIcon icon = schema.getIcon();
-                    icon = adjustImageSize(icon, maxSImageSize);
-                    byte[] jpegByte = getJPEGByte(icon.getImage());
-                    schema.setJpegByte(jpegByte);
-                    schema.setIcon(null);
-                    model.addSchema(schema);
-                    
-                } else if (o instanceof AttachmentModel) {
-                    AttachmentModel attachment = (AttachmentModel)o;
-                    attachment.setIcon(null);
-                    model.addAttachment(attachment);
-                }
-            }
-        }
-        
-
-        // FLAGを設定する
-        // image があるかどうか
-        boolean flag = model.getSchema() != null ? true : false;
-        docInfo.setHasImage(flag);
-
-        //----------------------------------------------
-        // EJB3.0 Model の関係を構築する
-        // confirmed, firstConfirmed は設定済み
-        //----------------------------------------------
-        KarteBean karte = getContext().getKarte();
-        model.setKarteBean(karte);                          // karte
-        model.setUserModel(Project.getUserModel());         // 記録者
-        model.setRecorded(docInfo.getConfirmDate());        // 記録日
-
-        // Moduleとの関係を設定する
-        Collection<ModuleModel> moduleBeans = model.getModules();
-        int number = 0;
-        for (ModuleModel mb : moduleBeans) {
-            mb.setId(0L);                                           // unsaved-value
-            mb.setKarteBean(karte);                                 // Karte
-            mb.setUserModel(Project.getUserModel());                // 記録者
-            mb.setDocumentModel(model);                             // Document
-            mb.setConfirmed(docInfo.getConfirmDate());              // 確定日
-            mb.setFirstConfirmed(docInfo.getFirstConfirmDate());    // 適合開始日
-            mb.setRecorded(docInfo.getConfirmDate());               // 記録日
-            mb.setStatus(STATUS_FINAL);                             // status
-            mb.setBeanBytes(BeanUtils.getXMLBytes(mb.getModel()));  // byte[]
-
-            // ModuleInfo を設定する
-            // Name, Role, Entity は設定されている
-            ModuleInfoBean mInfo = mb.getModuleInfoBean();
-            mInfo.setStampNumber(number++);
-        }
-
-        // 画像との関係を設定する
-        number = 0;
-        Collection<SchemaModel> imagesimages = model.getSchema();
-        if (imagesimages != null && imagesimages.size() > 0) {
-            for (SchemaModel sm : imagesimages) {
-                sm.setId(0L);                                         // unsaved
-                sm.setKarteBean(karte);                               // Karte
-                sm.setUserModel(Project.getUserModel());              // Creator
-                sm.setDocumentModel(model);                           // Document
-                sm.setConfirmed(docInfo.getConfirmDate());            // 確定日
-                sm.setFirstConfirmed(docInfo.getFirstConfirmDate());  // 適合開始日
-                sm.setRecorded(docInfo.getConfirmDate());             // 記録日
-                sm.setStatus(STATUS_FINAL);                           // Status
-                sm.setImageNumber(number);
-
-                ExtRefModel ref = sm.getExtRefModel();
-                StringBuilder sb = new StringBuilder();
-                sb.append(model.getDocInfoModel().getDocId());
-                sb.append("-");
-                sb.append(number);
-                sb.append(".jpg");
-                ref.setHref(sb.toString());
-
-                number++;
-            }
-        }
-
-        final DocumentDelegater ddl = new DocumentDelegater();
-        final DocumentModel saveModel = model;
-        final Chart chart = this.getContext();
-
-        DBTask task = new DBTask<Void, Void>(chart) {
-
-            @Override
-            protected Void doInBackground() throws Exception {
-                ddl.putKarte(saveModel);
-                return null;
-            }
-
-            @Override
-            protected void succeeded(Void result) {
-
-                // 印刷
-                int copies = params.getPrintCount();
-                if (copies > 0) {
-                    printPanel2(chart.getContext().getPageFormat(), copies, false);
-                }
-
-                // 編集不可に設定する
-                soaPane.setEditableProp(false);
-
-                // 状態遷移する
-                stateMgr.setSaved(true);
-
-                //------------------------
-                // 文書履歴の更新を通知する
-                //------------------------
-                chart.getDocumentHistory().getDocumentHistory();
-            }
-        };
-
-        task.execute();
-    }
-    */
     private void save1(final SaveParamsM params) throws DolphinException {
         
         // Plain文書では送信しない
@@ -1760,32 +1285,34 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
 
         // titleを設定する
         docInfo.setTitle(params.getTitle());
+        
+        ResourceBundle clBundle = ClientContext.getClaimBundle();
 
         // デフォルトのアクセス権を設定をする TODO
         AccessRightModel ar = new AccessRightModel();
-        ar.setPermission(PERMISSION_ALL);
-        ar.setLicenseeCode(ACCES_RIGHT_CREATOR);
-        ar.setLicenseeName(ACCES_RIGHT_CREATOR_DISP);
-        ar.setLicenseeCodeType(ACCES_RIGHT_FACILITY_CODE);
+        ar.setPermission(clBundle.getString("PERMISSION_ALL"));
+        ar.setLicenseeCode(clBundle.getString("ACCES_RIGHT_CREATOR"));
+        ar.setLicenseeName(clBundle.getString("ACCES_RIGHT_CREATOR_DISP"));
+        ar.setLicenseeCodeType(clBundle.getString("ACCES_RIGHT_FACILITY_CODE"));
         docInfo.addAccessRight(ar);
 
         // 患者のアクセス権を設定をする
         if (params.isAllowPatientRef()) {
             ar = new AccessRightModel();
-            ar.setPermission(PERMISSION_READ);
-            ar.setLicenseeCode(ACCES_RIGHT_PATIENT);
-            ar.setLicenseeName(ACCES_RIGHT_PATIENT_DISP);
-            ar.setLicenseeCodeType(ACCES_RIGHT_PERSON_CODE);
+            ar.setPermission(clBundle.getString("PERMISSION_READ"));
+            ar.setLicenseeCode(clBundle.getString("ACCES_RIGHT_PATIENT"));
+            ar.setLicenseeName(clBundle.getString("ACCES_RIGHT_PATIENT_DISP"));
+            ar.setLicenseeCodeType(clBundle.getString("ACCES_RIGHT_PERSON_CODE"));
             docInfo.addAccessRight(ar);
         }
 
         // 診療履歴のある施設のアクセス権を設定をする
         if (params.isAllowClinicRef()) {
             ar = new AccessRightModel();
-            ar.setPermission(PERMISSION_READ);
-            ar.setLicenseeCode(ACCES_RIGHT_EXPERIENCE);
-            ar.setLicenseeName(ACCES_RIGHT_EXPERIENCE_DISP);
-            ar.setLicenseeCodeType(ACCES_RIGHT_EXPERIENCE_CODE);
+            ar.setPermission(clBundle.getString("PERMISSION_READ"));
+            ar.setLicenseeCode(clBundle.getString("ACCES_RIGHT_EXPERIENCE"));
+            ar.setLicenseeName(clBundle.getString("ACCES_RIGHT_EXPERIENCE_DISP"));
+            ar.setLicenseeCodeType(clBundle.getString("ACCES_RIGHT_EXPERIENCE_CODE"));
             docInfo.addAccessRight(ar);
         }
 
@@ -1807,16 +1334,13 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         //----------------------------------------------
         model.clearModules();
         model.clearSchema();
-//minagawa^ lsctest
-        model.clearAttachment();
-//minagawa$        
+        model.clearAttachment();      
 
         //----------------------------------------------
         // SOAPane をダンプし model に追加する
         //----------------------------------------------
         KartePaneDumper_2 dumper = new KartePaneDumper_2();
         KarteStyledDocument doc = (KarteStyledDocument) soaPane.getTextPane().getDocument();
-        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "SOA Text", soaPane.getTextPane().getText());
         dumper.dump(doc);
         ModuleModel[] soa = dumper.getModule();
         if (soa != null && soa.length > 0) {
@@ -1828,7 +1352,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         // ProgressCourse SOA を生成する
         ProgressCourse pc = new ProgressCourse();
         pc.setFreeText(dumper.getSpec());
-        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "SOA FreeText", pc.getFreeText());
         ModuleModel progressSoa = new ModuleModel();
         progressSoa.setModuleInfoBean(progressInfo[0]);
         progressSoa.setModel(pc);
@@ -1933,8 +1456,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
 
                 number++;
             }
-        }
-//minagawa^ LSC Test Attachment        
+        }        
         number = 0;
         Collection<AttachmentModel> atts = model.getAttachment();
         if (atts != null && atts.size() > 0) {
@@ -1959,7 +1481,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                 number++;
             }
         }
-//minagawa$
         final DocumentDelegater ddl = new DocumentDelegater();
         final DocumentModel saveModel = model;
         final Chart chart = this.getContext();
@@ -1974,16 +1495,12 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
 
             @Override
             protected void succeeded(Void result) {
-//s.oh^ 2013/03/25 不具合修正(ダイアログが閉じられない)
-//minagawa^ Chartの close box 押下で保存する場合、保存終了を通知しておしまい。                    
+//s.oh^ 2013/03/25 不具合修正(ダイアログが閉じられない)                    
                 if (boundSupport!=null) {
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "プレイン文書", "保存成功", "インスペクタの終了");
                     setChartDocDidSave(true);
                     return;
-                }
-//minagawa$                    
+                }                
 //s.oh$
-
                 // 印刷
                 int copies = params.getPrintCount();
                 if (copies > 0) {
@@ -2002,8 +1519,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                 chart.getDocumentHistory().getDocumentHistory();
                 
                 modify = false;
-                
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "プレイン文書", "保存成功。");
             }
         };
 
@@ -2057,51 +1572,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         }
     }
 
-    /**
-     * ２号カルテ保存処理の主な部分を実行する。
-     **/
-    // (予定カルテ対応)
-    /*
-    private void save2(SaveParams params) throws DolphinException {
-        
-        //-----------------------------------------------
-        // SOAPane をダンプし model に追加する
-        //-----------------------------------------------
-        KartePaneDumper_2 dumper = new KartePaneDumper_2();
-        KarteStyledDocument doc = (KarteStyledDocument)soaPane.getTextPane().getDocument();    // component
-        dumper.dump(doc);
-        ModuleModel[] soa = dumper.getModule();
-        String soaText = dumper.getSpec();
-        SchemaModel[] schemas = dumper.getSchema();
-        AttachmentModel[] attachments = dumper.getAttachment();
-        
-        //-----------------------------------------------
-        // PPane をダンプし model に追加する
-        //-----------------------------------------------
-        KartePaneDumper_2 pdumper = new KartePaneDumper_2();
-        KarteStyledDocument pdoc = (KarteStyledDocument)pPane.getTextPane().getDocument(); // component
-        pdumper.dump(pdoc);
-        ModuleModel[] plan = pdumper.getModule();
-        String pText = pdumper.getSpec();
-        //AttachmentModel[] pAttachments = pdumper.getAttachment();
-        
-        //--------------------------------
-        // Editor Frame 閉じる
-        //--------------------------------
-        EditorFrame ef = null;
-        if (KarteEditor.this.getContext() instanceof EditorFrame) {
-            if (Project.getBoolean(Project.KARTE_AUTO_CLOSE_AFTER_SAVE, false)) {
-                ef = (EditorFrame)KarteEditor.this.getContext();
-            }
-        }
-        
-        //-----------------------------------------------
-        // 保存と送信タスク
-        //-----------------------------------------------
-        SaveAdnSender saveSender = new SaveAdnSender(getContext(),params,soa,soaText,schemas,attachments,plan,pText,ef);
-        saveSender.doTask();
-    }
-    */
     private void save2(SaveParamsM params) throws DolphinException {    
         
         //-----------------------------------------------
@@ -2109,7 +1579,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         //-----------------------------------------------
         KartePaneDumper_2 dumper = new KartePaneDumper_2();
         KarteStyledDocument doc = (KarteStyledDocument)soaPane.getTextPane().getDocument();    // component
-        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "SOA Text", soaPane.getTextPane().getText());
 //masuda^   文書末の余分な改行文字を削除する
         doc.removeExtraCR();
 //masuda$        
@@ -2118,22 +1587,17 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         String soaText = dumper.getSpec();
         SchemaModel[] schemas = dumper.getSchema();
         AttachmentModel[] attachments = dumper.getAttachment();
-        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "SOA FreeText", soaText);
-        
         //-----------------------------------------------
         // PPane をダンプし model に追加する
         //-----------------------------------------------
         KartePaneDumper_2 pdumper = new KartePaneDumper_2();
         KarteStyledDocument pdoc = (KarteStyledDocument)pPane.getTextPane().getDocument(); // component
-        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "P Text", pPane.getTextPane().getText());
 //masuda^   文書末の余分な改行文字を削除する
         pdoc.removeExtraCR();
 //masuda$        
         pdumper.dump(pdoc);
         ModuleModel[] plan = pdumper.getModule();
         String pText = pdumper.getSpec();
-        //AttachmentModel[] pAttachments = pdumper.getAttachment();
-        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "P FreeText", pText);
         
         //--------------------------------
         // Editor Frame 閉じる
@@ -2160,14 +1624,12 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
             if(file.exists()) {
                 try {
                     FileInputStream input = new FileInputStream(file);
-                    InputStreamReader reader = new InputStreamReader(input, "UTF8");
-                    BufferedReader buf = new BufferedReader(reader);
-                    String line;
-                    while((line = buf.readLine()) != null) {
-                        soaPane.insertTextStamp(line + "\n");
+                    try (InputStreamReader reader = new InputStreamReader(input, "UTF8"); BufferedReader buf = new BufferedReader(reader)) {
+                        String line;
+                        while((line = buf.readLine()) != null) {
+                            soaPane.insertTextStamp(line + "\n");
+                        }
                     }
-                    buf.close();
-                    reader.close();
                     file.delete();
                 } catch (UnsupportedEncodingException ex) {
                     Logger.getLogger(KarteEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
@@ -2187,14 +1649,12 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
             if(file.exists()) {
                 try {
                     FileInputStream input = new FileInputStream(file);
-                    InputStreamReader reader = new InputStreamReader(input, "UTF8");
-                    BufferedReader buf = new BufferedReader(reader);
-                    String line;
-                    while((line = buf.readLine()) != null) {
-                        pPane.insertTextStamp(line + "\n");
+                    try (InputStreamReader reader = new InputStreamReader(input, "UTF8"); BufferedReader buf = new BufferedReader(reader)) {
+                        String line;
+                        while((line = buf.readLine()) != null) {
+                            pPane.insertTextStamp(line + "\n");
+                        }
                     }
-                    buf.close();
-                    reader.close();
                     file.delete();
                 } catch (UnsupportedEncodingException ex) {
                     Logger.getLogger(KarteEditor.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
@@ -2214,8 +1674,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     protected class SaveAdnSender {
         
         private final Chart chart;
-        // (予定カルテ対応)
-        //private SaveParams params;
         private final SaveParamsM params;
         private final ModuleModel[] soa;
         private final String soaText;
@@ -2224,11 +1682,8 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         private final ModuleModel[] plan;
         private final String pText;
         private final EditorFrame ef;
-        //private int theState = 0;
         
-        public SaveAdnSender(Chart chart,
-                // (予定カルテ対応)
-                //SaveParams params, 
+        public SaveAdnSender(Chart chart, 
                 SaveParamsM params,
                 ModuleModel[] soa, 
                 String soaText,
@@ -2262,71 +1717,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                     sendMml = params.isSendMML();
                     
                     final DocInfoModel docInfo = model.getDocInfoModel();
-
-                    // (予定カルテ対応)
-                    /*
-                    // 現在時刻を ConfirmDate にする
-                    Date confirmed = saved;
-                    docInfo.setConfirmDate(confirmed);
-
-                    //----------------------------------------------------
-                    // 修正でない場合は FirstConfirmDate = ConfirmDate にする
-                    // 修正の場合は FirstConfirmDate は既に設定されている
-                    // 修正でない新規カルテは parentId = null である
-                    //----------------------------------------------------
-                    if (docInfo.getParentId() == null) {
-                        docInfo.setFirstConfirmDate(confirmed);
-                    }
-
-                    //----------------------------------------------------
-                    // Status 仮保存か確定保存かを設定する
-                    // final の時は CLAIM 送信するが前の状態に依存する
-                    //----------------------------------------------------
-                    if (!params.isTmpSave()) {
-
-                        // 編集が開始された時の state を取得する
-                        String oldStatus = docInfo.getStatus();
-                        
-                        if (oldStatus.equals(STATUS_NONE)) {
-                            //------------------------------
-                            // NONEから確定への遷移 newSave
-                            //------------------------------
-                            sendClaim = params.isSendClaim();
-                            sendLabtest = params.isSendLabtest();
-
-                        } else if (oldStatus.equals(STATUS_TMP)) {
-                            //-------------------------------------
-                            // 仮保存から確定へ遷移する場合 saveFromTmp
-                            // ------------------------------------
-                            sendClaim = params.isSendClaim();
-                            sendLabtest = params.isSendLabtest();
-
-                        } else {
-                            //-------------------------------------
-                            // 確定から確定（修正の場合に相当する）
-                            //-------------------------------------
-                            sendClaim = params.isSendClaim();
-                            sendLabtest = params.isSendLabtest();
-                        }
-
-                        //-------------------------------------
-                        // 保存時の state を final にセットする
-                        //-------------------------------------
-                        docInfo.setStatus(STATUS_FINAL);
-
-                    } else {
-                        //-------------------------------------
-                        // 仮保存の場合 CLAIM 送信しない
-                        //-------------------------------------
-                        sendClaim = false;
-                        sendMml = false;
-                        sendLabtest = false;
-                        docInfo.setStatus(STATUS_TMP);
-                    }                    
-//minagawa^ MML
-                    docInfo.setSendMml(sendMml);
-//minagawa$                         
-                    */
+                    
                     //-------------------------------------------------------------------
                     // CLAIM送信をJMS+MDB化するための変更
                     // ・Claim送信を行う場合は適用する保健を healthinsuranceGUIから見つけて設定する。
@@ -2337,7 +1728,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                         PVTHealthInsuranceModel pvtInsurance = getContext().getHealthInsuranceToApply(docInfo.getHealthInsuranceGUID());
                         if (pvtInsurance!=null) {
                             docInfo.setPVTHealthInsuranceModel(pvtInsurance);
-                            //System.err.println(docInfo.getPVTHealthInsuranceModel());
                         }
                         String pid = getContext().getPatientVisit().getPatientId();
                         docInfo.setPatientId(pid);
@@ -2347,32 +1737,34 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                     
                     // titleを設定する
                     docInfo.setTitle(params.getTitle());
+                    
+                    ResourceBundle clBundle = ClientContext.getClaimBundle();
 
                     // デフォルトのアクセス権を設定をする TODO
                     AccessRightModel ar = new AccessRightModel();
-                    ar.setPermission(PERMISSION_ALL);
-                    ar.setLicenseeCode(ACCES_RIGHT_CREATOR);
-                    ar.setLicenseeName(ACCES_RIGHT_CREATOR_DISP);
-                    ar.setLicenseeCodeType(ACCES_RIGHT_FACILITY_CODE);
+                    ar.setPermission(clBundle.getString("PERMISSION_ALL"));
+                    ar.setLicenseeCode(clBundle.getString("ACCES_RIGHT_CREATOR"));
+                    ar.setLicenseeName(clBundle.getString("ACCES_RIGHT_CREATOR_DISP"));
+                    ar.setLicenseeCodeType(clBundle.getString("ACCES_RIGHT_FACILITY_CODE"));
                     docInfo.addAccessRight(ar);
 
                     // 患者のアクセス権を設定をする
                     if (params.isAllowPatientRef()) {
                         ar = new AccessRightModel();
-                        ar.setPermission(PERMISSION_READ);
-                        ar.setLicenseeCode(ACCES_RIGHT_PATIENT);
-                        ar.setLicenseeName(ACCES_RIGHT_PATIENT_DISP);
-                        ar.setLicenseeCodeType(ACCES_RIGHT_PERSON_CODE);
+                        ar.setPermission(clBundle.getString("PERMISSION_READ"));
+                        ar.setLicenseeCode(clBundle.getString("ACCES_RIGHT_PATIENT"));
+                        ar.setLicenseeName(clBundle.getString("ACCES_RIGHT_PATIENT_DISP"));
+                        ar.setLicenseeCodeType(clBundle.getString("ACCES_RIGHT_PERSON_CODE"));
                         docInfo.addAccessRight(ar);
                     }
 
                     // 診療履歴のある施設のアクセス権を設定をする
                     if (params.isAllowClinicRef()) {
                         ar = new AccessRightModel();
-                        ar.setPermission(PERMISSION_READ);
-                        ar.setLicenseeCode(ACCES_RIGHT_EXPERIENCE);
-                        ar.setLicenseeName(ACCES_RIGHT_EXPERIENCE_DISP);
-                        ar.setLicenseeCodeType(ACCES_RIGHT_EXPERIENCE_CODE);
+                        ar.setPermission(clBundle.getString("PERMISSION_READ"));
+                        ar.setLicenseeCode(clBundle.getString("ACCES_RIGHT_EXPERIENCE"));
+                        ar.setLicenseeName(clBundle.getString("ACCES_RIGHT_EXPERIENCE_DISP"));
+                        ar.setLicenseeCodeType(clBundle.getString("ACCES_RIGHT_EXPERIENCE_CODE"));
                         docInfo.addAccessRight(ar);
                     }
 
@@ -2423,9 +1815,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                     //-----------------------------------------------
                     model.clearModules();
                     model.clearSchema();
-//minagawa^ lsctest
-                    model.clearAttachment();
-//minagawa$                     
+                    model.clearAttachment();                    
                     // SOA モジュールを追加する
                     if (soa != null && soa.length > 0) {
                         model.addModule(soa);
@@ -2659,41 +2049,34 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
  //masuda^                   
                     // 外来待合リスト以外から開いた場合はpvt.id = 0である
                     PatientVisitModel pvt = chart.getPatientVisit();
- //minagawa^ 予定カルテ　除外      (予定カルテ対応)
-                    // if (sendClaim && pvt.getId()!=0L) {
+ 
                     if (sendClaim && pvt.getId()!=0L && !pvt.isFromSchedule()) {
- //minagawa$                       
-                        // CLAIMビットをセット
-// minagawa^ CLAIMビットをセット 仮保存から送信（修正モードで編集）の場合は保存アイコンをたてる
-                        //if (modify) {
+ 
                         if (modify && pvt.getStateBit(PatientVisitModel.BIT_SAVE_CLAIM)) {
-//minagawa$                              
+                            
                             pvt.setStateBit(PatientVisitModel.BIT_MODIFY_CLAIM, true);
                         } else {
                             pvt.setStateBit(PatientVisitModel.BIT_SAVE_CLAIM, true);
                         }
                     }
                     ddl.putKarte(model);
- //masuda$                   
+                    //masuda$                   
                     //----------------------------------------------
                     // Send
                     //----------------------------------------------
-                    for (IKarteSender sender : senderList) {
+                    senderList.stream().forEach((sender) -> {
                         sender.send(model);
-                    }
+                    });
                     
                     return null;
                 }
                 
                 @Override
-                protected void succeeded(Void result) {
-//minagawa^ Chartの close box 押下で保存する場合、保存終了を通知しておしまい。                    
+                protected void succeeded(Void result) {                    
                     if (boundSupport!=null) {
-                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "新規／修正カルテ", "保存成功", "インスペクタの終了");
                         setChartDocDidSave(true);
                         return;
-                    }
-//minagawa$                    
+                    }                  
                     
 ////masuda^   今日のカルテをセーブした場合のみ chartState を変更する
 ////          今日受診していて，過去のカルテを修正しただけなのに診療完了になってしまうのを防ぐ
@@ -2743,8 +2126,6 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
                     chart.getDocumentHistory().getDocumentHistory();
                     
                     modify = false;
-                    
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "新規／修正カルテ", "保存成功。");
                 }
             };
             
@@ -2764,7 +2145,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
         dumper.dump(doc);
         KarteStyledDocument pdoc = (KarteStyledDocument)getPPane().getTextPane().getDocument();
         pdumper.dump(pdoc);
-        if(dumper != null && pdumper != null) {
+        //if(dumper != null && pdumper != null) {
 //s.oh^ 2013/06/14 自費の場合、印刷時に文言を付加する
             //KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
             //                                      getContext().getPatient().getPatientId(), getContext().getPatient().getFullName(),
@@ -2772,8 +2153,10 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
             //                                      new Date(), dumper, pdumper);
             StringBuilder sbTitle = new StringBuilder();
             sbTitle.append(timeStampLabel.getText());
-            if(getModel().getDocInfoModel().getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
-                sbTitle.append("（自費）");
+            String selfPrefix = ClientContext.getClaimBundle().getString("INSURANCE_SELF_PREFIX");
+            if(getModel().getDocInfoModel().getHealthInsurance().startsWith(selfPrefix)) {
+                String selfIns = ClientContext.getMyBundle(KarteEditor.class).getString("insurance.self");
+                sbTitle.append(selfIns);
             }
             KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
                                                   getContext().getPatient().getPatientId(), getContext().getPatient().getFullName(),
@@ -2784,7 +2167,7 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
             ArrayList<String> paths = new ArrayList<>(0);
             paths.add(path);
             KartePDFImpl2.printPDF(paths);
-        }
+        //}
     }
 //s.oh$
     
@@ -2823,16 +2206,12 @@ public class KarteEditor extends AbstractChartDocument implements IInfoModel, NC
     
 //s.oh^ 2013/11/26 スクロールバーのリセット
     public void resetScrollBar() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                if(scroller != null) {
-                    scroller.getVerticalScrollBar().setValue(0);
-                }
-                if(soaPane != null) soaPane.getTextPane().setCaretPosition(0);
-                if(pPane != null) pPane.getTextPane().setCaretPosition(0);
+        SwingUtilities.invokeLater(() -> {
+            if(scroller != null) {
+                scroller.getVerticalScrollBar().setValue(0);
             }
-            
+            if(soaPane != null) soaPane.getTextPane().setCaretPosition(0);            
+            if(pPane != null) pPane.getTextPane().setCaretPosition(0);
         });
     }
 //s.oh$

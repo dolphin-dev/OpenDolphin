@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.SwingWorker;
 import open.dolphin.client.ChartEventHandler;
-import open.dolphin.impl.pvt.KanaToAscii;
+import open.dolphin.util.KanaToAscii;
 import open.dolphin.infomodel.ChartEventModel;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.infomodel.PatientVisitModel;
@@ -26,7 +26,7 @@ public class PVTRelay implements PropertyChangeListener {
     private static final String CSV_EXT = ".csv";
     private static final String TEMP_EXT = ".inp";
     
-    private static boolean DEBUG = false;
+    private static final boolean DEBUG = false;
     
     @Override
     public void propertyChange(PropertyChangeEvent pce) {
@@ -67,14 +67,7 @@ public class PVTRelay implements PropertyChangeListener {
             
             if (!sharePath.endsWith(File.separator)) {
                 sharePath = sharePath + File.separator;
-            }
-//minagawa^ mac jdk7            
-//            // 出力先
-//            File outputDir = new File(sharePath);
-//            if (!outputDir.exists()) {
-//                outputDir.mkdir();
-//            }
-//minagawa$            
+            }      
             // csv data
             StringBuilder sb = new StringBuilder();
             sb.append(model.getPatientModel().getPatientId()).append(",");  // pid,
@@ -101,25 +94,6 @@ public class PVTRelay implements PropertyChangeListener {
             String fileNameWithoutExt = sb.toString();
             sb.append(TEMP_EXT);
             String tempName = sb.toString();
-//minagawa^ macjdk7            
-//            // File
-//            File tmp = new File(outputDir,tempName);
-//            
-//            // Write to temp file
-//            FileOutputStream out = new FileOutputStream(tmp);
-//            BufferedOutputStream w = new BufferedOutputStream(out);
-//            w.write(line.getBytes(Project.getString(Project.PVT_RELAY_ENCODING)));
-//            w.flush();
-//            w.close();
-//            
-//            // Rename
-//            sb = new StringBuilder();
-//            sb.append(fileNameWithoutExt);
-//            sb.append(CSV_EXT);
-//            String fileName = sb.toString();
-//            File dest = new File(outputDir, fileName);
-//
-//            tmp.renameTo(dest);
             Path destPath = Paths.get(sharePath, tempName);
             Files.write(destPath, line.getBytes(Project.getString(Project.PVT_RELAY_ENCODING)));
             // rename
@@ -128,7 +102,7 @@ public class PVTRelay implements PropertyChangeListener {
             sb.append(CSV_EXT);
             String fileName = sb.toString();
             Files.move(destPath, destPath.resolveSibling(fileName));
-//minagawa$            
+            
         } catch (Exception e) {
             e.printStackTrace(System.err);
         }

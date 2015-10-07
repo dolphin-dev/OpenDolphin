@@ -63,22 +63,23 @@ public class PatientScheduleView extends javax.swing.JPanel {
         ));
         jScrollPane1.setViewportView(table);
 
-        keywordFld.setToolTipText("右クリックで予定日を選択します。");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/impl/schedule/resources/PatientScheduleView"); // NOI18N
+        keywordFld.setToolTipText(bundle.getString("keywordFld.toolTipText")); // NOI18N
 
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel2.setText("予定日:");
+        jLabel2.setText(bundle.getString("scheduleDateLabel.text")); // NOI18N
 
         countLbl.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        countLbl.setText("0 件");
+        countLbl.setText(bundle.getString("countLabel.text")); // NOI18N
 
-        rpButton.setText("処方適用");
-        rpButton.setToolTipText("前回処方を適用し予定日のカルテを作成します。");
+        rpButton.setText(bundle.getString("rpButton.text")); // NOI18N
+        rpButton.setToolTipText(bundle.getString("rpButton.toolTipText")); // NOI18N
 
-        updateButton.setText("更 新");
-        updateButton.setToolTipText("予定リストを更新します。");
+        updateButton.setText(bundle.getString("updateButton.text")); // NOI18N
+        updateButton.setToolTipText(bundle.getString("updateButton.toolTipText")); // NOI18N
 
-        claimChk.setText("CLAIM送信");
-        claimChk.setToolTipText("カルテの作成と同時にORCAへ送信します。");
+        claimChk.setText(bundle.getString("claimChk.text")); // NOI18N
+        claimChk.setToolTipText(bundle.getString("claimChk.toolTipText")); // NOI18N
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);

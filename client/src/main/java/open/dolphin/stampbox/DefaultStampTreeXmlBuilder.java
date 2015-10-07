@@ -4,9 +4,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.LinkedList;
-import open.dolphin.client.ClientContext;
 import open.dolphin.infomodel.ModuleInfoBean;
-import org.apache.log4j.Level;
 
 
 /**
@@ -28,14 +26,18 @@ public class DefaultStampTreeXmlBuilder {
     private StringWriter stringWriter;
     private StampTreeNode rootNode;
     
-    private boolean DEBUG;
-    
+    // Logger
+    private static final boolean DEBUG=false;
+    private static final java.util.logging.Logger logger;
+    static {
+        logger = java.util.logging.Logger.getLogger(DefaultStampTreeXmlBuilder.class.getName());
+        logger.setLevel(DEBUG ? java.util.logging.Level.FINE : java.util.logging.Level.INFO);
+    }
     /** 
      * Creates new DefaultStampTreeXmlBuilder 
      */
     public DefaultStampTreeXmlBuilder() {
         super();
-        DEBUG = (ClientContext.getBootLogger().getLevel()==Level.DEBUG);
     }
     
     /**
@@ -45,14 +47,14 @@ public class DefaultStampTreeXmlBuilder {
     public String getProduct() {
         String result = stringWriter.toString();
         if (DEBUG) {
-            ClientContext.getBootLogger().debug(result);
+            logger.fine(result);
         }
         return result;
     }
     
     public void buildStart() throws IOException {
         if (DEBUG) {
-            ClientContext.getBootLogger().debug("StampTree Build start");
+            logger.fine("StampTree Build start");
         }
         stringWriter = new StringWriter();
         writer = new BufferedWriter(stringWriter);
@@ -65,7 +67,7 @@ public class DefaultStampTreeXmlBuilder {
     
     public void buildRoot(StampTreeNode root) throws IOException {
         if (DEBUG) {
-            ClientContext.getBootLogger().debug("Build Root Node: " + root.toString());
+            logger.log(java.util.logging.Level.FINE, "Build Root Node: {0}", root.toString());
         }
         rootNode = root;
         TreeInfo treeInfo = (TreeInfo)rootNode.getUserObject();
@@ -74,7 +76,7 @@ public class DefaultStampTreeXmlBuilder {
         writer.write(" entity=");
         writer.write(addQuote(treeInfo.getEntity()));
         writer.write(">\n");
-        linkedList = new LinkedList<StampTreeNode>();
+        linkedList = new LinkedList<>();
         linkedList.addFirst(rootNode);
     }
     
@@ -95,7 +97,7 @@ public class DefaultStampTreeXmlBuilder {
         if (node.getChildCount() != 0) {
             
             if (DEBUG) {
-                ClientContext.getBootLogger().debug("Build Directory Node: " + node.toString());
+                logger.log(java.util.logging.Level.FINE, "Build Directory Node: {0}", node.toString());
             }
             
             StampTreeNode myParent = (StampTreeNode) node.getParent();
@@ -117,7 +119,7 @@ public class DefaultStampTreeXmlBuilder {
     private void buildLeafNode(StampTreeNode node) throws IOException {
         
         if (DEBUG) {
-            ClientContext.getBootLogger().debug("Build Leaf Node: " + node.toString());
+            logger.log(java.util.logging.Level.FINE, "Build Leaf Node: {0}", node.toString());
         }
         
         StampTreeNode myParent = (StampTreeNode) node.getParent();
@@ -162,7 +164,7 @@ public class DefaultStampTreeXmlBuilder {
     public void buildRootEnd() throws IOException {
         
         if (DEBUG) {
-            ClientContext.getBootLogger().debug("Build Root End");
+            logger.fine("Build Root End");
         }
         closeBeforeMyParent(rootNode);
         writer.write("</root>\n");
@@ -170,7 +172,7 @@ public class DefaultStampTreeXmlBuilder {
     
     public void buildEnd() throws IOException {
         if (DEBUG) {
-            ClientContext.getBootLogger().debug("Build end");
+            logger.fine("Build end");
         }
         writer.write("</stampTree>\n");
         writer.flush();
@@ -185,7 +187,7 @@ public class DefaultStampTreeXmlBuilder {
         int index = linkedList.indexOf(parent);
         
         if (DEBUG) {
-            ClientContext.getBootLogger().debug("Close before my parent: " + index);
+            logger.log(java.util.logging.Level.FINE, "Close before my parent: {0}", index);
         }
         for (int j = 0; j < index; j++) {
             writer.write("</node>\n");

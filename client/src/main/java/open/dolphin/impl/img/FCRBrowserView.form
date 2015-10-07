@@ -73,12 +73,12 @@
     </Component>
     <Component class="javax.swing.JButton" name="refreshBtn">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x66f4;&#x65b0;"/>
+        <Property name="text" type="java.lang.String" value="&#x66f4;&#x65b0;" noResource="true"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="settingBtn">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x8a2d;&#x5b9a;"/>
+        <Property name="text" type="java.lang.String" value="&#x8a2d;&#x5b9a;" noResource="true"/>
       </Properties>
     </Component>
     <Container class="javax.swing.JScrollPane" name="jScrollPane1">
@@ -104,22 +104,22 @@
     </Container>
     <Component class="javax.swing.JButton" name="fcrListBtn">
       <Properties>
-        <Property name="label" type="java.lang.String" value="List"/>
+        <Property name="text" type="java.lang.String" value="List" noResource="true"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="fcrImageBtn">
       <Properties>
-        <Property name="label" type="java.lang.String" value="Image"/>
+        <Property name="text" type="java.lang.String" value="Image" noResource="true"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="fcrTodayBtn">
       <Properties>
-        <Property name="label" type="java.lang.String" value="Today"/>
+        <Property name="text" type="java.lang.String" value="Today" noResource="true"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="newdirBtn">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x65b0;&#x898f;"/>
+        <Property name="text" type="java.lang.String" value="&#x65b0;&#x898f;" noResource="true"/>
         <Property name="toolTipText" type="java.lang.String" value="&#x30c7;&#x30a3;&#x30ec;&#x30af;&#x30c8;&#x30ea;&#x306e;&#x65b0;&#x898f;&#x4f5c;&#x6210;"/>
       </Properties>
       <AccessibilityProperties>
@@ -128,7 +128,7 @@
     </Component>
     <Component class="javax.swing.JButton" name="backdirBtn">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x4e0a;&#x3078;"/>
+        <Property name="text" type="java.lang.String" value="&#x4e0a;&#x3078;" noResource="true"/>
         <Property name="toolTipText" type="java.lang.String" value="&#x30c7;&#x30a3;&#x30ec;&#x30af;&#x30c8;&#x30ea;&#x306e;&#x65b0;&#x898f;&#x4f5c;&#x6210;"/>
       </Properties>
       <AccessibilityProperties>

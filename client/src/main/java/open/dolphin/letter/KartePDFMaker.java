@@ -59,9 +59,9 @@ public class KartePDFMaker extends AbstractPDFMaker {
     private static final int STAMP_FONT_SIZE = 8;
     private static final int PERCENTAGE_IMAGE_WIDTH = 25;   // ページ幅の1/4
     private static final Color STAMP_TITLE_BACKGROUND = new Color(200, 200, 200);    // グレー
-    private static final String UNDER_TMP_SAVE = " - 仮保存中";
+    //private static final String UNDER_TMP_SAVE = " - 仮保存中";
     
-    private static final String DOC_TITLE = "カルテ";
+    //private static final String DOC_TITLE = "カルテ";
 
     private List<DocumentModel> docList;
     private boolean ascending;
@@ -84,7 +84,7 @@ public class KartePDFMaker extends AbstractPDFMaker {
     // 文書名を返す
     @Override
     protected String getTitle() {
-        return DOC_TITLE.replace(" ", "").replace("　", "");
+        return ClientContext.getMyBundle(KartePDFMaker.class).getString("text.karte");
     }
     
     // PDFに出力する
@@ -121,11 +121,13 @@ public class KartePDFMaker extends AbstractPDFMaker {
 //minagawa$            
             writer.setStrictImageSequence(true);
             writer.setViewerPreferences(PdfWriter.PageModeUseOutlines);
+            
+            java.util.ResourceBundle bundle = ClientContext.getMyBundle(KartePDFMaker.class);
 
             // フッターに名前とIDを入れる
             StringBuilder sb = new StringBuilder();
             sb.append(getPatientId()).append(" ");
-            sb.append(getPatientName()).append(" 様 ");
+            sb.append(getPatientName()).append(bundle.getString("text.space_personTitle"));
             sb.append(FRMT_DATE_WITH_TIME.format(new Date()));
             sb.append("  Page ");
             HeaderFooter footer = new HeaderFooter(new Phrase(sb.toString(), font), true);
@@ -136,7 +138,7 @@ public class KartePDFMaker extends AbstractPDFMaker {
             // 製作者と文書タイトルを設定
             String author = Project.getUserModel().getFacilityModel().getFacilityName();
             document.addAuthor(author);
-            document.addTitle(getPatientName() + " 様カルテ");
+            document.addTitle(getPatientName() + bundle.getString("text.space_personTitle_karte"));
 
             document.open();
 
@@ -145,8 +147,8 @@ public class KartePDFMaker extends AbstractPDFMaker {
                 // DocumentModelからschema, moduleを取り出す
                 List<SchemaModel> schemas = docModel.getSchema();
                 List<ModuleModel> modules = docModel.getModules();
-                List<ModuleModel> soaModules = new ArrayList<ModuleModel>();
-                List<ModuleModel> pModules = new ArrayList<ModuleModel>();
+                List<ModuleModel> soaModules = new ArrayList<>();
+                List<ModuleModel> pModules = new ArrayList<>();
                 String soaSpec = null;
                 String pSpec = null;
 
@@ -196,10 +198,10 @@ public class KartePDFMaker extends AbstractPDFMaker {
             result = true;
 
         } catch (IOException ex) {
-            ClientContext.getBootLogger().warn(ex);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
             throw new RuntimeException(ERROR_IO);
         } catch (DocumentException ex) {
-            ClientContext.getBootLogger().warn(ex);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
             throw new RuntimeException(ERROR_PDF);
         } finally {
             if (document.isOpen()) {
@@ -259,29 +261,32 @@ public class KartePDFMaker extends AbstractPDFMaker {
     private String createTitle(DocumentModel docModel) {
 
         StringBuilder sb = new StringBuilder();
+        
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(KartePDFMaker.class);
 
         if (IInfoModel.STATUS_DELETE.equals(docModel.getDocInfoModel().getStatus())) {
-            sb.append("削除済／");
+            sb.append(bundle.getString("text.doneDelete_slash"));
         } else if (IInfoModel.STATUS_MODIFIED.equals(docModel.getDocInfoModel().getStatus())) {
-            sb.append("修正:");
+            sb.append(bundle.getString("text.modify_colon"));
             sb.append(docModel.getDocInfoModel().getVersionNumber().replace(".0", ""));
             sb.append("／");
         }
 
         // 確定日を分かりやすい表現に変える
+        String dateFmt = ClientContext.getBundle().getString("KARTE_DATE_FORMAT");
         sb.append(ModelUtils.getDateAsFormatString(
                 docModel.getDocInfoModel().getFirstConfirmDate(),
-                IInfoModel.KARTE_DATE_FORMAT));
+                dateFmt));
 
         // 当時の年齢を表示する
         String mmlDate = ModelUtils.getDateAsString(docModel.getDocInfoModel().getFirstConfirmDate());
         if (getPatientBirthday() != null) {
-            sb.append("[").append(ModelUtils.getAge2(getPatientBirthday(), mmlDate)).append("歳]");
+            sb.append("[").append(ModelUtils.getAge2(getPatientBirthday(), mmlDate)).append(bundle.getString("text.age"));
         }
 
         // 仮保存
         if (docModel.getDocInfoModel().getStatus().equals(IInfoModel.STATUS_TMP)) {
-            sb.append(UNDER_TMP_SAVE);
+            sb.append(bundle.getString("text.space_underTemporalSave"));
         }
 
         // 保険　公費が見えるのは気分良くないだろうから、表示しない
@@ -289,7 +294,7 @@ public class KartePDFMaker extends AbstractPDFMaker {
         String ins = docModel.getDocInfoModel().getHealthInsuranceDesc().trim();
         if (ins != null && !ins.isEmpty()) {
             String items[] = docModel.getDocInfoModel().getHealthInsuranceDesc().split(" ");
-            List<String> itemList = new ArrayList<String>();
+            List<String> itemList = new ArrayList<>();
             for (String item : items) {
                 if (!item.isEmpty()) {
                     itemList.add(item);
@@ -317,14 +322,16 @@ public class KartePDFMaker extends AbstractPDFMaker {
     
     private String parseBundleNum(String str) {
         
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(KartePDFMaker.class);
+        
         int len = str.length();
         int pos = str.indexOf("/");
         StringBuilder sb = new StringBuilder();
-        sb.append("回数：");
+        sb.append(bundle.getString("text.numTimes_colon"));
         sb.append(str.substring(0, pos));
-        sb.append(" 実施日：");
+        sb.append(bundle.getString("text.space_performDate_colon"));
         sb.append(str.substring(pos + 1, len));
-        sb.append("日");
+        sb.append(bundle.getString("text.day"));
 
         return sb.toString();
     }
@@ -620,6 +627,8 @@ public class KartePDFMaker extends AbstractPDFMaker {
 
                 // スタンプの種類別に処理する
                 String entity = stamp.getModuleInfoBean().getEntity();
+                
+                java.util.ResourceBundle bundle = ClientContext.getMyBundle(KartePDFMaker.class);
 
                 if (IInfoModel.ENTITY_LABO_TEST.equals(entity)) {
                     // 検体検査スタンプ
@@ -641,9 +650,9 @@ public class KartePDFMaker extends AbstractPDFMaker {
                         String str = parseBundleNum(number);
                         table.addCell(createStampCell(str, 3, false));
                     } else if (number != null && !number.trim().isEmpty() && !"1".equals(number)) {
-                        table.addCell(createStampCell("・回数", 1, false));
+                        table.addCell(createStampCell(bundle.getString("cellText.dot_numTimes"), 1, false));
                         table.addCell(createStampCell(number, 1, false));
-                        table.addCell(createStampCell(" 回", 1, false));
+                        table.addCell(createStampCell(bundle.getString("celText.space_times"), 1, false));
                     }
                     // メモ
                     String memo = model.getMemo();
@@ -660,7 +669,7 @@ public class KartePDFMaker extends AbstractPDFMaker {
                     sb.append(stamp.getModuleInfoBean().getStampName());
                     table.addCell(createStampCell(sb.toString(), 2, true));
                     // 院内・院外、ClassCode
-                    String str = model.getMemo().replace("処方", "") + "/" + model.getClassCode();
+                    String str = model.getMemo().replace(bundle.getString("claimText.rp"), "") + "/" + model.getClassCode();
                     table.addCell(createStampCell(str, 2, true));
                     // 薬剤項目
                     for (ClaimItem ci : model.getClaimItem()) {
@@ -708,9 +717,9 @@ public class KartePDFMaker extends AbstractPDFMaker {
                         String str = parseBundleNum(number);
                         table.addCell(createStampCell(str, 3, false));
                     } else if (number != null && !number.trim().isEmpty() && !"1".equals(number)) {
-                        table.addCell(createStampCell("・回数", 1, false));
+                        table.addCell(createStampCell(bundle.getString("cellText.dot_numTimes"), 1, false));
                         table.addCell(createStampCell(number, 1, false));
-                        table.addCell(createStampCell(" 回", 1, false));
+                        table.addCell(createStampCell(bundle.getString("celText.space_times"), 1, false));
                     }
                     // メモ
                     String memo = model.getMemo();

@@ -16,9 +16,12 @@ public class AppointLabel extends JLabel implements DragGestureListener,DragSour
     
     private static final long serialVersionUID = 2843710174202998473L;
 	
-    private DragSource dragSource;
+    private final DragSource dragSource;
     
-    /** Creates a new instance of AppointLabel */
+    /** Creates a new instance of AppointLabel
+     * @param text
+     * @param icon
+     * @param align */
     public AppointLabel(String text, Icon icon, int align) {
         
         super(text, icon, align);

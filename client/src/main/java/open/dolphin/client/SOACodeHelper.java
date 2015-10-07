@@ -24,6 +24,8 @@ public class SOACodeHelper extends AbstractCodeHelper {
     
     /**
      * Creates a new instance of CodeHelper
+     * @param pPane
+     * @param mediator
      */
     public SOACodeHelper(KartePane pPane, ChartMediator mediator) {
         super(pPane, mediator);

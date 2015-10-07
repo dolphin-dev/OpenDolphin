@@ -16,11 +16,11 @@ import open.dolphin.project.Project;
  */
 public final class ComponentMemory implements ComponentListener {
     
-    private Component target;
-    private Point defaultLocation;
-    private Dimension defaultSise;
+    private final Component target;
+    private final Point defaultLocation;
+    private final Dimension defaultSise;
     private String name;
-    private boolean report = true;
+    private final boolean report = false;
     
     public ComponentMemory(Component target, Point loc, Dimension size, Object object) {
         this.target = target;
@@ -47,6 +47,7 @@ public final class ComponentMemory implements ComponentListener {
             buf.append(",");
             buf.append(loc.y);
             buf.append(")");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).info(buf.toString());
         }
     }
     
@@ -64,6 +65,7 @@ public final class ComponentMemory implements ComponentListener {
             buf.append(",");
             buf.append(height);
             buf.append(")");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).info(buf.toString());
         }
     }
     

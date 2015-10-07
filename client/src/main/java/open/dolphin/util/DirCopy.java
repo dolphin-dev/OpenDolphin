@@ -37,11 +37,11 @@ public class DirCopy {
         byte[] buf = new byte[1024];
         int iSize;
         BufferedInputStream inputStream = new BufferedInputStream(new FileInputStream(sFile));
-        BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(tFile));
-        while((iSize=inputStream.read(buf,0,buf.length)) != -1){
-            outputStream.write(buf, 0, iSize);
+        try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(tFile))) {
+            while((iSize=inputStream.read(buf,0,buf.length)) != -1){
+                outputStream.write(buf, 0, iSize);
+            }
         }
-        outputStream.close();
         return true;
     }
 	
@@ -108,7 +108,7 @@ public class DirCopy {
  
         // Mavericks対応
         //String pcName = InetAddress.getLocalHost().getHostName();
-        String pcName = null;
+        String pcName;
         try {
             pcName = InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException ex) {
@@ -135,9 +135,7 @@ public class DirCopy {
         String cDir;
         String dDir;
         
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "設定のバックアップ");
         if(pDir1 == null || pDir2 == null || sDir == null || tDir == null) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "設定が存在しない。");
             return 3;
         }
         
@@ -150,12 +148,6 @@ public class DirCopy {
                 System.out.println(cDir);
                 System.out.println(dDir);
                 ret = copyDirectry(new File(cDir), new File(dDir));
-                if(ret){
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "成功：", cDir + " → " + dDir);
-                    //return 1;
-                }else{
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "失敗：", cDir + " → " + dDir);
-                }
             }
         }
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -165,13 +157,11 @@ public class DirCopy {
         String bfileName = tDir+"\\"+BACKUP_FILE_NAME;
         try{
             File file = new File(bfileName);
-            FileWriter filewriter = new FileWriter(file);
-            filewriter.write(timeStamp);
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "日付ファイル：", file.getPath());
-            filewriter.close();
+            try (FileWriter filewriter = new FileWriter(file)) {
+                filewriter.write(timeStamp);
+            }
         }catch(IOException e){
             System.out.println(e);
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "日付ファイル作成失敗：", bfileName);
             return 2;
         }
         return 0;
@@ -188,7 +178,7 @@ public class DirCopy {
     public int logRestore(String userID) throws IOException{
         // Mavericks対応
         //String pcName = InetAddress.getLocalHost().getHostName();
-        String pcName = null;
+        String pcName;
         try {
             pcName = InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException ex) {
@@ -197,7 +187,7 @@ public class DirCopy {
         }
         //for Windows.
         String user_name = System.getProperty("user.name"); 
-        boolean allCopy = true;
+        boolean allCopy;
         if(userID == null){
             allCopy = true;
         }else if(userID.length() == 0){
@@ -223,9 +213,7 @@ public class DirCopy {
         String cDir;
         String dDir;
         
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "設定のリストア");
         if(pDir1 == null || pDir2 == null || sDir == null || tDir == null) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "設定が存在しない。");
             return 3;
         }
         
@@ -246,17 +234,12 @@ public class DirCopy {
             System.out.println(findStr);
             for (int i = 0; i < files.length; i++) {
                 File file = files[i];
-                if(file.toString().indexOf(findStr) !=-1){
+                if(file.toString().contains(findStr)){
                     //System.out.println((i + 1) + "A    " + file);
                     cDir = sDir+"\\"+pDir2+"\\";
                     cDir += getFileName(file.toString());
                     System.out.println(file.toString()+"->"+cDir);
                     boolean bRet = copyFileBinaly(new File(file.toString()),new File(cDir));
-                    if(bRet) {
-                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "成功：", file.toString() + " → " + cDir);
-                    }else{
-                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "失敗：", file.toString() + " → " + cDir);
-                    }
                 }
             }
         }
@@ -270,10 +253,10 @@ public class DirCopy {
                 System.out.println(dDir);
                 ret = copyDirectry(new File(dDir), new File(cDir));
                 if(ret){
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "成功：", dDir + " → " + cDir);
+                    
                     //return 1;
                 }else{
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "失敗：", dDir + " → " + cDir);
+                    
                 }
             }
         }
@@ -310,11 +293,11 @@ public class DirCopy {
         FileInputStream input;
         try {
             input = new FileInputStream(file);
-            InputStreamReader reader = new InputStreamReader(input);
-            BufferedReader buf = new BufferedReader(reader);
-            date = buf.readLine();
-            buf.close();
-            reader.close();
+            try (InputStreamReader reader = new InputStreamReader(input)) {
+                BufferedReader buf = new BufferedReader(reader);
+                date = buf.readLine();
+                buf.close();
+            }
         } catch (FileNotFoundException ex) {
             Logger.getLogger(DirCopy.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {

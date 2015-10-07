@@ -29,6 +29,8 @@ public class StampEditor implements PropertyChangeListener {
 
     /**
      * Constructor. Use layered inititialization pattern.
+     * @param stamp
+     * @param listener
      */
     public StampEditor(final ModuleModel stamp, final PropertyChangeListener listener)  {
 
@@ -132,7 +134,7 @@ public class StampEditor implements PropertyChangeListener {
 
         if (evt.getPropertyName().equals(AbstractStampEditor.EDIT_END_PROP)) {
             Boolean b = (Boolean) evt.getNewValue();
-            if (b.booleanValue()) {
+            if (b) {
                 dialog.dispose();
                 dialog.setVisible(false);
             }

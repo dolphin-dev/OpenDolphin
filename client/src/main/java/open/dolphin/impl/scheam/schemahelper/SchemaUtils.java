@@ -25,7 +25,7 @@ public class SchemaUtils {
     }
     /**
      * "255,255,255" -> Color 変換
-     * @param string
+     * @param str
      * @return color
      */
     public static Color stringToColor(String str) {
@@ -101,6 +101,7 @@ public class SchemaUtils {
      * shape の bound と p が n ドット以内にいるかどうか判定
      * @param shape
      * @param p
+     * @param n
      * @return
      */
     public static boolean isNear(Shape shape, Point p, int n) {

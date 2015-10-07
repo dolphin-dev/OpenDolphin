@@ -79,24 +79,6 @@ public class FEV70Relay implements PropertyChangeListener {
             sb.append(",");
             sb.append(patientBD);
             sb.append(",,,,,,,,\n");
-//minagawa^ mac jdk7            
-//            String fileName = sharePath + "ID_" + patientId;
-//            File oldFile = new File(fileName + ".cs_");
-//            if (oldFile.exists()) {
-//                oldFile.delete();
-//            }
-//            FileOutputStream fos = new FileOutputStream(fileName + ".cs_");
-//            OutputStreamWriter osw = new OutputStreamWriter(fos);
-//            BufferedWriter bw = new BufferedWriter(osw);
-//            bw.write(sb.toString());
-//            bw.close();
-//            osw.close();
-//            oldFile = new File(fileName + ".CSV");
-//            if (oldFile.exists()) {
-//                oldFile.delete();
-//            }
-//            File objFile = new File(fileName + ".cs_");
-//            objFile.renameTo(new File(fileName + ".CSV"));
             String pvtData = sb.toString();
             List<String> lineData = new ArrayList<>();
             lineData.add(pvtData);
@@ -107,8 +89,7 @@ public class FEV70Relay implements PropertyChangeListener {
             
             Path destPath = Paths.get(sharePath, tmpName);
             Files.write(destPath, lineData, Charset.forName("SHIT-JIS"));
-            Files.move(destPath, destPath.resolveSibling(destName));
-//minagawa$            
+            Files.move(destPath, destPath.resolveSibling(destName));          
         } catch (Exception e) {
             e.printStackTrace(System.err);
         }

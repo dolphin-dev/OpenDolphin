@@ -22,7 +22,6 @@ import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.SchemaModel;
 import open.dolphin.stampbox.StampTreeNode;
-import open.dolphin.util.Log;
 import org.apache.commons.codec.binary.Base64;
 
 /**
@@ -41,7 +40,7 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
         }
     }
     
-    private KartePane soaPane;
+    private final KartePane soaPane;
     
     private JTextPane source;
     
@@ -57,20 +56,13 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
     }
 
     @Override
-//minagawa^ Paste problem 2013/04/14 不具合修正(スタンプが消える)
-//    public boolean importData(JComponent c, Transferable tr) {
     public boolean importData(TransferHandler.TransferSupport support) {
-
-//        JTextPane tc = (JTextPane)c;
-//        if (!canImport(c, tr.getTransferDataFlavors())) {
-//            return false;
-//        }
+        
         JTextPane tc = (JTextPane)support.getComponent();
         if (!canImport(support)) {
             return false;
         }
-        Transferable tr = support.getTransferable();
-//minagawa$        
+        Transferable tr = support.getTransferable();       
 
         if (tc.equals(source) &&
                 (tc.getCaretPosition() >= p0.getOffset()) &&
@@ -103,14 +95,8 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
 
             } else if (tr.isDataFlavorSupported(DataFlavor.stringFlavor)) {
                 String str = (String) tr.getTransferData(DataFlavor.stringFlavor);
-//s.oh^ Xronos連携(D&D画像連携)
-                //if(str.startsWith("#XronosDrag") || str.startsWith("#Genesys")) {
-                if(str.startsWith("GenesysDragDropCommand_Dolphin")) {
-                    return doXronosDrop(str);
-                }
-//s.oh$
                 tc.replaceSelection(str);
-                shouldRemove = tc == source ? true : false;
+                shouldRemove = tc == source;
                 return true;
 
             } else if (tr.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
@@ -123,8 +109,7 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
                 String data = (String)tr.getTransferData(nixFileDataFlavor);
                 return doFileDropNix(data);
             }
-        } catch (UnsupportedFlavorException ufe) {
-        } catch (IOException ioe) {
+        } catch (UnsupportedFlavorException | IOException ufe) {
         }
 
         return false;
@@ -175,15 +160,7 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
         shouldRemove = false;
         source = null;
     }
-//minagawa^ Paste problem 2013/04/14 不具合修正(スタンプが消える)
-//    @Override
-//    public boolean canImport(JComponent c, DataFlavor[] flavors) {
-//        JTextPane tc = (JTextPane) c;
-//        if (tc.isEditable() && hasFlavor(flavors)) {
-//            return true;
-//        }
-//        return false;
-//    }
+    
    @Override 
    public boolean canImport(TransferHandler.TransferSupport support) {
         JTextPane tc = (JTextPane)support.getComponent();
@@ -191,10 +168,11 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
         ok = ok && hasFlavor(support.getDataFlavors());
         return ok;
     }
-//minagawa$
 
     /**
      * Flavorリストのなかに受け入れられものがあるかどうかを返す。
+     * @param flavors
+     * @return 
      */
     protected boolean hasFlavor(DataFlavor[] flavors) {
         
@@ -262,11 +240,9 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
             
             // Dropされたノードの葉を列挙する
             Enumeration e = droppedNode.preorderEnumeration();
-//minagawa^ LSC Test            
-            //ArrayList<ModuleInfoBean> addList = new ArrayList<ModuleInfoBean>(5);
-            ArrayList<ModuleInfoBean> textList = new ArrayList<ModuleInfoBean>(5);
-            ArrayList<ModuleInfoBean> soaList = new ArrayList<ModuleInfoBean>(5);
-//            String role = null;
+
+            ArrayList<ModuleInfoBean> textList = new ArrayList<>(5);
+            ArrayList<ModuleInfoBean> soaList = new ArrayList<>(5);
             while (e.hasMoreElements()) {
                 StampTreeNode node = (StampTreeNode) e.nextElement();
                 if (node.isLeaf()) {
@@ -280,27 +256,14 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
                     } else if (stampInfo.getEntity().equals(IInfoModel.ROLE_SOA)) {
                         soaList.add(stampInfo);
                     }
-//                    if (stampInfo.isSerialized() && (!stampInfo.getEntity().equals(IInfoModel.ENTITY_DIAGNOSIS)) ) {
-//                        if (role == null) {
-//                            role = stampInfo.getStampRole();
-//                        }
-//                        addList.add(stampInfo);
-//                    }
                 }              
             }
-            // まとめてデータベースからフェッチしインポートする
-//            if (role.equals(IInfoModel.ROLE_TEXT)) {
-//                soaPane.textStampInfoDropped(addList);
-//            } else if (role.equals(IInfoModel.ROLE_SOA)) {
-//                soaPane.stampInfoDropped(addList);
-//            }
             if (!textList.isEmpty()) {
                 soaPane.textStampInfoDropped(textList);
             }
             if (!soaList.isEmpty()) {
                 soaPane.stampInfoDropped(soaList);
-            }
-//minagawa$                    
+            }                 
             return true;
         } catch (Exception e) {
             e.printStackTrace(System.err);
@@ -319,13 +282,12 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
         if(doc instanceof KarteEditor) {
             chart = ((KarteEditor)doc).getContext();
         }
-        Log.outputOperLogOper(chart, Log.LOG_LEVEL_0, "SOA → SOA", "カルテからのシェーマ追加");
         
         try {
             // Schemaリストを取得する
             SchemaModel[] schemas = list.schemaList;
-            for (int i = 0; i < schemas.length; i++) {
-                soaPane.stampSchema(schemas[i]);
+            for (SchemaModel schema : schemas) {
+                soaPane.stampSchema(schema);
             }
             if (soaPane.getDraggedCount() > 0 && soaPane.getDrragedStamp() != null) {
                 soaPane.setDroppedCount(schemas.length);
@@ -365,7 +327,6 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
         if(doc instanceof KarteEditor) {
             chart = ((KarteEditor)doc).getContext();
         }
-        Log.outputOperLogOper(chart, Log.LOG_LEVEL_0, "シェーマ等画像の追加");
         
         try {
             soaPane.imageEntryDropped(entry);
@@ -423,33 +384,6 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
         }
     }
     
-//s.oh^ Xronos連携(D&D画像連携)
-    public boolean doXronosDrop(String data) {
-        
-        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, data);
-        
-        String[] vals = data.split(",", 4);
-        if(vals.length != 4) {
-            return false;
-        }
-        
-        String param = new String(Base64.decodeBase64(vals[1]));
-        String dataInfo = vals[2];
-        String imgData = vals[3];
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "Xronosから画像ドロップ", vals[0], param, dataInfo);
-        
-        byte[] img = Base64.decodeBase64(imgData);
-        if(img == null) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "画像変換失敗");
-            return false;
-        }
-        
-        soaPane.importImage(img, param, "JPEG");
-        
-        return true;
-    }
-//s.oh$
-    
     /**
      * クリップボードへデータを転送する。
      */
@@ -478,16 +412,13 @@ public class SOATransferHandler extends TransferHandler implements IKarteTransfe
         if (t == null) {
             return false;
         }
-        if (t.isDataFlavorSupported(DataFlavor.stringFlavor) ||
-            t.isDataFlavorSupported(LocalStampTreeNodeTransferable.localStampTreeNodeFlavor) ||
-            t.isDataFlavorSupported(SchemaListTransferable.schemaListFlavor) ||
-            t.isDataFlavorSupported(ImageEntryTransferable.imageEntryFlavor) ||
-            t.isDataFlavorSupported(AttachmentTransferable.attachmentFlavor) ||
-            t.isDataFlavorSupported(DataFlavor.javaFileListFlavor) ||
-            t.isDataFlavorSupported(nixFileDataFlavor)) {
-            return true;
-        }
-        return false;
+        return t.isDataFlavorSupported(DataFlavor.stringFlavor) ||
+                t.isDataFlavorSupported(LocalStampTreeNodeTransferable.localStampTreeNodeFlavor) ||
+                t.isDataFlavorSupported(SchemaListTransferable.schemaListFlavor) ||
+                t.isDataFlavorSupported(ImageEntryTransferable.imageEntryFlavor) ||
+                t.isDataFlavorSupported(AttachmentTransferable.attachmentFlavor) ||
+                t.isDataFlavorSupported(DataFlavor.javaFileListFlavor) ||
+                t.isDataFlavorSupported(nixFileDataFlavor);
     }
 
     @Override

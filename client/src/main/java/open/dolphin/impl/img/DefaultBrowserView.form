@@ -59,12 +59,16 @@
     </Component>
     <Component class="javax.swing.JButton" name="refreshBtn">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x66f4;&#x65b0;"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/impl/img/resources/DefaultBrowser.properties" key="refreshBtn.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="settingBtn">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x8a2d;&#x5b9a;"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/impl/img/resources/DefaultBrowser.properties" key="settingBtn.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Container class="javax.swing.JScrollPane" name="jScrollPane1">
@@ -90,17 +94,25 @@
     </Container>
     <Component class="javax.swing.JButton" name="newdirBtn">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x65b0;&#x898f;"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x30c7;&#x30a3;&#x30ec;&#x30af;&#x30c8;&#x30ea;&#x306e;&#x65b0;&#x898f;&#x4f5c;&#x6210;"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/impl/img/resources/DefaultBrowser.properties" key="newdirBtn.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/impl/img/resources/DefaultBrowser.properties" key="newdirBtn.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="backdirBtn">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x4e0a;&#x3078;"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x30c7;&#x30a3;&#x30ec;&#x30af;&#x30c8;&#x30ea;&#x306e;&#x65b0;&#x898f;&#x4f5c;&#x6210;"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/impl/img/resources/DefaultBrowser.properties" key="backdirBtn.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/impl/img/resources/DefaultBrowser.properties" key="backdirBtn.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
       <AccessibilityProperties>
-        <Property name="AccessibleContext.accessibleDescription" type="java.lang.String" value="&#x4e00;&#x3064;&#x4e0a;&#x306e;&#x968e;&#x5c64;&#x306b;&#x623b;&#x308b;"/>
+        <Property name="AccessibleContext.accessibleDescription" type="java.lang.String" value=""/>
       </AccessibilityProperties>
     </Component>
   </SubComponents>

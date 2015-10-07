@@ -15,15 +15,17 @@ public class PopupMenuFactory {
     
     /**
      * リソースとターゲットオブジェクトから PopupMenu を生成して返す。
-     * @param resource リソース名
+     * @param itemLine
+     * @param methodLine
+     * @param target
+     * @param canCopy
+     * @param canPaste
+     * @return 
      * @target メソッドを実行するオブジェクト
      */
-    public static JPopupMenu create(String resource, Object target, boolean canCopy, boolean canPaste) {
+    public static JPopupMenu create(String[] itemLine, String[] methodLine, Object target, boolean canCopy, boolean canPaste) {
         
         JPopupMenu popMenu = new JPopupMenu ();
-        
-        String[] itemLine = ClientContext.getStringArray(resource + ".items");
-        String[] methodLine = ClientContext.getStringArray(resource + ".methods");
         
         for (int i = 0; i < itemLine.length; i++) {
             

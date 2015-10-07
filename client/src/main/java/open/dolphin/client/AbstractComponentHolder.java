@@ -1,6 +1,5 @@
 package open.dolphin.client;
 
-import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.event.*;
 import javax.swing.*;
@@ -10,9 +9,7 @@ import javax.swing.*;
  *
  * @author  Kazushi Minagawa
  */
-public abstract class AbstractComponentHolder extends JLabel {  //implements MouseListener, MouseMotionListener {
-    
-    protected static final Color SELECTED_BORDER = new Color(255, 0, 153);
+public abstract class AbstractComponentHolder extends JLabel {
     
     /** Creates new ComponentHolder */
     public AbstractComponentHolder() {

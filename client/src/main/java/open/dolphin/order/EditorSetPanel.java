@@ -21,7 +21,6 @@ import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.StampModel;
 import open.dolphin.util.BeanUtils;
-import open.dolphin.util.Log;
 
 /**
  * EditorSetPanel
@@ -33,17 +32,14 @@ public class EditorSetPanel extends JPanel implements PropertyChangeListener, Tr
 
     public static final String EDITOR_VALUE_PROP = "editorValue";
 
-    private static final String TITLE_NEW = "新規";
-    private static final String TITLE_REPLACE = "置換";
-    private static final String TITLE_IMPORT = "取込";
-    private static final String TITLE_TO_LAB = "検体";
-    private static final String TITLE_TO_PHYSIO = "生体";
-    private static final String TITLE_TO_BACTERIA = "細菌";
-//minagawa^ Icon Server    
-//    private static final String ICON_FORWARD = "forwd_16.gif";
-//    private static final String ICON_BACK = "back_16.gif";
-//minagawa$    
-    private static final String TITLE_FROM_EDITOR = "エディタから発行...";
+    private final String TITLE_NEW;
+    private final String TITLE_REPLACE;
+    private final String TITLE_IMPORT;
+    private final String TITLE_TO_LAB;
+    private final String TITLE_TO_PHYSIO;
+    private final String TITLE_TO_BACTERIA;
+    
+    private final String TITLE_FROM_EDITOR;
 
     // エディタ の組
     private AbstractStampEditor bacteria;
@@ -61,8 +57,8 @@ public class EditorSetPanel extends JPanel implements PropertyChangeListener, Tr
     private AbstractStampEditor treatment;
     
     // 上記エディタを格納するカードパネル
-    private JPanel cardPanel;
-    private CardLayout cardLayout;
+    private final JPanel cardPanel;
+    private final CardLayout cardLayout;
 
     // 現在使用中のエディタ
     private AbstractStampEditor curEditor;
@@ -90,7 +86,7 @@ public class EditorSetPanel extends JPanel implements PropertyChangeListener, Tr
     private Object editorValue;
     
     // 上記編集値（束縛属性）をStampBoxへ通知するサポート
-    private PropertyChangeSupport boundSupport = new PropertyChangeSupport(this);
+    private final PropertyChangeSupport boundSupport = new PropertyChangeSupport(this);
     
     
     /**
@@ -154,7 +150,7 @@ public class EditorSetPanel extends JPanel implements PropertyChangeListener, Tr
     
     /**
      * スタンプボックスのタブが切り替えられた時、対応するエディタを show する。
-     * @param show するエディタのエンティティ名
+     * @param entity
      */
     public void show(String entity) {
 
@@ -227,6 +223,7 @@ public class EditorSetPanel extends JPanel implements PropertyChangeListener, Tr
     
     /**
      * 編集中のスタンプの有効/無効の属性通知を受け、右向きボタンを制御する。
+     * @param e
      */
     @Override
     public void propertyChange(PropertyChangeEvent e) {
@@ -237,7 +234,7 @@ public class EditorSetPanel extends JPanel implements PropertyChangeListener, Tr
 
             // 有効か無効かで右矢印ボタンを制御する
             Boolean i = (Boolean) e.getNewValue();
-            boolean valid = i.booleanValue();
+            boolean valid = i;
 
             // 新規スタンプとして保存
             rightNew.setEnabled(valid);
@@ -253,7 +250,7 @@ public class EditorSetPanel extends JPanel implements PropertyChangeListener, Tr
 
             // 空の場合は importedInfo = null
             Boolean i = (Boolean) e.getNewValue();
-            boolean setIsEmpty = i.booleanValue();
+            boolean setIsEmpty = i;
             if (setIsEmpty && rightReplace.isEnabled()) {
                 importedInfo = null;
             }
@@ -283,7 +280,7 @@ public class EditorSetPanel extends JPanel implements PropertyChangeListener, Tr
         // またその時以外は選択ノード属性をnullにする
         StampTreeNode node =(StampTreeNode) tree.getLastSelectedPathComponent();
         //ModuleInfoBean info = (ModuleInfoBean)node.getUserObject();
-        boolean enabled = (node != null && node.isLeaf()  && ((ModuleInfoBean)node.getUserObject()).isSerialized()) ? true : false;
+        boolean enabled = (node != null && node.isLeaf()  && ((ModuleInfoBean)node.getUserObject()).isSerialized());
         StampTreeNode selected = enabled ? node : null;
         
         leftImport.setEnabled(enabled);
@@ -348,11 +345,11 @@ public class EditorSetPanel extends JPanel implements PropertyChangeListener, Tr
                             System.err.println(ex);
 
                         } catch (ExecutionException ex) {
+                            String title = ClientContext.getMyBundle(EditorSetPanel.class).getString("title.optionPane");
                             JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(cardPanel),
                                                 ex.getMessage(),
-                                                ClientContext.getFrameTitle("Stamp取得"),
+                                                ClientContext.getFrameTitle(title),
                                                 JOptionPane.WARNING_MESSAGE);
-                            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle("Stamp取得"), ex.getMessage());
                         }
                     }
                 };
@@ -364,80 +361,68 @@ public class EditorSetPanel extends JPanel implements PropertyChangeListener, Tr
         //--------------------------------------------------
         // 新規スタンプとして保存ボタン　右矢印
         //--------------------------------------------------
-        rightNew.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                // cureditor から値を取得し、自分自身のプロパティに設定する。
-                // 束縛プロパティによりリスナのStampBoxへこの値が通知される。
-                Object obj = curEditor.getValue();
-                
-                setEditorValue(obj);
-
-                importedInfo = null;
-                curEditor.setValue(null);
-            }
+        rightNew.addActionListener((ActionEvent ae) -> {
+            // cureditor から値を取得し、自分自身のプロパティに設定する。
+            // 束縛プロパティによりリスナのStampBoxへこの値が通知される。
+            Object obj = curEditor.getValue();
+            
+            setEditorValue(obj);
+            
+            importedInfo = null;
+            curEditor.setValue(null);
         });
 
         //--------------------------------------------------
         // 置き換えスタンプボタン　右矢印
         //--------------------------------------------------
-        rightReplace.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                // cureditor から値を取得し、自分自身のプロパティに設定する。
-                // 束縛プロパティによりリスナへこの値が通知される。
-                Object obj = curEditor.getValue();
-
-                ModuleModel stamp = (ModuleModel) obj;
-                if (importedInfo!=null) {
-                    stamp.setModuleInfoBean(importedInfo);
-                }
-
-                setEditorValue((Object)stamp);
-
-                importedInfo = null;
-                curEditor.setValue(null);
+        rightReplace.addActionListener((ActionEvent ae) -> {
+            // cureditor から値を取得し、自分自身のプロパティに設定する。
+            // 束縛プロパティによりリスナへこの値が通知される。
+            Object obj = curEditor.getValue();
+            
+            ModuleModel stamp = (ModuleModel) obj;
+            if (importedInfo!=null) {
+                stamp.setModuleInfoBean(importedInfo);
             }
+            
+            setEditorValue((Object)stamp);
+            
+            importedInfo = null;
+            curEditor.setValue(null);
         });
 
         //--------------------------------------------------
         // 600 入れ替えスタンプボタン　右矢印
         //--------------------------------------------------
-        ActionListener al = new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                // cureditor から値を取得し、自分自身のプロパティに設定する。
-                // 束縛プロパティによりリスナへこの値が通知される。
-                Object obj = curEditor.getValue();
-
-                ModuleModel stamp = (ModuleModel) obj;
-                ModuleInfoBean info = stamp.getModuleInfoBean();
-                info.setStampId(null); // 新規スタンプ
-
-                // entity 入れ替え
-                JButton btn = (JButton)ae.getSource();
-                String text = btn.getText();
-
-                if (text.equals(TITLE_TO_PHYSIO)) {
-                    info.setEntity(IInfoModel.ENTITY_PHYSIOLOGY_ORDER);
-
-                } else if (text.equals(TITLE_TO_BACTERIA)) {
-                    info.setEntity(IInfoModel.ENTITY_BACTERIA_ORDER);
-
-                } else if (text.equals(TITLE_TO_LAB)) {
-                    info.setEntity(IInfoModel.ENTITY_LABO_TEST);
-                }
-
-                setEditorValue((Object)stamp);
-
-                rightNew.setEnabled(false);
-                rightReplace.setEnabled(false);
-                importedInfo = null;
-                curEditor.setValue(null);
+        ActionListener al = (ActionEvent ae) -> {
+            // cureditor から値を取得し、自分自身のプロパティに設定する。
+            // 束縛プロパティによりリスナへこの値が通知される。
+            Object obj = curEditor.getValue();
+            
+            ModuleModel stamp = (ModuleModel) obj;
+            ModuleInfoBean info = stamp.getModuleInfoBean();
+            info.setStampId(null); // 新規スタンプ
+            
+            // entity 入れ替え
+            JButton btn = (JButton)ae.getSource();
+            String text = btn.getText();
+            
+            if (text.equals(TITLE_TO_PHYSIO)) {
+                info.setEntity(IInfoModel.ENTITY_PHYSIOLOGY_ORDER);
+                
+            } else if (text.equals(TITLE_TO_BACTERIA)) {
+                info.setEntity(IInfoModel.ENTITY_BACTERIA_ORDER);
+                
+            } else if (text.equals(TITLE_TO_LAB)) {
+                info.setEntity(IInfoModel.ENTITY_LABO_TEST);
             }
+            
+            setEditorValue((Object)stamp);
+            
+            rightNew.setEnabled(false);
+            rightReplace.setEnabled(false);
+            importedInfo = null;
+            curEditor.setValue(null);
         };
 
         right6001.addActionListener(al);
@@ -450,34 +435,21 @@ public class EditorSetPanel extends JPanel implements PropertyChangeListener, Tr
     private void initComponent() {
         
         // 編集したスタンプをボックスへ登録する右向きボタンを生成する
-//minagawa^ Icon Server        
-        //rightNew = new JButton(TITLE_NEW, ClientContext.getImageIcon(ICON_FORWARD));
-        rightNew = new JButton(TITLE_NEW, ClientContext.getImageIconArias("icon_arrow_right_small"));
-//minagawa$        
+        rightNew = new JButton(TITLE_NEW, ClientContext.getImageIconArias("icon_arrow_right_small"));      
         rightNew.setEnabled(false);
 
         // 編集したスタンプを上書きする右向きボタンを生成する
-//minagawa^ Icon Server         
-        //rightReplace = new JButton(TITLE_REPLACE, ClientContext.getImageIcon(ICON_FORWARD));
-        rightReplace = new JButton(TITLE_REPLACE, ClientContext.getImageIconArias("icon_arrow_right_small"));
-//minagawa$           
+        rightReplace = new JButton(TITLE_REPLACE, ClientContext.getImageIconArias("icon_arrow_right_small"));         
         rightReplace.setEnabled(false);
 
         // 診区 600 （検体、生体、細菌）入れ替えボタン
-//minagawa^ Icon Server           
-        //right6001 = new JButton(ClientContext.getImageIcon(ICON_FORWARD));
-        //right6002 = new JButton(ClientContext.getImageIcon(ICON_FORWARD));
         right6001 = new JButton(ClientContext.getImageIconArias("icon_arrow_right_small"));
-        right6002 = new JButton(ClientContext.getImageIconArias("icon_arrow_right_small"));
-//minagawa$          
+        right6002 = new JButton(ClientContext.getImageIconArias("icon_arrow_right_small"));         
         right6001.setVisible(false);
         right6002.setVisible(false);
         
         // スタンプボックスのスタンプをセットテーブルへ取り込む左向きのボタンを生成する
-//minagawa^ Icon Server         
-        //leftImport = new JButton(TITLE_IMPORT, ClientContext.getImageIcon(ICON_BACK));
-        leftImport = new JButton(TITLE_IMPORT, ClientContext.getImageIconArias("icon_arrow_left_small"));
-//minagawa$          
+        leftImport = new JButton(TITLE_IMPORT, ClientContext.getImageIconArias("icon_arrow_left_small"));        
         leftImport.setEnabled(false);
 
         //-----------------------------------
@@ -498,7 +470,7 @@ public class EditorSetPanel extends JPanel implements PropertyChangeListener, Tr
         treatment = new BaseEditor(IInfoModel.ENTITY_TREATMENT, false);
 
         // Hashテーブルに登録し show(entity) で使用する
-        table = new HashMap<String, AbstractStampEditor>();
+        table = new HashMap<>();
         table.put(IInfoModel.ENTITY_BACTERIA_ORDER, bacteria);
         table.put(IInfoModel.ENTITY_BASE_CHARGE_ORDER, baseCharge);
         table.put(IInfoModel.ENTITY_DIAGNOSIS, diagnosis);
@@ -555,6 +527,15 @@ public class EditorSetPanel extends JPanel implements PropertyChangeListener, Tr
 
     /** EditorSetPanel を生成する。 */
     public EditorSetPanel() {
+        // Resource Injection
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(EditorSetPanel.class);
+        TITLE_NEW = bundle.getString("actionText.new");
+        TITLE_REPLACE = bundle.getString("actionText.replace");
+        TITLE_IMPORT = bundle.getString("actionText.import");
+        TITLE_TO_LAB = bundle.getString("actionText.labTest");
+        TITLE_TO_PHYSIO = bundle.getString("actionText.physiology");
+        TITLE_TO_BACTERIA = bundle.getString("actionText.bacteria");
+        TITLE_FROM_EDITOR = bundle.getString("treeName.fromEditor");
         cardPanel = new JPanel();
         cardLayout = new CardLayout();
         cardPanel.setLayout(cardLayout);

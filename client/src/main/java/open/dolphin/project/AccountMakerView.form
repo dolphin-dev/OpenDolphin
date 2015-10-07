@@ -4,7 +4,9 @@
   <Properties>
     <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
       <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-        <TitledBorder title="&#x30aa;&#x30f3;&#x30e9;&#x30a4;&#x30f3;&#x30c6;&#x30b9;&#x30c8;"/>
+        <TitledBorder title="Online Test">
+          <ResourceString PropertyName="titleX" bundle="open/dolphin/project/resources/AccountMakerView.properties" key="jPanel.borderTitle" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </TitledBorder>
       </Border>
     </Property>
   </Properties>
@@ -24,9 +26,9 @@
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="1" attributes="0">
-              <EmptySpace pref="86" max="32767" attributes="0"/>
+              <EmptySpace pref="92" max="32767" attributes="0"/>
               <Component id="accountMakeBtn" min="-2" max="-2" attributes="0"/>
-              <EmptySpace pref="86" max="32767" attributes="0"/>
+              <EmptySpace pref="93" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -43,7 +45,9 @@
   <SubComponents>
     <Component class="javax.swing.JButton" name="accountMakeBtn">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x8a55;&#x4fa1;&#x7528;&#x30a2;&#x30ab;&#x30a6;&#x30f3;&#x30c8;&#x4f5c;&#x6210;..."/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/project/resources/AccountMakerView.properties" key="accountMakeBtn.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
   </SubComponents>

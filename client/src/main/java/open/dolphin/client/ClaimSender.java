@@ -2,13 +2,12 @@ package open.dolphin.client;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.logging.Level;
 import open.dolphin.infomodel.*;
 import open.dolphin.message.ClaimHelper;
 import open.dolphin.message.MessageBuilder;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 import open.dolphin.util.ZenkakuUtils;
-import org.apache.log4j.Level;
 
 /**
  * Karte と Diagnosis の CLAIM を送る
@@ -24,15 +23,20 @@ public class ClaimSender implements IKarteSender {
     // CLAIM 送信リスナ
     private ClaimMessageListener claimListener;
 
-//minagawa^ UUIDの変わりに保険情報モジュールを送信する
+    //minagawa^ UUIDの変わりに保険情報モジュールを送信する
     private PVTHealthInsuranceModel insuranceToApply;
 
-    private boolean DEBUG;
+    // Logger
+    private static final boolean DEBUG = false;
+    private static final java.util.logging.Logger logger;
+    static {
+        logger = java.util.logging.Logger.getLogger(ClaimSender.class.getName());
+        logger.setLevel(DEBUG ? Level.FINE : Level.INFO);
+    }
     
     private boolean send;
 
     public ClaimSender() {
-        DEBUG = (ClientContext.getBootLogger().getLevel()==Level.DEBUG);
     }
 
     @Override
@@ -59,6 +63,7 @@ public class ClaimSender implements IKarteSender {
 
     /**
      * DocumentModel の CLAIM 送信を行う。
+     * @param sendModel
      */
     @Override
     public void send(DocumentModel sendModel) {
@@ -77,9 +82,6 @@ public class ClaimSender implements IKarteSender {
         Collection<ModuleModel> modules = sendModel.getModules();
 //minagawa$
 
-        //DG ------------------------------------------
-        // 過去日で送信するために firstConfirmDate へ変更
-        //String confirmedStr = ModelUtils.getDateTimeAsString(docInfo.getConfirmDate());
  //minagawa^ CLAIM送信 日をまたいだが、前日で送る必要がある場合等(予定カルテ対応)
         //String confirmedStr = ModelUtils.getDateTimeAsString(docInfo.getFirstConfirmDate());
         Date sendDate = docInfo.getClaimDate()!=null ? docInfo.getClaimDate() : docInfo.getFirstConfirmDate();
@@ -88,7 +90,7 @@ public class ClaimSender implements IKarteSender {
 //minagawa$
         //--------------------------------------------- DG
         helper.setConfirmDate(confirmedStr);
-        debug(confirmedStr);
+        logger.finer(confirmedStr);
 
         String deptName = docInfo.getDepartmentName();
         String deptCode = docInfo.getDepartmentCode();
@@ -106,13 +108,13 @@ public class ClaimSender implements IKarteSender {
         if (jamriCode == null) {
             jamriCode = Project.getString(Project.JMARI_CODE);
         }
-        if (DEBUG) {
-            debug(deptName);
-            debug(deptCode);
-            debug(doctorName);
-            debug(doctorId);
-            debug(jamriCode);
-        }
+        
+        logger.finer(deptName);
+        logger.finer(deptCode);
+        logger.finer(doctorName);
+        logger.finer(doctorId);
+        logger.finer(jamriCode);
+        
         helper.setCreatorDeptDesc(deptName);
         helper.setCreatorDept(deptCode);
         helper.setCreatorName(doctorName);
@@ -136,11 +138,9 @@ public class ClaimSender implements IKarteSender {
         // 2010-11-10 UUIDの変わりに保険情報モジュールを送信する
         helper.setSelectedInsurance(insuranceToApply);
         //-------------------------------------------------- DG
-        if (DEBUG) {
-            debug(helper.getHealthInsuranceGUID());
-            debug(helper.getHealthInsuranceClassCode());
-            debug(helper.getHealthInsuranceDesc());
-        }
+        logger.finer(helper.getHealthInsuranceGUID());
+        logger.finer(helper.getHealthInsuranceClassCode());
+        logger.finer(helper.getHealthInsuranceDesc());
 
         // 保存する KarteModel の全モジュールをチェックし
         // それが ClaimBundle ならヘルパーへ追加する
@@ -176,18 +176,8 @@ public class ClaimSender implements IKarteSender {
         cvt.setConfirmDate(confirmedStr);
 
         // debug 出力を行う
-        if (ClientContext.getClaimLogger() != null) {
-            ClientContext.getClaimLogger().debug(cvt.getClaimInsutance());
-        }
+        logger.finer(cvt.getClaimInsutance());
 
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I","CLAIM",cvt.getClaimInsutance());
         claimListener.claimMessageEvent(cvt);
-    }
-
-    private void debug(String msg) {
-        Log.outputFuncLog(Log.LOG_LEVEL_3,"I",msg);
-        if (DEBUG) {
-            ClientContext.getBootLogger().debug(msg);
-        }
     }
 }

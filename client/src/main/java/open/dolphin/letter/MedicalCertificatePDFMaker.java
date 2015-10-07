@@ -24,7 +24,7 @@ import open.dolphin.project.Project;
  */
 public class MedicalCertificatePDFMaker extends AbstractLetterPDFMaker {
 
-    private static final String DOC_TITLE = "診 断 書";
+    //private static final String DOC_TITLE = "診 断 書";
 
     @Override
     public String create() {
@@ -39,14 +39,13 @@ public class MedicalCertificatePDFMaker extends AbstractLetterPDFMaker {
             
             String path = UserDocumentHelper.createPathToDocument(
                     getDocumentDir(),       // PDF File を置く場所
-                    "診断書",                // 文書名
+                    ClientContext.getMyBundle(MedicalCertificatePDFMaker.class).getString("title.medicalCertificate"),                // 文書名
                     EXT_PDF,                // 拡張子 
                     model.getPatientName(), // 患者氏名 
-                    new Date());            // 日付
-//minagawa^ jdk7           
+                    new Date());            // 日付 
+            
             Path pathObj = Paths.get(path);
-            setPathToPDF(pathObj.toAbsolutePath().toString());         // 呼び出し側で取り出せるように保存する
-//minagawa$                
+            setPathToPDF(pathObj.toAbsolutePath().toString());         // 呼び出し側で取り出せるように保存する             
             // Open Document
             ByteArrayOutputStream byteo = new ByteArrayOutputStream();
             PdfWriter.getInstance(document, byteo);
@@ -65,7 +64,7 @@ public class MedicalCertificatePDFMaker extends AbstractLetterPDFMaker {
             //----------------------------------------
             // タイトル
             //----------------------------------------
-            Paragraph para = new Paragraph(DOC_TITLE, titleFont);
+            Paragraph para = new Paragraph(ClientContext.getMyBundle(MedicalCertificatePDFMaker.class).getString("paragrap.medicalCertificate"), titleFont);
             para.setAlignment(Element.ALIGN_CENTER);
             document.add(para);
             document.add(new Paragraph("　"));
@@ -80,26 +79,26 @@ public class MedicalCertificatePDFMaker extends AbstractLetterPDFMaker {
 
             // 患者氏名
             PdfPCell cell;
-            pTable.addCell(createNoBorderCell("氏　　名"));
+            pTable.addCell(createNoBorderCell(ClientContext.getMyBundle(MedicalCertificatePDFMaker.class).getString("cell.name")));
             cell = createNoBorderCell(model.getPatientName());
             cell.setColspan(3);
             pTable.addCell(cell);
 
             // 生年月日 性別
-            pTable.addCell(createNoBorderCell("生年月日"));
+            pTable.addCell(createNoBorderCell(ClientContext.getMyBundle(MedicalCertificatePDFMaker.class).getString("cell.birthdate")));
             pTable.addCell(createNoBorderCell(getDateString(model.getPatientBirthday())));
-            pTable.addCell(createNoBorderCell("性別"));
+            pTable.addCell(createNoBorderCell(ClientContext.getMyBundle(MedicalCertificatePDFMaker.class).getString("cell.gender")));
             pTable.addCell(createNoBorderCell(model.getPatientGender()));
 
             // 住所
-            pTable.addCell(createNoBorderCell("住　　所"));
+            pTable.addCell(createNoBorderCell(ClientContext.getMyBundle(MedicalCertificatePDFMaker.class).getString("cell.address")));
             cell = createNoBorderCell(model.getPatientAddress());
             cell.setColspan(3);
             pTable.addCell(cell);
 
             // 傷病名
             String disease = model.getItemValue(MedicalCertificateImpl.ITEM_DISEASE);
-            pTable.addCell(createNoBorderCell("傷 病 名"));
+            pTable.addCell(createNoBorderCell(ClientContext.getMyBundle(MedicalCertificatePDFMaker.class).getString("cell.dicease")));
             cell = createNoBorderCell(disease);
             cell.setColspan(3);
             pTable.addCell(cell);
@@ -132,27 +131,14 @@ public class MedicalCertificatePDFMaker extends AbstractLetterPDFMaker {
             pTable.setWidthPercentage(100.0f);
 
             // 上記の通り診断する
-            pTable.addCell(createNoBorderCell("上記の通り診断する。"));
-//minagawa^ LSC 1.4 bug fix 文書の印刷日付 2013/06/24
-            //String dateStr = getDateString(model.getConfirmed());
-            String dateStr = getDateString(model.getStarted());
-//minagawa$  
+            pTable.addCell(createNoBorderCell(ClientContext.getMyBundle(MedicalCertificatePDFMaker.class).getString("cell.certificate")));
+            String dateStr = getDateString(model.getStarted());  
             pTable.addCell(createNoBorderCell(dateStr));
             
             // 住所 BaseFont.getWidthPoint
             String zipCode = model.getConsultantZipCode();
             String address = model.getConsultantAddress();
-//            float zipLen = baseFont.getWidthPoint(zipCode, 12.0f);
-//            float addressLen = baseFont.getWidthPoint(address, 12.0f);
-//            float padlen = addressLen-zipLen;
-//            sb = new StringBuilder();
-//            while (true) {
-//                sb.append("　");
-//                if (baseFont.getWidthPoint(sb.toString(), 12.0f)>=padlen) {
-//                    break;
-//                }
-//            }
-//            String space = sb.toString();
+
             StringBuilder sb = new StringBuilder();
             sb.append(zipCode);
             cell = createNoBorderCell(sb.toString());
@@ -177,7 +163,7 @@ public class MedicalCertificatePDFMaker extends AbstractLetterPDFMaker {
 
             // 医師
             sb = new StringBuilder();
-            sb.append("医 師　").append(model.getConsultantDoctor()).append(" 印");
+            sb.append(ClientContext.getMyBundle(MedicalCertificatePDFMaker.class).getString("cell.doctor")).append(" ").append(model.getConsultantDoctor()).append("").append(ClientContext.getMyBundle(MedicalCertificatePDFMaker.class).getString("cell.seal"));
             cell = createNoBorderCell(sb.toString());
             cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             pTable.addCell(cell);
@@ -189,27 +175,15 @@ public class MedicalCertificatePDFMaker extends AbstractLetterPDFMaker {
             byte[] pdfbytes = byteo.toByteArray();
             
             // 評価でない場合は Fileへ書き込んでリターン
-            if (!ClientContext.is5mTest()) {
-//minagawa^                
-//                FileOutputStream fout = new FileOutputStream(pathToPDF);
-//                FileChannel channel = fout.getChannel();
-//                ByteBuffer bytebuff = ByteBuffer.wrap(pdfbytes);
-//
-//                while(bytebuff.hasRemaining()) {
-//                    channel.write(bytebuff);
-//                }
-//                channel.close();                
-                Files.write(pathObj, pdfbytes);
-//minagawa$                
+            //if (!ClientContext.is5mTest()) {  
+            if (!Project.isTester()) {      
+                Files.write(pathObj, pdfbytes);            
                 return getPathToPDF();
             }
             
             // 評価の場合は water Mark を書く
             PdfReader pdfReader = new PdfReader(pdfbytes);
-//minagawa~            
-//            PdfStamper pdfStamper = new PdfStamper(pdfReader,new FileOutputStream(pathToPDF));
             PdfStamper pdfStamper = new PdfStamper(pdfReader,Files.newOutputStream(pathObj));
-//minagawa$
             Image image = Image.getInstance(ClientContext.getImageResource("water-mark.png"));
 
             for(int i=1; i<= pdfReader.getNumberOfPages(); i++){
@@ -226,10 +200,10 @@ public class MedicalCertificatePDFMaker extends AbstractLetterPDFMaker {
             return getPathToPDF();
 
         } catch (IOException ex) {
-            ClientContext.getBootLogger().warn(ex);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
             throw new RuntimeException(ERROR_IO);
         } catch (DocumentException ex) {
-            ClientContext.getBootLogger().warn(ex);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
             throw new RuntimeException(ERROR_PDF);
         }
     }

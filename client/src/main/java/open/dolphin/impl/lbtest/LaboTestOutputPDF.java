@@ -8,8 +8,6 @@ import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
 import java.awt.Color;
 import java.awt.Desktop;
-import java.awt.Graphics2D;
-import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.net.URI;
 import java.text.SimpleDateFormat;
@@ -21,8 +19,6 @@ import javax.print.attribute.DocAttributeSet;
 import javax.print.attribute.HashDocAttributeSet;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
-import javax.print.attribute.standard.Copies;
-import javax.print.attribute.standard.MediaSizeName;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import open.dolphin.client.ClientContext;
@@ -46,17 +42,17 @@ public class LaboTestOutputPDF extends AbstractLetterPDFMaker {
     public static final int CHART_HEIGHT            = 250;
     public static final int TABLE_FONTSIZE          = 11;
     public static final int HEADER_FONTSIZE         = 15;
-    private static final int GRAPHSPACE_ROWCOUNT    = 30;
+    //private static final int GRAPHSPACE_ROWCOUNT    = 30;
     private static final Color COLOR_COLUMN         = new Color(222,222,222);
     private static final Color COLOR_CELL1          = new Color(255,255,255);
     private static final Color COLOR_CELL2          = new Color(237,243,254);
-    private static final String MSG_CREATEPDF_ERR   = "PDFの作成に失敗しました。";
+//    private static final String MSG_CREATEPDF_ERR   = "PDFの作成に失敗しました。";
     
-    private String patID;                                   // Patient ID
-    private String patName;
-    private Date saveDate;                                  // Save Date
-    private JTable laboTable;
-    private JFreeChart freeChart;
+    private final String patID;                                   // Patient ID
+    private final String patName;
+    private final Date saveDate;                                  // Save Date
+    private final JTable laboTable;
+    private final JFreeChart freeChart;
     
     public LaboTestOutputPDF(String id, String name, Date date, String path, JTable table, JFreeChart chart) {
         patID = id;
@@ -101,7 +97,8 @@ public class LaboTestOutputPDF extends AbstractLetterPDFMaker {
         
         // ヘッダーの設定をする
         Font headerFont = new Font(BaseFont.createFont("HeiseiKakuGo-W5", "UniJIS-UCS2-H", BaseFont.NOT_EMBEDDED), HEADER_FONTSIZE, Font.BOLD);
-        HeaderFooter header = new HeaderFooter(new Phrase(patName + " 様", headerFont), false);
+        String title = ClientContext.getMyBundle(LaboTestOutputPDF.class).getString("person.title");
+        HeaderFooter header = new HeaderFooter(new Phrase(patName + title, headerFont), false);
         header.setAlignment(Element.ALIGN_CENTER);
         header.setBorder(Rectangle.NO_BORDER);
         pdfDoc.setHeader(header);
@@ -263,13 +260,16 @@ public class LaboTestOutputPDF extends AbstractLetterPDFMaker {
             ret = createPDF();
         } catch (DocumentException ex) {
             Logger.getLogger(LaboTestOutputPDF.class.getName()).log(Level.SEVERE, null, ex);
-            JOptionPane.showMessageDialog(null, MSG_CREATEPDF_ERR, ClientContext.getString("productString"), JOptionPane.WARNING_MESSAGE);
+            String creationError = ClientContext.getMyBundle(LaboTestOutputPDF.class).getString("error.createPDF");
+            JOptionPane.showMessageDialog(null, creationError, ClientContext.getString("productString"), JOptionPane.WARNING_MESSAGE);
         } catch (FileNotFoundException ex) {
             Logger.getLogger(LaboTestOutputPDF.class.getName()).log(Level.SEVERE, null, ex);
-            JOptionPane.showMessageDialog(null, MSG_CREATEPDF_ERR, ClientContext.getString("productString"), JOptionPane.WARNING_MESSAGE);
+            String creationError = ClientContext.getMyBundle(LaboTestOutputPDF.class).getString("error.createPDF");
+            JOptionPane.showMessageDialog(null, creationError, ClientContext.getString("productString"), JOptionPane.WARNING_MESSAGE);
         } catch (IOException ex) {
             Logger.getLogger(LaboTestOutputPDF.class.getName()).log(Level.SEVERE, null, ex);
-            JOptionPane.showMessageDialog(null, MSG_CREATEPDF_ERR, ClientContext.getString("productString"), JOptionPane.WARNING_MESSAGE);
+            String creationError = ClientContext.getMyBundle(LaboTestOutputPDF.class).getString("error.createPDF");
+            JOptionPane.showMessageDialog(null, creationError, ClientContext.getString("productString"), JOptionPane.WARNING_MESSAGE);
         }
         return ret;
     }

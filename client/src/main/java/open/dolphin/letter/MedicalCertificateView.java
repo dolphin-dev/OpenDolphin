@@ -57,18 +57,19 @@ public class MedicalCertificateView extends Panel2 {
         setName("Form"); // NOI18N
         setPreferredSize(new java.awt.Dimension(585, 794));
 
-        jLabel1.setText("診 断 書（フォーム）"); // NOI18N
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/letter/resources/MedicalCertificateView"); // NOI18N
+        jLabel1.setText(bundle.getString("medicalCertificateLabel.text")); // NOI18N
         jLabel1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
-        jLabel2.setText("氏　名"); // NOI18N
+        jLabel2.setText(bundle.getString("patientNameLabel.text")); // NOI18N
 
         patientNameFld.setEditable(false);
 
-        jLabel3.setText("住　所"); // NOI18N
+        jLabel3.setText(bundle.getString("patientAddressLabel.text")); // NOI18N
 
         patientAddress.setEditable(false);
 
-        jLabel4.setText("生年月日"); // NOI18N
+        jLabel4.setText(bundle.getString("patientBirthdayLabel.text")); // NOI18N
 
         patientBirthday.setEditable(false);
 
@@ -78,7 +79,7 @@ public class MedicalCertificateView extends Panel2 {
         jScrollPane1.setViewportView(informedContent);
 
         confirmedFld.setEditable(false);
-        confirmedFld.setToolTipText("右クリックでカレンダーがポップアップします。"); // NOI18N
+        confirmedFld.setToolTipText(bundle.getString("confirmedFld.toolTipText")); // NOI18N
 
         hospitalAddressFld.setEditable(false);
         hospitalAddressFld.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
@@ -89,19 +90,19 @@ public class MedicalCertificateView extends Panel2 {
         doctorNameFld.setEditable(false);
         doctorNameFld.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
 
-        jLabel8.setText("傷 病 名"); // NOI18N
+        jLabel8.setText(bundle.getString("diceaseLabel.text")); // NOI18N
 
-        jLabel9.setText("上記の通り診断する。"); // NOI18N
+        jLabel9.setText(bundle.getString("certificateLabel.text")); // NOI18N
         jLabel9.setName("jLabel9"); // NOI18N
 
         hospitalTelephoneFld.setEditable(false);
         hospitalTelephoneFld.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
 
-        jLabel11.setText("性別"); // NOI18N
+        jLabel11.setText(bundle.getString("patientGenderLabel.text")); // NOI18N
 
         sexFld.setEditable(false);
 
-        jLabel12.setText("印"); // NOI18N
+        jLabel12.setText(bundle.getString("sealLabel.text")); // NOI18N
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);
@@ -133,13 +134,13 @@ public class MedicalCertificateView extends Panel2 {
                                         .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 460, Short.MAX_VALUE)))
                                 .add(layout.createSequentialGroup()
                                     .add(64, 64, 64)
-                                    .add(confirmedFld, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 174, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                                     .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                                        .add(hospitalAddressFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 286, Short.MAX_VALUE)
-                                        .add(hospitalNameFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 286, Short.MAX_VALUE)))
-                                .add(layout.createSequentialGroup()
-                                    .add(64, 64, 64)
-                                    .add(jLabel9))))
+                                        .add(layout.createSequentialGroup()
+                                            .add(confirmedFld, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 174, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                                            .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                                                .add(hospitalAddressFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 290, Short.MAX_VALUE)
+                                                .add(hospitalNameFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 290, Short.MAX_VALUE)))
+                                        .add(jLabel9)))))
                         .add(layout.createSequentialGroup()
                             .add(363, 363, 363)
                             .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
@@ -151,7 +152,7 @@ public class MedicalCertificateView extends Panel2 {
                     .add(layout.createSequentialGroup()
                         .add(219, 219, 219)
                         .add(jLabel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 133, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(42, Short.MAX_VALUE))
+                .addContainerGap(38, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)

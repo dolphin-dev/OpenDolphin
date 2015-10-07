@@ -44,10 +44,8 @@ public class NLabParser implements LabResultParser {
         SimpleDateFormat defaultDF = new SimpleDateFormat(DEFAULT_DATE_FORMAT);
         SimpleDateFormat df8 = new SimpleDateFormat(DATE_FORMAT_8);
         SimpleDateFormat df10 = new SimpleDateFormat(DATE_FORMAT_10);
-//minagawa^ jdk7       
-        //BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(labFile),getEncoding()));
-        BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(path),getEncoding()));
-//minagawa$        
+        
+        BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(path),getEncoding()));       
         int lineNo = 0;
 
         while ((line = reader.readLine()) != null) {
@@ -106,7 +104,7 @@ public class NLabParser implements LabResultParser {
                 sampleDate = defaultDF.format(date);
 
             } catch (Exception e) {
-                ClientContext.getLaboTestLogger().warn(e);
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(e.getMessage());
                 throw new IOException(e.getMessage());
             }
             
@@ -117,7 +115,6 @@ public class NLabParser implements LabResultParser {
                 }
             }
 //s.oh$
-
             //---------------------------------------------
             // 検査箋（検査モジュール）のキー
             //  = patientId.sampleDate.labCode

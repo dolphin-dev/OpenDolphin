@@ -60,7 +60,6 @@ public class RpViewText extends javax.swing.JPanel implements IRpView {
         setMinimumSize(new java.awt.Dimension(700, 600));
         setPreferredSize(new java.awt.Dimension(700, 600));
 
-        infoLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/resources/images/about_16.gif"))); // NOI18N
         infoLabel.setText("info"); // NOI18N
 
         setTable.setModel(new javax.swing.table.DefaultTableModel(
@@ -74,52 +73,50 @@ public class RpViewText extends javax.swing.JPanel implements IRpView {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        setTable.setToolTipText("セット内容は Drag & Drop で順番を入れ替えることができます。"); // NOI18N
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/order/resources/RpView"); // NOI18N
+        setTable.setToolTipText(bundle.getString("setTable.toolTipText")); // NOI18N
         jScrollPane1.setViewportView(setTable);
 
-        usageCheck.setText("用法"); // NOI18N
-        usageCheck.setToolTipText("セットに用法があればチェックされます。"); // NOI18N
+        usageCheck.setText(bundle.getString("usageCheck.text")); // NOI18N
+        usageCheck.setToolTipText(bundle.getString("usageCheck.toolTipText")); // NOI18N
         usageCheck.setEnabled(false);
 
-        medicineCheck.setText("薬剤"); // NOI18N
-        medicineCheck.setToolTipText("薬剤がセットにあればチェックされます。"); // NOI18N
+        medicineCheck.setText(bundle.getString("medicineCheck.text")); // NOI18N
+        medicineCheck.setToolTipText(bundle.getString("medicineCheck.toolTipText")); // NOI18N
         medicineCheck.setEnabled(false);
 
         stampNameField.setBackground(new java.awt.Color(255, 255, 0));
-        stampNameField.setToolTipText("セット名を編集します。"); // NOI18N
+        stampNameField.setToolTipText(bundle.getString("stampNameField.toolTipText")); // NOI18N
 
-        inRadio.setText("院内"); // NOI18N
-        inRadio.setToolTipText("院内処方の時選択します。"); // NOI18N
+        inRadio.setText(bundle.getString("inRadio.text")); // NOI18N
+        inRadio.setToolTipText(bundle.getString("inRadio.toolTipText")); // NOI18N
 
-        outRadio.setText("院外"); // NOI18N
-        outRadio.setToolTipText("院外処方の時選択します。"); // NOI18N
+        outRadio.setText(bundle.getString("outRadio.text")); // NOI18N
+        outRadio.setToolTipText(bundle.getString("outRadio.toolTipText")); // NOI18N
 
-        okCntBtn.setText("展開継続"); // NOI18N
-        okCntBtn.setToolTipText("セットをカルテに展開し継続します。"); // NOI18N
+        okCntBtn.setText(bundle.getString("okCntBtn.text")); // NOI18N
+        okCntBtn.setToolTipText(bundle.getString("okCntBtn.toolTipText")); // NOI18N
 
-        okBtn.setText("展開"); // NOI18N
-        okBtn.setToolTipText("セットをカルテに展開し終了します。"); // NOI18N
+        okBtn.setText(bundle.getString("okBtn.text")); // NOI18N
+        okBtn.setToolTipText(bundle.getString("okBtn.toolTipText")); // NOI18N
 
-        clearBtn.setText("クリア"); // NOI18N
-        clearBtn.setToolTipText("セット内容をクリアします。"); // NOI18N
+        clearBtn.setText(bundle.getString("clearBtn.text")); // NOI18N
+        clearBtn.setToolTipText(bundle.getString("clearBtn.toolTipText")); // NOI18N
 
-        deleteBtn.setText("削除"); // NOI18N
-        deleteBtn.setToolTipText("選択した項目を削除します。"); // NOI18N
+        deleteBtn.setText(bundle.getString("deleteBtn.text")); // NOI18N
+        deleteBtn.setToolTipText(bundle.getString("deleteBtn.toolTipText")); // NOI18N
 
-        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/order/Bundle"); // NOI18N
-        jLabel3.setText(bundle.getString("RpViewText.jLabel3.text")); // NOI18N
+        searchTextField.setToolTipText(bundle.getString("searchTextField.toolTipText")); // NOI18N
 
-        searchTextField.setToolTipText("検索したい医薬品名を入力します。"); // NOI18N
+        rtCheck.setText(bundle.getString("rtCheck.text")); // NOI18N
+        rtCheck.setToolTipText(bundle.getString("rtCheck.toolTipText")); // NOI18N
 
-        rtCheck.setText("RT"); // NOI18N
-        rtCheck.setToolTipText("チェックすると入力中にリアルタイムで検索します。"); // NOI18N
+        usageCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Select Usage", "内服１回等(100)", "内服２回等(200)", "内服３回等(300)", "内服４回等(400)", "点眼等(500,700)", "塗布等(600)", "頓用等(800)", "吸入等(900)", "全て" }));
+        usageCombo.setToolTipText(bundle.getString("usageCombo.toolTipText")); // NOI18N
 
-        usageCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "用法選択", "内服１回等(100)", "内服２回等(200)", "内服３回等(300)", "内服４回等(400)", "点眼等(500,700)", "塗布等(600)", "頓用等(800)", "吸入等(900)", "全て" }));
-        usageCombo.setToolTipText("用法を検索します。"); // NOI18N
+        countField.setToolTipText(bundle.getString("countField.toolTipText")); // NOI18N
 
-        countField.setToolTipText("検索結果の件数を表示します。"); // NOI18N
-
-        jLabel4.setText("件数"); // NOI18N
+        jLabel4.setText(bundle.getString("jLabel4.text")); // NOI18N
 
         searchResultTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -134,14 +131,14 @@ public class RpViewText extends javax.swing.JPanel implements IRpView {
         ));
         jScrollPane2.setViewportView(searchResultTable);
 
-        tonyoChk.setText("頓用"); // NOI18N
-        tonyoChk.setToolTipText("頓用のときチェックしてください"); // NOI18N
+        tonyoChk.setText(bundle.getString("tonyoChk.text")); // NOI18N
+        tonyoChk.setToolTipText(bundle.getString("tonyoCh.toolTipText")); // NOI18N
 
-        partialChk.setText("部分一致"); // NOI18N
-        partialChk.setToolTipText("部分一致検索をします。"); // NOI18N
+        partialChk.setText(bundle.getString("partialChk.text")); // NOI18N
+        partialChk.setToolTipText(bundle.getString("partialChk.toolTipText")); // NOI18N
 
-        temporalChk.setText("臨時"); // NOI18N
-        temporalChk.setToolTipText("臨時処方の時チェックします。"); // NOI18N
+        temporalChk.setText(bundle.getString("temporalChk.text")); // NOI18N
+        temporalChk.setToolTipText(bundle.getString("temporalChk.toolTipText")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -150,14 +147,14 @@ public class RpViewText extends javax.swing.JPanel implements IRpView {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(infoLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(inRadio)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(inRadio, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(outRadio, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tonyoChk, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(tonyoChk)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(temporalChk, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(96, 96, 96)
+                .addComponent(temporalChk, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(93, 93, 93)
                 .addComponent(medicineCheck)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(usageCheck))
@@ -176,7 +173,7 @@ public class RpViewText extends javax.swing.JPanel implements IRpView {
                         .addComponent(partialChk)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(usageCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 61, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 37, Short.MAX_VALUE)
                         .addComponent(jLabel4)
                         .addGap(12, 12, 12)
                         .addComponent(countField, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)

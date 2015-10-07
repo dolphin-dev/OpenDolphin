@@ -13,10 +13,10 @@ import java.util.List;
  */
 public final class FileListTransferable implements Transferable {
     
-    private List<File> fileList;
+    private final List<File> fileList;
 
     public FileListTransferable(File[] files) {
-        fileList = new ArrayList<File>();
+        fileList = new ArrayList<>();
         fileList.addAll(Arrays.asList(files));
     }
 

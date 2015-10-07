@@ -1,12 +1,14 @@
 package open.dolphin.stampbox;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ResourceBundle;
+import java.util.logging.Level;
 import open.dolphin.client.ClientContext;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModuleInfoBean;
-import org.apache.log4j.Level;
 
 /**
  * StampTree Builder クラス。
@@ -24,7 +26,7 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
     private static final String[] MATCHES = new String[] { "&amp;", "&lt;", "&gt;", "&apos;", "&quot;" };
     
     /** エディタから発行のスタンプ名 */
-    private static final String FROM_EDITOR = "エディタから発行...";
+ //   private static final String FROM_EDITOR = "エディタから発行...";
     
     /** rootノードの名前 */
     private String rootName;
@@ -47,19 +49,43 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
     /** 生成物 */
     private List<StampTree> products;
     
-    /** Logger */
-    private boolean DEBUG;  // = ClientContext.getLogger("boot");
-    
     // Goddy conversion
-    private boolean goddyConversion = true;
+    private final boolean goddyConversion = true;
     private boolean shidoParsing;
     private boolean zaitakuParsing;
+    
+    private final String convMatchInstraction;
+    private final String convReplaceInstraction;
+    private final String convMatchZaitaku;
+    private final String treeNameFromEditor;
+    
+    private ResourceBundle bundle;
+    
+    // Logger
+    private static final boolean DEBUG=false;
+    private static final java.util.logging.Logger logger;
+    static {
+        logger = java.util.logging.Logger.getLogger(DefaultStampTreeBuilder.class.getName());
+        logger.setLevel(DEBUG ? Level.FINE : Level.INFO);
+    }
     
     /** 
      * Creates new DefaultStampTreeBuilder 
      */
     public DefaultStampTreeBuilder() {
-        DEBUG = (ClientContext.getBootLogger().getLevel()==Level.DEBUG);
+        super();
+        
+        // StampTreeRsource  treeName from entity
+        bundle = java.util.ResourceBundle.getBundle("open.dolphin.stampbox.StampBoxResource");
+        
+        // Goody conversion
+        ResourceBundle goodyBundle = ClientContext.getMyBundle(DefaultStampTreeBuilder.class);
+        convMatchInstraction = goodyBundle.getString("text.instraction.conversion");             // 指導
+        convMatchZaitaku = goodyBundle.getString("text.zaitaku.conversion");                     // 在宅
+        convReplaceInstraction = goodyBundle.getString("text.replaceInstraction.conversion");    // 指導・在宅
+        
+        // stampEditor name
+        treeNameFromEditor = goodyBundle.getString("treeName.fromEditor");                       // エディタから発行...
     }
     
     /**
@@ -76,37 +102,48 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
      */
     @Override
     public void buildStart() {
-        products = new ArrayList<StampTree>();
+        products = new ArrayList<>();
         if (DEBUG) {
-            ClientContext.getBootLogger().debug("Build StampTree start");
+            logger.fine("Build StampTree start");
         }
     }
     
     /**
      * Root を生成する。
      * @param name root名
-     * @param Stamptree の Entity
+     * @param entity
      */
     @Override
     public void buildRoot(String name, String entity) {
         
+        // Tree name from the entity
+        String treeName = bundle.getString(entity);
+        
         if (DEBUG) {
-            ClientContext.getBootLogger().debug("Root=" + name);
-            System.err.println("Root=" + name);
+            String fmt = "Root={0}  entity={1}  treeName={2}";
+            MessageFormat msf = new MessageFormat(fmt);
+            String msg = msf.format(new Object[]{name, entity, treeName});
+            logger.fine(msg);
         }
         //--------------------------------------
-        // Goddy conversion.
-        if (name.equals("指導") && goddyConversion){
-            name = "指導・在宅";
+        // Goddy conversion.  指導と在宅のタブ（Tree）が別々 -> Dolphinは一つにまとめる
+        if (name.equals(convMatchInstraction) && goddyConversion){
+            name = convReplaceInstraction;
             shidoParsing = true;
         }
-        else if (name.equals("在宅") && goddyConversion) {
+        else if (name.equals(convMatchZaitaku) && goddyConversion) {
             zaitakuParsing = true;
             return;
         }
         //--------------------------------------
         
-        linkedList = new LinkedList<StampTreeNode>();
+        // i18n entity から Tree（タブ）名を決定する Goody版でない時
+        // Goody版の時はもともと日本語なので変換不要
+        if (!shidoParsing) {
+            name = treeName;
+        }
+        
+        linkedList = new LinkedList<>();
         
         //------------------------------------
         // TreeInfo を 生成し rootNode に保存する
@@ -129,8 +166,7 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
     public void buildNode(String name) {
         
         if (DEBUG) {
-            ClientContext.getBootLogger().debug("Node=" + name);
-            System.err.println("Node=" + name);
+            logger.fine("Node=" + name);
         }
         
         //------------------------------------
@@ -148,11 +184,13 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
     /**
      * StampInfo を UserObject にするノードを生成する。
      * @param name ノード名
-     * @param entity エンティティ
+     * @param role
+     * @param entity
      * @param editable 編集可能かどうかのフラグ
      * @param memo メモ
      * @param id DB key
      */
+    
     @Override
     public void buildStampInfo(String name,
             String role,
@@ -174,8 +212,7 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
             sb.append(memo);
             sb.append(",");
             sb.append(id);
-            ClientContext.getBootLogger().debug(sb.toString());
-            System.err.println(sb.toString());
+            logger.fine(sb.toString());
         }
         
         //------------------------------------
@@ -186,7 +223,7 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
         info.setStampRole(role);
         info.setEntity(entity);
         if (editable != null) {
-            info.setEditable(Boolean.valueOf(editable).booleanValue());
+            info.setEditable(Boolean.valueOf(editable));
         }
         if (memo != null) {
             info.setStampMemo(toXmlText(memo));
@@ -198,7 +235,7 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
         //-------------------------------------------------------------
         // Goddy Conversion: 在宅のエディタから発行は指導と重複するためパスする
         //-------------------------------------------------------------
-        if (zaitakuParsing && info.getStampName().equals(FROM_EDITOR) && (!info.isSerialized())) {
+        if (zaitakuParsing && info.getStampName().equals(treeNameFromEditor) && (!info.isSerialized())) {
             return;
         }
         
@@ -211,7 +248,7 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
         //------------------------------------
         // エディタから発行を持っているか
         //------------------------------------
-        if (info.getStampName().equals(FROM_EDITOR) && (!info.isSerialized()) ) {
+        if (info.getStampName().equals(treeNameFromEditor) && (!info.isSerialized()) ) {
             hasEditor = true;
             info.setEditable(false);
         }
@@ -223,8 +260,7 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
     @Override
     public void buildNodeEnd() {
         if (DEBUG) {
-            ClientContext.getBootLogger().debug("End node");
-            System.err.println("End node");
+            logger.fine("End node");
         }
         linkedList.removeFirst();
     }
@@ -235,6 +271,7 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
     @Override
     public void buildRootEnd() {
         
+        // Goody版の指導をパースしている時 次の在宅とまとめる
         if (shidoParsing && goddyConversion) {
             shidoParsing = false;
             return;
@@ -255,7 +292,7 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
                     // テキストスタンプとパススタンプにはエディタから発行...はなし
                     //--------------------------------------------------
                     ModuleInfoBean si = new ModuleInfoBean();
-                    si.setStampName(FROM_EDITOR);
+                    si.setStampName(treeNameFromEditor);
                     si.setStampRole(IInfoModel.ROLE_P);
                     si.setEntity(getEntity(rootName));
                     si.setEditable(false);
@@ -273,8 +310,7 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
         
         if (DEBUG) {
             int pCount = products.size();
-            ClientContext.getBootLogger().debug("End root " + "count=" + pCount);
-            System.err.println("End root " + "count=" + pCount);
+            logger.log(Level.FINE, "End root count={0}", pCount);
         }
     }
     
@@ -285,12 +321,12 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
     public void buildEnd() {
         
         if (DEBUG) {
-            ClientContext.getBootLogger().debug("Build end");
+            logger.fine("Build end");
         }
         
-        //
+        //-------------------------
         // ORCAセットを加える
-        //
+        //-------------------------
         boolean hasOrca = false;
         for (StampTree st : products) {
             String entity = st.getTreeInfo().getEntity();
@@ -301,13 +337,13 @@ public class DefaultStampTreeBuilder extends AbstractStampTreeBuilder {
         
         if (!hasOrca) {
             TreeInfo treeInfo = new TreeInfo();
-            treeInfo.setName(IInfoModel.TABNAME_ORCA);
+            treeInfo.setName(bundle.getString("TABNAME_ORCA"));
             treeInfo.setEntity(IInfoModel.ENTITY_ORCA);
             rootNode = new StampTreeNode(treeInfo);
             OrcaTree tree = new OrcaTree(new StampTreeModel(rootNode));
-            products.add(IInfoModel.TAB_INDEX_ORCA, tree);
+            products.add((int)bundle.getObject("TAB_INDEX_ORCA"), tree);
             if (DEBUG) {
-                ClientContext.getBootLogger().debug("ORCAセットを加えました");
+                logger.fine("ORCAセットを加えました");
             }
         }
     }

@@ -44,19 +44,23 @@ public class LoginPanelUser extends javax.swing.JPanel {
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/resources/images/splash.jpg"))); // NOI18N
 
-        jLabel3.setText("ユーザーID:");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/impl/login/resources/LoginPanelUser"); // NOI18N
+        jLabel3.setText(bundle.getString("jLabel3.text")); // NOI18N
+        jLabel3.setToolTipText(bundle.getString("jLabel3.toolTipText")); // NOI18N
 
-        jLabel4.setText("パスワード:");
+        jLabel4.setText(bundle.getString("jLabel4.text")); // NOI18N
 
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 2, 0));
 
-        settingBtn.setText("設 定");
+        settingBtn.setText(bundle.getString("settingBtn.text")); // NOI18N
+        settingBtn.setToolTipText(""); // NOI18N
         jPanel1.add(settingBtn);
 
-        cancelBtn.setText("キャンセル");
+        cancelBtn.setText(bundle.getString("cancelBtn.text")); // NOI18N
+        cancelBtn.setToolTipText("");
         jPanel1.add(cancelBtn);
 
-        loginBtn.setText("ログイン");
+        loginBtn.setText(bundle.getString("loginBtn.text")); // NOI18N
         jPanel1.add(loginBtn);
 
         progressBar.setPreferredSize(new java.awt.Dimension(146, 10));
@@ -71,7 +75,7 @@ public class LoginPanelUser extends javax.swing.JPanel {
             .add(layout.createSequentialGroup()
                 .addContainerGap()
                 .add(jLabel1)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
                     .add(jPanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                     .add(layout.createSequentialGroup()

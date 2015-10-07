@@ -2,31 +2,28 @@ package open.dolphin.client;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.*;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
 import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.MenuEvent;
 import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.delegater.OrcaDelegater;
@@ -58,13 +55,14 @@ import open.dolphin.infomodel.SchemaModel;
 import open.dolphin.infomodel.StampTreeModel;
 import open.dolphin.letter.KartePDFImpl2;
 import open.dolphin.plugin.PluginLoader;
+import open.dolphin.project.AbstractPropertySheet;
 import open.dolphin.project.Project;
 import open.dolphin.project.ProjectSettingDialog;
 import open.dolphin.project.ProjectStub;
+import open.dolphin.project.StubFactory;
 import open.dolphin.relay.PVTRelayProxy;
 import open.dolphin.server.PVTServer;
 import open.dolphin.stampbox.StampBoxPlugin;
-import open.dolphin.util.Log;
 
 /**
  * アプリケーションのメインウインドウクラス。
@@ -88,9 +86,6 @@ public class Dolphin implements MainWindow {
     // プリンターセットアップはMainWindowのみで行い、設定された PageFormat各プラグインが使用する
     private PageFormat pageFormat;
 
-    // 環境設定用の Properties
-    //private Properties saveEnv;
-
     // BlockGlass
     private BlockGlass blockGlass;
 
@@ -111,7 +106,7 @@ public class Dolphin implements MainWindow {
     private ProgressMonitor monitor;
     private int delayCount;
     private final int maxEstimation = 120*1000; // 120 秒
-    private final int delay = 300;      // 300 mmsec
+    private final int delay = 300;              // 300 mmsec
 
     // VIEW
     private MainView view;
@@ -136,19 +131,18 @@ public class Dolphin implements MainWindow {
 //s.oh^ 2014/10/03 排他処理のID表示
     public void setClientUUID(String uuid) {
         clientUUID = uuid;
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "New Owner UUID:", clientUUID);
     }
 //s.oh$
     
     // Dolphinをstatic instanceにする
-    private static Dolphin instance = new Dolphin();
+    private static final Dolphin instance = new Dolphin();
     
     public static Dolphin getInstance() {
         return instance;
     }
 //masuda$
     /**
-     * Creates new MainWindow
+     * Creates new Dolphin
      */
     private Dolphin() {
     }
@@ -165,18 +159,8 @@ public class Dolphin implements MainWindow {
         ClientContext.setClientContextStub(stub);
 
         // プロジェクトスタブを生成する
-        Project.setProjectStub(new ProjectStub());
-        
-//s.oh^ Log出力対応 2013/07/04
-        Log.createLogSet(ClientContext.getSettingDirectory() + File.separator,
-                         ClientContext.getLogDirectory() + File.separator,
-                         (Project.getString("log.server.dir") == null) ? null : Project.getString("log.server.dir") + File.separator);
-        Log.setOtherName(System.getProperty("user.name"));
-        Project.getProjectStub().outputUserDefaults();
-        //Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "_/_/_/_/_/ Dolphin開始 _/_/_/_/_/");
-        Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "_/_/_/_/_/ Dolphin開始 _/_/_/_/_/");
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "Owner UUID:", clientUUID);
-//s.oh$
+        ProjectStub projectStub = StubFactory.create(mode);
+        Project.setProjectStub(projectStub);
         
         // Project作成後、Look&Feel を設定する
         stub.setupUI();
@@ -187,28 +171,22 @@ public class Dolphin implements MainWindow {
         PluginLoader<ILoginDialog> loader = PluginLoader.load(ILoginDialog.class);
         Iterator<ILoginDialog> iter = loader.iterator();
         final ILoginDialog login = iter.next();
-        login.addPropertyChangeListener(LoginDialog.LOGIN_PROP, new PropertyChangeListener() {
-           
-            @Override
-            public void propertyChange(PropertyChangeEvent e) {
-
-                LoginDialog.LoginStatus result = (LoginDialog.LoginStatus) e.getNewValue();
-                login.close();
-
-                switch (result) {
-                    case AUTHENTICATED:
-                        startServices();
-                        loadStampTree();
-                        break;
-                    case NOT_AUTHENTICATED:
-                        shutdown();
-                        break;
-                    case CANCELD:
-                        shutdown();
-                        break;
-                }
-            }
+        login.addPropertyChangeListener(LoginDialog.LOGIN_PROP, (PropertyChangeEvent e) -> {
+            LoginDialog.LoginStatus result = (LoginDialog.LoginStatus) e.getNewValue();
+            login.close();
             
+            switch (result) {
+                case AUTHENTICATED:
+                    startServices();
+                    loadStampTree();
+                    break;
+                case NOT_AUTHENTICATED:
+                    shutdown();
+                    break;
+                case CANCELD:
+                    shutdown();
+                    break;
+            }
         });
         login.start();
     }
@@ -225,7 +203,7 @@ public class Dolphin implements MainWindow {
 //masuda$      
 
         // プラグインのプロバイダマップを生成する
-        setProviders(new HashMap<String, MainService>());
+        setProviders(new HashMap<>());
         
 //minagawa^ Server-ORCA連携
         // Client-ORCA接続の時のみ起動
@@ -267,9 +245,23 @@ public class Dolphin implements MainWindow {
             Project.setBoolean(GUIConst.PVT_RELAY_IS_RUNNING, false);
         }
         
-        // HTTP Server
-        if (Project.getBoolean("visit.use")) {
-            startHttpServer();
+        BufferedReader reader;
+        InputStream in = ClientContext.getPluginResourceAsStream(AbstractPropertySheet.class.getName());
+        try {
+            reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+            String line;
+            while((line = reader.readLine()) != null) {
+                if (!line.startsWith("#")) {
+                    System.err.println(line);
+                }
+            }   
+            reader.close();
+            in.close();
+            
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(Dolphin.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Dolphin.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -277,6 +269,8 @@ public class Dolphin implements MainWindow {
      * ユーザーのStampTreeをロードする。
      */
     private void loadStampTree() {
+        
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(Dolphin.class);
 
         final SimpleWorker worker = new SimpleWorker<List<IStampTreeModel>, Void>() {
 
@@ -292,7 +286,6 @@ public class Dolphin implements MainWindow {
 
                 // User用のStampTreeが存在しない新規ユーザの場合、そのTreeを生成する
                 boolean hasTree = false;
-                //if (treeList != null || treeList.size() > 0) {
                 if (treeList != null && treeList.size() > 0) {
                     for (IStampTreeModel tree : treeList) {
                         if (tree != null) {
@@ -307,30 +300,32 @@ public class Dolphin implements MainWindow {
 
                 // 新規ユーザでデータベースに個人用のStampTreeが存在しなかった場合
                 if (!hasTree) {
-                    ClientContext.getBootLogger().debug("新規ユーザー、スタンプツリーをリソースから構築");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).info("Creates a stamp tree from the resource for a new user.");
 
-                    InputStream in = ClientContext.getResourceAsStream("stamptree-seed.xml");
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8")); // DhiftJIS->UTF-8
-                    String line;
-                    StringBuilder sb = new StringBuilder();
-                    while((line = reader.readLine()) != null) {
-                        sb.append(line);
+                    BufferedReader reader;
+                    IStampTreeModel tm; 
+                    try (InputStream in = ClientContext.getResourceAsStream("stamptree-seed.xml")) {
+                        reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+                        String line;
+                        StringBuilder sb = new StringBuilder();
+                        while((line = reader.readLine()) != null) {
+                            sb.append(line);
+                        }   
+                        String treeXml = sb.toString();
+                        // Tree情報を設定し保存する
+                        tm = new open.dolphin.infomodel.StampTreeModel(); // 注意
+                        tm.setUserModel(Project.getUserModel());
+                        java.util.ResourceBundle stbundle = ClientContext.getMyBundle(StampBoxPlugin.class);
+                        tm.setName(stbundle.getString("stampTree.personal.box.name"));
+                        tm.setDescription(stbundle.getString("stampTree.personal.box.tooltip"));
+                        FacilityModel facility = Project.getUserModel().getFacilityModel();
+                        tm.setPartyName(facility.getFacilityName());
+                        String url = facility.getUrl();
+                        if (url != null) {
+                            tm.setUrl(url);
+                        }   
+                        tm.setTreeXml(treeXml);
                     }
-                    String treeXml = sb.toString();
-
-                    // Tree情報を設定し保存する
-                    IStampTreeModel tm = new open.dolphin.infomodel.StampTreeModel();       // 注意
-                    tm.setUserModel(Project.getUserModel());
-                    tm.setName(ClientContext.getString("stampTree.personal.box.name"));
-                    tm.setDescription(ClientContext.getString("stampTree.personal.box.tooltip"));
-                    FacilityModel facility = Project.getUserModel().getFacilityModel();
-                    tm.setPartyName(facility.getFacilityName());
-                    String url = facility.getUrl();
-                    if (url != null) {
-                        tm.setUrl(url);
-                    }
-                    tm.setTreeXml(treeXml);
-                    in.close();
                     reader.close();
 
 //minagawa^ 先勝ちの制御を行うため sysnc する
@@ -354,18 +349,18 @@ public class Dolphin implements MainWindow {
 
             @Override
             protected void failed(Throwable e) {
+                String tmpErr = bundle.getString("error.initialize");
+                String title = bundle.getString("title.optionPane.initialize");
                 String fatalMsg = e.getMessage();
-                fatalMsg = fatalMsg!=null ? fatalMsg : "初期化に失敗しました。";
-                ClientContext.getBootLogger().fatal(fatalMsg);
-                ClientContext.getBootLogger().fatal(e.getMessage());
-                JOptionPane.showMessageDialog(null, fatalMsg, ClientContext.getFrameTitle("初期化"), JOptionPane.WARNING_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle("初期化"), fatalMsg);
+                fatalMsg = fatalMsg!=null ? fatalMsg : tmpErr;
+                java.util.logging.Logger.getLogger(this.getClass().getName()).severe(fatalMsg);
+                JOptionPane.showMessageDialog(null, fatalMsg, ClientContext.getFrameTitle(title), JOptionPane.WARNING_MESSAGE);
                 System.exit(1);
             }
 
             @Override
             protected void cancelled() {
-                ClientContext.getBootLogger().debug("cancelled");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).info("cancelled");
                 System.exit(0);
             }
 
@@ -383,23 +378,19 @@ public class Dolphin implements MainWindow {
             }
         };
 
-        String message = "初期化";
-        String note = "スタンプを読み込んでいます...";
+        String message = bundle.getString("message.initialize");
+        String note = bundle.getString("note.readeingStamp");
         Component c = null;
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation/delay);
 
-        taskTimer = new Timer(delay, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-
-                if (monitor.isCanceled() && (!worker.isCancelled())) {
-                    worker.cancel(true);
-
-                } else {
-                    monitor.setProgress(delayCount);
-                }
+        taskTimer = new Timer(delay, (ActionEvent e) -> {
+            delayCount++;
+            
+            if (monitor.isCanceled() && (!worker.isCancelled())) {
+                worker.cancel(true);
+                
+            } else {
+                monitor.setProgress(delayCount);
             }
         });
 
@@ -410,19 +401,20 @@ public class Dolphin implements MainWindow {
      * GUIを初期化する。
      */
     private void initComponents(List<IStampTreeModel> result) {
-
-        // /open/dolphin/client/resources/Dolphin.properties
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
+        
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(Dolphin.class);
 
         // 設定に必要な定数をコンテキストから取得する
-        String windowTitle = resource.getString("title");
-        Rectangle setBounds = new Rectangle(0, 0, 1000, 690);
+        String windowTitle = bundle.getString("title.mainWindow");
+        
+        // i18n Change the default size of ChartImple
+        Rectangle placeBounds = new Rectangle(0, 0, 1024, 768);
+        int defaultWidth =  787;    // Mac で調整した値
+        int defaultHeight = 690;
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int defaultX = (screenSize.width - setBounds.width) / 2;
-        int defaultY = (screenSize.height - setBounds.height) / 2;
-        int defaultWidth = 666;
-        int defaultHeight = 678;
-
+        int defaultX = (screenSize.width - placeBounds.width) / 2;
+        int defaultY = (screenSize.height - defaultHeight) / 2;
+        
         // WindowSupport を生成する この時点で Frame,WindowMenu を持つMenuBar が生成されている
         String title = ClientContext.getFrameTitle(windowTitle);
         windowSupport = WindowSupport.create(title);
@@ -454,13 +446,12 @@ public class Dolphin implements MainWindow {
         mediator.registerActions(appMenu.getActionMap());
 
         // mainWindowのコンテントを生成しFrameに追加する
-        StringBuilder sb = new StringBuilder();
-        sb.append("ログイン ");
-        sb.append(Project.getUserModel().getCommonName());
-        sb.append("  ");
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-M-d(EEE) HH:mm");
-        sb.append(sdf.format(new Date()));
-        String loginInfo = sb.toString();
+        String fmt = bundle.getString("messageFormat.loginInfo");
+        MessageFormat msf = new MessageFormat(fmt);
+        String loginInfo = msf.format(new Object[]{
+            Project.getUserModel().getCommonName(),
+            sdf.format(new Date())});
         view = new MainView();
         view.getDateLbl().setText(loginInfo);
         view.setOpaque(true);
@@ -469,7 +460,7 @@ public class Dolphin implements MainWindow {
         //----------------------------------------
         // タブペインに格納する Plugin をロードする
         //----------------------------------------
-        List<MainComponent> list = new ArrayList<MainComponent>(3);
+        List<MainComponent> list = new ArrayList<>(3);
         PluginLoader<MainComponent> loader = PluginLoader.load(MainComponent.class);
         Iterator<MainComponent> iter = loader.iterator();
 
@@ -481,7 +472,6 @@ public class Dolphin implements MainWindow {
             if(plugin instanceof PatientScheduleImpl) {
                 if(!Project.getBoolean(Project.USE_SCHEDULE_KARTE)) {
                     plugin.stop();
-                    plugin = null;
                     continue;
                 }
             }
@@ -490,23 +480,13 @@ public class Dolphin implements MainWindow {
             if(Project.isOtherCare()) {
                 if(plugin instanceof WatingListImpl || plugin instanceof PatientScheduleImpl || plugin instanceof NLaboTestImporter) {
                     plugin.stop();
-                    plugin = null;
                     continue;
                 }
             }
 //s.oh$
             list.add(plugin);
         }
-        ClientContext.getBootLogger().debug("main window plugin did load");
-
-//        loader = PluginLoader.load(MainComponent.class, ClientContext.getPluginClassLoader());
-//        iter = loader.iterator();
-//
-//        // mainWindow のタブに、受付リスト、患者検索 ... の純に格納する
-//        while (iter.hasNext()) {
-//            MainComponent plugin = iter.next();
-//            list.add(plugin);
-//        }
+        java.util.logging.Logger.getLogger(this.getClass().getName()).info("main window plugin did load");
 
         // プラグインプロバイダに格納する
         // index=0 のプラグイン（受付リスト）は起動する
@@ -532,25 +512,21 @@ public class Dolphin implements MainWindow {
         //-------------------------------------------
         // タブの切り替えで plugin.enter() をコールする
         //-------------------------------------------
-        getTabbedPane().addChangeListener(new ChangeListener() {
-
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                getStatusLabel().setText("");
-                int index = getTabbedPane().getSelectedIndex();
-                MainComponent plugin = (MainComponent) providers.get(String.valueOf(index));
-                if (plugin.getContext() == null) {
-                    plugin.setContext(Dolphin.this);
-                    plugin.start();
-                    getTabbedPane().setComponentAt(index, plugin.getUI());
-                } else {
-                    plugin.enter();
-                }
-                mediator.addChain(plugin);
+        getTabbedPane().addChangeListener((ChangeEvent e) -> {
+            getStatusLabel().setText("");
+            int index1 = getTabbedPane().getSelectedIndex();
+            MainComponent plugin = (MainComponent) providers.get(String.valueOf(index1));
+            if (plugin.getContext() == null) {
+                plugin.setContext(Dolphin.this);
+                plugin.start();
+                getTabbedPane().setComponentAt(index1, plugin.getUI());
+            } else {
+                plugin.enter();
             }
+            mediator.addChain(plugin);
         });
 
-        // StaeMagrを使用してメインウインドウの状態を制御する
+        // StateMagrを使用してメインウインドウの状態を制御する
         stateMgr = new StateManager();
         stateMgr.processLogin(true);
 
@@ -577,30 +553,18 @@ public class Dolphin implements MainWindow {
             com.apple.eawt.Application fApplication = com.apple.eawt.Application.getApplication();
         
             // About
-            fApplication.setAboutHandler(new com.apple.eawt.AboutHandler() {
-        
-                @Override
-                public void handleAbout(com.apple.eawt.AppEvent.AboutEvent ae) {
-                    showAbout();
-                }
+            fApplication.setAboutHandler((com.apple.eawt.AppEvent.AboutEvent ae) -> {
+                showAbout();
             });
         
             // Preference
-            fApplication.setPreferencesHandler(new com.apple.eawt.PreferencesHandler() {
-        
-                @Override
-                public void handlePreferences(com.apple.eawt.AppEvent.PreferencesEvent pe) {
-                    doPreference();
-                }
+            fApplication.setPreferencesHandler((com.apple.eawt.AppEvent.PreferencesEvent pe) -> {
+                doPreference();
             });
         
             // Quit
-            fApplication.setQuitHandler(new com.apple.eawt.QuitHandler() {
-        
-                @Override
-                public void handleQuitRequestWith(com.apple.eawt.AppEvent.QuitEvent qe, com.apple.eawt.QuitResponse qr) {
-                    processExit();
-                }
+            fApplication.setQuitHandler((com.apple.eawt.AppEvent.QuitEvent qe, com.apple.eawt.QuitResponse qr) -> {
+                processExit();
             });
         }
         windowSupport.getFrame().setVisible(true);
@@ -660,21 +624,21 @@ public class Dolphin implements MainWindow {
         
 //masuda^   すでにChart, EditorFrameが開いていた時の処理はここで行う
         if (pvt == null) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "カルテの表示", "PVTがありません");
             return;
         }
         if (pvt.getStateBit(PatientVisitModel.BIT_CANCEL)) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "カルテの表示", "キャンセル済みの患者");
             return;
         }
+        
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(Dolphin.class);
         
 //s.oh^ 2014/10/03 インスペクタの制御
         int max = Project.getInt("inspector.open.max", 0);
         if(max > 0) {
             if(ChartImpl.getAllChart() != null && ChartImpl.getAllChart().size() >= max) {
-                String msg = "閲覧可能患者数を超えました。";
-                JOptionPane.showMessageDialog(getFrame(), msg, ClientContext.getFrameTitle("カルテオープン"), JOptionPane.WARNING_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, msg);
+                String msg = bundle.getString("message.overlimit.karteOpen");
+                String title = bundle.getString("title.optionPane.karteOpen");
+                JOptionPane.showMessageDialog(getFrame(), msg, ClientContext.getFrameTitle(title), JOptionPane.WARNING_MESSAGE);
                 return;
             }
         }
@@ -701,12 +665,9 @@ public class Dolphin implements MainWindow {
             }
         }
         if (opened) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "カルテの表示", "既に開いている");
             Toolkit.getDefaultToolkit().beep();
             return;
         }
-        
-        Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "カルテの表示", "表示開始", pvt.getPatientId(), String.valueOf(ptId));
         
         // まだ開いていない場合
         
@@ -717,8 +678,12 @@ public class Dolphin implements MainWindow {
                 // ダイアログで確認する
                 String ptName = pvt.getPatientName();
 //minagawa^ jdk7               
-                //String[] options = {"閲覧のみ", "ロック解除", "キャンセル"};
-                String[] options = {"閲覧のみ", "ロック解除", GUIFactory.getCancelButtonText()};
+                String optionBrowseOnly = bundle.getString("option.browseOnly");
+                String optionUnlock = bundle.getString("option.unlock");
+                String[] options = {
+                    optionBrowseOnly, 
+                    optionUnlock, 
+                    GUIFactory.getCancelButtonText()};
 //minagawa$                
 //s.oh^ 2014/10/03 排他処理のID表示
                 //String msg = ptName + " 様のカルテは他の端末で編集中です。\n" +
@@ -728,35 +693,35 @@ public class Dolphin implements MainWindow {
                 if(uuid.length > 1) {
                     uid = uuid[0];
                 }
-                String msg = ptName + " 様のカルテは他の端末" + ((uid != null) ? "(" + uid + ")" : "") + "で編集中です。\n" +
-                        "ロック解除は編集中の端末がクラッシュした場合等に使用してください。";
+//                String msg = ptName + " 様のカルテは他の端末" + ((uid != null) ? "(" + uid + ")" : "") + "で編集中です。\n" +
+//                        "ロック解除は編集中の端末がクラッシュした場合等に使用してください。";
+                String fmt = bundle.getString("messageFormat.exclusiveControl");
+                MessageFormat msf = new MessageFormat(fmt);
+                String obj = uid != null ? uid : "";
+                String msg = msf.format(new Object[]{ptName,obj});
+                String title = bundle.getString("title.optionPane.karteOpen");
 //s.oh$
 
                 int val = JOptionPane.showOptionDialog(
-                        getFrame(), msg, ClientContext.getFrameTitle("カルテオープン"),
+                        getFrame(), msg, ClientContext.getFrameTitle(title),
                         JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle("カルテオープン"), msg, pvt.getPatientModel().getOwnerUUID());
 
                 switch (val) {
                     case 0:     // 閲覧のみは編集不可で所有権を設定しない
-                        Log.outputOperLogDlg(null, Log.LOG_LEVEL_0,  "閲覧のみは編集不可で所有権を設定しない");
                         readOnly = true;
                         break;
 
                     case 1:     // 強制的に編集するときは所有権横取り ロック解除
-                        Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "強制的に編集(ロック解除)", clientUUID);
                         pvt.getPatientModel().setOwnerUUID(clientUUID);
                         break;
 
                     case 2:     // キャンセル
                     case JOptionPane.CLOSED_OPTION:
-                        Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, msg, "キャンセル");
                         return; 
                 }
             } else {
                 // 誰も開いていないときは自分が所有者
                 pvt.getPatientModel().setOwnerUUID(clientUUID);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "カルテUUID", clientUUID);
             }
         }
         PluginLoader<Chart> loader = PluginLoader.load(Chart.class);
@@ -766,13 +731,12 @@ public class Dolphin implements MainWindow {
             chart = iter.next();
         }
         chart.setContext(this);
-        chart.setPatientVisit(pvt);     //
+        chart.setPatientVisit(pvt);
         chart.setReadOnly(readOnly);    // RedaOnlyProp
         chart.start();
         // publish state
         scl.publishKarteOpened(pvt);
 //masuda$         
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "カルテの表示", "表示終了");
     }
 
     /**
@@ -863,7 +827,7 @@ public class Dolphin implements MainWindow {
             pvtServer.setBindAddress(Project.getString(Project.CLAIM_BIND_ADDRESS));
             pvtServer.start();
             providers.put("pvtServer", pvtServer);
-            ClientContext.getBootLogger().debug("pvtServer did  start");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).info("pvtServer did  start");
         }
     }
 
@@ -878,7 +842,7 @@ public class Dolphin implements MainWindow {
             sendClaim.setContext(this);
             sendClaim.start();
             providers.put("sendClaim", sendClaim);
-            ClientContext.getBootLogger().debug("sendClaim did  start");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).info("sendClaim did  start");
         }
     }
 
@@ -895,27 +859,7 @@ public class Dolphin implements MainWindow {
             sendMml.setCSGWPath(Project.getString(Project.SEND_MML_DIRECTORY));
             sendMml.start();
             providers.put("sendMml", sendMml);
-            ClientContext.getBootLogger().debug("sendMml did  start");
-        }
-    }
-    
-    private void startHttpServer() {
-        String test = Project.getString(Project.CLAIM_BIND_ADDRESS);
-        if (test==null || test.equals("")) {
-            return;
-        }
-        int port = Project.getInt("visit.http.port");
-        String ctx = Project.getString("visit.http.context");
-        try {
-            InetAddress addr = InetAddress.getByName(test);
-            InetSocketAddress socket = new InetSocketAddress(addr, port);
-            HttpServer server = HttpServer.create(socket, 0);
-            server.createContext(ctx, new HttpDolphinHandler());
-            server.setExecutor(null); // creates a default executor
-            server.start();
-            ClientContext.getBootLogger().info("HTTP server is binded at " + socket.getHostName());
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).info("sendMml did  start");
         }
     }
     
@@ -1011,9 +955,6 @@ public class Dolphin implements MainWindow {
      */
     public void setKarteEnviroment() {
         ProjectSettingDialog sd = new ProjectSettingDialog();
-//minagawa^ Server-ORCA連携^ 複雑さを避けるため
-        //sd.addPropertyChangeListener("SETTING_PROP", new PreferenceListener());
-//minagawa$
         sd.setLoginState(stateMgr.isLogin());
         sd.setProject("karteSetting");
         sd.start();
@@ -1024,127 +965,10 @@ public class Dolphin implements MainWindow {
      */
     public void doPreference() {
         ProjectSettingDialog sd = new ProjectSettingDialog();
-        //sd.addPropertyChangeListener("SETTING_PROP", new PreferenceListener());
         sd.setLoginState(stateMgr.isLogin());
         sd.setProject("karteSetting");
         sd.start();
     }
-
-//    /**
-//     * 環境設定のリスナクラス。環境設定が終了するとここへ通知される。
-//     */
-//    class PreferenceListener implements PropertyChangeListener {
-//
-//        @Override
-//        public void propertyChange(PropertyChangeEvent e) {
-//
-//            if (e.getPropertyName().equals("SETTING_PROP")) {
-//
-//                boolean valid = ((Boolean) e.getNewValue()).booleanValue();
-//
-//                if (valid) {
-//
-//                    // 設定の変化を調べ、サービスの制御を行う
-//                    ArrayList<String> messages = new ArrayList<String>(2);
-//
-//                    // PvtServer
-//                    boolean oldRunning = Project.getBoolean(GUIConst.PVT_SERVER_IS_RUNNING);
-//                    boolean newRun = Project.getBoolean(Project.USE_AS_PVT_SERVER);
-//                    boolean start = ((!oldRunning) && newRun) ? true : false;
-//                    boolean stop = ((oldRunning) && (!newRun)) ? true : false;
-//
-//                    if (start) {
-//                        startPvtServer();
-//                        messages.add("受付受信を開始しました。");
-//                    } else if (stop && pvtServer != null) {
-//                        pvtServer.stop();
-//                        pvtServer = null;
-//                        Project.setBoolean(GUIConst.PVT_SERVER_IS_RUNNING, false);
-//                        messages.add("受付受信を停止しました。");
-//                    }
-//
-//                    // SendClaim
-//                    oldRunning = Project.getBoolean(GUIConst.SEND_CLAIM_IS_RUNNING);
-//                    newRun = Project.getBoolean(Project.SEND_CLAIM);
-//                    start = ((!oldRunning) && newRun) ? true : false;
-//                    stop = ((oldRunning) && (!newRun)) ? true : false;
-//
-//                    boolean restart = false;
-//                    String oldAddress = Project.getString(GUIConst.ADDRESS_CLAIM);
-//                    String newAddress = Project.getString(Project.CLAIM_ADDRESS);
-//                    if (oldAddress != null && newAddress != null && (!oldAddress.equals(newAddress)) && newRun) {
-//                        restart = true;
-//                    }
-//
-//                    if (start) {
-//                        startSendClaim();
-//                        Project.setString(GUIConst.ADDRESS_CLAIM, newAddress);
-//                        messages.add("CLAIM送信を開始しました。(送信アドレス=" + newAddress + ")");
-//
-//                    } else if (stop && sendClaim != null) {
-//                        sendClaim.stop();
-//                        sendClaim = null;
-//                        Project.setBoolean(GUIConst.SEND_CLAIM_IS_RUNNING, false);
-//                        Project.setString(GUIConst.ADDRESS_CLAIM, newAddress);
-//                        messages.add("CLAIM送信を停止しました。");
-//
-//                    } else if (restart) {
-//                        sendClaim.stop();
-//                        sendClaim = null;
-//                        startSendClaim();
-//                        Project.setString(GUIConst.ADDRESS_CLAIM, newAddress);
-//                        messages.add("CLAIM送信をリスタートしました。(送信アドレス=" + newAddress + ")");
-//                    }
-//
-//                    // SendMML
-//                    oldRunning = Project.getBoolean(GUIConst.SEND_MML_IS_RUNNING);
-//                    newRun = Project.getBoolean(Project.SEND_MML);
-//                    start = ((!oldRunning) && newRun) ? true : false;
-//                    stop = ((oldRunning) && (!newRun)) ? true : false;
-//
-//                    restart = false;
-//                    oldAddress = Project.getString(GUIConst.CSGW_PATH);
-//                    newAddress = Project.getCSGWPath();
-//                    if (oldAddress != null && newAddress != null && (!oldAddress.equals(newAddress)) && newRun) {
-//                        restart = true;
-//                    }
-//
-//                    if (start) {
-//                        startSendMml();
-//                        Project.setString(GUIConst.CSGW_PATH, newAddress);
-//                        messages.add("MML送信を開始しました。(送信アドレス=" + newAddress + ")");
-//
-//                    } else if (stop && sendMml != null) {
-//                        sendMml.stop();
-//                        sendMml = null;
-//                        Project.setBoolean(GUIConst.SEND_MML_IS_RUNNING, false);
-//                        Project.setString(GUIConst.CSGW_PATH, newAddress);
-//                        messages.add("MML送信を停止しました。");
-//
-//                    } else if (restart) {
-//                        sendMml.stop();
-//                        sendMml = null;
-//                        startSendMml();
-//                        Project.setString(GUIConst.CSGW_PATH, newAddress);
-//                        messages.add("MML送信をリスタートしました。(送信アドレス=" + newAddress + ")");
-//                    }
-//
-//                    if (messages.size() > 0) {
-//                        String[] msgArray = messages.toArray(new String[messages.size()]);
-//                        Object msg = msgArray;
-//                        Component cmp = null;
-//                        String title = ClientContext.getString("settingDialog.title");
-//
-//                        JOptionPane.showMessageDialog(
-//                                cmp,
-//                                msg,
-//                                ClientContext.getFrameTitle(title),
-//                                JOptionPane.INFORMATION_MESSAGE);
-//                    }
-//                }
-//            }
-//        }
-//    }
 
     private boolean isDirty() {
 
@@ -1200,7 +1024,7 @@ public class Dolphin implements MainWindow {
 
             @Override
             protected Void doInBackground() throws Exception {
-                ClientContext.getBootLogger().debug("stampTask doInBackground");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).info("stampTask doInBackground");
 //s.oh^ 2014/08/19 ID権限
                 if(Project.isOtherCare()) {
                     return null;
@@ -1214,38 +1038,27 @@ public class Dolphin implements MainWindow {
 
             @Override
             protected void succeeded(Void result) {
-                ClientContext.getBootLogger().debug("stampTask succeeded");
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "StampTreeは正常に保存した。");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).info("stampTask succeeded");
                 shutdown();
             }
 
             @Override
             protected void failed(Throwable cause) {
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "既にStampTreeが保存されている。");
 //minagawa^ First Commit Win Control
                 String test = (cause!=null && cause.getMessage()!=null) ? cause.getMessage() : null;
-                //if (cause instanceof FirstCommitWinException) {
-                if (test!=null && test.indexOf("First Commit Win")>=0) {
-                    SwingUtilities.invokeLater(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            doFirstCommitWinAlert(treeTosave);
-                        }
+                if (test!=null && test.contains("First Commit Win")) {
+                    SwingUtilities.invokeLater(() -> {
+                        doFirstCommitWinAlert(treeTosave);
                     });
                     
                 } else {
-                    SwingUtilities.invokeLater(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            doStoppingAlert();
-                        }
+                    SwingUtilities.invokeLater(() -> {
+                        doStoppingAlert();
                     });
                 }
 //minagawa$                
-                ClientContext.getBootLogger().warn("stampTask failed");
-                ClientContext.getBootLogger().warn(cause);
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning("stampTask failed");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
             }
 
             @Override
@@ -1263,19 +1076,15 @@ public class Dolphin implements MainWindow {
             }
         };
 
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
-        String message = resource.getString("exitDolphin.taskTitle");
-        String note = resource.getString("exitDolphin.savingNote");
+        ResourceBundle resource = ClientContext.getMyBundle(Dolphin.class);
+        String message = resource.getString("title.optionPane.saveEnv");
+        String note = resource.getString("note.savingEv");
         Component c = getFrame();
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-        taskTimer = new Timer(delay, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-                monitor.setProgress(delayCount);
-            }
+        taskTimer = new Timer(delay, (ActionEvent e) -> {
+            delayCount++;
+            monitor.setProgress(delayCount);
         });
 
         worker.execute();
@@ -1285,16 +1094,15 @@ public class Dolphin implements MainWindow {
      * 未保存のドキュメントがある場合の警告を表示する。
      */
     private void alertDirty() {
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
-        String msg0 = resource.getString("exitDolphin.msg0"); //"未保存のドキュメントがあります。";
-        String msg1 = resource.getString("exitDolphin.msg1"); //"保存または破棄した後に再度実行してください。";
-        String taskTitle = resource.getString("exitDolphin.taskTitle");
+        ResourceBundle resource = ClientContext.getMyBundle(Dolphin.class);
+        String msg0 = resource.getString("message.unsavedDocument");
+        String msg1 = resource.getString("message.instraction.unsavedDocument");
+        String taskTitle = resource.getString("title.optionPane.saveEnv");
         JOptionPane.showMessageDialog(
                 (Component) null,
                 new Object[]{msg0, msg1},
                 ClientContext.getFrameTitle(taskTitle),
                 JOptionPane.INFORMATION_MESSAGE);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(taskTitle), msg0, msg1);
     }
     
 //s.oh^ 不具合修正(一括終了時のステータスクリア)
@@ -1318,34 +1126,29 @@ public class Dolphin implements MainWindow {
      * 先勝ち制御アラート
      */
     private void doFirstCommitWinAlert(IStampTreeModel treeTosave) {
-//minagawa^ mac jdk7        
-        //String[] options = {"終 了", "強制書き込み", "キャンセル"};
-        String[] options = {"終 了", "強制書き込み", GUIFactory.getCancelButtonText()};
-//minagawa$        
-        StringBuilder sb = new StringBuilder();
-        sb.append("スタンプツリーは他の端末によって先に保存されています。").append("\n");
-        sb.append("強制書き込みを選択すると先のツリーを上書きします。");
-        String msg = sb.toString();
-        String title = ClientContext.getFrameTitle("環境保存");
+        
+        ResourceBundle resource = ClientContext.getMyBundle(Dolphin.class);
+        String optionExit = resource.getString("option.exit");
+        String optionForceWrite = resource.getString("option.foceWrite");
+        String[] options = {optionExit, optionForceWrite, GUIFactory.getCancelButtonText()};
+        String msg = resource.getString("message.firstCommitWin");
+        String title = resource.getString("title.optionPane.saveEnv");
+        title = ClientContext.getFrameTitle(title);
 
         int option = JOptionPane.showOptionDialog(
                 getFrame(), msg, title,
                 JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, title, msg);
         
         switch (option) {
             case 0:
-                Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "終了");
                 shutdown();
                 break;
                 
             case 1:
-                Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "強制書き込み");
                 syncTreeAndShutDown(treeTosave);
                 break;
                 
             case 2:
-                Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "キャンセル");
                 break;
         }
     }
@@ -1360,7 +1163,7 @@ public class Dolphin implements MainWindow {
 
             @Override
             protected Void doInBackground() throws Exception {
-                ClientContext.getBootLogger().debug("stampTask doInBackground");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).info("stampTask doInBackground");
                 // Stamp 保存
                 StampDelegater dl = new StampDelegater();
                 dl.forceSyncTree(treeTosave);
@@ -1369,20 +1172,17 @@ public class Dolphin implements MainWindow {
 
             @Override
             protected void succeeded(Void result) {
-                ClientContext.getBootLogger().debug("stampTask succeeded");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).info("stampTask succeeded");
                 shutdown();
             }
 
             @Override
             protected void failed(Throwable cause) {
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        doStoppingAlert();
-                    }
+                SwingUtilities.invokeLater(() -> {
+                    doStoppingAlert();
                 });            
-                ClientContext.getBootLogger().warn("stampTask failed");
-                ClientContext.getBootLogger().warn(cause);
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning("stampTask failed");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
             }
 
             @Override
@@ -1400,19 +1200,15 @@ public class Dolphin implements MainWindow {
             }
         };
 
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
-        String message = resource.getString("exitDolphin.taskTitle");
-        String note = resource.getString("exitDolphin.savingNote");
+        ResourceBundle resource = ClientContext.getMyBundle(Dolphin.class);
+        String message = resource.getString("title.optionPane.saveEnv");
+        String note = resource.getString("note.savingEv");
         Component c = getFrame();
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-        taskTimer = new Timer(delay, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-                monitor.setProgress(delayCount);
-            }
+        taskTimer = new Timer(delay, (ActionEvent e) -> {
+            delayCount++;
+            monitor.setProgress(delayCount);
         });
 
         worker.execute();
@@ -1424,21 +1220,21 @@ public class Dolphin implements MainWindow {
      * @return ユーザの選択値
      */
     private void doStoppingAlert() {
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
-        String msg1 = resource.getString("exitDolphin.err.msg1");
-        String msg2 = resource.getString("exitDolphin.err.msg2");
-        String msg3 = resource.getString("exitDolphin.err.msg3");
-        String msg4 = resource.getString("exitDolphin.err.msg4");
+        ResourceBundle resource = ClientContext.getMyBundle(Dolphin.class);
+        String msg1 = resource.getString("error.savingEnv1");
+        String msg2 = resource.getString("error.savingEnv2");
+        String msg3 = resource.getString("error.savingEnv3");
+        String msg4 = resource.getString("error.savingEnv4");
         Object message = new Object[]{msg1, msg2, msg3, msg4};
 
         // 終了する
-        String exitOption = resource.getString("exitDolphin.exitOption");
+        String exitOption = resource.getString("option.exit");
 
         // キャンセルする
-        String cancelOption = resource.getString("exitDolphin.cancelOption");
+        String cancelOption = GUIFactory.getCancelButtonText();
 
         // 環境保存
-        String taskTitle = resource.getString("exitDolphin.taskTitle");
+        String taskTitle = resource.getString("title.optionPane.saveEnv");
 
         String title = ClientContext.getFrameTitle(taskTitle);
 
@@ -1449,17 +1245,13 @@ public class Dolphin implements MainWindow {
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.WARNING_MESSAGE,
                 null, options, options[0]);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, title, msg1, msg2, msg3, msg4);
-        Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, options[option]);
-
+        
         if (option == 1) {
             shutdown();
         }
     }
 
     private void shutdown() {
-        Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "_/_/_/_/_/ Dolphin終了 _/_/_/_/_/");
-        //Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "_/_/_/_/_/ Dolphin終了 _/_/_/_/_/");
         
         // ChartEvenrHandler 終了
         try {
@@ -1486,7 +1278,7 @@ public class Dolphin implements MainWindow {
 
             } catch (Exception e) {
                 e.printStackTrace(System.err);
-                ClientContext.getBootLogger().warn(e.toString());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(e.toString());
             }
         }
 
@@ -1495,7 +1287,7 @@ public class Dolphin implements MainWindow {
             myFrame.setVisible(false);
             myFrame.dispose();
         }
-        ClientContext.getBootLogger().debug("アプリケーションを終了します");
+        java.util.logging.Logger.getLogger(this.getClass().getName()).info("Exits application");
         System.exit(0);
     }
 
@@ -1562,7 +1354,8 @@ public class Dolphin implements MainWindow {
                 try {
                     ActivityModel[] am = get();
                     if (am==null) {
-                        throw new RuntimeException("ヌル値がリターンされました。");
+                        String err = ClientContext.getMyBundle(Dolphin.class).getString("error.nullReturn");
+                        throw new RuntimeException(err);
                     }
                     
                     AboutActivities aac = new AboutActivities(am);
@@ -1596,7 +1389,8 @@ public class Dolphin implements MainWindow {
                 try {
                     String line = get();
                     if (line==null) {
-                        throw new RuntimeException("ヌル値がリターンされました。");
+                        String err = ClientContext.getMyBundle(Dolphin.class).getString("error.nullReturn");
+                        throw new RuntimeException(err);
                     }
                     
                     String insCode = line.substring(0, 10);
@@ -1621,86 +1415,64 @@ public class Dolphin implements MainWindow {
     
     private void showReadFacilityCodeResults() {
         
+        ResourceBundle resource = ClientContext.getMyBundle(Dolphin.class);
+        String msg_0 = resource.getString("message.readingFacilityCode1");
+        String msg_1 = resource.getString("message.readingFacilityCode2");
+        String msg_2 = resource.getString("message.readingFacilityCode3");
+        String title = resource.getString("title.optionPane.readingFacilityCode");
+        
         String[] msg = new String[3];
-        msg[0] = "医療機関コードの読み込みに成功しました。";
-        msg[1] = "保険医療機関コード: " + Project.getString(Project.FACILITY_CODE_OF_INSURNCE_SYSTEM);
-        msg[2] = "JMARIコード: " + Project.getString(Project.JMARI_CODE);
+        msg[0] = msg_0;
+        msg[1] = msg_1 + Project.getString(Project.FACILITY_CODE_OF_INSURNCE_SYSTEM);
+        msg[2] = msg_2 + Project.getString(Project.JMARI_CODE);
         
         JOptionPane.showMessageDialog(null, 
-                msg, ClientContext.getFrameTitle("医療機関コード読み込み"), 
+                msg, ClientContext.getFrameTitle(title), 
                 JOptionPane.INFORMATION_MESSAGE);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle("医療機関コード読み込み"), msg[0], msg[1], msg[2]);
     }
     
     private void showReadFacilityCodeError(Throwable e) {
         
+        ResourceBundle resource = ClientContext.getMyBundle(Dolphin.class);
         String[] msg = new String[3];
-        msg[0] = "医療機関コードの読み込みに失敗しました。";
+        msg[0] = resource.getString("error.readingFacilityCode");
         msg[1] = e.getMessage();
         
+        String title = resource.getString("title.optionPane.readingFacilityCode");
         JOptionPane.showMessageDialog(null, 
-                msg, ClientContext.getFrameTitle("医療機関コード読み込み"), 
+                msg, ClientContext.getFrameTitle(title), 
                 JOptionPane.WARNING_MESSAGE);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle("医療機関コード読み込み"), msg[0], msg[1]);
     }
     
 //s.oh^ 2014/07/22 一括カルテPDF出力
     public void outputAllKartePdf() {
-////        JDialog dialog = new JDialog(new JFrame(), "一括カルテPDF出力", false);
-////        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-////        JPanel panel = new JPanel();
-////        panel.add(new JLabel("カルテのPDF出力中..."));
-////        panel.setPreferredSize(new Dimension(200, 50));
-////        dialog.getContentPane().add(panel, BorderLayout.CENTER);
-////        dialog.pack();
-////        Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-////        int x = (size.width - dialog.getPreferredSize().width) / 2;
-////        int y = (size.height - dialog.getPreferredSize().height) / 2;
-////        dialog.setLocation(x, y);
-////        dialog.setVisible(true);
-//        block();
-//        PatientDelegater pdl = new PatientDelegater();
-//        try {
-//            List<PatientModel> pList = pdl.getAllPatient();
-//            for(PatientModel pm : pList) {
-//                outputAllKartePdfForPatient(pm);
-//            }
-////            dialog.setVisible(false);
-//            unblock();
-//            JOptionPane.showMessageDialog((Component) null, "PDF出力が終わりました。", "一括カルテPDF出力", JOptionPane.INFORMATION_MESSAGE);
-//            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "PDF出力が終わりました。");
-//        } catch (Exception ex) {
-////            dialog.setVisible(false);
-//            unblock();
-//            JOptionPane.showMessageDialog((Component) null, "PDF出力に失敗しました。", "一括カルテPDF出力", JOptionPane.ERROR_MESSAGE);
-//            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "PDF出力に失敗しました。", ex.toString());
-//        }
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "一括カルテPDF出力");
-        
-        String[] msg = new String[] {"全患者のカルテPDFを出力しますか？", "※PDF出力には時間がかかります。"};
-        String ok = "はい";
+
+        ResourceBundle resource = ClientContext.getMyBundle(Dolphin.class);
+        String title = resource.getString("title.optionPane.batch.outputPDF");
+        String msg1 = resource.getString("question.batch.outputPDF");
+        String msg2 = resource.getString("comment.batch.outputPDF");
+        String[] msg = new String[]{msg1,msg2};
+        String ok = resource.getString("option.batch.PDF");
         String cancel = (String)UIManager.get("OptionPane.cancelButtonText");
         
         int option = JOptionPane.showOptionDialog(
                 null, 
                 msg, 
-                "一括カルテPDF出力", 
+                ClientContext.getFrameTitle(title), 
                 JOptionPane.DEFAULT_OPTION, 
                 JOptionPane.QUESTION_MESSAGE,
                 null, 
                 new String[]{ok, cancel}, 
                 ok);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "一括カルテPDF出力", msg[0], msg[1]);
         if(option == 0) {
-            Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, ok);
+            
         }else{
-            Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, cancel);
             return;
         }
         
         patCounter = 0;
         patTotal = 1;
-        progress = new ProgressMonitor(getFrame(), "一括カルテPDF出力", "", 0, 100);
+        progress = new ProgressMonitor(getFrame(), title, "", 0, 100);
         progress.setProgress(0);
         final SimpleWorker worker = new SimpleWorker<Void, Void>() {
             @Override
@@ -1710,7 +1482,6 @@ public class Dolphin implements MainWindow {
                 patTotal = pList.size();
                 for(PatientModel pm : pList) {
                     if(progress.isCanceled()) {
-                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "キャンセルされました。");
                         return null;
                     }
                     patCounter += 1;
@@ -1730,27 +1501,33 @@ public class Dolphin implements MainWindow {
 
             @Override
             protected void done() {
-                JOptionPane.showMessageDialog((Component) null, "PDF出力が終わりました。\n" + ClientContext.getTempDirectory(), "一括カルテPDF出力", JOptionPane.INFORMATION_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "PDF出力が終わりました。", ClientContext.getTempDirectory());
+                String fmt = resource.getString("messageFormat.batch.outputPDFDone");
+                MessageFormat msf = new MessageFormat(fmt);
+                String msg = msf.format(new Object[]{ClientContext.getTempDirectory()});
+                String title = resource.getString("title.optionPane.batch.outputPDF");
+                title = ClientContext.getFrameTitle(title);
+                JOptionPane.showMessageDialog((Component) null, msg, title, JOptionPane.INFORMATION_MESSAGE);
             }
 
             @Override
             protected void failed(Throwable e) {
                 setProgress(100);
-                JOptionPane.showMessageDialog((Component) null, "PDF出力に失敗しました。\n" + ClientContext.getTempDirectory(), "一括カルテPDF出力", JOptionPane.ERROR_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "PDF出力に失敗しました。", e.toString());
+                String fmt = resource.getString("meesageFormat.batch.outputPDFError");
+                MessageFormat msf = new MessageFormat(fmt);
+                String msg = msf.format(new Object[]{ClientContext.getTempDirectory()});
+                String title = resource.getString("title.optionPane.batch.outputPDF");
+                title = ClientContext.getFrameTitle(title);
+                JOptionPane.showMessageDialog((Component) null, msg, title, JOptionPane.ERROR_MESSAGE);
             }
         };
 
-        worker.addPropertyChangeListener(new PropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                if(evt.getPropertyName().equals("progress")) {
-                    int val = (Integer)evt.getNewValue();
-                    progress.setProgress(val);
-                    String msg = String.format("%d / %d 患者のカルテPDFを出力しています...", patCounter, patTotal);
-                    progress.setNote(msg);
-                }
+        worker.addPropertyChangeListener((PropertyChangeEvent evt) -> {
+            if (evt.getPropertyName().equals("progress")) {
+                int val = (Integer)evt.getNewValue();
+                progress.setProgress(val);
+                String fmt = resource.getString("messageFormat.outputingPDF");
+                String msg3 = String.format(fmt, patCounter, patTotal);
+                progress.setNote(msg3);
             }
         });
 
@@ -1758,7 +1535,6 @@ public class Dolphin implements MainWindow {
     }
     
     private void outputAllKartePdfForPatient(PatientModel pm) {
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, String.valueOf(pm.getId()), pm.getPatientId(), pm.getFacilityId());
         DocumentDelegater ddl = new DocumentDelegater();
         StringBuilder sb = new StringBuilder();
         sb.append(ClientContext.getTempDirectory());
@@ -1774,7 +1550,6 @@ public class Dolphin implements MainWindow {
                 outputPdf(pm, model, dir.getPath());
             }
         } catch (Exception ex) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, ex.toString());
         }
     }
     
@@ -1782,8 +1557,8 @@ public class Dolphin implements MainWindow {
         if(model.getModules() != null) {
             KartePaneDumper_2 dumper = new KartePaneDumper_2();
             KartePaneDumper_2 pdumper = new KartePaneDumper_2();
-            List<ModuleModel> soaModules = new ArrayList<ModuleModel>();
-            List<ModuleModel> pModules = new ArrayList<ModuleModel>();
+            List<ModuleModel> soaModules = new ArrayList<>();
+            List<ModuleModel> pModules = new ArrayList<>();
             String soaSpec = null;
             String pSpec = null;
             for (ModuleModel bean : model.getModules()) {
@@ -1821,14 +1596,17 @@ public class Dolphin implements MainWindow {
             pdumper.setModuleList((ArrayList<ModuleModel>) pModules);
             
             StringBuilder sbTitle = new StringBuilder();
-            String timeStamp = ModelUtils.getDateAsFormatString(model.getDocInfoModel().getFirstConfirmDate(), IInfoModel.KARTE_DATE_FORMAT);
+            java.util.ResourceBundle mBundle = ClientContext.getBundle();
+            String timeStamp = ModelUtils.getDateAsFormatString(model.getDocInfoModel().getFirstConfirmDate(), mBundle.getString("KARTE_DATE_FORMAT"));
             sbTitle.append(timeStamp);
             if (Project.getUserModel().getCommonName()!=null && !Project.getBoolean("karte.title.username.hide")) {
                 sbTitle.append(" ");
                 sbTitle.append(Project.getUserModel().getCommonName());
             }
-            if(model.getDocInfoModel().getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
-                sbTitle.append("（自費）");
+            java.util.ResourceBundle clBundle = ClientContext.getClaimBundle();
+            if(model.getDocInfoModel().getHealthInsurance().startsWith(clBundle.getString("INSURANCE_SELF_PREFIX"))) {
+                String selfIns = ClientContext.getMyBundle(Dolphin.class).getString("text.selfIns");
+                sbTitle.append(selfIns);
             }
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmssSSS");
             //KartePDFImpl2 pdf = new KartePDFImpl2(dir, sdf.format(model.getConfirmed()),
@@ -1837,9 +1615,6 @@ public class Dolphin implements MainWindow {
                                                   sbTitle.toString(),
                                                   new Date(), dumper, pdumper, null);
             String path = pdf.create();
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "カルテPDF作成", path);
-        }else{
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "カルテ情報が存在しない", dir);
         }
     }
 //s.oh$
@@ -1855,7 +1630,7 @@ public class Dolphin implements MainWindow {
             tool.setContext(this);
             tool.start();
 
-        } catch (Exception e) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace(System.err);
         }
     }
@@ -1864,32 +1639,32 @@ public class Dolphin implements MainWindow {
      * ドルフィンサポートをオープンする。
      */
     public void browseDolphinSupport() {
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
-        browseURL(resource.getString("menu.dolphinSupportUrl"));
+        String url = ClientContext.getMyBundle(Dolphin.class).getString("url.openDolphin");
+        browseURL(url);
     }
 
     /**
      * ドルフィンプロジェクトをオープンする。
      */
     public void browseDolphinProject() {
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
-        browseURL(resource.getString("menu.dolphinUrl"));
+        String url = ClientContext.getMyBundle(Dolphin.class).getString("url.orca");
+        browseURL(url);
     }
 
     /**
      * MedXMLをオープンする。
      */
     public void browseMedXml() {
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
-        browseURL(resource.getString("menu.medXmlUrl"));
+        String url = ClientContext.getMyBundle(Dolphin.class).getString("url.medXML");
+        browseURL(url);
     }
 
     /**
      * SGをオープンする。
      */
     public void browseSeaGaia() {
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
-        browseURL(resource.getString("menu.seaGaiaUrl"));
+        String url = ClientContext.getMyBundle(Dolphin.class).getString("url.seaGaia");
+        browseURL(url);
     }
 
     /**
@@ -1903,10 +1678,8 @@ public class Dolphin implements MainWindow {
             if (desktop.isSupported(Desktop.Action.BROWSE)) {
                 try {
                     desktop.browse(new URI(url));
-                } catch (IOException ex) {
-                    ClientContext.getBootLogger().warn(ex);
-                } catch (URISyntaxException ex) {
-                    ClientContext.getBootLogger().warn(ex);
+                } catch (IOException | URISyntaxException ex) {
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
                 }
             }
         }
@@ -1916,8 +1689,6 @@ public class Dolphin implements MainWindow {
      * About を表示する。
      */
     public void showAbout() {
-        //AbstractProjectFactory f = Project.getProjectFactory();
-        //f.createAboutDialog();
         AboutDolphin about = new AboutDolphin();
         about.start();
     }
@@ -1955,9 +1726,6 @@ public class Dolphin implements MainWindow {
         
         try {
             String nimbus = "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
-            /*UIManager.setLookAndFeel(nimbus);
-            SwingUtilities.updateComponentTreeUI(getFrame());
-            SwingUtilities.updateComponentTreeUI(stampBox.getFrame());*/
             Project.setString("lookAndFeel", nimbus);
  //masuda    再起動を促す 
             requestReboot();
@@ -1976,9 +1744,6 @@ public class Dolphin implements MainWindow {
         }
         try {
             String nativeLaf = UIManager.getSystemLookAndFeelClassName();
-            /*UIManager.setLookAndFeel(nativeLaf);
-            SwingUtilities.updateComponentTreeUI(getFrame());
-            SwingUtilities.updateComponentTreeUI(stampBox.getFrame());*/
             Project.setString("lookAndFeel", nativeLaf);
  //masuda    再起動を促す           
             requestReboot();
@@ -1989,39 +1754,38 @@ public class Dolphin implements MainWindow {
     
     private boolean changeLookAndFeel() {
         
+        ResourceBundle resource = ClientContext.getMyBundle(Dolphin.class);
+        String msg1 = resource.getString("question.changeLAF");
+        String msg2 = resource.getString("message.changeLAF");
         String[] msg = new String[] {
-            "ルック & フィールを変更しますか?",
-            "変更を反映するにはOpenDolphin/Proを再起動する必要があります。"
+            msg1,
+            msg2
         };
-        String change = "変更する";
+        String change = resource.getString("option.change");
         String cancel = (String)UIManager.get("OptionPane.cancelButtonText");
+        
+        String title = resource.getString("title.optionPane.changeLAF");
         
         int option = JOptionPane.showOptionDialog(
                 null, 
                 msg, 
-                ClientContext.getFrameTitle("LAF変更"), 
+                ClientContext.getFrameTitle(title), 
                 JOptionPane.DEFAULT_OPTION, 
                 JOptionPane.QUESTION_MESSAGE,
                 null, 
                 new String[]{change, cancel}, 
                 change);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle("LAF変更"), msg[0], msg[1]);
-        if(option == 0) {
-            Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, change);
-        }else{
-            Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, cancel);
-        }
         
         return (option==0);
     }
     
     private void requestReboot() {
-
         // LAFの変更やPropertyのインポート・初期化はいったん再起動させることとする
-        final String msg = "LAFの設定を変更しました。再起動してください。";
-        final String title = ClientContext.getFrameTitle("設定変更");
+        ResourceBundle resource = ClientContext.getMyBundle(Dolphin.class);
+        String msg = resource.getString("instraction.changeLAF");
+        String title = resource.getString("title.optionPane.changeLAF");
+        title = ClientContext.getFrameTitle(title);
         JOptionPane.showMessageDialog(null, msg, title, JOptionPane.WARNING_MESSAGE);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, msg);
         processExit();
     }
  //masuda$   
@@ -2178,9 +1942,11 @@ public class Dolphin implements MainWindow {
         }
     }
 
+    /**
+     * OpnDolphin entry point.
+     * @param args project name
+     */
     public static void main(String[] args) {
-        //String mode = (args.length==1) ? args[0] : null;
-        String mode = (args.length==1) ? args[0] : "pro";
-        Dolphin.getInstance().start(mode);
+        Dolphin.getInstance().start(args.length==1 ? args[0] : "dolphin");
     }
 }

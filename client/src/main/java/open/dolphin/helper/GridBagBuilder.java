@@ -1,10 +1,7 @@
 package open.dolphin.helper;
 
 import java.awt.*;
-import java.util.List;
 import javax.swing.*;
-import open.dolphin.client.AutoKanjiListener;
-import open.dolphin.client.AutoRomanListener;
 
 /**
  * @author Kazushi Minagawa Digital Globe, Inc.
@@ -46,6 +43,7 @@ public final class GridBagBuilder {
     
     /**
      * タイトルボーダを設定する。
+     * @param title
      */
     public void setTitle(String title) {
         
@@ -63,6 +61,10 @@ public final class GridBagBuilder {
     
     /**
      * 座標(x, y) anchor の位置に長さ一のコンポーネントを追加する。
+     * @param c
+     * @param x
+     * @param y
+     * @param anchor
      */
     public void add(Component c, int x, int y, int anchor) {
         add(c, x, y, 1, 1, anchor);
@@ -70,6 +72,12 @@ public final class GridBagBuilder {
     
     /**
      * 座標(x, y) anchor の位置にスパン(width, height)のコンポーネントを追加する。
+     * @param cmp
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     * @param anchor
      */
     public void add(Component cmp, int x, int y, int width, int height, int anchor) {
         
@@ -95,6 +103,12 @@ public final class GridBagBuilder {
     
     /**
      * 座標(x, y)の位置にスパン１で重み(wx, wy)のコンポーネントを追加する。
+     * @param cmp
+     * @param x
+     * @param y
+     * @param fill
+     * @param wx
+     * @param wy
      */
     public void add(Component cmp, int x, int y, int fill, double wx, double wy) {
         add(cmp, x, y, 1, 1, fill, wx, wy);
@@ -102,6 +116,14 @@ public final class GridBagBuilder {
     
     /**
      * 座標(x, y)の位置にスパン(width, height)で重み(wx, wy)のコンポーネントを追加する。
+     * @param cmp
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     * @param fill
+     * @param wx
+     * @param wy
      */
     public void add(Component cmp, int x, int y, int width, int height, int fill, double wx, double wy) {
         
@@ -183,57 +205,6 @@ public final class GridBagBuilder {
     
     public int getTitleSpaceRight() {
         return titleSpaceRight;
-    }
-    
-    
-    public void addTextItem(int row, int col, String title, int length, boolean kanji) {
-        
-        JLabel l = new JLabel(title, SwingConstants.RIGHT);
-        
-        JTextField tf = new JTextField(length);
-        tf.setMargin(new Insets(1,2,1,2));
-        
-        if (kanji) {
-            tf.addFocusListener(AutoKanjiListener.getInstance());
-        } else {
-            tf.addFocusListener(AutoRomanListener.getInstance());
-        }
-        
-        add(l,  col, row, 1, 1, SwingConstants.EAST);
-        add(tf, col, row, 1, 1, SwingConstants.WEST);
-    }
-    
-    
-        
-    /**
-     * 
-     */    
-    public void layout(List<GridBagComponent> components) {
-        
-        for (GridBagComponent gbc : components) {
-            
-            int x = gbc.getCol();
-            int y = gbc.getRow();
-        
-            int top = (y == 0) ? 0 : getCmpSpaceV();
-            int left = (x == 0) ? 0 : getCmpSpaceH();
-
-            c.gridx = x;
-            c.gridy = y;
-            c.gridwidth = gbc.getColSpan();
-            c.gridheight = gbc.getRowSpan();
-            c.anchor = gbc.getAnchor();
-            c.fill = gbc.getFill();
-            c.weightx = gbc.getColWeight();
-            c.weighty = gbc.getRowWeight();
-
-            if (top != 0 || left != 0) {
-                c.insets = new Insets(top, left, 0, 0);  // top left bottom right
-            }
-
-            ((GridBagLayout) container.getLayout()).setConstraints(gbc.getComponent(), c);
-            container.add(gbc.getComponent());
-        }
     }
 }
 

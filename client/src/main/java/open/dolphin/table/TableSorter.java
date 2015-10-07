@@ -69,53 +69,43 @@ public class TableSorter extends AbstractTableModel {
     public static final int NOT_SORTED = 0;
     public static final int ASCENDING = 1;
     private static Directive EMPTY_DIRECTIVE = new Directive(-1, NOT_SORTED);
-    public static final Comparator<Object> COMPARABLE_COMPARATOR = new Comparator<Object>() {
-        @Override
-        public int compare(Object o1, Object o2) {
-            Method m;
-            try {
-                // See if o1 is capable of comparing itself to o2
-                m = o1.getClass().getDeclaredMethod("compareTo", o2.getClass());
-            } catch (NoSuchMethodException e) {
-                throw new ClassCastException();
-            }
-
-            Object retVal;
-            try {
-                // make the comparison
-                retVal = m.invoke(o1, o2);
-            } catch (IllegalAccessException e) {
-                throw new ClassCastException();
-            } catch (InvocationTargetException e) {
-                throw new ClassCastException();
-            }
-
-            // Comparable.compareTo() is supposed to return int but invoke()
-            // returns Object. We can't cast an Object to an int but we can
-            // cast it to an Integer and then extract the int from the Integer.
-            // But first, make sure it can be done.
-            //Integer i = new Integer(0);
-            Integer i = 0;
-            if (!i.getClass().isInstance(retVal)) {
-                throw new ClassCastException();
-            }
-
-            return i.getClass().cast(retVal).intValue();
+    public static final Comparator<Object> COMPARABLE_COMPARATOR = (Object o1, Object o2) -> {
+        Method m;
+        try {
+            // See if o1 is capable of comparing itself to o2
+            m = o1.getClass().getDeclaredMethod("compareTo", o2.getClass());
+        } catch (NoSuchMethodException e) {
+            throw new ClassCastException();
         }
-    };
-    public static final Comparator<Object> LEXICAL_COMPARATOR = new Comparator<Object>() {
-        @Override
-        public int compare(Object o1, Object o2) {
-            return o1.toString().compareTo(o2.toString());
+        
+        Object retVal;
+        try {
+            // make the comparison
+            retVal = m.invoke(o1, o2);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new ClassCastException();
         }
+        
+        // Comparable.compareTo() is supposed to return int but invoke()
+        // returns Object. We can't cast an Object to an int but we can
+        // cast it to an Integer and then extract the int from the Integer.
+        // But first, make sure it can be done.
+        //Integer i = new Integer(0);
+        Integer i = 0;
+        if (!i.getClass().isInstance(retVal)) {
+            throw new ClassCastException();
+        }
+        
+        return i.getClass().cast(retVal);
     };
+    public static final Comparator<Object> LEXICAL_COMPARATOR = (Object o1, Object o2) -> o1.toString().compareTo(o2.toString());
     private Row[] viewToModel;
     private int[] modelToView;
     private JTableHeader tableHeader;
     private MouseListener mouseListener;
     private TableModelListener tableModelListener;
-    private Map<Class, Comparator<Object>> columnComparators = new HashMap<Class, Comparator<Object>>();
-    private List<Directive> sortingColumns = new ArrayList<Directive>();
+    private final Map<Class, Comparator<Object>> columnComparators = new HashMap<>();
+    private final List<Directive> sortingColumns = new ArrayList<>();
 
     public TableSorter() {
         this.mouseListener = new MouseHandler();
@@ -456,8 +446,8 @@ public class TableSorter extends AbstractTableModel {
 
     private static class Arrow implements Icon {
 
-        private boolean descending;
-        private int size;
+        private final boolean descending;
+        private final int size;
 //masuda
         //private int priority;
 

@@ -16,9 +16,10 @@ public final class AppointEntryTransferable implements Transferable, ClipboardOw
   
     public static final DataFlavor[] flavors = {AppointEntryTransferable.appointFlavor};
       
-    private AppointmentModel appoint;
+    private final AppointmentModel appoint;
 
-    /** Creates new StampTransferable */
+    /** Creates new StampTransferable
+     * @param appoint */
     public AppointEntryTransferable(AppointmentModel appoint) {
         this.appoint = appoint;
     }
@@ -30,7 +31,7 @@ public final class AppointEntryTransferable implements Transferable, ClipboardOw
      
     @Override
     public boolean isDataFlavorSupported(DataFlavor flavor) {
-	return flavor.equals(appointFlavor) ? true : false;
+	return flavor.equals(appointFlavor);
     }
 
     @Override

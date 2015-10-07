@@ -1,9 +1,7 @@
 package open.dolphin.impl.login;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Date;
@@ -18,7 +16,6 @@ import open.dolphin.helper.SimpleWorker;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  * ログインダイアログ　クラス。
@@ -54,8 +51,8 @@ public class MultiUserLoginDialog extends AbstractLoginDialog {
         if (maxTryCount == 0) {
             maxTryCount = ClientContext.getInt("loginDialog.maxTryCount");
         }
-        
-        ClientContext.getPart11Logger().info("認証を開始します");
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(MultiUserLoginDialog.class);
+        java.util.logging.Logger.getLogger(this.getClass().getName()).info(bundle.getString("message.startAuthenitication"));
         
         // 試行回数 += 1
         tryCount++;
@@ -68,10 +65,6 @@ public class MultiUserLoginDialog extends AbstractLoginDialog {
                 String fid = Project.getFacilityId();
                 String uid = (String)view.getUsersCmb().getSelectedItem();
                 String password = new String(view.getPasswordField().getPassword());
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "ログインを開始します... ");
-                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "ユーザーID：", uid);
-                Log.outputFuncLog(Log.LOG_LEVEL_4, Log.FUNCTIONLOG_KIND_INFORMATION, "パスワード：", password);
-                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "医療機関ID：", fid);
                 UserModel userModel = userDlg.login(fid, uid, password);
                 return userModel;
             }
@@ -83,8 +76,8 @@ public class MultiUserLoginDialog extends AbstractLoginDialog {
                     String time = ModelUtils.getDateTimeAsString(new Date());
                     StringBuilder sb = new StringBuilder();
                     sb.append(time).append(":");
-                    sb.append(userModel.getUserId()).append(" がログインしました");
-                    ClientContext.getPart11Logger().info(sb.toString());
+                    sb.append(userModel.getUserId()).append(bundle.getString("text.hasLoggedIn"));
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).info(sb.toString());
 
                     //----------------------------------
                     // ユーザモデルを ProjectStub へ保存する
@@ -120,14 +113,13 @@ public class MultiUserLoginDialog extends AbstractLoginDialog {
             
             @Override
             protected void failed(java.lang.Throwable cause) {
-                ClientContext.getPart11Logger().warn("Task failed");
-                ClientContext.getPart11Logger().warn(cause.getCause());
-                ClientContext.getPart11Logger().warn(cause.getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning("Task failed");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getCause().getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
 
                 if (tryCount <= maxTryCount) {
                     //showMessageDialog(cause.getMessage());
-                    showMessageDialog("ログイン情報が間違っています");
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "ログイン情報が間違っています", cause.getMessage());
+                    showMessageDialog(bundle.getString("error.invalidLoginInfo"));
 
                 } else {
                     showTryOutError();
@@ -156,6 +148,7 @@ public class MultiUserLoginDialog extends AbstractLoginDialog {
     
     /**
      * GUI を構築する。
+     * @return 
      */
     @Override
     protected JPanel createComponents() {
@@ -205,24 +198,17 @@ public class MultiUserLoginDialog extends AbstractLoginDialog {
             }
         };
 
-        view.getUsersCmb().addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                if (e.getStateChange() == ItemEvent.SELECTED) {
-                    stateMgr.onUserIdAction();
-                }
+        view.getUsersCmb().addItemListener((ItemEvent e) -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                stateMgr.onUserIdAction();
             }
         });
         
         JPasswordField passwdField = view.getPasswordField();
         passwdField.getDocument().addDocumentListener(dl);
         passwdField.addFocusListener(AutoRomanListener.getInstance());
-        passwdField.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stateMgr.onPasswordAction();
-            }
+        passwdField.addActionListener((ActionEvent e) -> {
+            stateMgr.onPasswordAction();
         });
     }
 
@@ -269,10 +255,11 @@ public class MultiUserLoginDialog extends AbstractLoginDialog {
     /**
      * 設定ダイアログから通知を受ける。
      * 有効なプロジェクトでればユーザIDをフィールドに設定しパスワードフィールドにフォーカスする。
+     * @param newValue
      **/
     @Override
     public void setNewParams(Boolean newValue) {
-        boolean valid = newValue.booleanValue();
+        boolean valid = newValue;
         if (valid) {
             doWindowOpened();
         }

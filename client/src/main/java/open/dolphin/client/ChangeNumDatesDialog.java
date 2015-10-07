@@ -16,11 +16,11 @@ import javax.swing.event.DocumentListener;
  */
 public final class ChangeNumDatesDialog {
 
-    private JButton chagneBtn;
-    private JButton cancelBtn;
+    private final JButton chagneBtn;
+    private final JButton cancelBtn;
     private ChangeNumDatesView view;
-    private JDialog dialog;
-    private PropertyChangeSupport boundSupport;
+    private final JDialog dialog;
+    private final PropertyChangeSupport boundSupport;
 
     public ChangeNumDatesDialog(JFrame parent, PropertyChangeListener pcl) {
 
@@ -32,9 +32,12 @@ public final class ChangeNumDatesDialog {
 //s.oh^ 不具合修正
         view.getNumDatesFld().enableInputMethods(false);
 //s.oh$
-
+        
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(ChangeNumDatesDialog.class);
+        
         // OK button
-        chagneBtn = new JButton("変更");
+        String actionText = bundle.getString("actionText.change");
+        chagneBtn = new JButton(actionText);
         chagneBtn.addActionListener((ActionListener) EventHandler.create(ActionListener.class, ChangeNumDatesDialog.this, "doOk"));
         chagneBtn.setEnabled(false);
 
@@ -74,7 +77,8 @@ public final class ChangeNumDatesDialog {
                 options,
                 chagneBtn);
 
-        dialog = jop.createDialog(parent, ClientContext.getFrameTitle("処方日数変更"));
+        String title = bundle.getString("title.dialog.changeRpNumDays");
+        dialog = jop.createDialog(parent, ClientContext.getFrameTitle(title));
         dialog.addWindowListener(new WindowAdapter() {
             @Override
             public void windowOpened(WindowEvent e) {

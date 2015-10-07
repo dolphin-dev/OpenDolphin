@@ -74,47 +74,48 @@ public class RpView extends javax.swing.JPanel implements IRpView {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        setTable.setToolTipText("セット内容は Drag & Drop で順番を入れ替えることができます。"); // NOI18N
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/order/resources/RpView"); // NOI18N
+        setTable.setToolTipText(bundle.getString("setTable.toolTipText")); // NOI18N
         jScrollPane1.setViewportView(setTable);
 
-        usageCheck.setText("用法"); // NOI18N
-        usageCheck.setToolTipText("セットに用法があればチェックされます。"); // NOI18N
+        usageCheck.setText(bundle.getString("usageCheck.text")); // NOI18N
+        usageCheck.setToolTipText(bundle.getString("usageCheck.toolTipText")); // NOI18N
         usageCheck.setEnabled(false);
 
-        medicineCheck.setText("薬剤"); // NOI18N
-        medicineCheck.setToolTipText("薬剤がセットにあればチェックされます。"); // NOI18N
+        medicineCheck.setText(bundle.getString("medicineCheck.text")); // NOI18N
+        medicineCheck.setToolTipText(bundle.getString("medicineCheck.toolTipText")); // NOI18N
         medicineCheck.setEnabled(false);
 
-        jLabel2.setText("セット名"); // NOI18N
+        jLabel2.setText(bundle.getString("jLabel2.text")); // NOI18N
 
         stampNameField.setBackground(new java.awt.Color(255, 255, 0));
-        stampNameField.setToolTipText("セット名を編集します。"); // NOI18N
+        stampNameField.setToolTipText(bundle.getString("stampNameField.toolTipText")); // NOI18N
 
-        inRadio.setText("院内"); // NOI18N
-        inRadio.setToolTipText("院内処方の時選択します。"); // NOI18N
+        inRadio.setText(bundle.getString("inRadio.text")); // NOI18N
+        inRadio.setToolTipText(bundle.getString("inRadio.toolTipText")); // NOI18N
 
-        outRadio.setText("院外"); // NOI18N
-        outRadio.setToolTipText("院外処方の時選択します。"); // NOI18N
+        outRadio.setText(bundle.getString("outRadio.text")); // NOI18N
+        outRadio.setToolTipText(bundle.getString("outRadio.toolTipText")); // NOI18N
 
-        okCntBtn.setToolTipText("セットをカルテに展開し継続します。"); // NOI18N
+        okCntBtn.setToolTipText(bundle.getString("okCntBtn.toolTipText")); // NOI18N
 
-        okBtn.setToolTipText("セットをカルテに展開し終了します。"); // NOI18N
+        okBtn.setToolTipText(bundle.getString("okBtn.toolTipText")); // NOI18N
 
-        clearBtn.setToolTipText("セット内容をクリアします。"); // NOI18N
+        clearBtn.setToolTipText(bundle.getString("clearBtn.toolTipText")); // NOI18N
 
-        deleteBtn.setToolTipText("選択した項目を削除します。"); // NOI18N
+        deleteBtn.setToolTipText(bundle.getString("deleteBtn.toolTipText")); // NOI18N
 
-        searchTextField.setToolTipText("検索したい医薬品名を入力します。"); // NOI18N
+        searchTextField.setToolTipText(bundle.getString("searchTextField.toolTipText")); // NOI18N
 
-        rtCheck.setText("RT"); // NOI18N
-        rtCheck.setToolTipText("チェックすると入力中にリアルタイムで検索します。"); // NOI18N
+        rtCheck.setText(bundle.getString("rtCheck.text")); // NOI18N
+        rtCheck.setToolTipText(bundle.getString("rtCheck.toolTipText")); // NOI18N
 
         usageCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "用法選択", "内服１回等(100)", "内服２回等(200)", "内服３回等(300)", "内服４回等(400)", "点眼等(500,700)", "塗布等(600)", "頓用等(800)", "吸入等(900)", "全て" }));
-        usageCombo.setToolTipText("用法を検索します。"); // NOI18N
+        usageCombo.setToolTipText(bundle.getString("usageCombo.toolTipText")); // NOI18N
 
-        countField.setToolTipText("検索結果の件数を表示します。"); // NOI18N
+        countField.setToolTipText(bundle.getString("countField.toolTipText")); // NOI18N
 
-        jLabel4.setText("件数"); // NOI18N
+        jLabel4.setText(bundle.getString("jLabel4.toolTipText")); // NOI18N
 
         searchResultTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -129,14 +130,14 @@ public class RpView extends javax.swing.JPanel implements IRpView {
         ));
         jScrollPane2.setViewportView(searchResultTable);
 
-        tonyoChk.setText("頓用"); // NOI18N
-        tonyoChk.setToolTipText("頓用のときチェックしてください"); // NOI18N
+        tonyoChk.setText(bundle.getString("tonyoChk.text")); // NOI18N
+        tonyoChk.setToolTipText(bundle.getString("tonyoChk.toolTipText")); // NOI18N
 
-        partialChk.setText("部分一致"); // NOI18N
-        partialChk.setToolTipText("部分一致検索をします。"); // NOI18N
+        partialChk.setText(bundle.getString("partialChk.text")); // NOI18N
+        partialChk.setToolTipText(bundle.getString("partialChk.toolTipText")); // NOI18N
 
-        temporalChk.setText("臨時"); // NOI18N
-        temporalChk.setToolTipText("臨時処方の時チェックします。"); // NOI18N
+        temporalChk.setText(bundle.getString("temporalChk.text")); // NOI18N
+        temporalChk.setToolTipText(bundle.getString("temporalChk.toolTipText")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -144,12 +145,12 @@ public class RpView extends javax.swing.JPanel implements IRpView {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(infoLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 510, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(medicineCheck)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(usageCheck))
-            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 677, Short.MAX_VALUE)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 677, Short.MAX_VALUE)
+            .addComponent(jScrollPane2)
+            .addComponent(jScrollPane1)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -263,6 +264,7 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the clearBtn
      */
+    @Override
     public javax.swing.JButton getClearBtn() {
         return clearBtn;
     }
@@ -270,6 +272,7 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the countField
      */
+    @Override
     public javax.swing.JTextField getCountField() {
         return countField;
     }
@@ -277,6 +280,7 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the deleteBtn
      */
+    @Override
     public javax.swing.JButton getDeleteBtn() {
         return deleteBtn;
     }
@@ -284,6 +288,7 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the inRadio
      */
+    @Override
     public javax.swing.JRadioButton getInRadio() {
         return inRadio;
     }
@@ -291,6 +296,7 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the infoLabel
      */
+    @Override
     public javax.swing.JLabel getInfoLabel() {
         return infoLabel;
     }
@@ -298,6 +304,7 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the medicineCheck
      */
+    @Override
     public javax.swing.JCheckBox getMedicineCheck() {
         return medicineCheck;
     }
@@ -305,6 +312,7 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the okBtn
      */
+    @Override
     public javax.swing.JButton getOkBtn() {
         return okBtn;
     }
@@ -312,6 +320,7 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the okCntBtn
      */
+    @Override
     public javax.swing.JButton getOkCntBtn() {
         return okCntBtn;
     }
@@ -319,6 +328,7 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the outRadio
      */
+    @Override
     public javax.swing.JRadioButton getOutRadio() {
         return outRadio;
     }
@@ -326,6 +336,7 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the rtCheck
      */
+    @Override
     public javax.swing.JCheckBox getRtCheck() {
         return rtCheck;
     }
@@ -333,6 +344,7 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the searchResultTable
      */
+    @Override
     public javax.swing.JTable getSearchResultTable() {
         return searchResultTable;
     }
@@ -340,6 +352,7 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the searchTextField
      */
+    @Override
     public javax.swing.JTextField getSearchTextField() {
         return searchTextField;
     }
@@ -347,6 +360,7 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the setTable
      */
+    @Override
     public javax.swing.JTable getSetTable() {
         return setTable;
     }
@@ -354,6 +368,7 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the stampNameField
      */
+    @Override
     public javax.swing.JTextField getStampNameField() {
         return stampNameField;
     }
@@ -361,6 +376,7 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the usageCheck
      */
+    @Override
     public javax.swing.JCheckBox getUsageCheck() {
         return usageCheck;
     }
@@ -368,10 +384,12 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the usageCombo
      */
+    @Override
     public javax.swing.JComboBox getUsageCombo() {
         return usageCombo;
     }
 
+    @Override
     public javax.swing.JCheckBox getTonyoChk() {
         return tonyoChk;
     }
@@ -379,10 +397,12 @@ public class RpView extends javax.swing.JPanel implements IRpView {
     /**
      * @return the partialChk
      */
+    @Override
     public javax.swing.JCheckBox getPartialChk() {
         return partialChk;
     }
 
+    @Override
     public javax.swing.JCheckBox getTemporalChk() {
         return temporalChk;
     }

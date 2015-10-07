@@ -11,11 +11,10 @@ import javax.swing.*;
  */
 public abstract class AbstractSaveDialog {
     
-    protected static final String[] PRINT_COUNT 
-            = {"0", "1",  "2",  "3",  "4", "5"};
-    protected static final String[] TITLE_LIST = {"経過記録", "予定", "処方", "処置", "検査", "画像", "指導"};
-    protected static final String TITLE = "ドキュメント保存";
-    protected static final String TMP_SAVE = "仮保存";
+    protected final String[] PRINT_COUNT;
+    protected final String[] TITLE_LIST;
+    protected final String TITLE;
+    protected final String TMP_SAVE;
     
     // 親Window
     protected Window parent;
@@ -50,6 +49,18 @@ public abstract class AbstractSaveDialog {
 
     // 入力値のSaveParams
     protected SaveParamsM enterParams;
+    
+    public AbstractSaveDialog() {
+        
+        // Resource Injection
+        PRINT_COUNT = new String[]{"0", "1",  "2",  "3",  "4", "5"};
+        
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(AbstractSaveDialog.class);
+        TITLE_LIST = bundle.getString("title.documet.toSave").split(",");
+        
+        TITLE = bundle.getString("title.saveDialog");
+        TMP_SAVE = bundle.getString("text.temporalSave");
+    }
     
     public void setWindowParent(Window parent) {
         this.parent = parent;

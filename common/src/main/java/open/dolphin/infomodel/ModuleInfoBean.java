@@ -66,6 +66,12 @@ public class ModuleInfoBean extends InfoModel implements StampInfo, Comparable, 
     @Transient
     private boolean turnIn;
     
+//minagawa^ 入院対応
+    @Column(length=1)
+    // 実施=P、中止=S
+    private String performFlag;
+//minagawa$ 
+    
     /**
      * ModuleInfoオブジェクトを生成する。
      */
@@ -256,5 +262,19 @@ public class ModuleInfoBean extends InfoModel implements StampInfo, Comparable, 
         ret.setStampRole(this.getStampRole());
         ret.setTurnIn(this.isTurnIn());
         return ret;
+    }
+
+    /**
+     * @return the performFlag
+     */
+    public String getPerformFlag() {
+        return performFlag;
+    }
+
+    /**
+     * @param performFlag the performFlag to set
+     */
+    public void setPerformFlag(String performFlag) {
+        this.performFlag = performFlag;
     }
 }

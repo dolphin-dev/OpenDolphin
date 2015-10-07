@@ -7,6 +7,8 @@ import javax.swing.SwingWorker;
 
 /**
  * @author Kazushi Minagawa, Digital Globe, Inc.
+ * @param <T>
+ * @param <Void>
  */
 public abstract class SimpleWorker<T, Void> extends SwingWorker<T, Void> {
 
@@ -16,21 +18,17 @@ public abstract class SimpleWorker<T, Void> extends SwingWorker<T, Void> {
     
     public SimpleWorker() {
         
-        pcl = new PropertyChangeListener() {
-
-            @Override
-            public void propertyChange(PropertyChangeEvent pce) {
-                if (STATE.equals(pce.getPropertyName())) {
-                    if (SwingWorker.StateValue.STARTED == pce.getNewValue()) {
-                        startProgress();
-                    }
-                    else if(SwingWorker.StateValue.DONE == pce.getNewValue()) {
-                        stopProgress();
-                        SimpleWorker.this.removePropertyChangeListener(pcl);
-                    }
-                } else if (PROGRESS.equals(pce.getPropertyName())) {
-                    progress(((Integer)pce.getNewValue()).intValue());
+        pcl = (PropertyChangeEvent pce) -> {
+            if (STATE.equals(pce.getPropertyName())) {
+                if (SwingWorker.StateValue.STARTED == pce.getNewValue()) {
+                    startProgress();
                 }
+                else if(SwingWorker.StateValue.DONE == pce.getNewValue()) {
+                    stopProgress();
+                    SimpleWorker.this.removePropertyChangeListener(pcl);
+                }
+            } else if (PROGRESS.equals(pce.getPropertyName())) {
+                progress(((Integer)pce.getNewValue()));
             }
         };
         this.addPropertyChangeListener(pcl);

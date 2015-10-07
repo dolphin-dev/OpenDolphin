@@ -10,11 +10,8 @@ import open.dolphin.infomodel.LetterModule;
 public interface Letter extends NChartDocument {
 
     public void modelToView(LetterModule model);
-
-//minagawa^ LSC 1.4 bug fix 文書の印刷日付 2013/06/24
-    //public void viewToModel();
-    public void viewToModel(boolean print);
-//minagawa$    
+    
+    public void viewToModel(boolean print); 
 
     public void setEditables(boolean b);
 

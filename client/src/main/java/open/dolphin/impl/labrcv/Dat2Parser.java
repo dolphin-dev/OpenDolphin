@@ -26,6 +26,9 @@ public class Dat2Parser implements LabResultParser {
     
     /**
      * 入力ストリームの検査結果をパースする。
+     * @param labFile
+     * @return 
+     * @throws java.io.IOException
      */
     @Override
     public List<NLaboImportSummary> parse(Path labFile) throws IOException {
@@ -33,8 +36,8 @@ public class Dat2Parser implements LabResultParser {
         String line;
         String curKey = null;
         NLaboModule curModule = null;
-        List<NLaboModule> allModules = new ArrayList<NLaboModule>();
-        List<NLaboImportSummary> retList = new ArrayList<NLaboImportSummary>();
+        List<NLaboModule> allModules = new ArrayList<>();
+        List<NLaboImportSummary> retList = new ArrayList<>();
 
         SimpleDateFormat defaultDF = new SimpleDateFormat(DEFAULT_DATE_FORMAT);
         SimpleDateFormat df8 = new SimpleDateFormat(DATE_FORMAT_8);
@@ -76,7 +79,7 @@ public class Dat2Parser implements LabResultParser {
                 sb.append(sampleDate).append(" ");
                 sb.append(patientName).append(" ");
                 sb.append(patientSex);
-                ClientContext.getLaboTestLogger().debug(sb.toString());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).fine(sb.toString());
             }
 
             sampleDate = sampleDate.replaceAll("/", "-");
@@ -100,7 +103,7 @@ public class Dat2Parser implements LabResultParser {
                 sampleDate = defaultDF.format(date);
 
             } catch (Exception e) {
-                ClientContext.getLaboTestLogger().warn(e);
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(e.getMessage());
                 throw new IOException(e.getMessage());
             }
 
@@ -307,7 +310,7 @@ public class Dat2Parser implements LabResultParser {
             sb.append(item);
             sb.append("=");
             sb.append(value);
-            ClientContext.getLaboTestLogger().debug(sb.toString());
+            java.util.logging.Logger.getLogger(this.getClass().getName()).fine(sb.toString());
         }
     }
 }

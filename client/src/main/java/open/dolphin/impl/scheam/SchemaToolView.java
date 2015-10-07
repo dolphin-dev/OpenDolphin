@@ -306,7 +306,8 @@ public class SchemaToolView extends javax.swing.JFrame {
         blankTgl.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/blank.png"))); // NOI18N
 
         expandtglBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/expandOff.png"))); // NOI18N
-        expandtglBtn.setToolTipText("拡大・縮小します");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/impl/scheam/resources/SchemaToolView"); // NOI18N
+        expandtglBtn.setToolTipText(bundle.getString("expandingBtn.text")); // NOI18N
         expandtglBtn.setBorderPainted(false);
         expandtglBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
         expandtglBtn.setMaximumSize(new java.awt.Dimension(32, 32));
@@ -322,12 +323,12 @@ public class SchemaToolView extends javax.swing.JFrame {
         setFocusable(false);
         setFocusableWindowState(false);
         setMaximumSize(new java.awt.Dimension(128, 2147483647));
-        setResizable(false);
         setUndecorated(true);
+        setResizable(false);
 
         titleLabel.setFont(new java.awt.Font("Lucida Grande", 0, 8)); // NOI18N
         titleLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        titleLabel.setText("ツール");
+        titleLabel.setText(bundle.getString("titleLabel.text")); // NOI18N
         titleLabel.setMaximumSize(new java.awt.Dimension(100000, 16));
         titleLabel.setMinimumSize(new java.awt.Dimension(24, 16));
         titleLabel.setPreferredSize(new java.awt.Dimension(24, 16));
@@ -351,7 +352,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
         pencilBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/PencilOff.png"))); // NOI18N
-        pencilBtn.setToolTipText("エンピツ (B)");
+        pencilBtn.setToolTipText(bundle.getString("pencilBtn.toolTipText")); // NOI18N
         pencilBtn.setAlignmentY(0.0F);
         pencilBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         pencilBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -362,7 +363,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(pencilBtn);
 
         eraserBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/EraserOff.png"))); // NOI18N
-        eraserBtn.setToolTipText("消しゴム (E)");
+        eraserBtn.setToolTipText(bundle.getString("eraserBtn.toolTipText")); // NOI18N
         eraserBtn.setAlignmentY(0.0F);
         eraserBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         eraserBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -373,7 +374,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(eraserBtn);
 
         lineBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/LineOff.png"))); // NOI18N
-        lineBtn.setToolTipText("ライン (U)");
+        lineBtn.setToolTipText(bundle.getString("lineBtn.toolTipText")); // NOI18N
         lineBtn.setAlignmentY(0.0F);
         lineBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         lineBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -384,7 +385,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(lineBtn);
 
         textBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/TextOff.png"))); // NOI18N
-        textBtn.setToolTipText("文字 (T)");
+        textBtn.setToolTipText(bundle.getString("textBtn.toolTipText")); // NOI18N
         textBtn.setAlignmentY(0.0F);
         textBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         textBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -395,7 +396,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(textBtn);
 
         ovalBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/OvalOff.png"))); // NOI18N
-        ovalBtn.setToolTipText("円");
+        ovalBtn.setToolTipText(bundle.getString("ovalBtn.tooltipText")); // NOI18N
         ovalBtn.setAlignmentY(0.0F);
         ovalBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         ovalBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -406,7 +407,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(ovalBtn);
 
         ovalFillBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/FillOvalOff.png"))); // NOI18N
-        ovalFillBtn.setToolTipText("円 (O)");
+        ovalFillBtn.setToolTipText(bundle.getString("ovalFillBtn.toolTipText")); // NOI18N
         ovalFillBtn.setAlignmentY(0.0F);
         ovalFillBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         ovalFillBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -435,7 +436,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(netSparseBtn);
 
         rectBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/RectOff.png"))); // NOI18N
-        rectBtn.setToolTipText("長方形");
+        rectBtn.setToolTipText(bundle.getString("rectBtn.toolTipText")); // NOI18N
         rectBtn.setAlignmentY(0.0F);
         rectBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         rectBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -446,7 +447,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(rectBtn);
 
         rectFillBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/FillRectOff.png"))); // NOI18N
-        rectFillBtn.setToolTipText("長方形 (I)");
+        rectFillBtn.setToolTipText(bundle.getString("rectFillBtn.toolTipText")); // NOI18N
         rectFillBtn.setAlignmentY(0.0F);
         rectFillBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         rectFillBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -475,7 +476,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(netMediumBtn);
 
         polyBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/PolyOff.png"))); // NOI18N
-        polyBtn.setToolTipText("多角形");
+        polyBtn.setToolTipText(bundle.getString("polyBtn.toolTipText")); // NOI18N
         polyBtn.setAlignmentY(0.0F);
         polyBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         polyBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -486,7 +487,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(polyBtn);
 
         polyFillBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/FillPolyOff.png"))); // NOI18N
-        polyFillBtn.setToolTipText("多角形 (P)");
+        polyFillBtn.setToolTipText(bundle.getString("polyFillBtn.toolTipText")); // NOI18N
         polyFillBtn.setAlignmentY(0.0F);
         polyFillBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         polyFillBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -515,7 +516,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(netDenseBtn);
 
         selectBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/selectOff.png"))); // NOI18N
-        selectBtn.setToolTipText("選択移動 (S)");
+        selectBtn.setToolTipText(bundle.getString("selectBtn.toolTipText")); // NOI18N
         selectBtn.setBorderPainted(false);
         selectBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
         selectBtn.setMaximumSize(new java.awt.Dimension(32, 32));
@@ -525,7 +526,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(selectBtn);
 
         clippingBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/clippingOff.png"))); // NOI18N
-        clippingBtn.setToolTipText("切り抜き (C)");
+        clippingBtn.setToolTipText(bundle.getString("clippingBtn.toolTipText")); // NOI18N
         clippingBtn.setAlignmentY(0.0F);
         clippingBtn.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         clippingBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -536,7 +537,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(clippingBtn);
 
         expandBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/expandOff.png"))); // NOI18N
-        expandBtn.setToolTipText("ズーム (Z)");
+        expandBtn.setToolTipText(bundle.getString("expandBtn.toolTipText")); // NOI18N
         expandBtn.setBorderPainted(false);
         expandBtn.setContentAreaFilled(false);
         expandBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -548,7 +549,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(expandBtn);
 
         clearBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/clearOff.png"))); // NOI18N
-        clearBtn.setToolTipText("全て消去");
+        clearBtn.setToolTipText(bundle.getString("clearBtn.toolTipText")); // NOI18N
         clearBtn.setBorderPainted(false);
         clearBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
         clearBtn.setMaximumSize(new java.awt.Dimension(32, 32));
@@ -559,7 +560,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(clearBtn);
 
         rotateLeftBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/rotateLeftOff.png"))); // NOI18N
-        rotateLeftBtn.setToolTipText("左に90度回転");
+        rotateLeftBtn.setToolTipText(bundle.getString("rotateLeftBtn.toolTipText")); // NOI18N
         rotateLeftBtn.setBorderPainted(false);
         rotateLeftBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
         rotateLeftBtn.setMaximumSize(new java.awt.Dimension(32, 32));
@@ -570,7 +571,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(rotateLeftBtn);
 
         rotateRightBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/rotateRIghtOff.png"))); // NOI18N
-        rotateRightBtn.setToolTipText("右に90度回転 (R)");
+        rotateRightBtn.setToolTipText(bundle.getString("rotateRightBtn.toolTipText")); // NOI18N
         rotateRightBtn.setBorderPainted(false);
         rotateRightBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
         rotateRightBtn.setMaximumSize(new java.awt.Dimension(32, 32));
@@ -581,7 +582,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(rotateRightBtn);
 
         undoBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/undoOff.png"))); // NOI18N
-        undoBtn.setToolTipText("元に戻す");
+        undoBtn.setToolTipText(bundle.getString("undoBtn.toolTipText")); // NOI18N
         undoBtn.setBorderPainted(false);
         undoBtn.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/undoDis.png"))); // NOI18N
         undoBtn.setMargin(new java.awt.Insets(0, 0, 0, 0));
@@ -593,7 +594,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         toolPanel.add(undoBtn);
 
         redoBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/redoOff.png"))); // NOI18N
-        redoBtn.setToolTipText("再実行");
+        redoBtn.setToolTipText(bundle.getString("redoBtn.toolTipText")); // NOI18N
         redoBtn.setBorderPainted(false);
         redoBtn.setContentAreaFilled(false);
         redoBtn.setDisabledIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/scheam/resources/redoDis.png"))); // NOI18N
@@ -608,19 +609,19 @@ public class SchemaToolView extends javax.swing.JFrame {
         alphaPanel.setLayout(new java.awt.BorderLayout());
 
         alphaSlider.setFont(alphaSlider.getFont().deriveFont(alphaSlider.getFont().getSize()-3f));
-        alphaSlider.setToolTipText("アルファ値を設定します");
+        alphaSlider.setToolTipText(bundle.getString("alphaSlider.toolTipText")); // NOI18N
         alphaSlider.setAlignmentX(0.0F);
         alphaSlider.setAlignmentY(0.0F);
         alphaSlider.setPreferredSize(new java.awt.Dimension(30, 29));
         alphaPanel.add(alphaSlider, java.awt.BorderLayout.SOUTH);
 
         alphaLbl.setFont(alphaLbl.getFont());
-        alphaLbl.setText(" alpha");
+        alphaLbl.setText(" alpha"); // NOI18N
         alphaPanel.add(alphaLbl, java.awt.BorderLayout.WEST);
 
         alphaField.setFont(new java.awt.Font("Lucida Grande", 0, 9)); // NOI18N
         alphaField.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-        alphaField.setText("0.50");
+        alphaField.setText("0.50"); // NOI18N
         alphaPanel.add(alphaField, java.awt.BorderLayout.EAST);
 
         widthPanel.setLayout(new java.awt.BorderLayout());
@@ -628,12 +629,12 @@ public class SchemaToolView extends javax.swing.JFrame {
         widthSlider.setFont(widthSlider.getFont().deriveFont(widthSlider.getFont().getSize()-3f));
         widthPanel.add(widthSlider, java.awt.BorderLayout.SOUTH);
 
-        widthLabel.setText(" line width");
+        widthLabel.setText(" line width"); // NOI18N
         widthPanel.add(widthLabel, java.awt.BorderLayout.WEST);
 
         widthField.setFont(widthField.getFont().deriveFont(widthField.getFont().getSize()-4f));
         widthField.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-        widthField.setText("4.00");
+        widthField.setText("4.00"); // NOI18N
         widthField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 widthFieldActionPerformed(evt);
@@ -651,7 +652,7 @@ public class SchemaToolView extends javax.swing.JFrame {
         colorPalettePanel.setPreferredSize(new java.awt.Dimension(64, 72));
         colorPalettePanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 0, 0));
 
-        colorBtn.setToolTipText("色を選択します");
+        colorBtn.setToolTipText(bundle.getString("colorBtn.toolTipText")); // NOI18N
         colorBtn.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
         colorBtn.setMaximumSize(new java.awt.Dimension(32, 29));
         colorBtn.setMinimumSize(new java.awt.Dimension(32, 29));

@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import javax.swing.*;
@@ -43,7 +44,7 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
     private int curSize;    // FONT_SIZEのindex
     
     // ChartPlugin
-    private Chart chart;
+    private final Chart chart;
 
     // Current KarteTransferHandler
     private IKarteTransferHandler curKarteTransherHandler;
@@ -52,10 +53,10 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
     private JComponent currentFocusOwner;
     
     // Undo Manager
-    private UndoManager undoManager;
+    private final UndoManager undoManager;
     private Action undoAction;
     private Action redoAction;
-    private FocusPropertyChangeListener fpcl;
+    private final FocusPropertyChangeListener fpcl;
     
     private static int defaultFontSizeIndex() {
         
@@ -68,6 +69,10 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
         return 1;
     }
     
+    /**
+     * Creates new ChartMediator
+     * @param owner 
+     */
     public ChartMediator(Object owner) {
         
         super(owner);
@@ -146,11 +151,6 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
             JRadioButtonMenuItem rdi = (JRadioButtonMenuItem) desc.getValue("menuItem");
             rdi.setSelected(true);
         }
-//        //
-//        boolean showModified = Project.getBoolean(Project.DOC_HISTORY_SHOWMODIFIED);
-//        Action a = map.get(GUIConst.ACTION_SHOW_MODIFIED);
-//        JCheckBoxMenuItem chk = (JCheckBoxMenuItem)a.getValue("menuItem");
-//        chk.setSelected(showModified);
     }
     
     public void dispose() {
@@ -175,19 +175,20 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
     /**
      * メニューリスナの実装。
      * 挿入及びテキストメニューが選択された時の処理を行う。
+     * @param e
      */
     @Override
     public void menuSelected(MenuEvent e) {
         
         // 挿入とテキストメニューにリスナが登録されている
         JMenu selectedMenu = (JMenu) e.getSource();
-        String cmd = selectedMenu.getActionCommand();
+        String menuName = selectedMenu.getName();
         
         //-----------------------------------
         // 挿入メニューの時
         // StampBox のツリーをメニューにする
         //-----------------------------------
-        if (cmd.equals(GUIConst.MENU_INSERT)) {
+        if (GUIConst.MENU_NAME_INSERT.equals(menuName)) {    
             
             selectedMenu.removeAll();
             
@@ -219,36 +220,13 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
                     selectedMenu.add(createStampMenu(tree));
                 }
             }
-            
-            // 
         } 
-        
-        else if (cmd.equals(GUIConst.MENU_TEXT)) {
+        else if (GUIConst.MENU_NAME_TEXT.equals(menuName)) {    
             //-----------------------------------
             // テキストメニューの場合、スタイルを制御する
             //-----------------------------------
             adjustStyleMenu();
         }
-
-//        else if (cmd.equals(GUIConst.MENU_KARTE)) {
-//            //-----------------------------------
-//            // 昇順／降順、修正履歴表示を環境へ合わせる
-//            //-----------------------------------
-//            boolean asc = Project.getBoolean(Project.DOC_HISTORY_ASCENDING);
-//            if (asc) {
-//                Action a = getAction(GUIConst.ACTION_ASCENDING);
-//                JRadioButtonMenuItem rdi = (JRadioButtonMenuItem) a.getValue("menuItem");
-//                rdi.setSelected(true);
-//            } else {
-//                Action desc = getAction(GUIConst.ACTION_DESCENDING);
-//                JRadioButtonMenuItem rdi = (JRadioButtonMenuItem) desc.getValue("menuItem");
-//                rdi.setSelected(true);
-//            }
-//            boolean showModified = Project.getBoolean(Project.DOC_HISTORY_SHOWMODIFIED);
-//            Action a = getAction(GUIConst.ACTION_SHOW_MODIFIED);
-//            JCheckBoxMenuItem chk = (JCheckBoxMenuItem)a.getValue("menuItem");
-//            chk.setSelected(showModified);
-//        }
     }
     
     @Override
@@ -266,7 +244,7 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
         if (getChain() instanceof KarteEditor) {
             KarteEditor editor = (KarteEditor)getChain();
             kartePane = editor.getSOAPane();
-            enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+            enabled = (kartePane.getTextPane().isEditable());
         }
         
         getAction(GUIConst.ACTION_ATTACHMENT).setEnabled(enabled);
@@ -284,7 +262,7 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
         if (getChain() instanceof KarteEditor) {
             KarteEditor editor = (KarteEditor) getChain();
             kartePane = editor.getSOAPane();
-            enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+            enabled = (kartePane.getTextPane().isEditable());
         }
         
         // サブメニューを制御する
@@ -292,9 +270,6 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
         getAction("style").setEnabled(enabled);
         getAction("justify").setEnabled(enabled);
         getAction("color").setEnabled(enabled);
-        
-        // メニューアイテムを制御する
-        //getAction(GUIConst.ACTION_RESET_STYLE).setEnabled(enabled);
         
         getAction("fontRed").setEnabled(enabled);
         getAction("fontOrange").setEnabled(enabled);
@@ -323,9 +298,7 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
      */
     private JMenu createDiagnosisMenu(StampTree stampTree) {
         
-        //
         // chainの先頭がDiagnosisDocumentの時のみ使用可能とする
-        //
         JMenu myMenu;
         DiagnosisDocument diagnosis = null;
         boolean enabled = false;
@@ -368,7 +341,7 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
             KarteEditor editor = (KarteEditor) obj;
             kartePane = editor.getSOAPane();
             if (kartePane != null) {
-                enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+                enabled = (kartePane.getTextPane().isEditable());
             }
         }
         
@@ -377,15 +350,6 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
             myMenu.setEnabled(false);
             
         } else {
-            //
-            // TextTree、JTextPane、handler からメニューを構築する
-            // PPane にも落とさなければならない TODO
-            //JComponent comp = kartePane.getTextPane();
-            // TransferHandler handler = comp.getTransferHandler();
-            
-            // 2007-03-31
-            // 直近でフォーカスを得ているコンポーネント(JTextPan）へ挿入する
-            //
             JComponent comp = getCurrentComponent();
             if (comp == null) {
                 comp = kartePane.getTextPane();
@@ -413,7 +377,7 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
             KarteEditor editor = (KarteEditor) obj;
             kartePane = editor.getPPane();
             if (kartePane != null) {
-                enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+                enabled = (kartePane.getTextPane().isEditable());
             }
         }
         
@@ -478,7 +442,7 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
             KarteEditor editor = (KarteEditor) obj;
             kartePane = editor.getSOAPane();
             if (kartePane != null) {
-                enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+                enabled = (kartePane.getTextPane().isEditable());
             }
         }
         
@@ -556,7 +520,7 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
             KarteEditor editor = (KarteEditor) obj;
             kartePane = editor.getPPane();
             if (kartePane != null) {
-                enabled = (kartePane.getTextPane().isEditable()) ? true : false;
+                enabled = (kartePane.getTextPane().isEditable());
             }
         }
         
@@ -578,7 +542,7 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
     public boolean hasTree(String entity) {
         StampBoxPlugin stBox = (StampBoxPlugin)chart.getContext().getPlugin("stampBox");
         StampTree tree = stBox.getStampTree(entity);
-        return tree != null ? true : false;
+        return tree != null;
     }
     
     public void applyInsurance(PVTHealthInsuranceModel hm) {
@@ -589,13 +553,12 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
                 Method m = target.getClass().getMethod("applyInsurance", new Class[]{hm.getClass()});
                 m.invoke(target, new Object[]{hm});
                 
-            } catch (Exception e) {
+            } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 //e.printStackTrace();
             }
         }
     }
  
-    
     //-----------------------------------------------------------------------------
     
     @Override
@@ -823,11 +786,9 @@ public final class ChartMediator extends MenuSupport implements UndoableEditList
         JComponent focusOwner = getCurrentComponent();
         if (focusOwner != null) {
             Action a = new StyledEditorKit.ForegroundAction("color", color);
-            if (a != null) {
                 a.actionPerformed(new ActionEvent(focusOwner,
-                        ActionEvent.ACTION_PERFORMED,
-                        "foreground"));
-            }
+                    ActionEvent.ACTION_PERFORMED,
+                    "foreground"));
         }  
     }
     

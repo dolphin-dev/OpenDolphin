@@ -42,7 +42,7 @@ public final class MMLDate extends Object {
     public static String getDateTime(String pattern) {
         GregorianCalendar gc = new GregorianCalendar();
         SimpleDateFormat f = new SimpleDateFormat(pattern);
-        return f.format(gc.getTime()).toString();
+        return f.format(gc.getTime());
     }
     
     public static String getDateTime() {
@@ -59,17 +59,17 @@ public final class MMLDate extends Object {
     
     public static String getDateTime(GregorianCalendar gc) {
         SimpleDateFormat f = new SimpleDateFormat(MML_DATETIME_PATTERN);
-        return f.format(gc.getTime()).toString();
+        return f.format(gc.getTime());
     }
 
     public static String getDate(GregorianCalendar gc) {
         SimpleDateFormat f = new SimpleDateFormat(MML_DATE_PATTERN);
-        return f.format(gc.getTime()).toString();
+        return f.format(gc.getTime());
     }
 
     public static String getTime(GregorianCalendar gc) {
         SimpleDateFormat f = new SimpleDateFormat(MML_TIME_PATTERN);
-        return f.format(gc.getTime()).toString();
+        return f.format(gc.getTime());
     }
     
     public static String getDayFromToday(int n) {       

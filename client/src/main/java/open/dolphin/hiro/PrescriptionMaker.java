@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -33,7 +34,6 @@ import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.PriscriptionModel;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  *
@@ -251,23 +251,20 @@ public class PrescriptionMaker {
                     // 使用期間の日付チェックエラー
                     ret = 1;
                     JOptionPane.showMessageDialog(prePanel, chkTarget.getName() + errMsg, errTitle, JOptionPane.ERROR_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, errTitle, chkTarget.getName() + errMsg);
                     chkTarget.requestFocus();
                 } else if ((delivery != null) && period.before(delivery)) {
                     JOptionPane.showMessageDialog(prePanel, chkTarget.getName() + "に交付年月日より前の日が入力されています。", errTitle, JOptionPane.ERROR_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, errTitle, chkTarget.getName() + "に交付年月日より前の日が入力されています。");
                     chkTarget.requestFocus();
                     ret = 1;
                 } else if (period.before(now)) {
                     JOptionPane.showMessageDialog(prePanel, chkTarget.getName() + "に今日より前の日が入力されています。", errTitle, JOptionPane.ERROR_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, errTitle, chkTarget.getName() + "に今日より前の日が入力されています。");
                     chkTarget.requestFocus();
                     ret = 1;
                 }
             }
         } catch (Exception e) {
             ret = 2;
-            ClientContext.getBootLogger().error(e.getMessage(), e.getCause());
+            java.util.logging.Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "{0}{1}", new Object[]{e.getMessage(), e.getCause()});
         }
         return ret;
     }
@@ -297,8 +294,8 @@ public class PrescriptionMaker {
             @Override
             protected String doInBackground() throws Exception {
                 
-                List<BundleMed> naiyoList = new ArrayList<BundleMed>();
-                List<BundleMed> otherList = new ArrayList<BundleMed>();
+                List<BundleMed> naiyoList = new ArrayList<>();
+                List<BundleMed> otherList = new ArrayList<>();
                 
                 Collection<ModuleModel> modules = docModel.getModules();
                 
@@ -342,7 +339,7 @@ public class PrescriptionMaker {
                 // 内用の同じ用法をまとめる
                 if (!naiyoList.isEmpty()) {
                     
-                    HashMap<String,BundleMed> map = new HashMap<String,BundleMed>();
+                    HashMap<String,BundleMed> map = new HashMap<>();
                     
                     for (BundleMed test : naiyoList) {
                         
@@ -444,7 +441,6 @@ public class PrescriptionMaker {
                         } catch (IOException ex) {
                             ex.printStackTrace(System.err);
                             JOptionPane.showMessageDialog(chart.getFrame(), ex.getMessage(), "処方せん出力エラー", JOptionPane.ERROR_MESSAGE);
-                            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "処方せん出力エラー", ex.getMessage());
                         }
                     }
                 } catch (InterruptedException ex) {
@@ -452,7 +448,6 @@ public class PrescriptionMaker {
                 } catch (ExecutionException ex) {
                     ex.printStackTrace(System.err);
                     JOptionPane.showMessageDialog(chart.getFrame(), ex.getMessage(), "処方せん出力エラー", JOptionPane.ERROR_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "処方せん出力エラー", ex.getMessage());
                 }
             }
         };

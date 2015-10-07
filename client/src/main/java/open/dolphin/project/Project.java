@@ -5,7 +5,6 @@ import java.awt.Rectangle;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Properties;
-import open.dolphin.client.ClientContext;
 import open.dolphin.infomodel.ID;
 import open.dolphin.infomodel.UserModel;
 
@@ -25,7 +24,6 @@ public class Project  {
     public static final String FACILITY_ID 		= "facilityId";
     public static final String USER_ID 			= "userId";
     public static final String SERVER_URI 		= "baseURI";
-    //public static final String BASE_URI 		= "baseURI";
     
     // CLAIM
     // 2012-07  claim.sender=(client | server) client=client送信, server=server送信
@@ -198,6 +196,7 @@ public class Project  {
     public static final String FACILITY_CODE_OF_INSURNCE_SYSTEM = "facility.code.insurance.system";
 
     // 切り株
+    //private static ProjectStub stub;
     private static ProjectStub stub;
     
     /** Creates new Project*/
@@ -234,13 +233,13 @@ public class Project  {
 
     public static boolean isReadOnly() {
         String licenseCode = stub.getUserModel().getLicenseModel().getLicense();
-        return licenseCode.equals(LICENSE_DOCTOR) ? false : true;
+        return !licenseCode.equals(LICENSE_DOCTOR);
     }
     
 //s.oh^ 2014/08/19 ID権限
     public static boolean isOtherCare() {
         String licenseCode = stub.getUserModel().getLicenseModel().getLicense();
-        return licenseCode.equals(LICENSE_OTHERCARE) ? true : false;
+        return licenseCode.equals(LICENSE_OTHERCARE);
     }
 //s.oh$
 
@@ -248,24 +247,30 @@ public class Project  {
         return stub.getBaseURI();
     }
     
+    public static String getSchema() {
+        return stub.getSchema();
+    }
+    
+    public static String getServer() {
+        return stub.getServer();
+    }
+    
+    public static String getPort() {
+        return stub.getPort();
+    }
+    
+    public static boolean isTester() {
+        return stub.isTester();
+    }
+    
     // 2012-07 ORCAとの通信をClientで行うかどうかの便利メソッド
     public static boolean claimSenderIsClient() {
-        // ASPの場合は Client-ORCA
-        if (ClientContext.isOpenDolphin()) {
-            return true;
-        }
-        String test = stub.getString(CLAIM_SENDER);
-        return (test!=null && test.equals("client"));
+        return stub.claimSenderIsClient();
     }
     
     // 2012-07 ORCAとの通信をServerで行うかどうかの便利メソッド
     public static boolean claimSenderIsServer() {
-        // ASPの場合は Client-ORCA
-        if (ClientContext.isOpenDolphin()) {
-            return false;
-        }
-        String test = stub.getString(CLAIM_SENDER);
-        return (test!=null && test.equals("server"));
+        return stub.claimSenderIsServer();
     }
     
     // ORCAへ送信、病名取り込み、可能かどうか
@@ -276,98 +281,26 @@ public class Project  {
     //  --病名送信  -> ChartImplの isSendClaim()
     //  --StampBoxのORCAタブ -> OrcaTreeのenter()
     public static boolean canAccessToOrca() {
-        
-        // DolphinPRO
-        if (ClientContext.isDolphinPro()) {
-            return claimSenderIsClient() ? claimAddressIsValid() : true;
-        }
-        
-        // 評価
-        if (ClientContext.is5mTest()) {
-            // Server-ORCAでは送信不可
-            return claimSenderIsClient() ? claimAddressIsValid() : false;
-        }
-        
-        // ASP user
-        if (ClientContext.isOpenDolphin()) {
-            return claimAddressIsValid();
-        }
-        
-        return false;
+        return stub.canAccessToOrca();
     }
     
     // Master 検索が可能かどうか
     // 使用場所
     //  マスター検索フィールドの enabled
     public static boolean canSearchMaster() {
-        
-        // DolphinPRO
-        if (ClientContext.isDolphinPro()) {
-            return claimSenderIsClient() ? claimAddressIsValid() : true;
-        }
-        
-        // 評価
-        if (ClientContext.is5mTest()) {
-            // Server-ORCAでマスター検索可
-            return claimSenderIsClient() ? claimAddressIsValid() : true;
-        }
-        
-        // ASP
-        if (ClientContext.isOpenDolphin()) {
-            return claimAddressIsValid();
-        }
-        
-        return false;
-    }
-    
-    // 有効なアドレスかどうか
-    private static boolean claimAddressIsValid() {
-        // null empty のみチェック ToDo
-        String host = stub.getString(CLAIM_ADDRESS);
-        return (host!=null && (!host.equals("")));
+        return stub.canSearchMaster();
     }
     
     // StampがGlobalに公開できるか?
     public static boolean canGlobalPublish() {
-        // DolphinPRO
-        if (ClientContext.isDolphinPro()) {
-            return false;
-        }
-        
-        // 評価
-        if (ClientContext.is5mTest()) {
-            // LSCのみ
-            return (getUserModel().getFacilityModel().getFacilityId().endsWith("70.1"));
-        }
-        
-        // ASP
-        if (ClientContext.isOpenDolphin()) {
-            return true;
-        }
-        
-        return false;
-    }
-    
-    /**
-     * ProjectFactoryを返す。
-     * @return Project毎に異なる部分の情報を生成するためのFactory
-     */
-    public static AbstractProjectFactory getProjectFactory() {
-        return AbstractProjectFactory.getProjectFactory(stub.getName());
-    }
-
-    /**
-     * 地域連携用の患者MasterIdを返す。
-     * @return 地域連携で使用する患者MasterId
-     */
-    public static ID getMasterId(String pid) {
-        String fid = Project.getString(Project.AREA_NETWORK_FACILITY_ID);   //stub.getAreaNetworkFacilityId();
-        return getProjectFactory().createMasterId(pid, fid);
+        return stub.canGlobalPublish();
     }
 
     /**
      * CLAIM送信に使用する患者MasterIdを返す。
      * 地域連携ルールと異なるため。
+     * @param pid
+     * @return 
      */
     public static ID getClaimMasterId(String pid) {
         return new ID(pid, "facility", "MML0024");
@@ -375,6 +308,7 @@ public class Project  {
 
     /**
      * CSGW(Client Side Gate Way)へのパスを返す。
+     * @return 
      */
     public static String getCSGWPath() {
         StringBuilder sb = new StringBuilder();

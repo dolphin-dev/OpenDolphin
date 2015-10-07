@@ -11,14 +11,8 @@ public interface IInfoModel extends java.io.Serializable, java.lang.Cloneable {
     /** ISO 8601 style date format */
     public static final String ISO_8601_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
     
-    /** カルテの確定日表示用のフォーマット */
-    public static final String KARTE_DATE_FORMAT = "yyyy年M月d日'（'EEE'）'H時m分";
-    
     /** 時間部分のない Date */
     public static final String DATE_WITHOUT_TIME = "yyyy-MM-dd";
-    
-    /** 予約用(予定カルテ対応) */
-    public static final String DATE_FORMAT_FOR_SCHEDULE = "yyyy年M月d日'（'EEE'）'";
     
     /** Oersistence Query の LIKE 演算子 */
     public static final String LIKE_OPERATOR = "%";
@@ -43,15 +37,14 @@ public interface IInfoModel extends java.io.Serializable, java.lang.Cloneable {
     
     public static final String MALE 		= "male";
     
-    public static final String MALE_DISP 	= "男";
+    public static final String MALE_DISP 	= "M";
     
     public static final String FEMALE 		= "female";
     
-    public static final String FEMALE_DISP 	= "女";
+    public static final String FEMALE_DISP 	= "F";
     
-    public static final String UNKNOWN 		= "不明";
+    public static final String UNKNOWN 		= "U";
     
-    public static final String AGE 		= "歳";
 
     /** プレイン文書 */
     public static final String DOCTYPE_S_KARTE = "s_karte";
@@ -77,16 +70,7 @@ public interface IInfoModel extends java.io.Serializable, java.lang.Cloneable {
     
     public static final String RELATION_NEW = "newVersion";
     public static final String RELATION_OLD = "oldVersion";
-    
-    public static final String DEFAULT_DIAGNOSIS_TITLE = "病名登録";
-    public static final String DEFAULT_DIAGNOSIS_CATEGORY = "mainDiagnosis";
-    public static final String DEFAULT_DIAGNOSIS_CATEGORY_DESC = "主病名";
-    public static final String DEFAULT_DIAGNOSIS_CATEGORY_CODESYS = "MML0012";
-    public static final String ORCA_OUTCOME_RECOVERED ="治癒";
-    public static final String ORCA_OUTCOME_DIED = "死亡";
-    public static final String ORCA_OUTCOME_END = "中止";
-    public static final String ORCA_OUTCOME_TRANSFERED = "移行";
-    
+        
     //
     // Stamp Roles
     //
@@ -121,23 +105,10 @@ public interface IInfoModel extends java.io.Serializable, java.lang.Cloneable {
     public static final String STATUS_NONE                      = "N";
     public static final String STATUS_DELETE                    = "D";
     
-    public static final String PERMISSION_ALL = "all";
-    public static final String PERMISSION_READ = "read";
-    public static final String ACCES_RIGHT_PATIENT = "patient";
-    public static final String ACCES_RIGHT_CREATOR = "creator";
-    public static final String ACCES_RIGHT_EXPERIENCE = "experience";
-    public static final String ACCES_RIGHT_PATIENT_DISP = "被記載者(患者)";
-    public static final String ACCES_RIGHT_CREATOR_DISP = "記載者施設";
-    public static final String ACCES_RIGHT_EXPERIENCE_DISP = "診療歴のある施設";
-    public static final String ACCES_RIGHT_PERSON_CODE = "personCode";
-    public static final String ACCES_RIGHT_FACILITY_CODE = "facilityCode";
-    public static final String ACCES_RIGHT_EXPERIENCE_CODE = "facilityCode";
     
     /** 処方コード */
     public static final String CLAIM_210 = "210";
     
-    /** 保険区別 */
-    public static final String INSURANCE_SELF = "自費";
     public static final String INSURANCE_SELF_CODE = "Z1";
     public static final String INSURANCE_SELF_PREFIX = "Z";
     public static final String INSURANCE_ROSAI_PREFIX = "R1";
@@ -201,71 +172,7 @@ public interface IInfoModel extends java.io.Serializable, java.lang.Cloneable {
         ENTITY_SURGERY_ORDER, ENTITY_RADIOLOGY_ORDER, ENTITY_LABO_TEST, ENTITY_PHYSIOLOGY_ORDER,
         ENTITY_BACTERIA_ORDER, ENTITY_INJECTION_ORDER, ENTITY_MED_ORDER, ENTITY_BASE_CHARGE_ORDER, ENTITY_INSTRACTION_CHARGE_ORDER
     };
-    
-    //
-    // StampTreeのタブ名
-    //
-    /** 傷病名 */
-    public static final String TABNAME_DIAGNOSIS = "傷病名";
-    
-    /** テキスト */
-    public static final String TABNAME_TEXT = "テキスト";
-    
-    /** パ ス */
-    public static final String TABNAME_PATH = "パ ス";
-    
-    /** ORCA セット */
-    public static final String TABNAME_ORCA = "ORCA";
-    
-    /** 汎 用 */
-    public static final String TABNAME_GENERAL = "汎 用";
-    
-    /** その他 */
-    public static final String TABNAME_OTHER = "その他";
-    
-    /** 放射線 */
-    public static final String TABNAME_RADIOLOGY = "放射線";
-    
-    /** 検体検査 */
-    public static final String TABNAME_LABO = "検体検査";
-    
-    /** 生体検査 */
-    public static final String TABNAME_PHYSIOLOGY = "生体検査";
-    
-    /** 細菌検査 */
-    public static final String TABNAME_BACTERIA = "細菌検査";
-    
-    /** 手 術 */
-    public static final String TABNAME_SURGERY = "手 術";
-    
-    /** 処 置 */
-    public static final String TABNAME_TREATMENT = "処 置";
-    
-    /** 注 射 */
-    public static final String TABNAME_INJECTION = "注 射";
-    
-    /** 処 方 */
-    public static final String TABNAME_MED = "処 方";
-    
-    /** 指導・在宅 */
-    public static final String TABNAME_INSTRACTION = "指導・在宅";
-    
-    /** 初診・再診 */
-    public static final String TABNAME_BASE_CHARGE = "初診・再診";
-    
-    
-    /** ORCA のタブ番号 */
-    public static final int TAB_INDEX_ORCA = 3;
-    
-    
-    /** スタンプのタブ名配列 */
-    public static String[] STAMP_NAMES = {
-        TABNAME_DIAGNOSIS, TABNAME_TEXT, TABNAME_PATH, TABNAME_ORCA, 
-        TABNAME_GENERAL, TABNAME_OTHER, TABNAME_TREATMENT, TABNAME_SURGERY, 
-        TABNAME_RADIOLOGY, TABNAME_LABO, TABNAME_PHYSIOLOGY, TABNAME_BACTERIA,
-        TABNAME_INJECTION, TABNAME_MED, TABNAME_BASE_CHARGE, TABNAME_INSTRACTION
-    };
-    
+       
     /** スタンプのCLAIM版点数集計先 */
     public static String[] CLAIM_CLASS_CODE = {
         "", "", "", "", "", "800-899", "400-499", "500-599", "700-799", "600-699", "600-699",

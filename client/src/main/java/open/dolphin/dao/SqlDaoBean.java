@@ -4,8 +4,6 @@ import java.sql.*;
 import java.util.Collection;
 import open.dolphin.project.Project;
 
-
-
 /**
  * SqlDaoBean
  *
@@ -160,8 +158,8 @@ public class SqlDaoBean extends DaoBean {
         try {
             Class.forName(driver);
         } catch (ClassNotFoundException cnfe) {
-            logger.warn("Couldn't find the driver!");
-            logger.warn("Let's print a stack trace, and exit.");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning("Couldn't find the driver!");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning("Let's print a stack trace, and exit.");
             cnfe.printStackTrace(System.err);
             System.exit(1);
         }
@@ -208,6 +206,8 @@ public class SqlDaoBean extends DaoBean {
 
     /**
      * To make sql statement ('xxxx',)<br>
+     * @param s
+     * @return 
      */
     public String addSingleQuoteComa(String s) {
         StringBuilder buf = new StringBuilder();
@@ -240,12 +240,12 @@ public class SqlDaoBean extends DaoBean {
     }
     
     protected void debug(String msg) {
-        logger.debug(msg);
+        java.util.logging.Logger.getLogger(this.getClass().getName()).info(msg);
     }
     
     protected void printTrace(String msg) {
         if (trace) {
-            logger.debug(msg);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).info(msg);
         }
     }
     

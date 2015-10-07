@@ -10,7 +10,6 @@ import javax.ws.rs.core.MediaType;
 import open.dolphin.converter.DocumentModelConverter;
 import open.dolphin.converter.InteractionCodeListConverter;
 import open.dolphin.infomodel.*;
-import open.dolphin.util.Log;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -132,9 +131,8 @@ public class OrcaRestDelegater extends BusinessDelegater implements OrcaDelegate
         sb.append("/orca/tensu/ten/");
         sb.append(ten).append(CAMMA).append(now);
         String path = sb.toString();
-        Log.outputFuncLog(Log.LOG_LEVEL_0,"I",path);
-
-        // GET
+        
+// GET
         TensuList result = getEasyJson(path, TensuList.class);
         
         // List

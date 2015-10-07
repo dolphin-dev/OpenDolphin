@@ -39,11 +39,9 @@ public class HashUtil {
             md.update(text.getBytes(ISO_8859_1), 0, text.length());
             md5hash = md.digest();
             return convertToHex(md5hash);
-        } catch (NoSuchAlgorithmException e1) {
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e1) {
             System.err.println(e1);
 
-        } catch (UnsupportedEncodingException e2) {
-            System.err.println(e2);
         }
 
         return null;

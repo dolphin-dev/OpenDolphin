@@ -1,17 +1,9 @@
 package open.dolphin.impl.login;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.util.Date;
-import java.util.Enumeration;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -23,7 +15,6 @@ import open.dolphin.helper.SimpleWorker;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  * ログインダイアログ　クラス。
@@ -33,6 +24,7 @@ import open.dolphin.util.Log;
 public class LoginDialog extends AbstractLoginDialog {
     
     private LoginPanel view;
+    //private SignInPanel view;
     private StateMgr stateMgr;
     private boolean loginFlag;
 
@@ -60,7 +52,9 @@ public class LoginDialog extends AbstractLoginDialog {
             maxTryCount = ClientContext.getInt("loginDialog.maxTryCount");
         }
         
-        ClientContext.getPart11Logger().info("認証を開始します");
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(LoginDialog.class);
+        
+        java.util.logging.Logger.getLogger(this.getClass().getName()).info(bundle.getString("message.startAuthentication"));
         
         // 試行回数 += 1
         tryCount++;
@@ -73,10 +67,6 @@ public class LoginDialog extends AbstractLoginDialog {
                 String fid = Project.getFacilityId();
                 String uid = view.getUserIdField().getText().trim();
                 String password = new String(view.getPasswordField().getPassword());
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "ログインを開始します... ");
-                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "ユーザーID：", uid);
-                Log.outputFuncLog(Log.LOG_LEVEL_4, Log.FUNCTIONLOG_KIND_INFORMATION, "パスワード：", password);
-                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "医療機関ID：", fid);
                 UserModel userModel = userDlg.login(fid, uid, password);
                 return userModel;
             }
@@ -97,10 +87,9 @@ public class LoginDialog extends AbstractLoginDialog {
                         String time = ModelUtils.getDateTimeAsString(new Date());
                         StringBuilder sb = new StringBuilder();
                         sb.append(time).append(":");
-                        sb.append(userModel.getUserId()).append(" がログインしました");
-                        ClientContext.getPart11Logger().info(sb.toString());
-                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, sb.toString());
-
+                        sb.append(userModel.getUserId()).append(bundle.getString("text.hasLoggedIn"));
+                        java.util.logging.Logger.getLogger(this.getClass().getName()).info(sb.toString());
+                        
                         //----------------------------------
                         // ユーザモデルを ProjectStub へ保存する
                         //----------------------------------
@@ -156,15 +145,14 @@ public class LoginDialog extends AbstractLoginDialog {
             
             @Override
             protected void failed(java.lang.Throwable cause) {
-                ClientContext.getPart11Logger().warn("Task failed");
-                ClientContext.getPart11Logger().warn(cause.getCause());
-                ClientContext.getPart11Logger().warn(cause.getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(bundle.getString("TASK FAILED"));
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getCause().getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
 
                 if (tryCount <= maxTryCount) {
                     //showMessageDialog(cause.getMessage());
-                    showMessageDialog("ログイン情報が間違っています");
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, "ログイン情報が間違っています", cause.getMessage());
-
+                    showMessageDialog(bundle.getString("error.invalidLogiInfo"));
+                    
                 } else {
                     showTryOutError();
                     setResult(LoginStatus.NOT_AUTHENTICATED);
@@ -192,35 +180,34 @@ public class LoginDialog extends AbstractLoginDialog {
     
     /**
      * GUI を構築する。
-     */
+     * @return      */
     @Override
     protected JPanel createComponents() {
 
         view = new LoginPanel();
-//minagawa^ mac jdk7        
+        //view = new SignInPanel();
         view.getCancelBtn().setText(GUIFactory.getCancelButtonText());
-//minagawa$
         // イベント接続を行う
         connect();
         
-//s.oh^ RSS対応
-        view.getLogoLabel().addMouseListener(new MouseListener() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if(e.getClickCount() == 2) {
-                    showRSSInfo();
-                }
-            }
-            @Override
-            public void mousePressed(MouseEvent e) {}
-            @Override
-            public void mouseReleased(MouseEvent e) {}
-            @Override
-            public void mouseEntered(MouseEvent e) {}
-            @Override
-            public void mouseExited(MouseEvent e) {}
-        });
-//s.oh$
+////s.oh^ RSS対応
+//        view.getLogoLabel().addMouseListener(new MouseListener() {
+//            @Override
+//            public void mouseClicked(MouseEvent e) {
+//                if(e.getClickCount() == 2) {
+//                    showRSSInfo();
+//                }
+//            }
+//            @Override
+//            public void mousePressed(MouseEvent e) {}
+//            @Override
+//            public void mouseReleased(MouseEvent e) {}
+//            @Override
+//            public void mouseEntered(MouseEvent e) {}
+//            @Override
+//            public void mouseExited(MouseEvent e) {}
+//        });
+////s.oh$
 
         return view;
     }
@@ -255,23 +242,15 @@ public class LoginDialog extends AbstractLoginDialog {
         JTextField userIdField = view.getUserIdField();
         userIdField.getDocument().addDocumentListener(dl);
         userIdField.addFocusListener(AutoRomanListener.getInstance());
-        userIdField.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stateMgr.onUserIdAction();
-            }
+        userIdField.addActionListener((ActionEvent e) -> {
+            stateMgr.onUserIdAction();
         });
         
         JPasswordField passwdField = view.getPasswordField();
         passwdField.getDocument().addDocumentListener(dl);
         passwdField.addFocusListener(AutoRomanListener.getInstance());
-        passwdField.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stateMgr.onPasswordAction();
-            }
+        passwdField.addActionListener((ActionEvent e) -> {
+            stateMgr.onPasswordAction();
         });
     }
 
@@ -310,10 +289,11 @@ public class LoginDialog extends AbstractLoginDialog {
     /**
      * 設定ダイアログから通知を受ける。
      * 有効なプロジェクトでればユーザIDをフィールドに設定しパスワードフィールドにフォーカスする。
+     * @param newValue
      **/
     @Override
     public void setNewParams(Boolean newValue) {             
-        boolean valid = newValue.booleanValue();
+        boolean valid = newValue;
         if (valid) {
             doWindowOpened();
         }

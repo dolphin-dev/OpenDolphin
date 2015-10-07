@@ -2,7 +2,6 @@ package open.dolphin.stampbox;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
@@ -18,7 +17,6 @@ import open.dolphin.helper.SimpleWorker;
 import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.OrcaInputCd;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  * ORCA StampTree クラス。
@@ -27,7 +25,7 @@ import open.dolphin.util.Log;
  */
 public class OrcaTree extends StampTree {
     
-    private static final String MONITOR_TITLE = "ORCAセット検索";
+//    private static final String MONITOR_TITLE = "ORCAセット検索";
     
     /** ORCA 入力セットをフェッチしたかどうかのフラグ */
     private boolean fetched;
@@ -38,6 +36,7 @@ public class OrcaTree extends StampTree {
 
     /** 
      * Creates a new instance of OrcaTree 
+     * @param model
      */
     public OrcaTree(TreeModel model) {
         super(model);
@@ -111,8 +110,9 @@ public class OrcaTree extends StampTree {
      */
     private void fetchOrcaSet() {
 
-        String message = MONITOR_TITLE;
-        String note = "入力セットを検索しています...  ";
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(OrcaTree.class);
+        String message = bundle.getString("title.progress.orcaSetSearch");
+        String note = bundle.getString("note.orcaset.searching");
         final Component c = SwingUtilities.getWindowAncestor(this);
         int maxEstimation = 60 * 1000;
         int delay = 300;
@@ -139,9 +139,9 @@ public class OrcaTree extends StampTree {
 
             @Override
             protected void failed(Throwable e) {
-                String title = ClientContext.getFrameTitle(MONITOR_TITLE);
+                String title = ClientContext.getMyBundle(OrcaTree.class).getString("title.optionPane.orcaSetSearch");
+                title = ClientContext.getFrameTitle(title);
                 JOptionPane.showMessageDialog(c, e.getMessage(), title, JOptionPane.WARNING_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, e.getMessage());
             }
 
             @Override
@@ -160,18 +160,14 @@ public class OrcaTree extends StampTree {
         };
 
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
-        taskTimer = new Timer(delay, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-
-                if (monitor.isCanceled() && (!worker.isCancelled())) {
-                    worker.cancel(true);
-
-                } else {
-                    monitor.setProgress(delayCount);
-                }
+        taskTimer = new Timer(delay, (ActionEvent e) -> {
+            delayCount++;
+            
+            if (monitor.isCanceled() && (!worker.isCancelled())) {
+                worker.cancel(true);
+                
+            } else {
+                monitor.setProgress(delayCount);
             }
         });
 
@@ -183,7 +179,7 @@ public class OrcaTree extends StampTree {
      */
     private void processResult(List<OrcaInputCd> inputSet) {
         
-        if (inputSet==null || inputSet.size()==0) {
+        if (inputSet==null || inputSet.isEmpty()) {
             return;
         }
         

@@ -72,10 +72,8 @@ public final class RegexConstrainedDocument extends PlainDocument {
 
     @Override
     public void insertString (int offs, String s, AttributeSet a) throws BadLocationException {
-        // consider whether this insert will match
-        //String proposedInsert = getText (0, offs) + s + getText (offs, getLength() - offs);
+        
         String proposedInsert = getText (0, getLength()) + s ;
-    	//String proposedInsert = s ;
         debug("proposing to change to: " + proposedInsert);
         if (matcher != null) {
             matcher.reset (proposedInsert);

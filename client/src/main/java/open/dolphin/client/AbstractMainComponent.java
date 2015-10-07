@@ -81,5 +81,4 @@ public abstract class AbstractMainComponent implements MainComponent {
     @Override
     public abstract void stop();
     
-    
 }

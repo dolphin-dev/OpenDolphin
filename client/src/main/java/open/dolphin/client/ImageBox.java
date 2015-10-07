@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import open.dolphin.helper.ComponentMemory;
 
 /**
@@ -23,7 +22,6 @@ import open.dolphin.helper.ComponentMemory;
  */
 public class ImageBox extends AbstractMainTool {
 
-    private static final String DEFAULT_TAB = "基本セット";
     private static final int DEFAULT_COLUMN_COUNT 	=   3;
     private static final int DEFAULT_IMAGE_WIDTH 	= 120;
     private static final int DEFAULT_IMAGE_HEIGHT 	= 120;
@@ -36,16 +34,14 @@ public class ImageBox extends AbstractMainTool {
     private int imageWidth = DEFAULT_IMAGE_WIDTH;
     private int imageHeight = DEFAULT_IMAGE_HEIGHT;
     private String[] suffix = DEFAULT_IMAGE_SUFFIX;
-    private int defaultWidth = 406;
-    private int defaultHeight = 587;
-    private int defaultLocX = 537;
-    private int defaultLocY = 22;
+    private final int defaultWidth = 406;
+    private final int defaultHeight = 587;
+    private final int defaultLocX = 537;
+    private final int defaultLocY = 22;
     
     private JDialog frame;
-    private String title = "シェーマボックス";
 
     private int systemSchemaIndex;
-    //private boolean systemSchemaLoaded;
     
     @Override
     public void start() {
@@ -106,20 +102,15 @@ public class ImageBox extends AbstractMainTool {
             protected void done() {
                 try {
                     get();
-                    tabbedPane.addChangeListener(new ChangeListener() {
-                        @Override
-                        public void stateChanged(ChangeEvent ce) {
-                            Component cmp = tabbedPane.getSelectedComponent();
-                            if (cmp==null) {
-                                ImagePalette sysTable = new ImagePalette(null, columnCount, imageWidth, imageHeight);
-                                sysTable.setupDefaultSchema();
-                                tabbedPane.setComponentAt(systemSchemaIndex, sysTable);
-                            }
+                    tabbedPane.addChangeListener((ChangeEvent ce) -> {
+                        Component cmp = tabbedPane.getSelectedComponent();
+                        if (cmp==null) {
+                            ImagePalette sysTable = new ImagePalette(null, columnCount, imageWidth, imageHeight);
+                            sysTable.setupDefaultSchema();
+                            tabbedPane.setComponentAt(systemSchemaIndex, sysTable);
                         }
                     });
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace(System.err);
-                } catch (ExecutionException ex) {
+                } catch (InterruptedException | ExecutionException ex) {
                     ex.printStackTrace(System.err);
                 }
             }
@@ -147,9 +138,7 @@ public class ImageBox extends AbstractMainTool {
                     if (! frame.isVisible()) {
                         frame.setVisible(true);
                     }
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace(System.err);
-                } catch (ExecutionException ex) {
+                } catch (InterruptedException | ExecutionException ex) {
                     ex.printStackTrace(System.err);
                 }
             }
@@ -163,13 +152,13 @@ public class ImageBox extends AbstractMainTool {
         // TabbedPane を生成する
         tabbedPane = new JTabbedPane();
         
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(ImageBox.class);
+        
         // 更新ボタンを生成する
-//minagawa^ Icon Server        
-        //refreshBtn = new JButton(ClientContext.getImageIcon("ref_24.gif"));
-        refreshBtn = new JButton(ClientContext.getImageIconArias("icon_refresh"));
-//minagawa$        
+        refreshBtn = new JButton(ClientContext.getImageIconArias("icon_refresh"));        
         refreshBtn.addActionListener((ActionListener) EventHandler.create(ActionListener.class, this, "refresh"));
-        refreshBtn.setToolTipText("シェーマリストを更新します");
+        String toolTipText = bundle.getString("toolTipText.refresh");
+        refreshBtn.setToolTipText(toolTipText);
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnPanel.add(refreshBtn);
         
@@ -179,6 +168,7 @@ public class ImageBox extends AbstractMainTool {
         p.add(tabbedPane, BorderLayout.CENTER);
         p.setBorder(BorderFactory.createEmptyBorder(12,12,11,11));
         
+        String title = bundle.getString("title.window");
         frame = new JDialog((JFrame) null, title, false);
         ComponentMemory cm = new ComponentMemory(frame,
                 new Point(defaultLocX,defaultLocY),
@@ -216,52 +206,25 @@ public class ImageBox extends AbstractMainTool {
         } catch (Exception e) { 
         }
         
+        String defaultTab = ClientContext.getMyBundle(ImageBox.class).getString("title.basicSetTab");
+        
         if (!paths.isEmpty()) {
-            for (Path path : paths) {
+            paths.stream().forEach((path) -> {
                 String tabName = path.getFileName().toString();
                 ImagePalette imageTable = new ImagePalette(null, columnCount, imageWidth, imageHeight);
                 imageTable.setImageSuffix(suffix);
                 imageTable.setImageDirectory(path);   // refresh
                 tabbedPane.addTab(tabName, imageTable);
-            }
+            });
             systemSchemaIndex = paths.size();
-            tabbedPane.addTab(DEFAULT_TAB, null);
+            tabbedPane.addTab(defaultTab, null);
         }
         if (systemSchemaIndex==0) {
             ImagePalette sysTable = new ImagePalette(null, columnCount, imageWidth, imageHeight);
             sysTable.setupDefaultSchema();
-            tabbedPane.addTab(DEFAULT_TAB, sysTable);
+            tabbedPane.addTab(defaultTab, sysTable);
         }
-//        
-//        File baseDir = new File(imageLocation);
-//        if (baseDir.exists() && baseDir.isDirectory()) {
-//            
-//            File[] directories = listDirectories(baseDir);
-//            if (directories != null && directories.length > 0) {
-//                for (int i = 0; i < directories.length; i++) {
-//                    String tabName = directories[i].getName();
-//                    ImagePalette imageTable = new ImagePalette(null, columnCount, imageWidth, imageHeight);
-//                    imageTable.setImageSuffix(suffix);
-//                    imageTable.setImageDirectory(directories[i]);   // refresh
-//                    tabbedPane.addTab(tabName, imageTable);
-//                }
-//                systemSchemaIndex = directories.length;
-//                tabbedPane.addTab(DEFAULT_TAB, null);
-//            } 
-//        }
-//
-//        if (systemSchemaIndex==0) {
-//            ImagePalette sysTable = new ImagePalette(null, columnCount, imageWidth, imageHeight);
-//            sysTable.setupDefaultSchema();
-//            tabbedPane.addTab(DEFAULT_TAB, sysTable);
-//        }
     }
-    
-//    private File[] listDirectories(File dir) {
-//        DirectoryFilter filter = new DirectoryFilter();
-//        File[] directories = dir.listFiles(filter);
-//        return directories;
-//    }
     
     public void processWindowClosing() {
         stop();
@@ -322,12 +285,4 @@ public class ImageBox extends AbstractMainTool {
     public String[] getSuffix() {
         return suffix;
     }
-    
-//    class DirectoryFilter implements FileFilter {
-//        
-//        @Override
-//        public boolean accept(File path) {
-//            return path.isDirectory();
-//        }
-//    }
 }

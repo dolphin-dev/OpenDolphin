@@ -28,16 +28,16 @@ public class StampTreeTransferHandler extends TransferHandler {
     private StampTree sourceTree;
 
     // StampTreeNode Flavor
-    private DataFlavor stampTreeNodeFlavor = LocalStampTreeNodeTransferable.localStampTreeNodeFlavor;
+    private final DataFlavor stampTreeNodeFlavor = LocalStampTreeNodeTransferable.localStampTreeNodeFlavor;
 
     // KartePaneからDropされるオーダのFlavor
-    private DataFlavor orderFlavor = OrderListTransferable.orderListFlavor;
+    private final DataFlavor orderFlavor = OrderListTransferable.orderListFlavor;
 
     // KartePaneからDropされるテキストFlavor
-    private DataFlavor stringFlavor = DataFlavor.stringFlavor;
+    private final DataFlavor stringFlavor = DataFlavor.stringFlavor;
     
     // 病名エディタからDropされるRegisteredDiagnosis Flavor
-    private DataFlavor infoModelFlavor = InfoModelTransferable.infoModelFlavor;
+    private final DataFlavor infoModelFlavor = InfoModelTransferable.infoModelFlavor;
 
     
     @Override
@@ -218,11 +218,9 @@ public class StampTreeTransferHandler extends TransferHandler {
                 return false;
             }
 
-        } catch (UnsupportedFlavorException ue) {
+        } catch (UnsupportedFlavorException | IOException ue) {
             ue.printStackTrace(System.err);
 
-        } catch (IOException ie) {
-            ie.printStackTrace(System.err);
         }
         return false;
     }

@@ -39,8 +39,10 @@ public abstract class AbstractStampTreeBuilder {
             return ret;
         }
         
+        String[] stampNames = (String[])java.util.ResourceBundle.getBundle("open.dolphin.stampbox.StampBoxResource").getObject("STAMP_NAMES");
+        
         for (int i = 0; i < IInfoModel.STAMP_ENTITIES.length; i++) {
-            if (IInfoModel.STAMP_NAMES[i].equals(rootName)) {
+            if (stampNames[i].equals(rootName)) {
                 ret = IInfoModel.STAMP_ENTITIES[i];
                 break;
             }

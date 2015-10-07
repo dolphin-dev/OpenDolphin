@@ -22,10 +22,11 @@ public final class StampTreeDirector {
     private final int TT_STAMP_TREE  	= 3;
     private final int TT_STAMP_BOX  	= 4;
     
-    private AbstractStampTreeBuilder builder;
+    private final AbstractStampTreeBuilder builder;
     
     /**
      * Creates new StampTreeDirector
+     * @param builder
      */
     public StampTreeDirector(AbstractStampTreeBuilder builder) {
         this.builder = builder;

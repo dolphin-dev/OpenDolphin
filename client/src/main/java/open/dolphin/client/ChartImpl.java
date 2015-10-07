@@ -5,22 +5,17 @@ import java.awt.event.*;
 import java.beans.EventHandler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.net.MalformedURLException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.ParsePosition;
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.*;
-import java.util.logging.Logger;
+import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.event.*;
@@ -35,18 +30,13 @@ import open.dolphin.impl.care.CareMapDocument;
 import open.dolphin.impl.img.DefaultBrowserEx;
 import open.dolphin.impl.img.ImageBrowserProxy;
 import open.dolphin.impl.lbtest.LaboTestBean;
-import open.dolphin.impl.server.PVTKanaToAscii;
-import open.dolphin.impl.xronos.XronosLinkDocument;
 import open.dolphin.infomodel.*;
 import open.dolphin.plugin.PluginLister;
 import open.dolphin.plugin.PluginLoader;
 import open.dolphin.project.Project;
 import open.dolphin.util.AgeCalculater;
 import open.dolphin.util.GUIDGenerator;
-import open.dolphin.util.Log;
 import open.dolphin.util.MMLDate;
-import open.dolphin.utilities.utility.OtherProcessLink;
-import org.apache.log4j.Level;
 
 /**
  * 2号カルテ、傷病名、検査結果履歴等、患者の総合的データを提供するクラス。
@@ -54,27 +44,25 @@ import org.apache.log4j.Level;
  * @author Kazushi Minagawa, Digital Globe, Inc.
  */
 public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
-    
-    private static final long DELAY = 10L;
 
-    /** カルテ状態の束縛プロパティ名 */
+    // Bound property name of Chart state
     public static final String CHART_STATE = "chartStateProp";
 
+    // Bits of Chart state
     public static final int BIT_OPEN            = 0;
     public static final int BIT_SAVE_CLAIM      = 1;
     public static final int BIT_MODIFY_CLAIM    = 2;
-    
-    private static final String EXT_ODT_TEMPLATE = ".odt";
 
-    //  Chart インスタンスを管理するstatic 変数
-    //private static ArrayList<ChartImpl> allCharts = new ArrayList<ChartImpl>(3);
-    // masuda 
-    private static List<ChartImpl> allCharts = new CopyOnWriteArrayList<ChartImpl>();
+    //  Chart インスタンスを管理するstatic 変数 masuda
+    private static final List<ChartImpl> allCharts = new CopyOnWriteArrayList<>();
     
-    // Chart 状態の通知を行うための static 束縛サポート
-    //private static PropertyChangeSupport boundSupport = new PropertyChangeSupport(new Object());
-
-    private static final String PROP_FRMAE_BOUNDS = "chartFrame.bounds";
+    // Logger
+    private static final boolean DEBUG=false;
+    private static final java.util.logging.Logger logger;
+    static {
+        logger = java.util.logging.Logger.getLogger(ChartImpl.class.getName());
+        logger.setLevel(DEBUG ? Level.FINE : Level.INFO);
+    }
     
     // Document Plugin を格納する TabbedPane
     private JTabbedPane tabbedPane;
@@ -124,37 +112,24 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
     // GlassPane 
     private BlockGlass blockGlass;
     
-    // Logger
-    private boolean DEBUG=true;
-    
     // タイマー
     private ScheduledExecutorService scheduler;
     private ScheduledFuture<?> beeperHandle;
     private long statred;
-    private long delay = DELAY;
+    private final long delay = 10L;
 
     // task
     private int delayCount;
     private ProgressMonitor monitor;
     private Timer taskTimer;
-    
-//minagawa^ lsctest    
+       
+    // List of dirty documents
     private List<UnsavedDocument> dirtyList;
-//minagawa$    
-    
-//s.oh^ Xronos連携
-    private ScheduledExecutorService imageScheduler;
-    private ImageWatcher imageWatcher;
-    private ScheduledFuture<?> imageHandler;
-    private boolean firstImageWatcher;
-    private ArrayList karteEditorList;
-//s.oh$
 
     /**
      * Creates new ChartService
      */
     public ChartImpl() {
-        DEBUG = (ClientContext.getBootLogger().getLevel()==Level.DEBUG);
     }
     
     /**
@@ -291,6 +266,8 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
 
     /**
      * Menu アクションを制御する。
+     * @param name
+     * @param enabled
      */
     @Override
     public void enabledAction(String name, boolean enabled) {
@@ -313,7 +290,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
 
     /**
      * 引数で指定されたタブ番号のドキュメントを表示する。
-     * @param 表示するドキュメントのタブ番号
+     * @param index
      */
     @Override
     public void showDocument(int index) {
@@ -336,7 +313,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
     @Override
     public void addDroppedDiagnosis(ModuleInfoBean dropped) {
         if (droppedDiagnosis==null) {
-            droppedDiagnosis = new ArrayList<ModuleInfoBean>(2);
+            droppedDiagnosis = new ArrayList<>(2);
         }
         droppedDiagnosis.add(dropped);
         
@@ -385,9 +362,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
 
             @Override
             protected KarteBean doInBackground() throws Exception {
-                if (DEBUG) {
-                    ClientContext.getBootLogger().debug("CahrtImpl doInBackground did start");
-                }
+                
                 // Database から患者のカルテを取得する
                 int past = Project.getInt(Project.DOC_HISTORY_PERIOD, -12);
                 GregorianCalendar today = new GregorianCalendar();
@@ -403,32 +378,27 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
 
             @Override
             protected void succeeded(KarteBean karteBean) {
-                if (DEBUG) {
-                    ClientContext.getBootLogger().debug("CahrtImpl succeeded");
-                }
+                
                 //-------------------------------------------------------------
                 karteBean.setPatientModel(null);
                 karteBean.setPatientModel(getPatientVisit().getPatientModel());
                 setKarte(karteBean);
                 //-------------------------------------------------------------
                 initComponents();
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        getDocumentHistory().showHistory();
-                    }
+                SwingUtilities.invokeLater(() -> {
+                    getDocumentHistory().showHistory();
                 });
             }
 
             @Override
             protected void cancelled() {
-                ClientContext.getBootLogger().debug("Task cancelled");
+                logger.info("Task cancelled");
             }
 
             @Override
             protected void failed(java.lang.Throwable cause) {
-                ClientContext.getBootLogger().warn("Task failed");
-                ClientContext.getBootLogger().warn(cause.getMessage());
+                logger.severe("Task failed");
+                logger.severe(cause.getMessage());
             }
 
             @Override
@@ -446,84 +416,60 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             }
         };
 
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
-        Component c = null;
-        String message = "カルテオープン";
-        StringBuilder sb = new StringBuilder();
-        sb.append(getPatientVisit().getPatientModel().getFullName()).append(resource.getString("sama"));
-        sb.append("を開いています...");
-        String note = sb.toString();
-        int maxEstimation = Integer.parseInt(resource.getString("maxEstimation"));
-        int dl = Integer.parseInt(resource.getString("timerDelay"));
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(ChartImpl.class);
+        
+        String message = bundle.getString("message.openKarte.progress");
+        String noteMessage = bundle.getString("note.openKarte.progress");
+        String resMaxEstimation = bundle.getString("maxEstimation.openKarte.progress");
+        String resTimerDelay = bundle.getString("timerDelay.openKarte.progress");
+        
+        String pname = getPatientVisit().getPatientModel().getFullName();
+        MessageFormat msft = new MessageFormat(noteMessage);
+        String note = msft.format(new Object[]{pname});
+        int maxEstimation = Integer.parseInt(resMaxEstimation);
+        int dl = Integer.parseInt(resTimerDelay);
 
+        Component c = null;
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / dl);
 
-        taskTimer = new Timer(dl, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-
-                if (monitor.isCanceled() && (!worker.isCancelled())) {
-                    worker.cancel(true);
-
-                } else {
-                    monitor.setProgress(delayCount);
-                }
+        taskTimer = new Timer(dl, (ActionEvent e) -> {
+            delayCount++;
+            
+            if (monitor.isCanceled() && (!worker.isCancelled())) {
+                worker.cancel(true);
+                
+            } else {
+                monitor.setProgress(delayCount);
             }
         });
         
-//s.oh^ Xronos連携
-        Long imageDelay = Long.parseLong(Project.getString("karte.imagelink.watching.delay", "500"));
-        sb = new StringBuilder();
-        String dir = Project.getString("karte.imagelink.dir");
-        if(dir != null && dir.length() > 0) {
-            firstImageWatcher = true;
-            sb.append(dir).append(File.separator).append(pvt.getPatientId());
-            imageWatcher = new ImageWatcher(new File(sb.toString()));
-            imageScheduler = Executors.newSingleThreadScheduledExecutor();
-            imageHandler = imageScheduler.scheduleWithFixedDelay(imageWatcher, imageDelay, imageDelay, TimeUnit.MILLISECONDS);
-            karteEditorList = new ArrayList();
-        }
-//s.oh$
-
         worker.execute();
     }
 
-    /**
-     * 患者のカルテを検索取得し、GUI を構築する。
-     * このメソッドはバックグランドスレッドで実行される。
-     */
     public void initComponents() {
-
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
-
         //---------------------------------------------
         // このチャート の Frame を生成し初期化する。
         // Frame のタイトルを
         // 患者氏名(カナ):患者ID に設定する
         //---------------------------------------------
-        String Inspector = resource.getString("inspector");
-        StringBuilder sb = new StringBuilder();
-        sb.append(getPatient().getFullName());
-        sb.append("(");
-        String kana = getPatient().getKanaName();
-        kana = kana.replace("　", " ");
-        sb.append(kana);
-        sb.append(")");
-        sb.append(" : ");
-        sb.append(getPatient().getPatientId());
-        sb.append(Inspector);
-
+        String patientName = getPatient().getFullName();
+        String kana = getPatient().getKanaName().replace("　", " ");
+        String patientId = getPatient().getPatientId();
+        
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(ChartImpl.class);
+        
+        String inspectorFormat = bundle.getString("messageFormat.chart.frame");
+        MessageFormat msf0 = new MessageFormat(inspectorFormat);
+        String inspectorTitle = msf0.format(new Object[]{patientName,kana,patientId});
+        
         // Frame と MenuBar を生成する
-        windowSupport = WindowSupport.create(sb.toString());
+        windowSupport = WindowSupport.create(inspectorTitle);
 
         // チャート用のメニューバーを得る
         JMenuBar myMenuBar = windowSupport.getMenuBar();
 
         // チャートの JFrame オブジェクトを得る
         JFrame frame = windowSupport.getFrame();
-        frame.setName("chartFrame");
 
         // ChartMediator を生成する
         mediator = new ChartMediator(this);
@@ -537,32 +483,29 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
 
         // Status パネルに表示する情報を生成する
         // カルテ登録日 Status パネルの右側に配置する
-        String rdFormat = resource.getString("rdFormat");             // yyyy-MM-dd
-        String rdPrifix = resource.getString("rdDatePrefix");         // カルテ登録日:
-        String patienIdPrefix = resource.getString("patientIdPrefix"); // 患者ID:
+        String rdFormat = bundle.getString("dateFormat.registered.rightInfo");
+        String rightInfoText = bundle.getString("messageFormat.rightInfo.chart");
+        String leftInfoText1 = bundle.getString("messageFormat.leftInfo.lastDocDate");
+        String leftInfoText2 = bundle.getString("messageFormat.leftInfo.newVisit");
+        
         Date date = getKarte().getCreated();
         SimpleDateFormat sdf = new SimpleDateFormat(rdFormat);
         String created = sdf.format(date);
-        statusPanel.setRightInfo(rdPrifix + created);           // カルテ登録日:yyyy/mm/dd
+        MessageFormat msf = new MessageFormat(rightInfoText);
+        String rightInfo = msf.format(new Object[]{created});
+        statusPanel.setRightInfo(rightInfo);           // カルテ登録日:yyyy/mm/dd
         
-//masuda^最終受診日をstatus panelに表示する
-        // 患者ID Status パネルの左に配置する
-        //statusPanel.setLeftInfo(patienIdPrefix + getKarte().getPatientModel().getPatientId()); // 患者ID:xxxxxx
-        // 最終受診日を取得する
-        final SimpleDateFormat frmt = new SimpleDateFormat(IInfoModel.DATE_WITHOUT_TIME);
+        SimpleDateFormat frmt = new SimpleDateFormat(IInfoModel.DATE_WITHOUT_TIME);
         Date lastDocDate = getKarte().getLastDocDate();
-        sb = new StringBuilder();
-        sb.append(patienIdPrefix);
-        sb.append(getKarte().getPatient().getPatientId());
+        String pid = getKarte().getPatient().getPatientId();
         if (lastDocDate != null) {
-            sb.append(" 最終受診日:");
-            sb.append(frmt.format(lastDocDate));
+            String lastDocStr = frmt.format(lastDocDate);
+            msf = new MessageFormat(leftInfoText1);
+            statusPanel.setLeftInfo(msf.format(new Object[]{pid, lastDocStr}));
         } else {
-            sb.append(" 新患");
+            msf = new MessageFormat(leftInfoText2);
+            statusPanel.setLeftInfo(msf.format(new Object[]{pid}));
         }
-        statusPanel.setLeftInfo(sb.toString());
-//masuda$        
-
         //-------------------------------------------------------------
         // Menu を生成する
         //-------------------------------------------------------------
@@ -587,44 +530,38 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
 //s.oh^ 2014/04/16 メニュー制御
         mediator.getAction(GUIConst.ACTION_EDIT_FACILITY_INFO).setEnabled(admin);
 //s.oh$
-
         //---------------------------------
         // このクラス固有のToolBarを生成する
         //---------------------------------
         JToolBar toolBar = appMenu.getToolBar();
-        //myToolPanel.add(toolBar);
         toolBar.addSeparator();
         
         // テキストツールを生成する
         Action action = mediator.getActions().get(GUIConst.ACTION_INSERT_TEXT);
         final JToggleButton textBtn = new JToggleButton();
-        textBtn.setName("textBtn");
+        //textBtn.setName("textBtn");
         textBtn.setAction(action);
-        textBtn.addItemListener(new ItemListener() {
-
-            @Override
-            public void itemStateChanged(ItemEvent ie) {
-                if (ie.getStateChange()==ItemEvent.SELECTED) {
-                    if (mediator.getActions().get(GUIConst.ACTION_INSERT_TEXT).isEnabled()) {
-                        JPopupMenu menu = new JPopupMenu();
-                        mediator.addTextMenu(menu);
-                        
-                        menu.addPopupMenuListener(new PopupMenuListener() {
-                            @Override
-                            public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
-                            }
-                            @Override
-                            public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
-                                textBtn.setSelected(false);
-                            }
-                            @Override
-                            public void popupMenuCanceled(PopupMenuEvent pme) {
-                                textBtn.setSelected(false);
-                            }
-                        });
-                        Component c = (Component)ie.getSource();
-                        menu.show(c, 0, c.getHeight());
-                    }
+        textBtn.addItemListener((ItemEvent ie) -> {
+            if (ie.getStateChange()==ItemEvent.SELECTED) {
+                if (mediator.getActions().get(GUIConst.ACTION_INSERT_TEXT).isEnabled()) {
+                    JPopupMenu menu = new JPopupMenu();
+                    mediator.addTextMenu(menu);
+                    
+                    menu.addPopupMenuListener(new PopupMenuListener() {
+                        @Override
+                        public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
+                        }
+                        @Override
+                        public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
+                            textBtn.setSelected(false);
+                        }
+                        @Override
+                        public void popupMenuCanceled(PopupMenuEvent pme) {
+                            textBtn.setSelected(false);
+                        }
+                    });
+                    Component c = (Component)ie.getSource();
+                    menu.show(c, 0, c.getHeight());
                 }
             }
         });
@@ -636,18 +573,13 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         // シェーマツールを生成する
         action = mediator.getActions().get(GUIConst.ACTION_INSERT_SCHEMA);
         final JToggleButton schemaBtn = new JToggleButton();
-        schemaBtn.setName("schemaBtn");
         schemaBtn.setAction(action);
-        schemaBtn.addItemListener(new ItemListener() {
-
-            @Override
-            public void itemStateChanged(ItemEvent ie) {
-                if (ie.getStateChange()==ItemEvent.SELECTED) {
-                    if (mediator.getActions().get(GUIConst.ACTION_INSERT_SCHEMA).isEnabled()) {
-                        getContext().showSchemaBox();
-                    }
-                    schemaBtn.setSelected(false);
+        schemaBtn.addItemListener((ItemEvent ie) -> {
+            if (ie.getStateChange()==ItemEvent.SELECTED) {
+                if (mediator.getActions().get(GUIConst.ACTION_INSERT_SCHEMA).isEnabled()) {
+                    getContext().showSchemaBox();
                 }
+                schemaBtn.setSelected(false);
             }
         });
         schemaBtn.setFocusable(false);
@@ -658,34 +590,29 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         // スタンプツールを生成する
         action = mediator.getActions().get(GUIConst.ACTION_INSERT_STAMP);
         final JToggleButton stampBtn = new JToggleButton();
-        stampBtn.setName("stampBtn");
         stampBtn.setAction(action);
-        stampBtn.addItemListener(new ItemListener() {
-
-            @Override
-            public void itemStateChanged(ItemEvent ie) {
-                if (ie.getStateChange()==ItemEvent.SELECTED) {
-                    if (mediator.getActions().get(GUIConst.ACTION_INSERT_STAMP).isEnabled()) {
-                        JPopupMenu menu = new JPopupMenu();
-                        mediator.addStampMenu(menu);
-                        
-                        menu.addPopupMenuListener(new PopupMenuListener() {
-                            @Override
-                            public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
-                            }
-                            @Override
-                            public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
-                                stampBtn.setSelected(false);
-                            }
-                            @Override
-                            public void popupMenuCanceled(PopupMenuEvent pme) {
-                                stampBtn.setSelected(false);
-                            }
-                        });
-                        
-                        Component c = (Component)ie.getSource();
-                        menu.show(c, 0, c.getHeight());
-                    }
+        stampBtn.addItemListener((ItemEvent ie) -> {
+            if (ie.getStateChange()==ItemEvent.SELECTED) {
+                if (mediator.getActions().get(GUIConst.ACTION_INSERT_STAMP).isEnabled()) {
+                    JPopupMenu menu = new JPopupMenu();
+                    mediator.addStampMenu(menu);
+                    
+                    menu.addPopupMenuListener(new PopupMenuListener() {
+                        @Override
+                        public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
+                        }
+                        @Override
+                        public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
+                            stampBtn.setSelected(false);
+                        }
+                        @Override
+                        public void popupMenuCanceled(PopupMenuEvent pme) {
+                            stampBtn.setSelected(false);
+                        }
+                    });
+                    
+                    Component c = (Component)ie.getSource();
+                    menu.show(c, 0, c.getHeight());
                 }
             }
         });
@@ -693,59 +620,45 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         stampBtn.setBorderPainted(true);
         stampBtn.setMargin(new Insets(3,3,3,3));
         toolBar.add(stampBtn);
-
-//        //-----------------------------------------------------------------
-//        // 処方日数を一括変更する
-//        //-----------------------------------------------------------------
-//        action = mediator.getActions().get(GUIConst.ACTION_CHANGE_NUM_OF_DATES_ALL);
-//        JButton chgBtn = new JButton();
-//        chgBtn.setName("chgBtn");
-//        chgBtn.setAction(action);
-//        toolBar.add(chgBtn);
-
+        
         //-------------------------------------------------------------
         // 保険選択ツールを生成する
         // 保険の切り替え（変更）で karteEditorの applyInsurance が起動される
         //-------------------------------------------------------------
         action = mediator.getActions().get(GUIConst.ACTION_SELECT_INSURANCE);
         final JToggleButton insBtn = new JToggleButton();
-        insBtn.setName("insBtn");
         insBtn.setAction(action);
-        insBtn.addItemListener(new ItemListener() {
-
-            @Override
-            public void itemStateChanged(ItemEvent ie) {
-                if (ie.getStateChange()==ItemEvent.SELECTED) {
-                    if (mediator.getActions().get(GUIConst.ACTION_SELECT_INSURANCE).isEnabled()) {
-                        JPopupMenu menu = new JPopupMenu();
-                        PVTHealthInsuranceModel[] insurances = getHealthInsurances();
-                        for (PVTHealthInsuranceModel hm : insurances) {
-                            ReflectActionListener ra = new ReflectActionListener(mediator,
-                                    "applyInsurance",
-                                    new Class[]{hm.getClass()},
-                                    new Object[]{hm});
-                            JMenuItem mi = new JMenuItem(hm.toString());
-                            mi.addActionListener(ra);
-                            menu.add(mi);
-                        }
-                        
-                        menu.addPopupMenuListener(new PopupMenuListener() {
-                            @Override
-                            public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
-                            }
-                            @Override
-                            public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
-                                insBtn.setSelected(false);
-                            }
-                            @Override
-                            public void popupMenuCanceled(PopupMenuEvent pme) {
-                                insBtn.setSelected(false);
-                            }
-                        });
-                        
-                        Component c = (Component)ie.getSource();
-                        menu.show(c, 0, c.getHeight());
+        insBtn.addItemListener((ItemEvent ie) -> {
+            if (ie.getStateChange()==ItemEvent.SELECTED) {
+                if (mediator.getActions().get(GUIConst.ACTION_SELECT_INSURANCE).isEnabled()) {
+                    JPopupMenu menu = new JPopupMenu();
+                    PVTHealthInsuranceModel[] insurances = getHealthInsurances();
+                    for (PVTHealthInsuranceModel hm : insurances) {
+                        ReflectActionListener ra = new ReflectActionListener(mediator,
+                                "applyInsurance",
+                                new Class[]{hm.getClass()},
+                                new Object[]{hm});
+                        JMenuItem mi = new JMenuItem(hm.toString());
+                        mi.addActionListener(ra);
+                        menu.add(mi);
                     }
+                    
+                    menu.addPopupMenuListener(new PopupMenuListener() {
+                        @Override
+                        public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
+                        }
+                        @Override
+                        public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
+                            insBtn.setSelected(false);
+                        }
+                        @Override
+                        public void popupMenuCanceled(PopupMenuEvent pme) {
+                            insBtn.setSelected(false);
+                        }
+                    });
+                    
+                    Component c = (Component)ie.getSource();
+                    menu.show(c, 0, c.getHeight());
                 }
             }
         });
@@ -760,7 +673,8 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             JButton insertSOATextBtn = new JButton();
             insertSOATextBtn.setAction(mediator.getActions().get("insertSOAText"));
             insertSOATextBtn.setText(null);
-            insertSOATextBtn.setToolTipText("所見欄にテキストを追加します。");
+            String toolTipText = bundle.getString("toolTipText.insertSOATextBtn");
+            insertSOATextBtn.setToolTipText(toolTipText);
             insertSOATextBtn.setMargin(new Insets(3,3,3,3));
             insertSOATextBtn.setFocusable(false);
             insertSOATextBtn.setBorderPainted(true);
@@ -772,7 +686,8 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             JButton insertPTextBtn = new JButton();
             insertPTextBtn.setAction(mediator.getActions().get("insertPText"));
             insertPTextBtn.setText(null);
-            insertPTextBtn.setToolTipText("算定欄にテキストを追加します。");
+            String toolTipText = bundle.getString("toolTipText.insertPTextBtn");
+            insertPTextBtn.setToolTipText(toolTipText);
             insertPTextBtn.setMargin(new Insets(3,3,3,3));
             insertPTextBtn.setFocusable(false);
             insertPTextBtn.setBorderPainted(true);
@@ -789,11 +704,8 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
                 JButton linkBtn = new JButton();
                 final ChartImpl chart = this;
                 //linkBtn.setAction(mediator.getActions().get("otherProcessIcon" + String.valueOf(i) + "Link"));
-                linkBtn.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        DefaultBrowserEx.otherProcess(KEY_DEF, chart, Project.getString(KEY_DEF + ".path"), Project.getString(KEY_DEF + ".param"), null);
-                    }
+                linkBtn.addActionListener((ActionEvent e) -> {
+                    DefaultBrowserEx.otherProcess(KEY_DEF, chart, Project.getString(KEY_DEF + ".path"), Project.getString(KEY_DEF + ".param"), null);
                 });
 //s.oh^ 他プロセス連携(アイコン) 2014/07/15
                 String iconPath = Project.getString(KEY_DEF + ".icon");
@@ -810,14 +722,10 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             }
         }
 //s.oh$
-
         // Document プラグインのタブを生成する
         tabbedPane = loadDocuments();
 
         // 全体をレイアウトする
-        //JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, inspector.getPanel(), tabbedPane);
-        //splitPane.setName("splitPane");
-
         inspector.getPanel().setPreferredSize(new Dimension(280, 620));
         JPanel tmp = new JPanel(new BorderLayout());
         tmp.add(myToolPanel, BorderLayout.NORTH);
@@ -832,37 +740,26 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         myPanel.add((JPanel) statusPanel, BorderLayout.SOUTH);
         frame.setContentPane(myPanel);
 
-        // Injection
-//minagawa^ Icon Server        
-        //textBtn.setIcon(ClientContext.getImageIcon(resource.getString("textBtn.icon")));
+        // Injection     
         textBtn.setIcon(ClientContext.getImageIconArias("icon_text_stap_menu"));
         textBtn.setText(null);
-        textBtn.setToolTipText(resource.getString("textBtn.toolTipText"));
-        //textBtn.setMargin(new Insets(5,5,5,5));
+        String toolTipText = bundle.getString("toolTipText.textBtn");
+        textBtn.setToolTipText(toolTipText);
 
-        //schemaBtn.setIcon(ClientContext.getImageIcon(resource.getString("schemaBtn.icon")));
         schemaBtn.setIcon(ClientContext.getImageIconArias("icon_open_schema_box"));
         schemaBtn.setText(null);
-        schemaBtn.setToolTipText(resource.getString("schemaBtn.toolTipText"));
-        //schemaBtn.setMargin(new Insets(5,5,5,5));
+        toolTipText = bundle.getString("toolTipText.schemaBtn");
+        schemaBtn.setToolTipText(toolTipText);
 
-        //stampBtn.setIcon(ClientContext.getImageIcon(resource.getString("stampBtn.icon")));
         stampBtn.setIcon(ClientContext.getImageIconArias("icon_stamp_menu"));
         stampBtn.setText(null);
-        stampBtn.setToolTipText(resource.getString("stampBtn.toolTipText"));
-        //stampBtn.setMargin(new Insets(5,5,5,5));
+        toolTipText = bundle.getString("toolTipText.stampBtn");
+        stampBtn.setToolTipText(toolTipText);
 
-//        chgBtn.setIcon(ClientContext.getImageIcon(resource.getString("chgBtn.icon")));
-//        chgBtn.setText(null);
-//        chgBtn.setToolTipText(resource.getString("chgBtn.toolTipText"));
-//        chgBtn.setMargin(new Insets(5,5,5,5));
-
-        //insBtn.setIcon(ClientContext.getImageIcon(resource.getString("insBtn.icon")));
         insBtn.setIcon(ClientContext.getImageIconArias("icon_health_insurance"));
-//minagawa$         
         insBtn.setText(null);
-        insBtn.setToolTipText(resource.getString("insBtn.toolTipText"));
-        //insBtn.setMargin(new Insets(5,5,5,5));
+        toolTipText = bundle.getString("toolTipText.insBtn");
+        insBtn.setToolTipText(toolTipText);
 
         // StateMgr を生成する
         stateMgr = new StateMgr();
@@ -893,11 +790,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             public void windowClosed(WindowEvent e) {
                 // リストから削除し状態変化を通知する
                 if (allCharts.remove(ChartImpl.this)) {
-                // 2013/07/18
-//minagawa^ LSC red flag                  
-//                    ChartEventHandler scl = ChartEventHandler.getInstance();
-//                    scl.publishKarteClosed(ChartImpl.this.getPatientVisit());
-//minagawa$                     
+                    //
                 }
             }
 
@@ -909,13 +802,17 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         });
 
         // Frame の大きさをストレージからロードする
-        // デフォルト値を用意して userDefaults から読み込む
-        int x = Integer.parseInt(resource.getString("frameX"));
-        int y = Integer.parseInt(resource.getString("frameY"));
-        int width = Integer.parseInt(resource.getString("frameWidth"));
-        int height = Integer.parseInt(resource.getString("frameHeight"));
+        String frameX = bundle.getString("frame.x");
+        String frameY = bundle.getString("frame.y");
+        String frameWidth = bundle.getString("frame.width");
+        String frameHeight = bundle.getString("frame.height");
+        int x = Integer.parseInt(frameX);
+        int y = Integer.parseInt(frameY);
+        int width = Integer.parseInt(frameWidth);
+        int height = Integer.parseInt(frameHeight);
+        
         Rectangle defRect = new Rectangle(x, y, width, height);
-        Rectangle bounds = Project.getRectangle(PROP_FRMAE_BOUNDS, defRect);
+        Rectangle bounds = Project.getRectangle("chartFrame.bounds", defRect);
 
         // フレームの表示位置を決める J2SE 5.0
         boolean locByPlatform = Project.getBoolean(Project.LOCATION_BY_PLATFORM);
@@ -945,14 +842,10 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         // timer 開始
         statred = System.currentTimeMillis();
         scheduler = Executors.newSingleThreadScheduledExecutor();
-        final Runnable beeper = new Runnable() {
-
-            @Override
-            public void run() {
-                long time = System.currentTimeMillis() - statred;
-                time = time / 1000L;
-                statusPanel.setTimeInfo(time);
-            }
+        final Runnable beeper = () -> {
+            long time = System.currentTimeMillis() - statred;
+            time = time / 1000L;
+            statusPanel.setTimeInfo(time);
         };
         beeperHandle = scheduler.scheduleAtFixedRate(beeper, delay, delay, TimeUnit.SECONDS);
     }
@@ -1007,11 +900,12 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
     private JTabbedPane loadDocuments() {
 
         // ドキュメントプラグインをロードする
+        //PluginLoader<ChartDocument> loader = PluginLoader.load(ChartDocument.class);
         PluginLoader<ChartDocument> loader = PluginLoader.load(ChartDocument.class);
         Iterator<ChartDocument> iterator = loader.iterator();
 
         int index = 0;
-        providers = new HashMap<String, ChartDocument>();
+        providers = new HashMap<>();
         JTabbedPane tab = new JTabbedPane();
 
         while (iterator.hasNext()) {
@@ -1041,22 +935,11 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
                 e.printStackTrace(System.err);
             }
         }
-        
-//s.oh^ Xronos連携
-        if(Project.getBoolean(XronosLinkDocument.KEY_XRONOSBROWSER_LINK, false)) {
-            ChartDocument plugin = new XronosLinkDocument();
-            tab.addTab(plugin.getTitle(), plugin.getIconInfo(this), plugin.getUI());
-            providers.put(String.valueOf(index), plugin);
-            index += 1;
-        }
-//s.oh$
 
         // ゼロ番目を選択しておき changeListener を機能させる
         tab.setSelectedIndex(0);
-
-        //
+        
         // tab に プラグインを遅延生成するためのの ChangeListener を追加する
-        //
         tab.addChangeListener((ChangeListener) EventHandler.create(ChangeListener.class, this, "tabChanged", ""));
 
         return tab;
@@ -1064,12 +947,11 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
 
     /**
      * ドキュメントタブにプラグインを遅延生成し追加する。
+     * @param e
      */
     public void tabChanged(ChangeEvent e) {
-
-        //
+        
         // 選択されたタブ番号に対応するプラグインをテーブルから検索する
-        //
         int index = tabbedPane.getSelectedIndex();
         String key = String.valueOf(index);
         ChartDocument plugin = (ChartDocument) providers.get(key);
@@ -1079,17 +961,13 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         }
 
         if (plugin.getContext() == null) {
-            //
             // まだ生成されていないプラグインを生成する
-            //
             plugin.setContext(ChartImpl.this);
             plugin.start();
             tabbedPane.setComponentAt(index, plugin.getUI());
 
         } else {
-            //
             // 既に生成済みプラグインの場合は enter() をコールする
-            //
             plugin.enter();
         }
     }
@@ -1099,9 +977,6 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
      */    
     public void newKarte() {
 
-        if (DEBUG) {
-            ClientContext.getBootLogger().debug("newKarte did enter");
-        }
         String deptName = getPatientVisit().getDeptName();
         String deptCode = getPatientVisit().getDeptCode();
         String insuranceUid = getPatientVisit().getInsuranceUid();
@@ -1115,16 +990,12 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
 
         if (bridgeOrViewer instanceof DocumentBridgeImpl) {
             // Chart画面のタブパネル
-            if (DEBUG) {
-                ClientContext.getBootLogger().debug("bridgeOrViewer instanceof DocumentBridgeImpl");
-            }
+            logger.fine("bridgeOrViewer instanceof DocumentBridgeImpl");
             DocumentBridgeImpl bridge = (DocumentBridgeImpl) bridgeOrViewer;
             base = bridge.getBaseKarte();
 
         } else if (bridgeOrViewer instanceof KarteDocumentViewer) {
-            if (DEBUG) {
-                ClientContext.getBootLogger().debug("bridgeOrViewer instanceof KarteDocumentViewer");
-            }
+            logger.fine("bridgeOrViewer instanceof KarteDocumentViewer");
             KarteDocumentViewer viwer = (KarteDocumentViewer) bridgeOrViewer;
             base = viwer.getBaseKarte();
         } else {
@@ -1132,27 +1003,19 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         }
 
         if (base != null) {
-            if (DEBUG) {
-                ClientContext.getBootLogger().debug("base != null");
-            }
+            logger.fine("base != null");
             if (base.getDocType().equals(IInfoModel.DOCTYPE_KARTE)) {
-                if (DEBUG) {
-                    ClientContext.getBootLogger().debug("base.getDocType().equals(IInfoModel.DOCTYPE_KARTE");
-                }
+                logger.fine("base.getDocType().equals(IInfoModel.DOCTYPE_KARTE");
                 option = Chart.NewKarteOption.BROWSER_COPY_NEW;
             } else {
                 // ベースがあても２号カルテでない場合
-                if (DEBUG) {
-                    ClientContext.getBootLogger().debug("base.getDocType().equals(IInfoModel.DOCTYPE_S_KARTE");
-                }
+                logger.fine("base.getDocType().equals(IInfoModel.DOCTYPE_S_KARTE");
                 option = Chart.NewKarteOption.BROWSER_NEW;
             }
 
         } else {
             // ベースのカルテがない場合
-            if (DEBUG) {
-                ClientContext.getBootLogger().debug("base == null");
-            }
+            logger.fine("base == null");
             option = Chart.NewKarteOption.BROWSER_NEW;
         }
 
@@ -1164,9 +1027,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         if (Project.getBoolean(Project.KARTE_SHOW_CONFIRM_AT_NEW, true)) {
 
             // 新規カルテダイアログへパラメータを渡し、コピー新規のオプションを制御する
-            if (DEBUG) {
-                ClientContext.getBootLogger().debug("show newKarteDialog");
-            }
+            logger.fine("show newKarteDialog");
             params = getNewKarteParams(docType, option, null, deptName, deptCode, insuranceUid);
 
         } else {
@@ -1219,9 +1080,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             return;
         }
 
-        if (DEBUG) {
-            ClientContext.getBootLogger().debug("returned newKarteDialog");
-        }
+        logger.fine("returned newKarteDialog");
         DocumentModel editModel;
         KarteEditor editor;
 
@@ -1229,14 +1088,10 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         // Baseになるカルテがあるかどうかでモデルの生成が異なる
         //--------------------------------------------
         if (params.getCreateMode() == Chart.NewKarteMode.EMPTY_NEW) {
-            if (DEBUG) {
-                ClientContext.getBootLogger().debug("empty new is selected");
-            }
+            logger.fine("empty new is selected");
             editModel = getKarteModelToEdit(params);
         } else {
-            if (DEBUG) {
-                ClientContext.getBootLogger().debug("copy new is selected");
-            }
+            logger.fine("copy new is selected");
             editModel = getKarteModelToEdit(base.getModel(), params);
         }
         editor = createEditor();
@@ -1258,10 +1113,6 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             editor.start();
             this.addChartDocument(editor, params);
         }
-        
-//s.oh^ Xronos連携
-        karteEditorList.add(editor);
-//s.oh$
     }
 
     /**
@@ -1354,7 +1205,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         // 新規モデルを作成し、表示されているモデルの内容をコピーする
         //-------------------------------------------------
         DocumentModel newModel = new DocumentModel();
-        boolean applyRp = params.getCreateMode() == Chart.NewKarteMode.APPLY_RP ? true : false;
+        boolean applyRp = params.getCreateMode() == Chart.NewKarteMode.APPLY_RP;
         copyModel(oldModel, newModel, applyRp);
 
         //-------------------------------------------------
@@ -1445,11 +1296,8 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         // 新しい版の firstConfirmDate = 元になる版の firstConfirmDate
         newInfo.setFirstConfirmDate(oldDocInfo.getFirstConfirmDate());
         
-//minagawa^ 予定カルテ(予定カルテ対応)
-        // FirstとConfirmを比較することで予定カルテかどうか判定
         newInfo.setConfirmDate(oldDocInfo.getConfirmDate());
         newInfo.setClaimDate(oldDocInfo.getClaimDate());
-//minagawa$
         
         // docType = old one
         newInfo.setDocType(oldDocInfo.getDocType());
@@ -1484,11 +1332,10 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         newInfo.setHealthInsuranceDesc(oldDocInfo.getHealthInsuranceDesc());
         newInfo.setHealthInsurance(oldDocInfo.getHealthInsurance());
         newInfo.setHealthInsuranceGUID(oldDocInfo.getHealthInsuranceGUID());
-        if (DEBUG) {
-            ClientContext.getBootLogger().debug(newInfo.getHealthInsuranceDesc());
-            ClientContext.getBootLogger().debug(newInfo.getHealthInsurance());
-            ClientContext.getBootLogger().debug(newInfo.getHealthInsuranceGUID());
-        }
+        
+        logger.fine(newInfo.getHealthInsuranceDesc());
+        logger.fine(newInfo.getHealthInsurance());
+        logger.fine(newInfo.getHealthInsuranceGUID());
 
         //-------------------------------------
         // 親文書IDを設定する
@@ -1530,7 +1377,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             editor.addMMLListner(mmlListener);
             editor.addCLAIMListner(claimListener);
         } catch (Exception e) {
-            ClientContext.getBootLogger().warn(e);
+            logger.fine(e.getMessage());
             editor = null;
         }
         return editor;
@@ -1545,25 +1392,25 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         if (applyRp) {
             List<ModuleModel> modules = oldModel.getModules();
             if (modules!=null) {
-                for (ModuleModel bean : modules) {
+                modules.stream().forEach((bean) -> {
                     IInfoModel model = bean.getModel();
                     if (model!=null && model instanceof BundleMed) {
                         newModel.addModule(ModelUtils.cloneModule(bean));
                     }
-                }
+                });
             }
         } else {
             List<ModuleModel> modules = oldModel.getModules();
             if (modules!=null) {
-                for (ModuleModel bean : modules) {
+                modules.stream().forEach((bean) -> {
                     newModel.addModule(ModelUtils.cloneModule(bean));
-                }
+                });
             }
             List<SchemaModel> schema = oldModel.getSchema();
             if (schema!=null) {
-                for (SchemaModel scm : schema) {
+                schema.stream().forEach((scm) -> {
                     newModel.addSchema(ModelUtils.cloneSchema(scm));
-                }
+                });
             }
             List<AttachmentModel> attachment = oldModel.getAttachment();
             if (attachment!=null) {
@@ -1587,6 +1434,12 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
     /**
      * カルテ作成時にダアイログをオープンし、保険を選択させる。
      *
+     * @param docType
+     * @param option
+     * @param f
+     * @param deptName
+     * @param deptCode
+     * @param insuranceUid
      * @return NewKarteParams
      */
     public NewKarteParams getNewKarteParams(String docType, Chart.NewKarteOption option, JFrame f, String deptName, String deptCode, String insuranceUid) {
@@ -1607,11 +1460,12 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
 
         // コレクションが null の場合は自費保険を追加する
         if (insurances == null || insurances.isEmpty()) {
-            insurances = new ArrayList<PVTHealthInsuranceModel>(1);
+            insurances = new ArrayList<>(1);
             PVTHealthInsuranceModel model = new PVTHealthInsuranceModel();
-            model.setInsuranceClass(INSURANCE_SELF);
-            model.setInsuranceClassCode(INSURANCE_SELF_CODE);
-            model.setInsuranceClassCodeSys(INSURANCE_SYS);
+            java.util.ResourceBundle clBundle = ClientContext.getClaimBundle();
+            model.setInsuranceClass(clBundle.getString("INSURANCE_SELF"));
+            model.setInsuranceClassCode(clBundle.getString("INSURANCE_SELF_CODE"));
+            model.setInsuranceClassCodeSys(clBundle.getString("INSURANCE_SYS"));
             insurances.add(model);
         }
 
@@ -1636,10 +1490,13 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         }
         params.setInitialSelectedInsurance(index);
 
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(ChartImpl.class);
+        
+        String titleModify = bundle.getString("title.modifyKarte");
+        String titleNew = bundle.getString("title.newKarte");
         String text = option == Chart.NewKarteOption.BROWSER_MODIFY
-                ? resource.getString("modifyKarteTitle")
-                : resource.getString("newKarteTitle");
+                ? titleModify
+                : titleNew;
 
         text = ClientContext.getFrameTitle(text);
 
@@ -1667,11 +1524,12 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
 
         // 保険がない場合 自費保険を生成して追加する
         if (insurances == null || insurances.isEmpty()) {
-            insurances = new ArrayList<PVTHealthInsuranceModel>(1);
+            insurances = new ArrayList<>(1);
             PVTHealthInsuranceModel model = new PVTHealthInsuranceModel();
-            model.setInsuranceClass(INSURANCE_SELF);
-            model.setInsuranceClassCode(INSURANCE_SELF_CODE);
-            model.setInsuranceClassCodeSys(INSURANCE_SYS);
+            java.util.ResourceBundle clBundle = ClientContext.getClaimBundle();
+            model.setInsuranceClass(clBundle.getString("INSURANCE_SELF"));
+            model.setInsuranceClassCode(clBundle.getString("INSURANCE_SELF_CODE"));
+            model.setInsuranceClassCodeSys(clBundle.getString("INSURANCE_SYS"));
             insurances.add(model);
         }
 
@@ -1686,10 +1544,8 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
     @Override
     public PVTHealthInsuranceModel getHealthInsuranceToApply(String uuid) {
 
-        if (DEBUG) {
-            ClientContext.getBootLogger().debug("uuid to apply = " + uuid);
-        }
-
+        logger.log(Level.FINE, "uuid to apply = {0}", uuid);
+        
         PVTHealthInsuranceModel ret = null;
         PVTHealthInsuranceModel first = null;
 
@@ -1704,9 +1560,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
                 }
                 if (uuid.equals(hm.getGUID())) {
                     ret = hm;
-                    if (DEBUG) {
-                        ClientContext.getBootLogger().debug("found uuid to apply = " + uuid);
-                    }
+                    logger.log(Level.FINE, "found uuid to apply = {0}", uuid);
                     break;
                 }
             }
@@ -1729,20 +1583,25 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
      * @param params 追加するドキュメントの情報を保持する NewKarteParams
      */
     public void addChartDocument(ChartDocument doc, NewKarteParams params) {
-        String title;
-        if (params.getPVTHealthInsurance() != null) {
-            title = getTabTitle(params.getDepartmentName(), params.getPVTHealthInsurance().getInsuranceClass());
-        } else {
-            title = getTabTitle(params.getDepartmentName(), null);
-        }
-        tabbedPane.addTab(title, doc.getUI());
-        int index = tabbedPane.getTabCount() - 1;
-        providers.put(String.valueOf(index), doc);
-        tabbedPane.setSelectedIndex(index);
+        
+        Runnable awt = () -> {
+            String title;
+            if (params.getPVTHealthInsurance() != null) {
+                title = getTabTitle(params.getDepartmentName(), params.getPVTHealthInsurance().getInsuranceClass());
+            } else {
+                title = getTabTitle(params.getDepartmentName(), null);
+            }
+            tabbedPane.addTab(title, doc.getUI());
+            int index = tabbedPane.getTabCount() - 1;
+            providers.put(String.valueOf(index), doc);
+            tabbedPane.setSelectedIndex(index);
+        };
+        EventQueue.invokeLater(awt);
     }
 
     /**
      * タブにドキュメントを追加する。
+     * @param doc
      * @param title タブタイトル
      */
     public void addChartDocument(ChartDocument doc, String title) {
@@ -1768,13 +1627,15 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
 
     /**
      * 新規カルテ用のタブタイトルを作成する
+     * @param dept
      * @param insurance 保険名
      * @return タブタイトル
      */
     public String getTabTitle(String dept, String insurance) {
         String[] depts = dept.split("\\s*,\\s*");
         StringBuilder buf = new StringBuilder();
-        buf.append(ClientContext.getBundle(this.getClass()).getString("newKarteTabTitle"));
+        String tabTile = ClientContext.getMyBundle(ChartImpl.class).getString("tabTitle.newKarte");
+        buf.append(tabTile);
         if (insurance != null) {
             buf.append("(");
             buf.append(depts[0]);
@@ -1797,8 +1658,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
                     pluginClass).newInstance();
             
             if (doc instanceof KarteEditor) {
-                //String dept = getPatientVisit().getDeptNoTokenize();
-                //String deptCode = getPatientVisit().getDepartmentCode();
+                
                 String dept = getPatientVisit().getDeptName();
                 String deptCode = getPatientVisit().getDeptCode();
                 String insuranceUid = getPatientVisit().getInsuranceUid();
@@ -1809,16 +1669,14 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
                 params.setDepartmentName(dept);
                 params.setDepartmentCode(deptCode);
 
-                //
                 // 保険
-                //
                 PVTHealthInsuranceModel[] ins = getHealthInsurances();
                 params.setPVTHealthInsurance(ins[0]);
                 if (insuranceUid != null) {
-                    for (int i = 0; i < ins.length; i++) {
-                        if (ins[i].getGUID() != null) {
-                            if (insuranceUid.equals(ins[i].getGUID())) {
-                                params.setPVTHealthInsurance(ins[i]);
+                    for (PVTHealthInsuranceModel in : ins) {
+                        if (in.getGUID() != null) {
+                            if (insuranceUid.equals(in.getGUID())) {
+                                params.setPVTHealthInsurance(in);
                                 break;
                             }
                         }
@@ -1842,14 +1700,13 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             }
 
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            ClientContext.getBootLogger().warn(e);
+            logger.finer(e.getMessage());
         }
     }
     
     public void checkInteraction() {
         CheckInteractionPanel panel = new CheckInteractionPanel();
         panel.enter(this);
-        //panel = null;
     }
     
     /**
@@ -1860,7 +1717,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         
         if (!Desktop.isDesktopSupported() || 
             templatePath==null || 
-            (!templatePath.endsWith(EXT_ODT_TEMPLATE))) {
+            (!templatePath.endsWith(".odt"))) {
             return;
         }
         
@@ -1869,12 +1726,11 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             @Override
             protected String doInBackground() throws Exception {
                 DocumentTemplateFactory documentTemplateFactory = new DocumentTemplateFactory();
-//minagawa^ jdk7               
-//DocumentTemplate template = documentTemplateFactory.getTemplate(new File(templatePath));
-//minagawa$                
+                
                 DocumentTemplate template = documentTemplateFactory.getTemplate(Files.newInputStream(Paths.get(templatePath)));
                 Map data = new HashMap();
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy'年'M'月'd'日'");
+                String dateFmt = ClientContext.getMyBundle(ChartImpl.class).getString("dateFormat.openDocunent");
+                SimpleDateFormat sdf = new SimpleDateFormat(dateFmt);
                 
                 // Entry date
                 Date entryDate = new Date();
@@ -1916,15 +1772,13 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
                 String pathToOpen = UserDocumentHelper.createPathToDocument(
                         Project.getString(Project.LOCATION_PDF),    // 設定画面で指定されている dir
                         docName,                                    // 文書名
-                        EXT_ODT_TEMPLATE,                           // 拡張子
+                        ".odt",                           // 拡張子
                         getPatient().getFullName(),                 // 患者氏名
                         entryDate);                                 // 日付
-//minagawa^ jdk7
+                
                 Path pathObj = Paths.get(pathToOpen);
-                //template.createDocument(data, new FileOutputStream(pathToOpen));
                 template.createDocument(data, Files.newOutputStream(pathObj));
-                return pathObj.toAbsolutePath().toString();
-//minagawa$                
+                return pathObj.toAbsolutePath().toString();          
             }
             
             @Override
@@ -1933,18 +1787,17 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
                     String pathToOpen = get();
                     if (pathToOpen!=null) {
                         Desktop desktop = Desktop.getDesktop();
-//minagawa^ jdk7                       
-                        //desktop.open(new File(pathToOpen));
-                        desktop.browse(Paths.get(pathToOpen).toUri());
-//minagawa$                        
+                        desktop.browse(Paths.get(pathToOpen).toUri());       
                     }
                 } catch (IOException ex) {
-                    showOfficeError("OpenOffice文書に関連づけされたアプリケーションを起動できません。");
+                    String err = ClientContext.getMyBundle(ChartImpl.class).getString("errorMessage.launchApp.openDoc");
+                    showOfficeError(err);
                 } catch (InterruptedException ex) {
                     ex.printStackTrace(System.err);
                 } catch (ExecutionException ex) {
                     ex.printStackTrace(System.err);
-                    showOfficeError("OpenOfficeテンプレートから文書を作成できません。");
+                    String err = ClientContext.getMyBundle(ChartImpl.class).getString("errorMessage.create.openDoc");
+                    showOfficeError(err);
                 }
             }
         };
@@ -1955,7 +1808,8 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
     // 差し込み作成のエラー表示
     private void showOfficeError(String msg) {
         Window parent = SwingUtilities.getWindowAncestor(getFrame());
-        JOptionPane.showMessageDialog(parent, msg, ClientContext.getFrameTitle("Office文書作成"), JOptionPane.WARNING_MESSAGE);
+        String title = ClientContext.getMyBundle(ChartImpl.class).getString("title.optionPane.create.openDocument");
+        JOptionPane.showMessageDialog(parent, msg, ClientContext.getFrameTitle(title), JOptionPane.WARNING_MESSAGE);
     }
     
     // str == null の時 template の ${prop} ="" にする
@@ -1970,7 +1824,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         
         // 拡張ポイント新規文書のプラグインをリストアップし、
         // リストで選択させる
-        List<NameValuePair> documents = new ArrayList<NameValuePair>(3);
+        List<NameValuePair> documents = new ArrayList<>(3);
         PluginLister<NChartDocument> lister = PluginLister.list(NChartDocument.class);
         LinkedHashMap<String, String> nproviders = lister.getProviders();
         if (nproviders != null) {
@@ -1980,9 +1834,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
                 String clsName = nproviders.get(cmd);
                 NameValuePair pair = new NameValuePair(cmd, clsName);
                 documents.add(pair);
-                if (DEBUG) {
-                    ClientContext.getBootLogger().debug(cmd + " = " + clsName);
-                }
+                logger.log(Level.FINE, "{0} = {1}", new Object[]{cmd, clsName});
             }
         }
         
@@ -1990,23 +1842,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         // 訪問看護指示書等のローカルにある OpenOffice Template をリストアップする
         //---------------------------------------------------------------
         boolean hasOOD = false;
-//minagawa^ jdk7       
-//        File tmpDir = new File(ClientContext.getOdtTemplateDirectory());
-//        if (tmpDir.exists() && tmpDir.isDirectory()) {
-//            File[] files = tmpDir.listFiles();
-//            for (File file : files) {
-//                if (file.isFile()) {
-//                    String path = file.getPath();
-//                    if (path.toLowerCase().endsWith(EXT_ODT_TEMPLATE)) {
-//                        String name = file.getName();
-//                        int len = name.length()-4;  // .odt
-//                        name = name.substring(0, len);
-//                        documents.add(new NameValuePair(name, path));
-//                        hasOOD = true;
-//                    }
-//                }
-//            }
-//        }
+
         try {
             DirectoryStream<Path> ds = Files.newDirectoryStream(Paths.get(ClientContext.getOdtTemplateDirectory()));
             for (Path p : ds) {
@@ -2014,7 +1850,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
                     continue;
                 }
                 String path = p.toAbsolutePath().toString();
-                if (path.toLowerCase().endsWith(EXT_ODT_TEMPLATE)) {
+                if (path.toLowerCase().endsWith(".odt")) {
                     String name = p.getFileName().toString();
                     int len = name.length()-4;  // .odt
                     name = name.substring(0, len);
@@ -2023,34 +1859,35 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
                 }
             }
         } catch (Exception e) { 
-        }
-//minagawa$        
+        }       
         
         if (documents.isEmpty()) {
-            ClientContext.getBootLogger().debug("No plugins");
+            logger.fine("No plugins");
             return;
         }
         
         final JList docList = new JList(documents.toArray());
         docList.setCellRenderer(new PdfOfficeIconRenderer());
+        
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(ChartImpl.class);
+        
+        String pdfLabelText = bundle.getString("labelText.create.pdf");
+        String officeLabelText = bundle.getString("labelText.insert.openDoc");
+        String borderTitle = bundle.getString("borderTitle.list.openDoc");
+        String optionSelectText = bundle.getString("optionText.select.openDoc");
+        String title = bundle.getString("title.optionPane.openDoc.menu");
 
         // 凡例ラベル
         JPanel pdfOffice = new JPanel();
         pdfOffice.setLayout(new BoxLayout(pdfOffice,BoxLayout.Y_AXIS));
-        JLabel pdfLabel = new JLabel(": FormからPDF作成");
-//minagawa^ Icon Server        
-        //pdfLabel.setIcon(ClientContext.getImageIcon("pdf_icon16.png"));
-        pdfLabel.setIcon(ClientContext.getImageIconArias("icon_pdf_small"));
-//minagawa$        
+        JLabel pdfLabel = new JLabel(pdfLabelText);
+        pdfLabel.setIcon(ClientContext.getImageIconArias("icon_pdf_small"));      
         pdfOffice.add(pdfLabel);
         
         if (hasOOD) {
             pdfOffice.add(Box.createVerticalStrut(5));
-            JLabel officeLabel = new JLabel(": OpenDocumentテンプレートへ差し込み");
-//minagawa^ Icon Server            
-            //officeLabel.setIcon(ClientContext.getImageIcon("docs_16.png"));
-            officeLabel.setIcon(ClientContext.getImageIconArias("icon_plain_document_small"));
-//minagawa$            
+            JLabel officeLabel = new JLabel(officeLabelText);
+            officeLabel.setIcon(ClientContext.getImageIconArias("icon_plain_document_small"));           
             pdfOffice.add(officeLabel);
         }
         pdfOffice.setBorder(BorderFactory.createEmptyBorder(6,6,5,5));
@@ -2072,14 +1909,10 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         content.add(listPanel, BorderLayout.CENTER);
         content.add(pdfOffice, BorderLayout.SOUTH);
         
-        content.setBorder(BorderFactory.createTitledBorder("PDF/差し込み文書作成"));
+        content.setBorder(BorderFactory.createTitledBorder(borderTitle));
 
-//minagawa^ mac jdk7        
-        //final JButton okButton = new JButton("了解");
-        //final JButton cancelButton = new JButton("取消し");
-        final JButton okButton = new JButton("選択");
-        final JButton cancelButton = new JButton(GUIFactory.getCancelButtonText());
-//minagawa$        
+        final JButton okButton = new JButton(optionSelectText);
+        final JButton cancelButton = new JButton(GUIFactory.getCancelButtonText());      
         Object[] options = new Object[]{okButton, cancelButton};
 
         JOptionPane jop = new JOptionPane(
@@ -2090,7 +1923,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
                 options,
                 okButton);
 
-        final JDialog dialog = jop.createDialog(getFrame(), ClientContext.getFrameTitle("新規文書作成"));
+        final JDialog dialog = jop.createDialog(getFrame(), ClientContext.getFrameTitle(title));
         dialog.addWindowListener(new WindowAdapter() {
 
             @Override
@@ -2099,42 +1932,30 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             }
         });
 
-        okButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dialog.setVisible(false);
-                dialog.dispose();
-                NameValuePair pair = (NameValuePair) docList.getSelectedValue();
-                String test = pair.getValue();
-                if (test.endsWith(EXT_ODT_TEMPLATE)) {
-                    String docName = pair.getName();
-                    invokeOffice(docName, test);
-                } else {
-                    invokePlugin(test);
-                }
+        okButton.addActionListener((ActionEvent e) -> {
+            dialog.setVisible(false);
+            dialog.dispose();
+            NameValuePair pair = (NameValuePair) docList.getSelectedValue();
+            String test = pair.getValue();
+            if (test.endsWith(".odt")) {
+                String docName = pair.getName();
+                invokeOffice(docName, test);
+            } else {
+                invokePlugin(test);
             }
         });
         okButton.setEnabled(false);
 
-        cancelButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dialog.setVisible(false);
-                dialog.dispose();
-            }
+        cancelButton.addActionListener((ActionEvent e) -> {
+            dialog.setVisible(false);
+            dialog.dispose();
         });
 
-        docList.addListSelectionListener(new ListSelectionListener() {
-
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (e.getValueIsAdjusting() == false) {
-                    int index = docList.getSelectedIndex();
-                    if (index >= 0) {
-                        okButton.setEnabled(true);
-                    }
+        docList.addListSelectionListener((ListSelectionEvent e) -> {
+            if (e.getValueIsAdjusting() == false) {
+                int index = docList.getSelectedIndex();
+                if (index >= 0) {
+                    okButton.setEnabled(true);
                 }
             }
         });
@@ -2142,38 +1963,6 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         dialog.setVisible(true);
     }
 
-    /**
-     * 全てのドキュメントを保存する。
-     * @param dirtyList 未保存ドキュメントのリスト
-     */
-//    private void saveAll(java.util.List<UnsavedDocument> dirtyList) {
-//
-//        if (dirtyList == null || dirtyList.isEmpty()) {
-//            return;
-//        }
-//
-//        try {
-//            int total = dirtyList.size();
-//            int index = 0;
-//            for (UnsavedDocument undoc : dirtyList) {
-//                if (undoc.isNeedSave()) {
-//                    ChartDocument doc = (ChartDocument)providers.get(String.valueOf(undoc.getIndex()));
-////minagawa^ 未保存の文書が全て保存されるのを待つ カルテ、病名、紹介状、予約                   
-//                    if (doc != null && doc.isDirty()) {
-//                        tabbedPane.setSelectedIndex(undoc.getIndex());
-//                        DirtySaveController ctl = new DirtySaveController(doc,total,index);
-//                        doc.addPropertyChangeListener(ChartDocument.CHART_DOC_DID_SAVE, ctl);
-//                        doc.save();
-//                    }
-////minagawa$                    
-//                }
-//                index++;
-//            }
-//
-//        } catch (Exception e) {
-//            ClientContext.getBootLogger().warn(e);
-//        }
-//    }
     private void saveAll() {
         // listの最初のドキュメントに保存をコールしbreakする
         // propertychangeを受信して次の保存へ行く
@@ -2190,26 +1979,12 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         }      
     }
     
-////s.oh^ 他プロセス連携(アイコン) 2014/05/09
-//    public void otherProcessIcon1Link() {
-//        DefaultBrowserEx.otherProcess("otherprocessicon1.link", this, Project.getString("otherprocessicon1.link.path"), Project.getString("otherprocessicon1.link.param"), null);
-//    }
-//    
-//    public void otherProcessIcon2Link() {
-//        DefaultBrowserEx.otherProcess("otherprocessicon2.link", this, Project.getString("otherprocessicon2.link.path"), Project.getString("otherprocessicon2.link.param"), null);
-//    }
-//    
-//    public void otherProcessIcon3Link() {
-//        DefaultBrowserEx.otherProcess("otherprocessicon3.link", this, Project.getString("otherprocessicon3.link.path"), Project.getString("otherprocessicon3.link.param"), null);
-//    }
-////s.oh$
-    
     // 未保存の文書が全て保存されるのを待って stopを実行するリスナ
     class DirtySaveController implements PropertyChangeListener {
         
-        private ChartDocument doc;
-        private int total;
-        private int index;
+        private final ChartDocument doc;
+        private final int total;
+        private final int index;
         
         public DirtySaveController(ChartDocument doc, int total, int index) {
             this.doc=doc;
@@ -2231,7 +2006,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
 
     class ListeneAndGoController implements PropertyChangeListener {
         
-        private ChartDocument doc;
+        private final ChartDocument doc;
         
         public ListeneAndGoController(ChartDocument doc) {
             this.doc=doc;
@@ -2241,7 +2016,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         public void propertyChange(PropertyChangeEvent pce) {
             doc.removePropertyChangeListener(AbstractChartDocument.CHART_DOC_DID_SAVE, this);
             // 保存の正否 キャンセルの場合は false、saveAllがコールされないので止まる
-            boolean proceed = ((Boolean)pce.getNewValue()).booleanValue();
+            boolean proceed = ((Boolean)pce.getNewValue());
             if (proceed) {
                 if (!dirtyList.isEmpty()) {
                     saveAll();
@@ -2251,8 +2026,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
                 }
             }
         }
-    }
-//minagawa$      
+    }     
 
     /**
      * ドキュメントのなかにdirtyのものがあるかどうかを返す。
@@ -2265,7 +2039,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             ChartDocument doc = (ChartDocument)providers.get(String.valueOf(i));
             if (doc != null && doc.isDirty()) {
                 if (ret == null) {
-                    ret = new ArrayList<UnsavedDocument>(3);
+                    ret = new ArrayList<>(3);
                 }
                 ret.add(new UnsavedDocument(i, doc));
             }
@@ -2297,30 +2071,18 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
                     try {
                         // 最小化してたらFrameを再表示させる
                         chart.getFrame().setExtendedState(Frame.NORMAL);
-                        //JOptionPane.showMessageDialog(this.getFrame(),
-                        String title = ClientContext.getFrameTitle("インスペクタ");
+                        java.util.ResourceBundle bundle = ClientContext.getMyBundle(ChartImpl.class);
+                        String title = bundle.getString("title.optionPane.closeInspector");
+                        String msg = bundle.getString("message.closeInspector");
                         JOptionPane.showMessageDialog(chart.getFrame(),
-                                "インスペクタを閉じる前にカルテエディタを閉じてください。",
-                                title, JOptionPane.WARNING_MESSAGE);
+                                msg,
+                                ClientContext.getFrameTitle(title), JOptionPane.WARNING_MESSAGE);
                         return;
                     } catch (Exception e) {
                     }
                 }
             }
         }
-//        // 別ウィンドウで開いていたら閉じるように警告する
-//        if (inactiveProvidersMap != null && !inactiveProvidersMap.isEmpty()) {
-//            for (Iterator itr = inactiveProvidersMap.entrySet().iterator(); itr.hasNext();) {
-//                String title = ClientContext.getFrameTitle("インスペクタ");
-//                Map.Entry entry = (Map.Entry) itr.next();
-//                JFrame frame = (JFrame) entry.getValue();
-//                frame.setExtendedState(Frame.NORMAL);
-//                JOptionPane.showMessageDialog(frame,
-//                        "インスペクタを閉じる前にこのウィンドウを閉じてください。",
-//                        title, JOptionPane.WARNING_MESSAGE);
-//                return;
-//            }
-//        }
 //masuda$
 
         //--------------------------------------------
@@ -2330,16 +2092,14 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         List<UnsavedDocument> localDirtyList = dirtyList();
 
         if (localDirtyList != null && localDirtyList.size() > 0) {
-
-            ResourceBundle resource = ClientContext.getBundle(this.getClass());
-            String saveAll = resource.getString("unsavedtask.saveText");     // 保存;
-            String discard = resource.getString("unsavedtask.discardText");  // 破棄;
-            String question = resource.getString("unsavedtask.question");    // 未保存のドキュメントがあります。保存しますか ?
-            String title = resource.getString("unsavedtask.title");          // 未保存処理
-//minagawa^ mac jdk7            
-//            String cancelText = (String) UIManager.get("OptionPane.cancelButtonText");
+            
+            java.util.ResourceBundle bundle = ClientContext.getMyBundle(ChartImpl.class);
+            String saveAll = bundle.getString("optionText.save.unsaved");
+            String discard = bundle.getString("optionText.discard.unsaved");
+            String question = bundle.getString("question.unsaved");
+            String title = bundle.getString("title.optionPane.unsaved");
             String cancelText = GUIFactory.getCancelButtonText();
-//minagawa$
+            
             Object[] message = new Object[localDirtyList.size() + 1];
             message[0] = (Object) question;
             int index = 1;
@@ -2359,10 +2119,8 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
 
             switch (option) {
                 case 0:
-                    // save
-//minagawa^ lsctest         
-                    //saveAll(dirtyList);
-                    dirtyList = new ArrayList<UnsavedDocument>();
+                    // save        
+                    dirtyList = new ArrayList<>();
                     for (UnsavedDocument doc : localDirtyList) {
                         // 保存がcheckされているもののみ追加
                         if (doc.isNeedSave()) {
@@ -2373,8 +2131,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
                         saveAll();
                     } else {
                         stop();
-                    }
-//minagawa$                    
+                    }                 
                     break;
 
                 case 1:
@@ -2390,9 +2147,7 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             stop();
         }
     }
-    
-// 2013/07/18
-//minagawa^ moved here due to the flag suspicious    
+      
     @Override
     public void stop() {
         
@@ -2403,15 +2158,15 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
                 
                 ChartEventHandler scl = ChartEventHandler.getInstance();
                 int cnt = scl.publishKarteClosedInWorkerThread(ChartImpl.this.getPatientVisit());
-                return new Integer(cnt);
+                return cnt;
             }
             
             @Override
             protected void done() {
                 try {
                     Integer cnt = get();
-                } catch (Exception e) {
-                    ClientContext.getBootLogger().warn("カルテクローズの通知に失敗。");
+                } catch (InterruptedException | ExecutionException e) {
+                    logger.fine("Failed to close the karte.");
                     e.printStackTrace(System.err);
                 }
                 // ともかく終了させる
@@ -2421,20 +2176,14 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         worker.execute();
     }
 
-    private void doStop() {
-//minagawa$        
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "インスペクタの終了");
+    private void doStop() {        
         if (beeperHandle != null) {
             boolean b = beeperHandle.cancel(true);
-            if (DEBUG) {
-                ClientContext.getBootLogger().debug("beeperHandle.cancel = " + b);
-            }
+            logger.log(Level.FINE, "beeperHandle.cancel = {0}", b);
         }
         if (scheduler != null) {
             scheduler.shutdown();
-            if (DEBUG) {
-                ClientContext.getBootLogger().debug("scheduler.shutdown");
-            }
+            logger.fine("scheduler.shutdown");
         }
         if (providers != null) {
             for (Iterator<String> iter = providers.keySet().iterator(); iter.hasNext();) {
@@ -2447,16 +2196,10 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
         }
         mediator.dispose();
         inspector.dispose();
-        Project.setRectangle(PROP_FRMAE_BOUNDS, getFrame().getBounds());
+        Project.setRectangle("chartFrame.bounds", getFrame().getBounds());
         getFrame().setVisible(false);
         getFrame().setJMenuBar(null);
         getFrame().dispose();
-        
-//s.oh^ Xronos連携
-        if(imageScheduler != null) {
-            imageScheduler.shutdown();
-        }
-//s.oh$
     }
     
 //s.oh^ 不具合修正(一括終了時のステータスクリア)
@@ -2531,9 +2274,9 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
      */
     protected final class StateMgr {
 
-        private ChartState readOnlyState = new ReadOnlyState();
-        private ChartState noInsuranceState = new NoInsuranceState();
-        private ChartState ordinalyState = new OrdinalyState();
+        private final ChartState readOnlyState = new ReadOnlyState();
+        private final ChartState noInsuranceState = new NoInsuranceState();
+        private final ChartState ordinalyState = new OrdinalyState();
         private ChartState currentState;
 
         public StateMgr() {
@@ -2563,78 +2306,4 @@ public class ChartImpl extends AbstractMainTool implements Chart, IInfoModel {
             currentState.controlMenu();
         }
     }
-    
-//s.oh^ Xronos連携
-    class ImageWatcher implements Runnable {
-        
-        private File watchDir;
-        
-        public ImageWatcher(File watchDir) {
-            this.watchDir = watchDir;
-        }
-
-        @Override
-        public void run() {
-            
-//            // 今回のリスト
-//            File[] files = watchDir.listFiles();
-//            
-//            if(files != null) {
-//                // Iterate
-//                for (File file : files) {
-//                    if(firstImageWatcher) {
-//                        file.delete();
-//                        continue;
-//                    }
-//
-//                    final String name = file.getName();
-//                    int extIdx = name.lastIndexOf(".");
-//                    if(extIdx < 0) {
-//                        continue;
-//                    }
-//                    
-//                    String ext = name.substring(extIdx+1).toLowerCase();
-//                    if(ext.toLowerCase().equals("jpg") || ext.toLowerCase().equals("JPG") || ext.toLowerCase().equals("jpeg") || ext.toLowerCase().equals("JPEG")) {
-//                        // 拡張子を除いたファイル名を得る
-//                        String baseName = name.substring(0, extIdx);
-//                        String sop = baseName;
-//                        
-//                        final ImageEntry entry = new ImageEntry();
-//                        //entry.setPid(pvt.getPatientId());
-//                        //entry.setModality("CR");
-//                        //entry.setSeqNum(Integer.parseInt(seq));
-//                        entry.setPath(baseName);
-//                        //entry.setExtension(ext);
-//                        entry.setFileName(name);
-//                        try {
-//                            entry.setUrl(file.toURI().toURL().toString());
-//                        } catch (MalformedURLException ex) {
-//                            ex.printStackTrace(System.err);
-//                        }
-//
-//                        // 開いているカルテの処理
-//                        for(Object obj : karteEditorList) {
-//                            KarteEditor editor = (KarteEditor)obj;
-//                            if(editor != null && !editor.isClosedFrame() && editor.getSOAPane() != null) {
-//                                editor.getSOAPane().importImage(entry, sop, ext);
-//                                break;
-//                            }
-//                        }
-//                        
-//                        // issue
-//                        SwingUtilities.invokeLater(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                            }
-//                        });
-//                    }else{
-//                        file.delete();
-//                    }
-//                }
-//            }
-//            
-//            firstImageWatcher = false;
-        }
-    }
-//s.oh$
 }

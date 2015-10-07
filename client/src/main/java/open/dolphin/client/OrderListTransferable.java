@@ -15,10 +15,11 @@ public final class OrderListTransferable implements Transferable, ClipboardOwner
     
     public static final DataFlavor[] flavors = {OrderListTransferable.orderListFlavor};
       
-    private OrderList list;
+    private final OrderList list;
     
 
-    /** Creates new OrderListTransferable */
+    /** Creates new OrderListTransferable
+     * @param list */
     public OrderListTransferable(OrderList list) {
         this.list = list;
     }
@@ -30,7 +31,7 @@ public final class OrderListTransferable implements Transferable, ClipboardOwner
      
     @Override
     public boolean isDataFlavorSupported( DataFlavor flavor ) {
-    	return flavor.equals(orderListFlavor) ? true : false;
+    	return flavor.equals(orderListFlavor);
     }
 
     @Override

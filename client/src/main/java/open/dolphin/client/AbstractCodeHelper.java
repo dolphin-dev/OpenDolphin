@@ -58,6 +58,8 @@ public abstract class AbstractCodeHelper {
     
     /** 
      * Creates a new instance of CodeHelper 
+     * @param kartePane
+     * @param mediator
      */
     public AbstractCodeHelper(KartePane kartePane, ChartMediator mediator) {
         
@@ -96,9 +98,7 @@ public abstract class AbstractCodeHelper {
     
     protected void buildEntityPopup(String entity) {
         
-        //
         // 引数の entityに対応する StampTree を取得する
-        //
         StampBoxPlugin stampBox = mediator.getStampBox();
         StampTree tree = stampBox.getStampTree(entity);
         if (tree == null) {
@@ -107,7 +107,7 @@ public abstract class AbstractCodeHelper {
         
         popup = new JPopupMenu();
         
-        HashMap<Object, Object> ht = new HashMap<Object, Object>(5, 0.75f);
+        HashMap<Object, Object> ht = new HashMap<>(5, 0.75f);
         
         DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) tree.getModel().getRoot();
         ht.put(rootNode, popup);

@@ -175,7 +175,8 @@ public class DiagnosisSender {
             DocInfoModel docInfo = new DocInfoModel();
             
             docInfo.setDocId(GUIDGenerator.generate(docInfo));
-            docInfo.setTitle(IInfoModel.DEFAULT_DIAGNOSIS_TITLE);
+            //docInfo.setTitle(IInfoModel.DEFAULT_DIAGNOSIS_TITLE);
+            docInfo.setTitle("RegisteredDiagnosis");
             docInfo.setPurpose(IInfoModel.PURPOSE_RECORD);
             docInfo.setFirstConfirmDate(ModelUtils.getDateTimeAsObject(rd.getConfirmDate()));
             docInfo.setConfirmDate(ModelUtils.getDateTimeAsObject(rd.getFirstConfirmDate()));

@@ -2,44 +2,18 @@ package open.dolphin.impl.pinfo;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Toolkit;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
-import java.awt.event.*;
 import java.awt.print.PrinterException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.event.DocumentListener;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableColumn;
 import open.dolphin.client.AbstractChartDocument;
 import open.dolphin.client.AutoKanjiListener;
 import open.dolphin.client.BundleTransferHandler;
-import open.dolphin.client.ChartImpl;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.CutCopyPasteAdapter;
 import open.dolphin.client.GUIConst;
-import open.dolphin.client.MacInputFixer;
 import open.dolphin.delegater.DocumentDelegater;
-import open.dolphin.delegater.PatientDelegater;
-import open.dolphin.helper.DBTask;
-import open.dolphin.impl.psearch.PatientTransferable;
-import open.dolphin.infomodel.IInfoModel;
-import open.dolphin.infomodel.PVTHealthInsuranceModel;
-import open.dolphin.infomodel.PVTPublicInsuranceItemModel;
 import open.dolphin.infomodel.PatientFreeDocumentModel;
-import open.dolphin.infomodel.PatientMemoModel;
-import open.dolphin.infomodel.PatientModel;
-import open.dolphin.project.Project;
-import open.dolphin.table.StripeTableCellRenderer;
-import open.dolphin.util.AgeCalculater;
-import open.dolphin.util.Log;
 
 /**
  * サマリー対応
@@ -49,7 +23,7 @@ import open.dolphin.util.Log;
 public class FreeDocument extends AbstractChartDocument {
     
     // Title
-    private static final String TITLE = "サマリー";
+//    private static final String TITLE = "サマリー";
     
     private boolean dirty;
 
@@ -63,7 +37,8 @@ public class FreeDocument extends AbstractChartDocument {
      * Creates new FreeDocument 
      */
     public FreeDocument() {
-        setTitle(TITLE);
+        String title = ClientContext.getMyBundle(FreeDocument.class).getString("title.document");
+        setTitle(title);
     }
     
     private void initialize() {
@@ -107,9 +82,7 @@ public class FreeDocument extends AbstractChartDocument {
         try {
             model = ddl.getPatientFreeDocument(getContext().getPatient().getPatientId());
         } catch (Exception ex) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ex.getMessage());
         } catch (Throwable ex) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ex.getMessage());
         }
         if(model == null) {
             model = new PatientFreeDocumentModel();
@@ -140,9 +113,6 @@ public class FreeDocument extends AbstractChartDocument {
             freeDocArea.addMouseListener(CutCopyPasteAdapter.getInstance());
         }
         
-        if (ClientContext.isMac()) {
-            new MacInputFixer().fix(freeDocArea);
-        }
         enter();
     }
     
@@ -214,9 +184,7 @@ public class FreeDocument extends AbstractChartDocument {
                     ddl.updatePatientFreeDocument(model);
                     model = null;
                     //context = null;
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, TITLE, "保存成功");
                 } catch (Exception e) {
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, TITLE, "保存失敗", freeDocArea.getText());
                 }
             }
         };
@@ -232,7 +200,6 @@ public class FreeDocument extends AbstractChartDocument {
             try {
                 freeDocArea.print();
             } catch (PrinterException ex) {
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, ex.getMessage());
             }
         }
     }

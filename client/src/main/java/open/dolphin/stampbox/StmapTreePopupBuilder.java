@@ -15,10 +15,7 @@ import open.dolphin.infomodel.ModuleInfoBean;
  */
 public class StmapTreePopupBuilder {
     
-//minagawa^ Icon Server    
-    //private static final Icon icon = ClientContext.getImageIcon("foldr_16.gif");
-    private static final Icon icon = ClientContext.getImageIconArias("icon_foldr_small");
-//minagawa$    
+    private static final Icon icon = ClientContext.getImageIconArias("icon_foldr_small");   
     
     private HashMap<Object, JMenu> parents;
     private JPopupMenu popup;
@@ -30,7 +27,7 @@ public class StmapTreePopupBuilder {
     public void build(StampTree stampTree, JPopupMenu popup, JComponent cmp, TransferHandler handler) {
         
         if (parents == null) {
-            parents = new HashMap<Object, JMenu>(10, 0.75f);
+            parents = new HashMap<>(10, 0.75f);
         } else {
             parents.clear();
         }

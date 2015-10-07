@@ -120,12 +120,8 @@ public class ImageHistoryPanel extends JPanel implements PropertyChangeListener 
         if (prop.equals(CareMapDocument.SELECTED_DATE_PROP)) {
 
             String date = (String) e.getNewValue();
-            // if (isMyCode()) {
-            // System.out.println("my propertyChange: " + date);
             findDate(date);
-        // }
         }
-
     }
 
     private void findDate(String date) {
@@ -138,10 +134,6 @@ public class ImageHistoryPanel extends JPanel implements PropertyChangeListener 
         }
     }
 
-    /*private boolean isMyCode() {
-    // return markEvent.equals(imageCode) ? true : false;
-    return markEvent.equals("image") ? true : false;
-    }*/
     private void openImage(int row, int col) {
 
         ImageEntry entry = (ImageEntry) tModel.getValueAt(row, col);
@@ -234,8 +226,7 @@ public class ImageHistoryPanel extends JPanel implements PropertyChangeListener 
         }
 
         private boolean isValidIndex(int index) {
-            return (imageList == null || index < 0 || index >= imageList.size()) ? false
-                    : true;
+            return (imageList != null && index >= 0 && index < imageList.size());
         }
     }
 
@@ -260,14 +251,7 @@ public class ImageHistoryPanel extends JPanel implements PropertyChangeListener 
 
                 ImageEntry entry = (ImageEntry) value;
                 l.setIcon(entry.getImageIcon());
-                // String title = entry.getTitle();
-                // if (title != null) {
-                // l.setText(title);
-
-                // } else {
                 l.setText(entry.getConfirmDate().substring(0, 10));
-            // }
-
             } else {
                 l.setIcon(null);
             }

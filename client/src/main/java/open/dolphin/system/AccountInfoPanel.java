@@ -6,6 +6,7 @@ import java.awt.event.FocusEvent;
 import java.awt.im.InputSubset;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.text.MessageFormat;
 import java.util.Date;
 
 import javax.swing.BoxLayout;
@@ -41,7 +42,6 @@ public final class AccountInfoPanel extends JPanel {
     
     private static final String MEMBER_TYPE = "ASP_TESTER";
     
-    //private JTextField facilityId;
     private JTextField facilityName;
     private JTextField zipField1;
     private JTextField zipField2;
@@ -65,7 +65,7 @@ public final class AccountInfoPanel extends JPanel {
     
     private UserModel adminModel;
     private boolean validInfo;
-    private PropertyChangeSupport boundSupport = new PropertyChangeSupport(this);
+    private final PropertyChangeSupport boundSupport = new PropertyChangeSupport(this);
     
     
     public AccountInfoPanel() {
@@ -237,48 +237,52 @@ public final class AccountInfoPanel extends JPanel {
         adminPassword2.setDocument(passwordDoc2);
         adminPassword1.setToolTipText(pattern);
         
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(AccountInfoPanel.class);
+        
         pattern = ClientContext.getString("addUser.pattern.email");
         RegexConstrainedDocument emailDoc = new RegexConstrainedDocument(pattern);
         emailField.setDocument(emailDoc);
-        emailField.setToolTipText("折り返し施設IDを送信します");
+        //emailField.setToolTipText(bundle.getString("toolTipText.emailField"));
         
         licenses = ClientContext.getLicenseModel();
         licenseCombo = new JComboBox(licenses);
+        licenseCombo.setSelectedIndex(0);
+        licenseCombo.setEnabled(false);
         
         depts = ClientContext.getDepartmentModel();
         deptCombo = new JComboBox(depts);
         
-        GridBagBuilder gbl = new GridBagBuilder("施設情報 - URL以外の全ての項目が必要です");
-        JLabel label = null;
-        StringBuilder sb = null;
+        GridBagBuilder gbl = new GridBagBuilder(bundle.getString("borderTitle.hospitalInfo"));
+        JLabel label;
+        StringBuilder sb;
         
         int x = 0;
         int y = 0;
-        label = new JLabel("医療機関名:", SwingConstants.RIGHT);
+        label = new JLabel(bundle.getString("labelText.hospitalName"), SwingConstants.RIGHT);
         gbl.add(label,        x,    y, GridBagConstraints.EAST);
         gbl.add(facilityName, x+1,  y, GridBagConstraints.WEST);
         
         x = 0;
         y += 1;
-        label = new JLabel("郵便番号:", SwingConstants.RIGHT);
+        label = new JLabel(bundle.getString("labelText.zipCode"), SwingConstants.RIGHT);
         gbl.add(label, 													x, 	y, GridBagConstraints.EAST);
         gbl.add(GUIFactory.createZipCodePanel(zipField1, zipField2), 	x+1, y, GridBagConstraints.WEST);
         
         x = 0;
         y += 1;
-        label = new JLabel("住　所:", SwingConstants.RIGHT);
+        label = new JLabel(bundle.getString("labelText.address"), SwingConstants.RIGHT);
         gbl.add(label, x, y, GridBagConstraints.EAST);
         gbl.add(addressField, x+1, y, 2, 1, GridBagConstraints.WEST);
         
         x = 0;
         y += 1;
-        label = new JLabel("電話番号:", SwingConstants.RIGHT);
+        label = new JLabel(bundle.getString("labelText.telephoneNumber"), SwingConstants.RIGHT);
         gbl.add(label, x, y, GridBagConstraints.EAST);
         gbl.add(GUIFactory.createPhonePanel(areaField, cityField, numberField), x+1, y, GridBagConstraints.WEST);
         
         x = 0;
         y += 1;
-        label = new JLabel("URL:", SwingConstants.RIGHT);
+        label = new JLabel(bundle.getString("labelText.url"), SwingConstants.RIGHT);
         gbl.add(label, x, y, GridBagConstraints.EAST);
         gbl.add(urlField, x+1, y, GridBagConstraints.WEST);
         
@@ -289,54 +293,46 @@ public final class AccountInfoPanel extends JPanel {
         x = 0;
         y = 0;
         userIdLength = ClientContext.getIntArray("addUser.userId.length");
-        sb = new StringBuilder();
-        sb.append("管理者ログインID(半角英数記)");
-        sb.append(userIdLength[0]);
-        sb.append("~");
-        sb.append(userIdLength[1]);
-        sb.append("文字):");
-        label = new JLabel(sb.toString(), SwingConstants.RIGHT);
-        gbl = new GridBagBuilder("この医療機関のOpenDolphin管理者情報 - 全ての項目が必要です");
+        String fmt = bundle.getString("labelText.userIdSpec");
+        String text = new MessageFormat(fmt).format(new Object[]{userIdLength[0], userIdLength[1]});
+        label = new JLabel(text, SwingConstants.RIGHT);
+        gbl = new GridBagBuilder(bundle.getString("borderTitle.openDolphinAdmin"));
         gbl.add(label, x, y, GridBagConstraints.EAST);
         gbl.add(adminId, x+1, y, GridBagConstraints.WEST);
         
         x = 0;
         y += 1;
         passwordLength = ClientContext.getIntArray("addUser.password.length");
-        sb = new StringBuilder();
-        sb.append("パスワード(半角英数記)");
-        sb.append(passwordLength[0]);
-        sb.append("~");
-        sb.append(passwordLength[1]);
-        sb.append("文字):");
-        label = new JLabel(sb.toString(), SwingConstants.RIGHT);
+        fmt = bundle.getString(";abelText.passwordSpec");
+        text = new MessageFormat(fmt).format(new Object[]{passwordLength[0], passwordLength[1]});
+        label = new JLabel(text, SwingConstants.RIGHT);
         gbl.add(label,           x,     y, GridBagConstraints.EAST);
         gbl.add(adminPassword1,  x + 1, y, GridBagConstraints.WEST);
-        label = new JLabel("確認:", SwingConstants.RIGHT);
+        label = new JLabel(bundle.getString("labelText.confirm"), SwingConstants.RIGHT);
         gbl.add(label,           x + 2, y, GridBagConstraints.EAST);
         gbl.add(adminPassword2,  x + 3, y, GridBagConstraints.WEST);
         
         x = 0;
         y += 1;
-        label = new JLabel("姓（漢字）:", SwingConstants.RIGHT);
+        label = new JLabel(bundle.getString("labelText.familyName"), SwingConstants.RIGHT);
         gbl.add(label, x, y, GridBagConstraints.EAST);
         gbl.add(adminSir, x+ 1, y, GridBagConstraints.WEST);
-        label = new JLabel("名（漢字）:", SwingConstants.RIGHT);
+        label = new JLabel(bundle.getString("labelText.givenName"), SwingConstants.RIGHT);
         gbl.add(label, x+2, y, GridBagConstraints.EAST);
         gbl.add(adminGiven, x+ 3, y, GridBagConstraints.WEST);
         
         x = 0;
         y +=1;
-        label = new JLabel("医療資格:", SwingConstants.RIGHT);
+        label = new JLabel(bundle.getString("labelText.license"), SwingConstants.RIGHT);
         gbl.add(label, x, y, GridBagConstraints.EAST);
         gbl.add(licenseCombo,x+ 1, y, GridBagConstraints.WEST);
-        label = new JLabel("診療科:", SwingConstants.RIGHT);
+        label = new JLabel(bundle.getString("labelText.department"), SwingConstants.RIGHT);
         gbl.add(label, x+2, y, GridBagConstraints.EAST);
         gbl.add(deptCombo,x+ 3, y, GridBagConstraints.WEST);
         
         x = 0;
         y +=1;
-        label = new JLabel("電子メール:", SwingConstants.RIGHT);
+        label = new JLabel(bundle.getString("labelText.enail"), SwingConstants.RIGHT);
         gbl.add(label, x, y, GridBagConstraints.EAST);
         gbl.add(emailField, x+1, y, 1, 1, GridBagConstraints.WEST);
         
@@ -373,25 +369,21 @@ public final class AccountInfoPanel extends JPanel {
         adminPassword1.getDocument().addDocumentListener(dl);
         adminSir.getDocument().addDocumentListener(dl);
         adminGiven.getDocument().addDocumentListener(dl);
-        emailField.getDocument().addDocumentListener(dl);
+        //emailField.getDocument().addDocumentListener(dl);
     }
     
     private void checkValidInfo() {
-        boolean infoOk = (
-                facilityName.getText().trim().equals("") ||
-                zipField1.getText().trim().equals("") ||
-                zipField2.getText().trim().equals("") ||
-                addressField.getText().trim().equals("") ||
-                areaField.getText().trim().equals("") ||
-                cityField.getText().trim().equals("") ||
-                numberField.getText().trim().equals("") ||
-                (! validUserId()) ||
-                (! validPassword()) ||
-                adminSir.getText().trim().equals("") ||
-                adminGiven.getText().trim().equals("") ||
-                (licenseCombo.getSelectedItem() == null) ||
-                (deptCombo.getSelectedItem() == null ||
-                emailField.getText().trim().equals("")) ) ? false : true;
+        boolean infoOk = (!facilityName.getText().trim().equals("") && 
+                !zipField1.getText().trim().equals("") 
+                && !zipField2.getText().trim().equals("") 
+                && !addressField.getText().trim().equals("") 
+                && !areaField.getText().trim().equals("") 
+                && !cityField.getText().trim().equals("") 
+                && !numberField.getText().trim().equals("") 
+                && (validUserId()) && (validPassword()) 
+                && !adminSir.getText().trim().equals("") 
+                && !adminGiven.getText().trim().equals("")
+                && (deptCombo.getSelectedItem()!=null));
         setValidInfo(infoOk);
     }
     
@@ -401,11 +393,7 @@ public final class AccountInfoPanel extends JPanel {
         if (val.equals("")) {
             return false;
         }
-        if (val.length() < userIdLength[0] || val.length() > userIdLength[1]) {
-            return false;
-        }
-        
-        return true;
+        return !(val.length() < userIdLength[0] || val.length() > userIdLength[1]);
     }
     
     private boolean validPassword() {
@@ -425,6 +413,6 @@ public final class AccountInfoPanel extends JPanel {
             return false;
         }
         
-        return passwd1.equals(passwd2)? true : false;
+        return passwd1.equals(passwd2);
     }
 }

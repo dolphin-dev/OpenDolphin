@@ -1,6 +1,5 @@
 package open.dolphin.client;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -9,10 +8,10 @@ import java.awt.event.*;
 import java.beans.EventHandler;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.text.MessageFormat;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.delegater.LetterDelegater;
@@ -23,7 +22,6 @@ import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.project.Project;
 import open.dolphin.table.ListTableModel;
 import open.dolphin.table.StripeTableCellRenderer;
-import open.dolphin.util.Log;
 
 /**
  * 文書履歴を取得し、表示するクラス。
@@ -37,28 +35,6 @@ public class DocumentHistory {
     public static final String SELECTED_HISTORIES = "selectedHistories";
     public static final String SELECTED_KARTES = "selectedKartes";
     public static final String HITORY_UPDATED = "historyUpdated";
-    
-    private static final String CMB_KARTE = "カルテ";
-    private static final String CMB_LETTER = "紹介状/診断書";
-    //private static final Color DEFAULT_ODD_COLOR = ClientContext.getColor("color.odd");
-    //private static final Color DEFAULT_EVENN_COLOR = ClientContext.getColor("color.even");
-    private static final Color SELF_INSURANCE_COLOR = new Color(255,255,102);
-    private static final Color JIBAISEKI_INSURANCE_COLOR = new Color(102,153,255);
-    private static final Color ROSAI_INSURANCE_COLOR = Color.orange; //new Color(255,102,204);
-            
-    private static final String YEAR_1 = "1年";
-    private static final String YEAR_2 = "2年";
-    private static final String YEAR_3 = "3年";
-    private static final String YEAR_4 = "4年";
-    private static final String YEAR_5 = "5年";
-    private static final String YEAR_ALL = "全て";
-    private static final String MONTH_12 = "-12";
-    private static final String MONTH_24 = "-24";
-    private static final String MONTH_36 = "-36";
-    private static final String MONTH_48 = "-48";
-    private static final String MONTH_60 = "-60";
-    private static final String MONTH_120 = "-120";
-
 
     // 文書履歴テーブル
     private ListTableModel<DocInfoModel> tableModel;
@@ -78,7 +54,7 @@ public class DocumentHistory {
     private PropertyChangeSupport boundSupport;
     
     // context 
-    private ChartImpl context;
+    private final ChartImpl context;
     
     // 選択された文書情報(DocInfo)の配列
     private DocInfoModel[] selectedHistories;
@@ -99,7 +75,7 @@ public class DocumentHistory {
     private boolean showModified;
     
     // フラグ
-    private boolean start;
+    private final boolean start;
     private NameValuePair[] contentObject;
     private NameValuePair[] extractionObjects;
     
@@ -107,8 +83,8 @@ public class DocumentHistory {
     private BlockKeyListener blockKeyListener;
 
     /**
-     * 文書履歴オブジェクトを生成する。
-     * @param owner コンテキシト
+     * Creates new DocumentHistory
+     * @param context ChartImpl
      */
     public DocumentHistory(ChartImpl context) {
         this.context = context;
@@ -203,7 +179,6 @@ public class DocumentHistory {
      * 文書履歴を Karte から取得し表示する。
      */
     public void showHistory() {
-        //List<DocInfoModel> list = (List<DocInfoModel>)context.getKarte().getEntryCollection("docInfo");
         List<DocInfoModel> list = context.getKarte().getDocInfoList();
         updateHistory(list);
     }
@@ -260,10 +235,13 @@ public class DocumentHistory {
         // 束縛プロパティの通知を行う
         boundSupport.firePropertyChange(HITORY_UPDATED, false, true);
 
+        String countInfo = ClientContext.getMyBundle(DocumentHistory.class).getString("messageFormat.numRecords");
+        MessageFormat msf = new MessageFormat(countInfo);
+        
         if (mewHistory != null && mewHistory.size() > 0) {
 
             int cnt = mewHistory.size();
-            countField.setText(String.valueOf(cnt) + " 件");
+            countField.setText(msf.format(new Object[]{String.valueOf(cnt)}));
             int fetchCount = cnt > autoFetchCount ? autoFetchCount : cnt;
 
             // テーブルの最初の行の自動選択を行う
@@ -287,12 +265,14 @@ public class DocumentHistory {
             table.scrollRectToVisible(r);
 
         } else {
-            countField.setText("0 件");
+            //countField.setText("0 件");
+            countField.setText(msf.format(new Object[]{"0"}));
         }
     }
 
     /**
      * 文書履歴のタイトルを変更する。
+     * @param docInfo
      */
     public void titleChanged(DocInfoModel docInfo) {
 
@@ -304,6 +284,7 @@ public class DocumentHistory {
 
     /**
      * 抽出期間を変更し再検索する。
+     * @param state
      */
     public void periodChanged(int state) {
         if (state == ItemEvent.SELECTED) {
@@ -323,6 +304,7 @@ public class DocumentHistory {
 
     /**
      * 文書種別を変更し再検索する。
+     * @param state
      */
     public void contentChanged(int state) {
         if (state == ItemEvent.SELECTED) {
@@ -337,21 +319,25 @@ public class DocumentHistory {
      */
     private void initComponent() {
 
+        // View
         view = new DocumentHistoryView();
 
         // 履歴テーブルのパラメータを取得する
-        String[] columnNames = ClientContext.getStringArray("docHistory.columnNames"); // {"確定日", "内容"};
-        String[] methodNames = ClientContext.getStringArray("docHistory.methodNames"); // {"getFirstConfirmDateTrimTime",// "getTitle"};
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(DocumentHistory.class);
+        String columnLine = bundle.getString("columnNames.table");
+        String methodLine = bundle.getString("methods.table");
+        String[] columnNames = columnLine.split(",");
+        String[] methodNames = methodLine.split(",");
         Class[] columnClasses = {String.class, String.class};
         
-        // ToDO
-        extractionObjects = new NameValuePair[7];
-        extractionObjects[0] = new NameValuePair(YEAR_1, MONTH_12);
-        extractionObjects[1] = new NameValuePair(YEAR_2, MONTH_24);
-        extractionObjects[2] = new NameValuePair(YEAR_3, MONTH_36);
-        extractionObjects[3] = new NameValuePair(YEAR_4, MONTH_48);
-        extractionObjects[4] = new NameValuePair(YEAR_5, MONTH_60);
-        extractionObjects[5] = new NameValuePair(YEAR_ALL, MONTH_120);
+        String extNameLine = bundle.getString("names.extractionPeriod");
+        String extValueLine = bundle.getString("values.extractionPeriod");
+        String[] extNames = extNameLine.split(",");
+        String[] extValues = extValueLine.split(",");
+        extractionObjects = new NameValuePair[extNames.length];
+        for (int i=0; i<extNames.length;i++) {
+             extractionObjects[i] = new NameValuePair(extNames[i], extValues[i]);
+        }
 
         // 文書履歴テーブルを生成する
         tableModel = new ListTableModel<DocInfoModel>(columnNames, 0, methodNames, columnClasses) {
@@ -367,9 +353,7 @@ public class DocumentHistory {
                 if (col == 1 && getObject(row) != null) {
                     DocInfoModel docInfo = getObject(row);
                     return (docInfo.getDocType().equals(IInfoModel.DOCTYPE_KARTE) ||
-                            docInfo.getDocType().equals(IInfoModel.DOCTYPE_S_KARTE)) 
-                            ? true
-                            : false;
+                            docInfo.getDocType().equals(IInfoModel.DOCTYPE_S_KARTE));
                 }
                 return false;
             }
@@ -403,8 +387,12 @@ public class DocumentHistory {
         //-----------------------------------------------
         // Copy 機能を実装する
         //-----------------------------------------------
+        String copyText = bundle.getString("actionText.copy");
+        String deleteText = bundle.getString("actionText.delete");
+        String duplicateText = bundle.getString("actionText.dupricate");
+        
         KeyStroke copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-        final AbstractAction copyAction = new AbstractAction("コピー") {
+        final AbstractAction copyAction = new AbstractAction(copyText) {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
@@ -415,7 +403,7 @@ public class DocumentHistory {
         view.getTable().getActionMap().put("Copy", copyAction);
 
         // Delete ACtion
-        final AbstractAction deleteAction = new AbstractAction("削除") {
+        final AbstractAction deleteAction = new AbstractAction(deleteText) {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
@@ -424,7 +412,7 @@ public class DocumentHistory {
         };
         
 //s.oh^ 2014/04/03 文書の複製
-        final AbstractAction copyDocAction = new AbstractAction("複製") {
+        final AbstractAction copyDocAction = new AbstractAction(duplicateText) {
             @Override
             public void actionPerformed(ActionEvent e) {
                 copyDoc();
@@ -452,7 +440,7 @@ public class DocumentHistory {
 //s.oh$
                     
 //s.oh^ 2014/04/03 文書の複製
-                    if(extractionContent == IInfoModel.DOCTYPE_LETTER) {
+                    if(extractionContent.equals(IInfoModel.DOCTYPE_LETTER)) {
                         JMenuItem itemCopyDoc = new JMenuItem(copyDocAction);
                         copyDocAction.setEnabled(context.isShowDocument(0));
                         pop.add(itemCopyDoc);
@@ -498,7 +486,6 @@ public class DocumentHistory {
         column.setCellEditor(new DefaultCellEditor(tf));
         
         // 奇数偶数レンダラを設定する
-        //view.getTable().setDefaultRenderer(Object.class, new DocInfoRenderer());
         DocInfoRenderer rederer = new DocInfoRenderer();
         rederer.setTable(view.getTable());
         rederer.setDefaultRenderer();
@@ -507,15 +494,20 @@ public class DocumentHistory {
 
         // 文書種別(コンテントタイプ) ComboBox を生成する
         contentObject = new NameValuePair[2];
-        contentObject[0] = new NameValuePair(CMB_KARTE, IInfoModel.DOCTYPE_KARTE);
-        contentObject[1] = new NameValuePair(CMB_LETTER, IInfoModel.DOCTYPE_LETTER);
-        //contentObject[2] = new NameValuePair(CMB_REPLY, IInfoModel.DOCTYPE_LETTER_REPLY);
-        //contentObject[3] = new NameValuePair(CMB_REPLY2, IInfoModel.DOCTYPE_LETTER_REPLY2);
+        String karteText = bundle.getString("contentText.karte");
+        String letterText = bundle.getString("contentText.letter");
+        contentObject[0] = new NameValuePair(karteText, IInfoModel.DOCTYPE_KARTE);
+        contentObject[1] = new NameValuePair(letterText, IInfoModel.DOCTYPE_LETTER);
         
+        // add in18
         contentCombo = view.getDocTypeCombo();
+        DefaultComboBoxModel contentModel = new DefaultComboBoxModel(contentObject);
+        contentCombo.setModel(contentModel);
 
-        // 抽出機関 ComboBox を生成する
+        // 抽出機関 ComboBox を生成する add in18
         extractionCombo = view.getExtractCombo();
+        DefaultComboBoxModel extractionModel = new DefaultComboBoxModel(extractionObjects);
+        extractionCombo.setModel(extractionModel);
         
 //s.oh^ 2014/08/19 ID権限
         if(Project.isOtherCare()) {
@@ -543,28 +535,24 @@ public class DocumentHistory {
 
         // 履歴テーブルで選択された行の文書を表示する
         ListSelectionModel slm = view.getTable().getSelectionModel();
-        slm.addListSelectionListener(new ListSelectionListener() {
-
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (e.getValueIsAdjusting() == false) {
-                    JTable table = view.getTable();
-                    int[] selectedRows = table.getSelectedRows();
-                    if (selectedRows.length > 0) {
-                        List<DocInfoModel> list = new ArrayList<DocInfoModel>(1);
-                        for (int i = 0; i < selectedRows.length; i++) {
-                            DocInfoModel obj = tableModel.getObject(selectedRows[i]);
-                            if (obj != null) {
-                                list.add(obj);
-                            }
+        slm.addListSelectionListener((ListSelectionEvent e) -> {
+            if (e.getValueIsAdjusting() == false) {
+                JTable table = view.getTable();
+                int[] selectedRows = table.getSelectedRows();
+                if (selectedRows.length > 0) {
+                    List<DocInfoModel> list = new ArrayList<>(1);
+                    for (int i = 0; i < selectedRows.length; i++) {
+                        DocInfoModel obj = tableModel.getObject(selectedRows[i]);
+                        if (obj != null) {
+                            list.add(obj);
                         }
-                        //Collections.sort(list);
-                        DocInfoModel[] selected = (DocInfoModel[]) list.toArray(new DocInfoModel[list.size()]);
-                        if (selected != null && selected.length > 0) {
-                            setSelectedHistories(selected);
-                        } else {
-                            setSelectedHistories((DocInfoModel[]) null);
-                        }
+                    }
+                    //Collections.sort(list);
+                    DocInfoModel[] selected = (DocInfoModel[]) list.toArray(new DocInfoModel[list.size()]);
+                    if (selected != null && selected.length > 0) {
+                        setSelectedHistories(selected);
+                    } else {
+                        setSelectedHistories((DocInfoModel[]) null);
                     }
                 }
             }
@@ -596,11 +584,6 @@ public class DocumentHistory {
 
         // Preference から昇順降順を設定する
         ascending = Project.getBoolean(Project.DOC_HISTORY_ASCENDING);
-
-        // Preference から修正履歴表示を設定する
-        //showModified = Project.getBoolean(Project.DOC_HISTORY_SHOWMODIFIED, false);
-        //showModified = Project.getBoolean(Project.DOC_HISTORY_SHOWMODIFIED);
-        // 修正履歴は Project 設定から外す 常に false
 
         // 文書履歴テーブルのキーボード入力をブロックするリスナ
         blockKeyListener = new BlockKeyListener();
@@ -646,32 +629,28 @@ public class DocumentHistory {
         if (m==null) {
             return;
         }
-
-        StringBuilder sb = new StringBuilder(m.getTitle());
-        sb.append("を削除しますか?");
-        String msg = sb.toString();
-
-        Object[] cstOptions = new Object[]{"はい", "いいえ"};
-
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(DocumentHistory.class);
+        String question = bundle.getString("messageFormat.delete");
+        String optionDelete = bundle.getString("optionText.delete");
+        String title = bundle.getString("title.optionPane.delete");
+        
+        MessageFormat msf = new MessageFormat(question);
+        String msg = msf.format(new Object[]{m.getTitle()});
+        Object[] cstOptions = new Object[]{optionDelete, GUIFactory.getCancelButtonText()};
+        
         int select = JOptionPane.showOptionDialog(
                 SwingUtilities.getWindowAncestor(view.getTable()),
                 msg,
-                ClientContext.getFrameTitle("削除"),
+                ClientContext.getFrameTitle(title),
                 JOptionPane.YES_NO_CANCEL_OPTION,
-                JOptionPane.QUESTION_MESSAGE,
-//minagawa^ Icon Server                
-                //ClientContext.getImageIcon("cancl_32.gif"),
-                ClientContext.getImageIconArias("icon_caution"),
-//minagawa$                
-                cstOptions,"はい");
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle("削除"), msg);
+                JOptionPane.QUESTION_MESSAGE,              
+                ClientContext.getImageIconArias("icon_caution"),             
+                cstOptions, optionDelete);
 
         if (select != 0) {
-            Log.outputOperLogDlg(context, Log.LOG_LEVEL_0, "いいえ");
             return;
         }
-        Log.outputOperLogDlg(context, Log.LOG_LEVEL_0, "はい");
-
+        
         DeleteTask task = new DeleteTask(context, m.getDocPk());
         task.execute();
     }
@@ -788,9 +767,9 @@ public class DocumentHistory {
     class DocInfoTask extends DBTask<List<DocInfoModel>, Void> {
 
         // Delegator
-        private DocumentDelegater ddl;
+        private final DocumentDelegater ddl;
         // 検索パラメータを保持するオブジェクト
-        private DocumentSearchSpec spec;
+        private final DocumentSearchSpec spec;
 
         public DocInfoTask(Chart ctx, DocumentSearchSpec spec, DocumentDelegater ddl) {
             super(ctx);
@@ -805,17 +784,15 @@ public class DocumentHistory {
         }
 
         @Override
-        protected void succeeded(List<DocInfoModel> result) {
-//minagawa^ LSC Test            
-            updateHistory(result);
-//minagawa$            
+        protected void succeeded(List<DocInfoModel> result) {           
+            updateHistory(result);       
         }
     }
 
     class DeleteTask extends DBTask<Void, Void> {
 
         // 検索パラメータを保持するオブジェクト
-        private long spec;
+        private final long spec;
 
         public DeleteTask(Chart ctx, long spec) {
             super(ctx);
@@ -841,9 +818,9 @@ public class DocumentHistory {
     class ChangeTitleTask extends DBTask<Boolean, Void> {
 
         // DocInfo
-        private DocInfoModel docInfo;
+        private final DocInfoModel docInfo;
         // Delegator
-        private DocumentDelegater ddl;
+        private final DocumentDelegater ddl;
 
         public ChangeTitleTask(Chart ctx, DocInfoModel docInfo, DocumentDelegater ddl) {
             super(ctx);
@@ -854,7 +831,6 @@ public class DocumentHistory {
         @Override
         protected Boolean doInBackground() throws Exception {
             ddl.updateTitle(docInfo);
-            //return new Boolean(ddl.isNoError());
             return true;
         }
 
@@ -863,8 +839,11 @@ public class DocumentHistory {
         }
     }
 
+    /**
+     * 文書履歴テーブル用のセルレンダラ
+     * 自賠責、労災、自費のカラーリング
+     */
     class DocInfoRenderer extends StripeTableCellRenderer {
-        //class DocInfoRenderer extends JLabel implements TableCellRenderer {
 
         public DocInfoRenderer() {
             super();
@@ -881,58 +860,34 @@ public class DocumentHistory {
             ImageIcon icon = null;
             // Attachmentの判定 まずい...ICON_TEMP_SAVE_SMALL
             if (column==1 && info!=null && info.isHasMark()) {
-//minagawa^ Icon Server                
-                //icon = ClientContext.getImageIcon(GUIConst.ICON_ATTACHMENT_SMALL);
-                icon = ClientContext.getImageIconArias("icon_attachment_small");
-//minagawa$                
+                icon = ClientContext.getImageIconArias("icon_attachment_small");  
+                
             } else if (column==1 && info!=null && IInfoModel.STATUS_TMP.equals(info.getStatus())) {
                 // 仮保存
-//minagawa^ Icon Server                
-                //icon = ClientContext.getImageIcon(GUIConst.ICON_TEMP_SAVE_SMALL);
-                icon = ClientContext.getImageIconArias("icon_temp_save_small");
-//minagawa$                
+                icon = ClientContext.getImageIconArias("icon_temp_save_small");            
             }
+    
+            if ((!isSelected) && info!= null && 
+                info.getDocType().equals(IInfoModel.DOCTYPE_KARTE) &&
+                info.getHealthInsurance()!=null) {
 
-            //if (isSelected) {
-                //setBackground(table.getSelectionBackground());
-                //setForeground(table.getSelectionForeground());
+                java.util.ResourceBundle clBundle = ClientContext.getClaimBundle();
 
-            //} else {
+                if (Project.getBoolean("docHistory.coloring.rosai") && info.getHealthInsurance().startsWith(clBundle.getString("INSURANCE_ROSAI_PREFIX"))) {
+                    // 労災
+                    setBackground(GUIConst.ROSAI_INSURANCE_COLOR);
 
-                //setForeground(table.getForeground());
-                
-                if ((!isSelected) && info!= null && 
-                    info.getDocType().equals(IInfoModel.DOCTYPE_KARTE) &&
-                    info.getHealthInsurance()!=null) {
-                    
-                    if (Project.getBoolean("docHistory.coloring.rosai") && info.getHealthInsurance().startsWith(IInfoModel.INSURANCE_ROSAI_PREFIX)) {
-                        // 労災
-                        setBackground(ROSAI_INSURANCE_COLOR);
-                        
-                    } else if (Project.getBoolean("docHistory.coloring.jibaiseki") && info.getHealthInsurance().startsWith(IInfoModel.INSURANCE_JIBAISEKI_PREFIX)) {
-                        // 自賠責
-                        setBackground(JIBAISEKI_INSURANCE_COLOR);
-                        
-                    } 
-//minagawa^ Kuroiwa specific  下記をコメントアウト                  
-                    else if (Project.getBoolean("docHistory.coloring.jihi") && info.getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
-                        // 自費
-                        setBackground(SELF_INSURANCE_COLOR);   
-                    } 
-//minagawa$                    
-//                    else if ((row & (1)) == 0) {
-//                        setBackground(DEFAULT_EVENN_COLOR);
-//                    } else {
-//                        setBackground(DEFAULT_ODD_COLOR);
-//                    }
+                } else if (Project.getBoolean("docHistory.coloring.jibaiseki") && info.getHealthInsurance().startsWith(clBundle.getString("INSURANCE_JIBAISEKI_PREFIX"))) {
+                    // 自賠責
+                    setBackground(GUIConst.JIBAISEKI_INSURANCE_COLOR);
                 } 
-//                else if((row & (1)) == 0) {
-//                    setBackground(DEFAULT_EVENN_COLOR);
-//                } else {
-//                    setBackground(DEFAULT_ODD_COLOR);
-//                }
-            //}
-
+//minagawa^ Kuroiwa specific  下記をコメントアウト                  
+                else if (Project.getBoolean("docHistory.coloring.jihi") && info.getHealthInsurance().startsWith(clBundle.getString("INSURANCE_SELF_PREFIX"))) {
+                    // 自費
+                    setBackground(GUIConst.SELF_INSURANCE_COLOR);   
+                } 
+//minagawa$                    
+            } 
             //-------------------------------------------------------
             if (value != null) {
 

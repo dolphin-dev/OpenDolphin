@@ -8,11 +8,11 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
+import java.util.concurrent.ExecutionException;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
@@ -21,7 +21,6 @@ import open.dolphin.client.ClientContext;
 import open.dolphin.client.LabResultParser;
 import open.dolphin.delegater.LaboDelegater;
 import open.dolphin.infomodel.PatientLiteModel;
-import open.dolphin.util.Log;
 
 
 /**
@@ -32,16 +31,7 @@ import open.dolphin.util.Log;
  */
 public class NLaboTestFileTransferHandler extends TransferHandler {
     
-//    // From StackOverFlow
-//    private static DataFlavor nixFileDataFlavor;
-//    static {
-//        try {
-//           nixFileDataFlavor  = new DataFlavor("text/uri-list;class=java.lang.String");
-//        } catch (Exception e) {
-//        }
-//    }
-
-    private NLaboTestImporter context;
+    private final NLaboTestImporter context;
     
     public NLaboTestFileTransferHandler(NLaboTestImporter context) {
         this.context = context;
@@ -63,10 +53,10 @@ public class NLaboTestFileTransferHandler extends TransferHandler {
             if (support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
                 files = (java.util.List<File>)t.getTransferData(DataFlavor.javaFileListFlavor);
             } 
-//            //jdk1.6 nix
-//            else if (support.isDataFlavorSupported(nixFileDataFlavor)){
-//                files = getDropedFiles((String)t.getTransferData(nixFileDataFlavor));
-//            }
+            
+            if (files==null || files.isEmpty()) {
+                return false;
+            }
             
             List<Path> labFiles = new ArrayList<>(files.size());
 
@@ -84,7 +74,7 @@ public class NLaboTestFileTransferHandler extends TransferHandler {
                 }
             }
 
-            if (labFiles != null && labFiles.size() > 0) {
+            if (labFiles.size() > 0) {
                 parseFiles(labFiles);
             }
 
@@ -101,7 +91,6 @@ public class NLaboTestFileTransferHandler extends TransferHandler {
     public boolean canImport(TransferHandler.TransferSupport support) {
         boolean canImport = true;
         canImport = canImport && support.isDrop();
-        //boolean isFile = (support.isDataFlavorSupported(DataFlavor.javaFileListFlavor) || support.isDataFlavorSupported(nixFileDataFlavor));
         boolean isFile = support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
         canImport = canImport && isFile;
         return canImport;
@@ -120,12 +109,12 @@ public class NLaboTestFileTransferHandler extends TransferHandler {
                     allModules.addAll(dataList);
                 }
 
-                if (allModules!=null && allModules.size()>0) {
+                if (allModules.size()>0) {
 
-                    List<String> idList = new ArrayList<String>(allModules.size());
-                    for (NLaboImportSummary sm : allModules) {
+                    List<String> idList = new ArrayList<>(allModules.size());
+                    allModules.stream().forEach((sm) -> {
                         idList.add(sm.getPatientId());
-                    }
+                    });
 
                     LaboDelegater laboDelegater = new LaboDelegater();
                     List<PatientLiteModel> pList = laboDelegater.getConstrainedPatients(idList);
@@ -152,7 +141,7 @@ public class NLaboTestFileTransferHandler extends TransferHandler {
                     List<NLaboImportSummary> allModules = get();
                     context.getTableModel().setDataProvider(allModules);
 
-                } catch (Exception e) {
+                } catch (InterruptedException | ExecutionException e) {
                     String why;
                     Throwable cause = e.getCause();
                     if (cause != null) {
@@ -161,10 +150,12 @@ public class NLaboTestFileTransferHandler extends TransferHandler {
                         why = e.getMessage();
                     }
                     Window parent = SwingUtilities.getWindowAncestor(context.getUI());
-                    String message = "パースできないファイルがあります。\n検査報告書フォーマットを確認してください。\n" + why;
-                    String title = "ラボレシーバ";
+                    //String message = "パースできないファイルがあります。\n検査報告書フォーマットを確認してください。\n" + why;
+                    String fmt = ClientContext.getMyBundle(NLaboTestFileTransferHandler.class).getString("messageFormat.cannotParseFile");
+                    MessageFormat msf = new MessageFormat(fmt);
+                    String message = msf.format(new Object[]{why});
+                    String title = ClientContext.getMyBundle(NLaboTestFileTransferHandler.class).getString("title.optionPane.labReceiver");
                     JOptionPane.showMessageDialog(parent, message, ClientContext.getFrameTitle(title), JOptionPane.WARNING_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), message);
                 }
             }
         };
@@ -184,27 +175,5 @@ public class NLaboTestFileTransferHandler extends TransferHandler {
         });
 
         worker.execute();
-    }
-    
-    private List<File> getDropedFiles(String data) {
-        
-        List<File> files = new ArrayList<File>(2);
-        
-        for(StringTokenizer st = new StringTokenizer(data, "\r\n"); st.hasMoreTokens();) {
-            String token = st.nextToken().trim();
-            
-            if(token.startsWith("#") || token.isEmpty()) {
-                // comment line, by RFC 2483
-                continue;
-            }
-            try {
-                files.add(new File(new URI(token)));
-                
-            } catch(Exception e) {
-                e.printStackTrace(System.err);
-            }
-        }
-        
-        return files;
     }
 }

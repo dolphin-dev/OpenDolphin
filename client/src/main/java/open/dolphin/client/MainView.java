@@ -39,7 +39,7 @@ public class MainView extends javax.swing.JPanel {
 
         dateLbl.setFont(new java.awt.Font("Lucida Grande", 0, 10)); // NOI18N
         dateLbl.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        dateLbl.setText("ログイン 皆川和史 2010年10-23-(金) 12:28"); // NOI18N
+        dateLbl.setText("Logged In K.Minagawa 2010年10-23-(Fri) 12:28"); // NOI18N
 
         jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
         jSeparator1.setMaximumSize(new java.awt.Dimension(10, 15));

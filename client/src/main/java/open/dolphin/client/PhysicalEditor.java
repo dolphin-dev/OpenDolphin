@@ -11,7 +11,6 @@ import javax.swing.event.DocumentListener;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.PhysicalModel;
 import open.dolphin.infomodel.SimpleDate;
-import open.dolphin.util.Log;
 
 /**
  * 身長体重データを編集するエディタクラス。
@@ -20,11 +19,11 @@ import open.dolphin.util.Log;
  */
 public class PhysicalEditor {
     
-    private PhysicalInspector inspector;
+    private final PhysicalInspector inspector;
     private PhysicalEditorView view;
     private JDialog dialog;
-    private JButton addBtn;
-    private JButton clearBtn;
+    private final JButton addBtn;
+    private final JButton clearBtn;
     private boolean ok;
     
     private void checkBtn() {
@@ -52,15 +51,6 @@ public class PhysicalEditor {
         String h = view.getHeightFld().getText().trim();
         String w = view.getWeightFld().getText().trim();
         final PhysicalModel model = new PhysicalModel();
-        
-//        try{
-//            Double.parseDouble(h);
-//            Double.parseDouble(w);
-//        }catch(Exception ex) {
-//            JOptionPane.showMessageDialog(null, "正しい数値を入力してください。", ClientContext.getString("productString"), JOptionPane.INFORMATION_MESSAGE);
-//            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "正しい数値を入力してください。");
-//            return false;
-//        }
 
         if (!h.equals("")) {
             model.setHeight(h);
@@ -74,8 +64,8 @@ public class PhysicalEditor {
         if(confirmedStr != null) {
             String[] tmp = confirmedStr.split("-");
             if(confirmedStr.length() != 10 || tmp.length != 3) {
-                JOptionPane.showMessageDialog(null, "測定日が正しく入力されていません。（例：2000-01-31）", ClientContext.getString("productString"), JOptionPane.INFORMATION_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "測定日が正しく入力されていません。（例：2000-01-31）");
+                String warning = ClientContext.getMyBundle(PhysicalEditor.class).getString("warning.samplingDate");
+                JOptionPane.showMessageDialog(null, warning, ClientContext.getString("productString"), JOptionPane.INFORMATION_MESSAGE);
                 return false;
             }
             model.setIdentifiedDate(confirmedStr);
@@ -91,13 +81,12 @@ public class PhysicalEditor {
     private void clear() {
         view.getHeightFld().setText("");
         view.getWeightFld().setText("");
-        //view.getIdentifiedDateFld().setText("");
     }
     
     class PopupListener extends MouseAdapter implements PropertyChangeListener {
 
         private JPopupMenu popup;
-        private JTextField tf;
+        private final JTextField tf;
 
         // private LiteCalendarPanel calendar;
         public PopupListener(JTextField tf) {
@@ -166,18 +155,12 @@ public class PhysicalEditor {
         view.getIdentifiedDateFld().getDocument().addDocumentListener(dl);
         
         // Return で移動
-        view.getHeightFld().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                view.getWeightFld().requestFocus();
-            }
+        view.getHeightFld().addActionListener((ActionEvent ae) -> {
+            view.getWeightFld().requestFocus();
         });
         
-        view.getWeightFld().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                view.getIdentifiedDateFld().requestFocus();
-            }
+        view.getWeightFld().addActionListener((ActionEvent ae) -> {
+            view.getIdentifiedDateFld().requestFocus();
         });
         
         // Alignment
@@ -194,34 +177,32 @@ public class PhysicalEditor {
         view.getWeightFld().addFocusListener(AutoRomanListener.getInstance());
         view.getIdentifiedDateFld().addFocusListener(AutoRomanListener.getInstance());
         
-        addBtn = new JButton("追加");
-        addBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(add()) {
-                    dialog.setVisible(false);
-                }
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(PhysicalEditor.class);
+        String addText = bundle.getString("actionText.add");
+        addBtn = new JButton(addText);
+        addBtn.addActionListener((ActionEvent e) -> {
+            if(add()) {
+                dialog.setVisible(false);
             }
         });
         addBtn.setEnabled(false);
         
-        clearBtn = new JButton("クリア");
-        clearBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                clear();
-            }
+        String clearText = bundle.getString("actionText.clear");
+        clearBtn = new JButton(clearText);
+        clearBtn.addActionListener((ActionEvent e) -> {
+            clear();
         });
         clearBtn.setEnabled(false);
                 
         Object[] options = new Object[]{addBtn,clearBtn};
         
+        String title = bundle.getString("title.optionPane.addPhysical");
         JOptionPane pane = new JOptionPane(view,
                                            JOptionPane.PLAIN_MESSAGE,
                                            JOptionPane.DEFAULT_OPTION,
                                            null,
                                            options, addBtn);
-        dialog = pane.createDialog(inspector.getContext().getFrame(), ClientContext.getFrameTitle("身長体重登録"));
+        dialog = pane.createDialog(inspector.getContext().getFrame(), ClientContext.getFrameTitle(title));
         dialog.addWindowListener(new WindowAdapter() {
             @Override
             public void windowOpened(WindowEvent e) {

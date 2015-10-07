@@ -15,11 +15,11 @@ import open.dolphin.client.ClientContext;
  */
 public class TFSSetting {
 
-    private AbstractBrowser context;
-    private Component parent;
+    private final AbstractBrowser context;
+    private final Component parent;
     private TFSConfigView view;
     private JDialog dialog;
-    private Properties properties;
+    private final Properties properties;
    
     public TFSSetting(AbstractBrowser context, Component parent) {
         this.context = context;
@@ -138,7 +138,7 @@ public class TFSSetting {
         view.getTfsServerFld().setEnabled(enabled);
         
         // Inject Actions
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
+        ResourceBundle resource = ClientContext.getMyBundle(TFSSetting.class);
         ActionMap map = getAction(resource);
 
         view.getBaseDirBtn().setAction(map.get("setBaseDirectory"));

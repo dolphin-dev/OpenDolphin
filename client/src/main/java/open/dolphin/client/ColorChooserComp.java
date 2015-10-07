@@ -18,17 +18,17 @@ public class ColorChooserComp extends JComponent implements MouseListener, Mouse
     
     public static final String SELECTED_COLOR = "selectedColor";
     
-    private Color[] colors;
+    private final Color[] colors;
     
     private Color[] colorStart;
     
-    private Dimension size;
+    private final Dimension size;
     
-    private Color strokeColor = Color.DARK_GRAY;
+    private final Color strokeColor = Color.DARK_GRAY;
     
     private int strokeWidth = 2;
     
-    private PropertyChangeSupport boundSupport = new PropertyChangeSupport(this);
+    private final PropertyChangeSupport boundSupport = new PropertyChangeSupport(this);
     
     private Color selected;
     
@@ -40,8 +40,8 @@ public class ColorChooserComp extends JComponent implements MouseListener, Mouse
     public ColorChooserComp() {
         colorStart = ClientContext.getColorArray("color.set.default.start");
         colors = ClientContext.getColorArray("color.set.default.end");
-        size = ClientContext.getDimension("colorCooserComp.default.size");
-        strokeWidth = ClientContext.getInt("colorChooserComp.stroke.width");
+        size = new Dimension(10,10);
+        strokeWidth = 1;
         this.setPreferredSize(new Dimension(2*size.width*colors.length + size.width, 2*size.height));
         this.addMouseListener(ColorChooserComp.this);
         this.addMouseMotionListener(ColorChooserComp.this);
@@ -50,6 +50,8 @@ public class ColorChooserComp extends JComponent implements MouseListener, Mouse
     
     /**
      * Creates a new progress panel with default values
+     * @param size
+     * @param colors
      */
     public ColorChooserComp(Dimension size, Color[] colors) {
         this.size = size;
@@ -156,18 +158,7 @@ public class ColorChooserComp extends JComponent implements MouseListener, Mouse
                 g2.setColor(strokeColor);
                 g2.setStroke(stroke);
                 g2.draw(body);
-                //g2.setColor(colors[i]);
-                //g2.fill(body);
-                //GradientPaint lightToDark = new GradientPaint((int)x, (int)y, Color.LIGHT_GRAY, (int)x, (int)y + size.height, colors[i]);
-                //g2.setPaint(lightToDark);
-                //g2.fill(body);
-                //g2.setColor(Color.DARK_GRAY);
-                //g2.setStroke(new BasicStroke(2));
-                //g2.draw(body);
-            } //else {
-            //g2.setColor(colors[i]);
-            //g2.fill(body);
-            //}
+            }
         }
     }
 }

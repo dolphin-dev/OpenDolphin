@@ -3,7 +3,6 @@ package open.dolphin.letter;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfWriter;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,8 +18,6 @@ import open.dolphin.project.Project;
  */
 public class LetterPDFMaker extends AbstractLetterPDFMaker {
 
-    private static final String DOC_TITLE = "診療情報提供書";
-    private static final String GREETINGS = "下記の患者さんを紹介致します。ご高診の程宜しくお願い申し上げます。";
     private static final int ADDRESS_FONT_SIZE = 9;
 
     @Override
@@ -34,20 +31,19 @@ public class LetterPDFMaker extends AbstractLetterPDFMaker {
                     getMarginTop(),
                     getMarginBottom());
             
+            String DOC_TITLE = ClientContext.getMyBundle(LetterPDFMaker.class).getString("title.refferalLeter");
+            
             String path = UserDocumentHelper.createPathToDocument(
                     getDocumentDir(),       // PDF File を置く場所
                     DOC_TITLE,              // 文書名
                     EXT_PDF,                // 拡張子 
                     model.getPatientName(), // 患者氏名 
                     new Date());            // 日付
-//minagawa^ jdk7           
+           
             Path pathObj = Paths.get(path);
             setPathToPDF(pathObj.toAbsolutePath().toString());         // 呼び出し側で取り出せるように保存する
-            // Open Document
-            //PdfWriter.getInstance(document, new FileOutputStream(pathToPDF));
             PdfWriter.getInstance(document, Files.newOutputStream(pathObj));
-            document.open();
-//minagawa$            
+            document.open();            
             // Font
             baseFont = BaseFont.createFont(HEISEI_MIN_W3, UNIJIS_UCS2_HW_H, false);
             titleFont = new Font(baseFont, getTitleFontSize());
@@ -60,10 +56,7 @@ public class LetterPDFMaker extends AbstractLetterPDFMaker {
             document.add(para);
 
             // 日付
-//minagawa^ LSC 1.4 bug fix 文書の印刷日付 2013/06/24
-            //String dateStr = getDateString(model.getConfirmed());
-            String dateStr = getDateString(model.getStarted());
-//minagawa$            
+            String dateStr = getDateString(model.getStarted());        
             para = new Paragraph(dateStr, bodyFont);
             para.setAlignment(Element.ALIGN_RIGHT);
             document.add(para);
@@ -86,11 +79,11 @@ public class LetterPDFMaker extends AbstractLetterPDFMaker {
                 sb.append(model.getConsultantDoctor());
                 sb.append(" ");
             }
-            sb.append("先生　");
+            sb.append(ClientContext.getMyBundle(LetterPDFMaker.class).getString("doctorTitle")).append(" ");
             // title
             String title = Project.getString("letter.atesaki.title");
             if (title!=null && (!title.equals("無し"))) {
-                sb.append(title);
+                sb.append(" ").append(title);
             }
             para2 = new Paragraph(sb.toString(), bodyFont);
             para2.setAlignment(Element.ALIGN_LEFT);
@@ -109,7 +102,7 @@ public class LetterPDFMaker extends AbstractLetterPDFMaker {
             // 紹介元医師
             sb = new StringBuilder();
             sb.append(model.getClientDoctor());
-            sb.append(" 印");
+            sb.append(" ").append(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.seal"));
             para2 = new Paragraph(sb.toString(), bodyFont);
             para2.setAlignment(Element.ALIGN_RIGHT);
             document.add(para2);
@@ -118,7 +111,7 @@ public class LetterPDFMaker extends AbstractLetterPDFMaker {
             sb = new StringBuilder();
             String clientZip = model.getClientZipCode();
             if (clientZip != null && !clientZip.isEmpty()) {
-                sb.append("〒");
+                sb.append(ClientContext.getMyBundle(LetterPDFMaker.class).getString("mark.zipCode"));
                 sb.append(clientZip);
                 sb.append(" ");
             }
@@ -132,11 +125,11 @@ public class LetterPDFMaker extends AbstractLetterPDFMaker {
 
 // masuda 紹介元電話番号 稲葉先生のリクエスト　Faxを含める^
             sb = new StringBuilder();
-            sb.append("電話:");
+            sb.append(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.telephone"));
             sb.append(model.getClientTelephone());
             String fax = model.getClientFax();
             if (fax != null && !fax.isEmpty()) {
-                sb.append("  Fax:");
+                sb.append(" ").append(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.fax"));
                 sb.append(fax);
             }
             para2 = new Paragraph(sb.toString(), addressFont);
@@ -164,6 +157,7 @@ public class LetterPDFMaker extends AbstractLetterPDFMaker {
 
             // 紹介挨拶
             if (Project.getBoolean("letter.greetings.include")) {
+                String GREETINGS = ClientContext.getMyBundle(LetterPDFMaker.class).getString("greetings.letter");
                 para2 = new Paragraph(GREETINGS, bodyFont);
                 para2.setAlignment(Element.ALIGN_CENTER);
                 document.add(para2);
@@ -178,16 +172,15 @@ public class LetterPDFMaker extends AbstractLetterPDFMaker {
 
             String birthday = getDateString(model.getPatientBirthday());
             String sexStr = getSexString(model.getPatientGender());
-            pTable.addCell(new Phrase("患者氏名", bodyFont));
+            pTable.addCell(new Phrase(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.patinetName"), bodyFont));
             pTable.addCell(new Phrase(model.getPatientName(), bodyFont));
-            pTable.addCell(new Phrase("性別", bodyFont));
+            pTable.addCell(new Phrase(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.patientGender"), bodyFont));
             pTable.addCell(new Phrase(sexStr, bodyFont));
-            pTable.addCell(new Phrase("生年月日", bodyFont));
+            pTable.addCell(new Phrase(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.birthDate"), bodyFont));
             sb = new StringBuilder();
-            sb.append(birthday);
-            sb.append(" (");
+            sb.append(birthday).append(" ").append("(");
             sb.append(model.getPatientAge());
-            sb.append(" 歳)");
+            sb.append(" ").append(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.age")).append(")");
             Cell cell = new Cell(new Phrase(sb.toString(), bodyFont));
             cell.setColspan(3);
             pTable.addCell(cell);
@@ -197,9 +190,9 @@ public class LetterPDFMaker extends AbstractLetterPDFMaker {
 //s.oh^ 2013/11/26 文書の電話出力対応
             if(Project.getBoolean(Project.LETTER_TELEPHONE_OUTPUTPDF)) {
 //s.oh$
-                pTable.addCell(new Phrase("住所・電話", bodyFont));
+                pTable.addCell(new Phrase(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.addressAndTelephone"), bodyFont));
             }else{
-                pTable.addCell(new Phrase("住所", bodyFont));
+                pTable.addCell(new Phrase(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.address"), bodyFont));
             }
             sb = new StringBuilder();
             // LetterModelには住所などは含まれていないのでChartから取得する-> X
@@ -207,7 +200,7 @@ public class LetterPDFMaker extends AbstractLetterPDFMaker {
 
                 String zipCode = model.getPatientZipCode();
                 if (zipCode != null && !"".equals(zipCode)) {
-                    sb.append("〒");
+                    sb.append(ClientContext.getMyBundle(LetterPDFMaker.class).getString("mark.zipCode"));
                     sb.append(zipCode);
                     sb.append(" ");
                 }
@@ -223,7 +216,7 @@ public class LetterPDFMaker extends AbstractLetterPDFMaker {
 //s.oh$
                     String telephone = model.getPatientTelephone();
                     if (telephone != null && !"".equals(telephone)) {
-                        sb.append(" 電話:");
+                        sb.append(" ").append(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.telephone"));
                         sb.append(telephone);
                     }
                 }
@@ -250,27 +243,27 @@ public class LetterPDFMaker extends AbstractLetterPDFMaker {
             lTable.setWidths(width); //各カラムの大きさを設定（パーセント）
             lTable.setWidth(100);
 
-            lTable.addCell(new Phrase("傷病名", bodyFont));
+            lTable.addCell(new Phrase(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.dicease"), bodyFont));
             lTable.addCell(new Phrase(disease, bodyFont));
 
-            lTable.addCell(new Phrase("紹介目的", bodyFont));
+            lTable.addCell(new Phrase(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.purpose"), bodyFont));
             lTable.addCell(new Phrase(purpose, bodyFont));
 
             sb = new StringBuilder();
-            sb.append("既往歴").append("\n").append("家族歴");
+            sb.append(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.pastIllness")).append("\n").append(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.familyHistory"));
             lTable.addCell(new Phrase(sb.toString(), bodyFont));
             cell = new Cell(new Phrase(pastFamily, bodyFont));
             lTable.addCell(cell);
 
             sb = new StringBuilder();
-            sb.append("症状経過").append("\n").append("検査結果").append("\n").append("治療経過");
+            sb.append(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.presentIllness")).append("\n").append(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.testResult")).append("\n").append(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.progressNote"));
             lTable.addCell(new Phrase(sb.toString(), bodyFont));
             lTable.addCell(new Phrase(clinicalCourse, bodyFont));
 
-            lTable.addCell(new Phrase("現在の処方", bodyFont));
+            lTable.addCell(new Phrase(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.presentMedication"), bodyFont));
             lTable.addCell(new Phrase(medication, bodyFont));
 
-            lTable.addCell(new Phrase("備 考", bodyFont));
+            lTable.addCell(new Phrase(ClientContext.getMyBundle(LetterPDFMaker.class).getString("text.remarks"), bodyFont));
             lTable.addCell(new Phrase(remarks, bodyFont));
 
             document.add(lTable);
@@ -280,10 +273,10 @@ public class LetterPDFMaker extends AbstractLetterPDFMaker {
             return getPathToPDF();
 
         } catch (IOException ex) {
-            ClientContext.getBootLogger().warn(ex);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
             throw new RuntimeException(ERROR_IO);
         } catch (DocumentException ex) {
-            ClientContext.getBootLogger().warn(ex);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
             throw new RuntimeException(ERROR_PDF);
         }
     }

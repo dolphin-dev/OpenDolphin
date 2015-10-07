@@ -12,7 +12,6 @@ import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.PatientMemoModel;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  * 患者のメモを表示し編集するクラス。
@@ -33,6 +32,7 @@ public class MemoInspector {
 
     /**
      * MemoInspectorオブジェクトを生成する。
+     * @param context
      */
     public MemoInspector(ChartImpl context) {
         
@@ -69,12 +69,6 @@ public class MemoInspector {
             memoArea.addMouseListener(CutCopyPasteAdapter.getInstance());
         }
 //s.oh$
-        
-//minagawa^ LSC 1.4 bug fix : Mac JDK7 bug マックの上下キー問題 2013/06/24
-        if (ClientContext.isMac()) {
-            new MacInputFixer().fix(memoArea);
-        }
-//minagawa$ 
     }
 
     /**
@@ -97,12 +91,11 @@ public class MemoInspector {
 //s.oh^ 2014/04/02 閲覧権限の制御
         //memoArea.setToolTipText("メモに使用します。内容は自動的に保存されます。");
         if(!context.isReadOnly()) {
-            memoArea.setToolTipText("メモに使用します。内容は自動的に保存されます。");
+            String toolTipText = ClientContext.getMyBundle(MemoInspector.class).getString("toolTipText.memoArea");
+            memoArea.setToolTipText(toolTipText);
         }
 //s.oh$
-//minagawa^ 排他制御
         memoArea.setEnabled(!context.isReadOnly());
-//minagawa$
         memoPanel = new JPanel(new BorderLayout());
 //s.oh^ 2013/01/30 メモ欄にスクロールバーを表示
         //if (!ClientContext.isMac()) {
@@ -156,17 +149,12 @@ public class MemoInspector {
 
         final DocumentDelegater ddl = new DocumentDelegater();
 
-        Runnable r = new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    ddl.updatePatientMemo(patientMemoModel);
-                    patientMemoModel = null;
-                    context = null;
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "メモ", "保存成功。");
-                } catch (Exception e) {}
-            }
+        Runnable r = () -> {
+            try {
+                ddl.updatePatientMemo(patientMemoModel);
+                patientMemoModel = null;
+                context = null;
+            } catch (Exception e) {}
         };
 
         Thread t = new Thread(r);

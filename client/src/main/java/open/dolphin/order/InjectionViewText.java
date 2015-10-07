@@ -57,7 +57,6 @@ public class InjectionViewText extends javax.swing.JPanel implements IInjectionV
         setMinimumSize(new java.awt.Dimension(700, 600));
         setPreferredSize(new java.awt.Dimension(700, 600));
 
-        infoLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/resources/images/about_16.gif"))); // NOI18N
         infoLabel.setText("info"); // NOI18N
 
         setTable.setModel(new javax.swing.table.DefaultTableModel(
@@ -71,36 +70,37 @@ public class InjectionViewText extends javax.swing.JPanel implements IInjectionV
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        setTable.setToolTipText("セット内容は Drag & Drop で順番を入れ替えることができます。"); // NOI18N
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/order/resources/InjectionView"); // NOI18N
+        setTable.setToolTipText(bundle.getString("setTable.toolTipText")); // NOI18N
         jScrollPane1.setViewportView(setTable);
 
-        techChk.setText("診療行為"); // NOI18N
-        techChk.setToolTipText("診療行為がセットにあればチェックされます。"); // NOI18N
+        techChk.setText(bundle.getString("teckChk.text")); // NOI18N
+        techChk.setToolTipText(bundle.getString("techChk.toolTipText")); // NOI18N
         techChk.setEnabled(false);
 
         stampNameField.setBackground(new java.awt.Color(255, 255, 0));
-        stampNameField.setToolTipText("セット名を入力します。"); // NOI18N
+        stampNameField.setToolTipText(bundle.getString("stampNameField.toolTipText")); // NOI18N
 
-        okCntBtn.setText("展開継続"); // NOI18N
-        okCntBtn.setToolTipText("セットをカルテに展開し継続します。"); // NOI18N
+        okCntBtn.setText(bundle.getString("okCntBtn.text")); // NOI18N
+        okCntBtn.setToolTipText(bundle.getString("okCntBtn.toolTipText")); // NOI18N
 
-        okBtn.setText("展開"); // NOI18N
-        okBtn.setToolTipText("セットをカルテに展開し終了します。"); // NOI18N
+        okBtn.setText(bundle.getString("okBtn.text")); // NOI18N
+        okBtn.setToolTipText(bundle.getString("okBtn.toolTipText")); // NOI18N
 
-        clearBtn.setText("クリア"); // NOI18N
-        clearBtn.setToolTipText("セット内容をクリアします。"); // NOI18N
+        clearBtn.setText(bundle.getString("clearBtn.text")); // NOI18N
+        clearBtn.setToolTipText(bundle.getString("clearBtn.toolTipText")); // NOI18N
 
-        deleteBtn.setText("削除"); // NOI18N
-        deleteBtn.setToolTipText("選択した項目を削除します。"); // NOI18N
+        deleteBtn.setText(bundle.getString("deleteBtn.text")); // NOI18N
+        deleteBtn.setToolTipText(bundle.getString("deleteBtn.toolTipText")); // NOI18N
 
-        searchTextField.setToolTipText("検索したい点数マスタ項目を入力します。"); // NOI18N
+        searchTextField.setToolTipText(bundle.getString("searchTextField.toolTipText")); // NOI18N
 
-        rtBtn.setText("RT"); // NOI18N
-        rtBtn.setToolTipText("チェックすると入力中にリアルタイムで検索します。"); // NOI18N
+        rtBtn.setText(bundle.getString("rtBtn.text")); // NOI18N
+        rtBtn.setToolTipText(bundle.getString("rtBtn.toolTipText")); // NOI18N
 
-        countField.setToolTipText("検索結果の件数を表示します。"); // NOI18N
+        countField.setToolTipText(bundle.getString("countField.toolTipText")); // NOI18N
 
-        jLabel4.setText("件数"); // NOI18N
+        jLabel4.setText(bundle.getString("jLabel4.text")); // NOI18N
 
         searchResultTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -115,18 +115,17 @@ public class InjectionViewText extends javax.swing.JPanel implements IInjectionV
         ));
         jScrollPane2.setViewportView(searchResultTable);
 
-        noChargeChk.setText("手技料なし"); // NOI18N
-        noChargeChk.setToolTipText("ORCAで作成したセットが手技料なしの場合チェックされます。"); // NOI18N
+        noChargeChk.setText(bundle.getString("noChargeChk.text")); // NOI18N
+        noChargeChk.setToolTipText(bundle.getString("noChargeChk.toolTipText")); // NOI18N
 
-        partialChk.setText("部分一致"); // NOI18N
-        partialChk.setToolTipText("部分一致検索をします。"); // NOI18N
+        partialChk.setText(bundle.getString("partialCh.text")); // NOI18N
+        partialChk.setToolTipText(bundle.getString("partialCh.toolTipText")); // NOI18N
 
         numberCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" }));
-        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/order/Bundle"); // NOI18N
-        numberCombo.setToolTipText(bundle.getString("InjectionViewText.numberCombo.toolTipText")); // NOI18N
+        numberCombo.setToolTipText(bundle.getString("numberCombo.toolTipText")); // NOI18N
         numberCombo.setName("numberCombo"); // NOI18N
 
-        numberComobo.setText(bundle.getString("InjectionViewText.numberComobo.text")); // NOI18N
+        numberComobo.setText(bundle.getString("numberComobo.text")); // NOI18N
         numberComobo.setName("numberComobo"); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);

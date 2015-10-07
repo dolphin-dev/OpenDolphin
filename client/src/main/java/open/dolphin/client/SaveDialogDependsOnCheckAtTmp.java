@@ -4,14 +4,12 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.SimpleDate;
 import open.dolphin.project.Project;
 
@@ -24,11 +22,11 @@ import open.dolphin.project.Project;
  */
 public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
     
-    private static final String SAVE = "保存";
+    private final String SAVE;
 
     // 設定: 仮保存の時チェックに従う
-    private static final String CHK_TITLE_DEPENDS_ON_CHECK_AT_TMP = "診療行為を送信する";
-    private static final String TOOLTIP_DEPENDS_ON_CHECK = "診療行為の送信はチェックボックスに従います。";
+    private final String CHK_TITLE_DEPENDS_ON_CHECK_AT_TMP;
+    private final String TOOLTIP_DEPENDS_ON_CHECK;
     
     // 保存ボタン
     private JButton okButton;
@@ -37,16 +35,20 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
     private JCheckBox patientCheck;
     private JCheckBox clinicCheck;
     
-//minagawa CLAIM送信日
     private boolean claimDateEditable;
     private Date claimDate;
-    private JTextField dateField;
-//minagawa$    
+    private JTextField dateField;   
     
     // LabTest 送信
     private JCheckBox sendLabtest;
 
     public SaveDialogDependsOnCheckAtTmp() {
+        super();
+        // Resource Injection
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(SaveDialogDependsOnCheckAtTmp.class);
+        SAVE = bundle.getString("optionText.save");
+        CHK_TITLE_DEPENDS_ON_CHECK_AT_TMP = bundle.getString("chkBoxTitle.sendClaim");
+        TOOLTIP_DEPENDS_ON_CHECK = bundle.getString("toolTipText.sendClami");
     }
     
     public Date getClaimDate() {
@@ -59,12 +61,14 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
         } else {
             claimDate = gc;
         }
-        SimpleDateFormat frmt = new SimpleDateFormat(IInfoModel.DATE_FORMAT_FOR_SCHEDULE);
+        String dateFmt = ClientContext.getBundle().getString("DATE_FORMAT_FOR_SCHEDULE");
+        SimpleDateFormat frmt = new SimpleDateFormat(dateFmt);
         dateField.setText(frmt.format(claimDate));
     }
     
     /**
-     * コンポーネントにSaveParamsの値を設定する。
+     * コンポーネントにS
+     * @param params
      */
     @Override
     public void setValue(SaveParamsM params) {
@@ -88,9 +92,10 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
         // Titleを表示する
 //masuda^ 修正元のタイトルもコンボボックスに入れる   
         String[] titles = new String[]{params.getOldTitle(), params.getTitle()};
-//masuda$        
+//masuda$  
+        String textProgress = titles[0];
         for (String str : titles) {
-            if (str != null && (!str.equals("") && (!str.equals("経過記録")))) {
+            if (str != null && (!str.equals("") && (!str.equals(textProgress)))) {
                 titleCombo.insertItemAt(str, 0);
             }
         }
@@ -158,7 +163,19 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
      * GUIコンポーネントを初期化する。
      */
     private JPanel createComponent() {
-                
+        
+        // Resource Injection
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(SaveDialogDependsOnCheckAtTmp.class);
+        String labelTextDocTitle = bundle.getString("labelText.docTitle");
+        String labelTextDeptName = bundle.getString("labelTextDeptName");
+        String labelTextPrintCount = bundle.getString("labelText.printCount");
+        String chkBoxTextAllowPatient = bundle.getString("chkBoxText.allowPatientRef");
+        String chkBoxTextAllowHospital = bundle.getString("chkBoxText.allowHospitalRef");
+        String toolTipTextClaimDate = bundle.getString("toolTipText.claimDate");
+        String labelTextSendDate = bundle.getString("labelText.sendDate");
+        String chkBoxTextLabTest = bundle.getString("chkBoxText.labTest");
+        String chkBoxTextLabTestWithTmpSave = bundle.getString("chkBoxText.labTestWithTmpSave");
+        
         // content
         JPanel content = new JPanel();
         content.setLayout(new GridLayout(0, 1));
@@ -169,7 +186,7 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
         titleCombo.setPreferredSize(new Dimension(220, titleCombo.getPreferredSize().height));
         titleCombo.setMaximumSize(titleCombo.getPreferredSize());
         titleCombo.setEditable(true);
-        p.add(new JLabel("タイトル:"));
+        p.add(new JLabel(labelTextDocTitle));
         p.add(titleCombo);
         content.add(p);
         
@@ -197,7 +214,7 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
         // 診療科、印刷部数を表示するラベルとパネルを生成する
         JPanel p1 = new JPanel(new FlowLayout(FlowLayout.LEFT));
         departmentLabel = new JLabel();
-        p1.add(new JLabel("診療科:"));
+        p1.add(new JLabel(labelTextDeptName));
         p1.add(departmentLabel);
         
         p1.add(Box.createRigidArea(new Dimension(11, 0)));
@@ -205,14 +222,14 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
         // Print
         printCombo = new JComboBox(PRINT_COUNT);
         printCombo.setSelectedIndex(1);
-        p1.add(new JLabel("印刷部数:"));
+        p1.add(new JLabel(labelTextPrintCount));
         p1.add(printCombo);
         
         content.add(p1);
         
         // AccessRightを設定するボタンとパネルを生成する
-        patientCheck = new JCheckBox("患者に参照を許可する");
-        clinicCheck = new JCheckBox("診療歴のある病院に参照を許可する");
+        patientCheck = new JCheckBox(chkBoxTextAllowPatient);
+        clinicCheck = new JCheckBox(chkBoxTextAllowHospital);
         
         //---------------------------
         // CLAIM 送信ありなし
@@ -235,14 +252,13 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
         p5.add(sendClaim);
         content.add(p5);
         
-//minagawa^ CLAIM送信日
         claimDateEditable = enterParams.getEnterOption()!=SaveParamsM.SCHEDULE_SCHEDULE;  // 予定画面からは変更できない
         claimDateEditable = (claimDateEditable && enterParams.isSendEnabled());                   // 送信が許可されれいる
         claimDateEditable = (claimDateEditable && enterParams.getClaimDate()!=null);              // パラメータが設定されている
         if (claimDateEditable) {
             dateField = new JTextField(12);
             dateField.setEditable(false); 
-            dateField.setToolTipText("右クリックでカレンダーがポップアップします");
+            dateField.setToolTipText(toolTipTextClaimDate);
             // 1ヶ月前まで
             int[] range = {-1, 0};
             // 今日以前でないと駄目
@@ -251,18 +267,17 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
             acceptRange[1] = new SimpleDate(new GregorianCalendar());
             PopupListener pl = new PopupListener(dateField, range, acceptRange);
             JPanel p2 = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            p2.add(new JLabel("送信日:"));
+            p2.add(new JLabel(labelTextSendDate));
             p2.add(dateField);
             content.add(p2);
-        }
-//minagawa&        
+        }       
 
         //---------------------------
         // 検体検査オーダー送信ありなし
         //---------------------------
 //s.oh^ 2014/11/04 仮保存時のオーダー出力
         //sendLabtest = new JCheckBox("検体検査オーダー（仮保存の場合はしない）");
-        sendLabtest = new JCheckBox(Project.getBoolean(Project.SEND_TMPKARTE_LABTEST) ? "検体検査オーダー" : "検体検査オーダー（仮保存の場合はしない）");
+        sendLabtest = new JCheckBox(Project.getBoolean(Project.SEND_TMPKARTE_LABTEST) ? chkBoxTextLabTest : chkBoxTextLabTestWithTmpSave);
 //s.oh$
         if (Project.getBoolean(Project.SEND_LABTEST)) {
             JPanel p6 = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -273,15 +288,11 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
         // OK button
         okButton = new JButton(SAVE);
         okButton.setToolTipText(TOOLTIP_DEPENDS_ON_CHECK);
-        okButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // 戻り値のSaveparamsを生成する
-                value = viewToModel(false);
-                if (value != null) {
-                    close();
-                }
+        okButton.addActionListener((ActionEvent e) -> {
+            // 戻り値のSaveparamsを生成する
+            value = viewToModel(false);
+            if (value != null) {
+                close();
             }
         });
         okButton.setEnabled(false);
@@ -289,27 +300,19 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
         // Cancel Button
         String buttonText =  (String)UIManager.get("OptionPane.cancelButtonText");
         cancelButton = new JButton(buttonText);
-        cancelButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                value = null;
-                close();
-            }
+        cancelButton.addActionListener((ActionEvent e) -> {
+            value = null;
+            close();
         });
         
         // 仮保存 button
         tmpButton = new JButton(TMP_SAVE);
         tmpButton.setToolTipText(TOOLTIP_DEPENDS_ON_CHECK);
-        tmpButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // 戻り値のSaveparamsを生成する
-                value = viewToModel(true);
-                if (value != null) {
-                    close();
-                }
+        tmpButton.addActionListener((ActionEvent e) -> {
+            // 戻り値のSaveparamsを生成する
+            value = viewToModel(true);
+            if (value != null) {
+                close();
             }
         });
         tmpButton.setEnabled(false);
@@ -331,12 +334,8 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
     }
     
     private void setFocus(final JComponent c) {
-        SwingUtilities.invokeLater(new Runnable(){
-
-            @Override
-            public void run() {
-                c.requestFocusInWindow();
-            }
+        SwingUtilities.invokeLater(() -> {
+            c.requestFocusInWindow();
         });
     }
     
@@ -356,10 +355,8 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
     private SaveParamsM viewToModel(boolean temp) {
         
         // 戻り値のSaveparamsを生成する
-        SaveParamsM model = new SaveParamsM();
-//minagawa^ LSC Test        
-        model.setSendMML(enterParams.getSendMML());
-//minagawa$        
+        SaveParamsM model = new SaveParamsM();       
+        model.setSendMML(enterParams.getSendMML());     
         
         // 戻り値の整理
         // 確定ボタンが押された時    0
@@ -378,7 +375,7 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
         model.setReturnOption(returnOption);
         // Title候補
         String titleCand = "";
-        
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(SaveDialogDependsOnCheckAtTmp.class);
         switch (returnOption) {
             
             case SaveParamsM.SAVE_AS_FINAL:
@@ -389,7 +386,7 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
                 model.setSendLabtest(sendLabtest.isSelected());         // Lab.Test送信->CheckBox
                 model.setAllowPatientRef(patientCheck.isSelected());    // MML->CheckBox
                 model.setAllowClinicRef(clinicCheck.isSelected());      // MML->CheckBox
-                titleCand = "経過記録";
+                titleCand = bundle.getString("title.progressCourse");
                 break;
                 
             case SaveParamsM.SAVE_AS_TMP:
@@ -404,7 +401,7 @@ public final class SaveDialogDependsOnCheckAtTmp extends AbstractSaveDialog {
                 model.setAllowPatientRef(false);                        // MML->送信しない
                 model.setAllowClinicRef(false);                         // MML->送信しない
                 model.setSendMML(false);
-                titleCand = "仮保存";
+                titleCand = bundle.getString("title.temporalSave");
                 break;
         }
         

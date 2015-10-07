@@ -26,9 +26,10 @@ public class LocalStampTreeNodeTransferable implements Transferable {
     	
     public static final DataFlavor[] flavors = {LocalStampTreeNodeTransferable.localStampTreeNodeFlavor};
     
-    private StampTreeNode node;
+    private final StampTreeNode node;
 
-    /** Creates new StampTreeTransferable */
+    /** Creates new StampTreeTransferable
+     * @param node */
     public LocalStampTreeNodeTransferable(StampTreeNode node) {
         this.node = node;
     }
@@ -40,7 +41,7 @@ public class LocalStampTreeNodeTransferable implements Transferable {
      
     @Override
     public boolean isDataFlavorSupported(DataFlavor flavor)  {
-        return flavor.equals(localStampTreeNodeFlavor) ? true : false;
+        return flavor.equals(localStampTreeNodeFlavor);
     }
 
     @Override

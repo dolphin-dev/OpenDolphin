@@ -16,9 +16,10 @@ public final class StampTreeTransferable implements Transferable, ClipboardOwner
     
     public static final DataFlavor[] flavors = {StampTreeTransferable.stampTreeNodeFlavor};
     
-    private StampTreeNode node;
+    private final StampTreeNode node;
 
-    /** Creates new StampTreeTransferable */
+    /** Creates new StampTreeTransferable
+     * @param node */
     public StampTreeTransferable(StampTreeNode node) {
         this.node = node;
     }
@@ -30,7 +31,7 @@ public final class StampTreeTransferable implements Transferable, ClipboardOwner
      
     @Override
     public boolean isDataFlavorSupported(DataFlavor flavor)  {
-        return flavor.equals(stampTreeNodeFlavor) ? true : false;
+        return flavor.equals(stampTreeNodeFlavor);
     }
 
     @Override

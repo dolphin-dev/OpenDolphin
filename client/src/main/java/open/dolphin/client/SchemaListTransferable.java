@@ -15,9 +15,10 @@ public final class SchemaListTransferable implements Transferable, ClipboardOwne
   
     public static final DataFlavor[] flavors = {SchemaListTransferable.schemaListFlavor};
       
-    private SchemaList list;
+    private final SchemaList list;
 
-    /** Creates new SchemaListTransferable */
+    /** Creates new SchemaListTransferable
+     * @param list */
     public SchemaListTransferable(SchemaList list) {
         this.list = list;
     }
@@ -29,7 +30,7 @@ public final class SchemaListTransferable implements Transferable, ClipboardOwne
      
     @Override
     public boolean isDataFlavorSupported(DataFlavor flavor) {
-	return flavor.equals(schemaListFlavor) ? true : false;
+	return flavor.equals(schemaListFlavor);
     }
 
     @Override

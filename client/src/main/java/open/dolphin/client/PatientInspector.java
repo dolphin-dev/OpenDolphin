@@ -72,6 +72,7 @@ public class PatientInspector {
     
     /**
      * コンテキストを返す。
+     * @return 
      */
     public ChartImpl getContext() {
         return context;
@@ -79,6 +80,7 @@ public class PatientInspector {
     
     /**
      * コンテキストを設定する。
+     * @param context
      */
     public void setContext(ChartImpl context) {
         this.context = context;
@@ -143,25 +145,21 @@ public class PatientInspector {
     
     private void initComponents() {
         
-        // 来院歴
-        String pvtTitle = ClientContext.getString("patientInspector.pvt.title");
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(PatientInspector.class);
+
+        String inspectorNameMemo = bundle.getString("inspectorName.memo");
+        String inspectorNamePVT = bundle.getString("inspectorName.pvt");
+        String inspectorNameRecordHistory = bundle.getString("inspectorName.recordHistory");
+        String inspectorNameAllergy = bundle.getString("inspectorName.allergy");
+        String inspectorNameHeightWeight = bundle.getString("inspectorName.heightWeight");
         
-        // 文書履歴
-        String docHistoryTitle = ClientContext.getString("patientInspector.docHistory.title");
+        String topInspector = Project.getString("topInspector", inspectorNameMemo);
+        String secondInspector = Project.getString("secondInspector", inspectorNamePVT);
+        String thirdInspector = Project.getString("thirdInspector", inspectorNameRecordHistory);
+        String forthInspector = Project.getString("forthInspector", inspectorNameAllergy);
+        String[] settingNames = new String[]{inspectorNameMemo,inspectorNamePVT,inspectorNameRecordHistory,inspectorNameAllergy,inspectorNameHeightWeight};
         
-        // アレルギ
-        String allergyTitle = ClientContext.getString("patientInspector.allergy.title");
-        
-        // 身長体重
-        String physicalTitle = ClientContext.getString("patientInspector.physical.title");
-        
-        // メモ
-        String memoTitle = ClientContext.getString("patientInspector.memo.title");
-        
-        String topInspector = Project.getString("topInspector", "メモ");
-        String secondInspector = Project.getString("secondInspector", "カレンダ");
-        String thirdInspector = Project.getString("thirdInspector", "文書履歴");
-        String forthInspector = Project.getString("forthInspector", "アレルギ");
+        //System.out.println("debug");
         
         // 各インスペクタを生成する
         basicInfoInspector = new BasicInfoInspector(context);
@@ -174,7 +172,7 @@ public class PatientInspector {
         
         // タブパネルへ格納する(文書履歴、健康保険、アレルギ、身長体重はタブパネルで切り替え表示する)
         tabbedPane = new JTabbedPane();
-        tabbedPane.addTab(docHistoryTitle, docHistory.getPanel());
+        tabbedPane.addTab(inspectorNameRecordHistory, docHistory.getPanel());
         
         int prefW = 260;
         int prefW2 = 260;
@@ -195,49 +193,66 @@ public class PatientInspector {
         container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
         
         // 左側のレイアウトを行う
-        layoutRow(container, topInspector);
-        layoutRow(container, secondInspector);
-        layoutRow(container, thirdInspector);
-        layoutRow(container, forthInspector);
+        layoutRow(container, topInspector, settingNames);
+        layoutRow(container, secondInspector, settingNames);
+        layoutRow(container, thirdInspector, settingNames);
+        layoutRow(container, forthInspector, settingNames);
         
         // 左側にレイアウトされなかったものをタブに格納する
         if (!bMemo) {
-            tabbedPane.addTab(memoTitle, memoInspector.getPanel());
+            tabbedPane.addTab(inspectorNameMemo, memoInspector.getPanel());
         }
         
         if (!bCalendar) {
-            tabbedPane.addTab(pvtTitle, patientVisitInspector.getPanel());
+            tabbedPane.addTab(inspectorNamePVT, patientVisitInspector.getPanel());
         }
         
         if (!bAllergy) {
-            tabbedPane.addTab(allergyTitle, allergyInspector.getPanel());
+            tabbedPane.addTab(inspectorNameAllergy, allergyInspector.getPanel());
         }
         
         if (!bPhysical) {
-            tabbedPane.addTab(physicalTitle, physicalInspector.getPanel());
+            tabbedPane.addTab(inspectorNameHeightWeight, physicalInspector.getPanel());
         }
+        
+        //SpringUtilities.makeCompactGrid(container, 4, 1, 0, 0, 0, 0);
     }
     
-    private void layoutRow(JPanel content, String itype) {
+    private void layoutRow(JPanel content, String itype, String[] inspectorValues) {
         
-        if (itype.equals("メモ")) {
-           content.add(memoInspector.getPanel());
-           bMemo = true;
+        int index=0;
+        for (String str : inspectorValues) {
+            if (itype.equals(str)) {
+                break;
+            } else {
+                index++;
+            }
+        }
         
-        } else if (itype.equals("カレンダ")) {
-            content.add(patientVisitInspector.getPanel());
-            bCalendar = true;
-        
-        } else if (itype.equals("文書履歴")) {
-            content.add(tabbedPane);
-        
-        } else if (itype.equals("アレルギ")) {
-            content.add(allergyInspector.getPanel());
-            bAllergy = true;
-        
-        } else if (itype.equals("身長体重")) {
-            content.add(physicalInspector.getPanel());
-            bPhysical = true;
+        switch (index) {
+            case 0:
+                content.add(memoInspector.getPanel());
+                bMemo = true;
+                break;
+                
+            case 1:
+                content.add(patientVisitInspector.getPanel());
+                bCalendar = true;
+                break;
+                
+            case 2:
+                content.add(tabbedPane);
+                break;
+                
+            case 3:
+                content.add(allergyInspector.getPanel());
+                bAllergy = true;
+                break;
+                
+            case 4:
+                content.add(physicalInspector.getPanel());
+                bPhysical = true;
+                break;
         }
     }
 }

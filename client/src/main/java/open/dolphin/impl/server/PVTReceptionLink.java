@@ -15,7 +15,6 @@ import open.dolphin.utilities.utility.OtherProcessLink;
 import open.dolphin.infomodel.PatientModel;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  * 受付連携
@@ -90,8 +89,8 @@ public class PVTReceptionLink {
     }
 
     /**
-     * CSV連携
-     * @param patientModel 
+     * CSV連携 
+     * @param pvtModel
      */
     public void receptionCSVLink(PatientVisitModel pvtModel) {
         PatientModel patientModel = pvtModel.getPatientModel();
@@ -169,18 +168,18 @@ public class PVTReceptionLink {
             try {
                 if(Project.getBoolean("reception.csvlink.rename", true)) {
                     File tmp = new File(path);
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding));
-                    bw.write(format);
-                    bw.newLine();
-                    bw.close();
+                    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding))) {
+                        bw.write(format);
+                        bw.newLine();
+                    }
                     File csv = new File(path + ".csv");
                     tmp.renameTo(csv);
                 }else{
                     File tmp = new File(path + ".csv");
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding));
-                    bw.write(format);
-                    bw.newLine();
-                    bw.close();
+                    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding))) {
+                        bw.write(format);
+                        bw.newLine();
+                    }
                 }
             } catch (IOException ex) {
                 Logger.getLogger(PVTBuilder.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
@@ -189,8 +188,8 @@ public class PVTReceptionLink {
     }
     
     /**
-     * CSV連携
-     * @param patientModel 
+     * CSV連携 
+     * @param pvtModel
      */
     public void receptionCSVLink2(PatientVisitModel pvtModel) {
         PatientModel patientModel = pvtModel.getPatientModel();
@@ -268,18 +267,18 @@ public class PVTReceptionLink {
             try {
                 if(Project.getBoolean("reception.csvlink2.rename", true)) {
                     File tmp = new File(path);
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding));
-                    bw.write(format);
-                    bw.newLine();
-                    bw.close();
+                    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding))) {
+                        bw.write(format);
+                        bw.newLine();
+                    }
                     File csv = new File(path + ".csv");
                     tmp.renameTo(csv);
                 }else{
                     File tmp = new File(path + ".csv");
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding));
-                    bw.write(format);
-                    bw.newLine();
-                    bw.close();
+                    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding))) {
+                        bw.write(format);
+                        bw.newLine();
+                    }
                 }
             } catch (IOException ex) {
                 Logger.getLogger(PVTBuilder.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
@@ -288,8 +287,8 @@ public class PVTReceptionLink {
     }
     
     /**
-     * CSV連携
-     * @param patientModel 
+     * CSV連携 
+     * @param pvtModel
      */
     public void receptionCSVLink3(PatientVisitModel pvtModel) {
         PatientModel patientModel = pvtModel.getPatientModel();
@@ -367,18 +366,18 @@ public class PVTReceptionLink {
             try {
                 if(Project.getBoolean("reception.csvlink3.rename", true)) {
                     File tmp = new File(path);
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding));
-                    bw.write(format);
-                    bw.newLine();
-                    bw.close();
+                    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding))) {
+                        bw.write(format);
+                        bw.newLine();
+                    }
                     File csv = new File(path + ".csv");
                     tmp.renameTo(csv);
                 }else{
                     File tmp = new File(path + ".csv");
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding));
-                    bw.write(format);
-                    bw.newLine();
-                    bw.close();
+                    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding))) {
+                        bw.write(format);
+                        bw.newLine();
+                    }
                 }
             } catch (IOException ex) {
                 Logger.getLogger(PVTBuilder.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
@@ -387,8 +386,8 @@ public class PVTReceptionLink {
     }
     
     /**
-     * XML連携
-     * @param patientModel 
+     * XML連携 
+     * @param pvtModel
      */
     public void receptionXMLLink(PatientVisitModel pvtModel) {
         PatientModel patientModel = pvtModel.getPatientModel();
@@ -469,18 +468,18 @@ public class PVTReceptionLink {
             try {
                 if(Project.getBoolean("reception.xmllink.rename", true)) {
                     File tmp = new File(path);
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding));
-                    bw.write(sb.toString());
-                    bw.newLine();
-                    bw.close();
+                    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding))) {
+                        bw.write(sb.toString());
+                        bw.newLine();
+                    }
                     File xml = new File(path + ".xml");
                     tmp.renameTo(xml);
                 }else{
                     File tmp = new File(path + ".xml");
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding));
-                    bw.write(format);
-                    bw.newLine();
-                    bw.close();
+                    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding))) {
+                        bw.write(format);
+                        bw.newLine();
+                    }
                 }
             } catch (IOException ex) {
                 Logger.getLogger(PVTBuilder.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
@@ -489,8 +488,8 @@ public class PVTReceptionLink {
     }
     
     /**
-     * 連携
-     * @param patientModel 
+     * 連携 
+     * @param pvtModel
      */
     public void receptionLink(PatientVisitModel pvtModel) {
         PatientModel patientModel = pvtModel.getPatientModel();
@@ -569,18 +568,18 @@ public class PVTReceptionLink {
             try {
                 if(Project.getBoolean("reception.link.rename", true)) {
                     File tmp = new File(path);
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding));
-                    bw.write(format);
-                    bw.newLine();
-                    bw.close();
+                    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding))) {
+                        bw.write(format);
+                        bw.newLine();
+                    }
                     File csv = new File(path + ext);
                     tmp.renameTo(csv);
                 }else{
                     File tmp = new File(path + ext);
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding));
-                    bw.write(format);
-                    bw.newLine();
-                    bw.close();
+                    try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding))) {
+                        bw.write(format);
+                        bw.newLine();
+                    }
                 }
             } catch (IOException ex) {
                 Logger.getLogger(PVTBuilder.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
@@ -589,8 +588,8 @@ public class PVTReceptionLink {
     }
     
     /**
-     * 連携
-     * @param patientModel 
+     * 連携 
+     * @param pvtModel
      */
     public void receiptLink(PatientVisitModel pvtModel) {
         final String KEY_DEF = "receipt.link";
@@ -676,33 +675,26 @@ public class PVTReceptionLink {
                 if(data.length < 3) return;
                 OtherProcessLink opl = new OtherProcessLink();
                 opl.linkTCPToFile(format, data[0], Integer.valueOf(data[1]), data[2]);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "TCP", data[0], data[1], data[2]);
-                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, format);
             }else{
                 try {
                     if(Project.getBoolean(KEY_DEF + String.valueOf(i) + ".rename", false)) {
                         String tmpExt = Project.getString(KEY_DEF + String.valueOf(i) + ".tmpext", "");
                         File tmp = new File(path + tmpExt);
-                        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding));
-                        bw.write(format);
-                        bw.newLine();
-                        bw.close();
+                        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding))) {
+                            bw.write(format);
+                            bw.newLine();
+                        }
                         File csv = new File(path + ext);
                         tmp.renameTo(csv);
-                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "FILE", tmp.getPath(), "→", csv.getPath());
-                        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, format);
                     }else{
                         File tmp = new File(path + ext);
-                        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding));
-                        bw.write(format);
-                        bw.newLine();
-                        bw.close();
-                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "FILE", tmp.getPath());
-                        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, format);
+                        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding))) {
+                            bw.write(format);
+                            bw.newLine();
+                        }
                     }
                 } catch (IOException ex) {
                     Logger.getLogger(PVTBuilder.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "ファイル出力失敗", ex.toString());
                 }
             }
         }
@@ -723,10 +715,10 @@ public class PVTReceptionLink {
             String path = dir + File.separator + file;
             try {
                 File tmp = new File(path);
-                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding));
-                bw.write(pvtXml);
-                bw.newLine();
-                bw.close();
+                try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp), encoding))) {
+                    bw.write(pvtXml);
+                    bw.newLine();
+                }
             } catch (IOException ex) {
                 Logger.getLogger(PVTBuilder.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
             }
@@ -739,7 +731,7 @@ public class PVTReceptionLink {
      * @return 
      */
     private String fullKanaToHalfKana(String kana) {
-        StringBuffer sb = new StringBuffer();
+        //StringBuilder sb = new StringBuilder();
         for(String [] pair : KANA) {
             //switch('') {
             //    case '':
@@ -756,7 +748,7 @@ public class PVTReceptionLink {
      * @return 
      */
     private String zeroSuppress(String data) {
-        String ret = null;
+        String ret;
         Pattern ptn = java.util.regex.Pattern.compile("^0+([0-9]+.*)");
         Matcher m = ptn.matcher(data);
         if(m.matches()) {
@@ -774,7 +766,7 @@ public class PVTReceptionLink {
      * @return 
      */
     private String zeroPadding(String data, int digit) {
-        String ret = null;
+        String ret;
         String format = "%0" + String.valueOf(digit) + "d";
         ret = String.format(format, data);
         return ret;

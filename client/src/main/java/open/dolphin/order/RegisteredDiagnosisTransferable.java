@@ -14,7 +14,7 @@ public final class RegisteredDiagnosisTransferable implements Transferable {
 
     public static final DataFlavor registeredDiagnosisFlavor = new DataFlavor(open.dolphin.infomodel.RegisteredDiagnosisModel.class, "RegisteredDiagnosis");
     public static final DataFlavor[] flavors = {registeredDiagnosisFlavor};
-    private RegisteredDiagnosisModel diagnosis;
+    private final RegisteredDiagnosisModel diagnosis;
 
     public RegisteredDiagnosisTransferable(RegisteredDiagnosisModel diagnosis) {
         this.diagnosis = diagnosis;
@@ -27,7 +27,7 @@ public final class RegisteredDiagnosisTransferable implements Transferable {
 
     @Override
     public boolean isDataFlavorSupported(DataFlavor flavor) {
-        return flavor.equals(registeredDiagnosisFlavor) ? true : false;
+        return flavor.equals(registeredDiagnosisFlavor);
     }
 
     @Override

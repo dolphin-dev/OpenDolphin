@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.helper.DBTask;
 import open.dolphin.infomodel.AllergyModel;
@@ -34,10 +33,11 @@ public final class AllergyInspector {
     private AllergyView view;
 
     // Chart
-    private ChartImpl context;
+    private final ChartImpl context;
 
     /**
      * AllergyInspectorオブジェクトを生成する。
+     * @param context
      */
     public AllergyInspector(ChartImpl context) {
         this.context = context;
@@ -68,41 +68,49 @@ public final class AllergyInspector {
 
         view = new AllergyView();
 
-        // アレルギーテーブルを設定する
-        String[] columnNames = ClientContext.getStringArray("patientInspector.allergyInspector.columnNames");
-        String[] methodNames = ClientContext.getStringArray("patientInspector.allergyInspector.methodNames");
-        tableModel = new ListTableModel<AllergyModel>(columnNames, 0, methodNames, null);
+//        // アレルギーテーブルを設定する
+//        String[] columnNames = ClientContext.getStringArray("patientInspector.allergyInspector.columnNames");
+//        String[] methodNames = ClientContext.getStringArray("patientInspector.allergyInspector.methodNames");
+//        tableModel = new ListTableModel<AllergyModel>(columnNames, 0, methodNames, null);
+//        view.getTable().setModel(tableModel);
+//        view.getTable().setFillsViewportHeight(true);
+//        //view.getTable().setRowHeight(ClientContext.getHigherRowHeight());
+//        view.getTable().getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+////s.oh^ 2014/04/02 閲覧権限の制御
+//        //view.getTable().setToolTipText("追加・削除は右クリックで行います。");
+//        if(!context.isReadOnly()) {
+//            view.getTable().setToolTipText("追加・削除は右クリックで行います。");
+//        }
+////s.oh$
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(AllergyInspector.class);
+        String[] columnNames = bundle.getString("columnsLine.table").split(",");
+        String[] methodNames = bundle.getString("methodsLine.table").split(",");
+        
+        tableModel = new ListTableModel<>(columnNames, 0, methodNames, null);
         view.getTable().setModel(tableModel);
         view.getTable().setFillsViewportHeight(true);
-        //view.getTable().setRowHeight(ClientContext.getHigherRowHeight());
         view.getTable().getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-//s.oh^ 2014/04/02 閲覧権限の制御
-        //view.getTable().setToolTipText("追加・削除は右クリックで行います。");
+        
         if(!context.isReadOnly()) {
-            view.getTable().setToolTipText("追加・削除は右クリックで行います。");
+            String toolTipText = bundle.getString("toolTipText.table");
+            view.getTable().setToolTipText(toolTipText);
         }
-//s.oh$
-       
+        
         // レンダラを設定する
-        //view.getTable().setDefaultRenderer(Object.class, new OddEvenRowRenderer());
         StripeTableCellRenderer rederer = new StripeTableCellRenderer();
         rederer.setTable(view.getTable());
         rederer.setDefaultRenderer();
         
         // 選択したアレルギーのメモを表示する
         ListSelectionModel slm = view.getTable().getSelectionModel();
-        slm.addListSelectionListener(new ListSelectionListener() {
-
-            @Override
-            public void valueChanged(ListSelectionEvent lse) {
-                if (!lse.getValueIsAdjusting()) {
-                    int index = view.getTable().getSelectedRow();
-                    AllergyModel allergy = tableModel.getObject(index);
-                    if (allergy!=null && allergy.getMemo()!=null) {
-                        view.getMemoFld().setText(allergy.getMemo());
-                    } else {
-                        view.getMemoFld().setText("");
-                    }
+        slm.addListSelectionListener((ListSelectionEvent lse) -> {
+            if (!lse.getValueIsAdjusting()) {
+                int index = view.getTable().getSelectedRow();
+                AllergyModel allergy = tableModel.getObject(index);
+                if (allergy!=null && allergy.getMemo()!=null) {
+                    view.getMemoFld().setText(allergy.getMemo());
+                } else {
+                    view.getMemoFld().setText("");
                 }
             }
         });
@@ -111,7 +119,8 @@ public final class AllergyInspector {
         // Copy 機能を実装する
         //-----------------------------------------------
         KeyStroke copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-        final AbstractAction copyAction = new AbstractAction("コピー") {
+        String copyText = bundle.getString("actionText.copy");
+        final AbstractAction copyAction = new AbstractAction(copyText) {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
@@ -130,26 +139,22 @@ public final class AllergyInspector {
                 private void mabeShowPopup(MouseEvent e) {
                     if (e.isPopupTrigger()) {
                         JPopupMenu pop = new JPopupMenu();
-                        JMenuItem item = new JMenuItem("追加");
+                        String addText = ClientContext.getMyBundle(AllergyInspector.class).getString("menuText.add");
+                        JMenuItem item = new JMenuItem(addText);
                         pop.add(item);
-                        item.addActionListener(new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                AllergyEditor ae = new AllergyEditor(AllergyInspector.this);
-                            }
+                        item.addActionListener((ActionEvent e1) -> {
+                            AllergyEditor ae = new AllergyEditor(AllergyInspector.this);
                         });
                         final int row = view.getTable().rowAtPoint(e.getPoint());
                         if (tableModel.getObject(row) != null) {
                             pop.add(new JSeparator());
                             JMenuItem item2 = new JMenuItem(copyAction);
                             pop.add(item2);
-                            JMenuItem item3 = new JMenuItem("削除");
+                            String deleteText = ClientContext.getMyBundle(AllergyInspector.class).getString("menuText.delete");
+                            JMenuItem item3 = new JMenuItem(deleteText);
                             pop.add(item3);
-                            item3.addActionListener(new ActionListener() {
-                                @Override
-                                public void actionPerformed(ActionEvent e) {
-                                    delete(row);
-                                }
+                            item3.addActionListener((ActionEvent e1) -> {
+                                delete(row);
                             });
                         }
                         pop.show(e.getComponent(), e.getX(), e.getY());
@@ -201,13 +206,14 @@ public final class AllergyInspector {
 
     /**
      * アレルギーデータを追加する。
+     * @param model
      */
     public void add(final AllergyModel model) {
 
         // GUI の同定日をTimeStampに変更する
         Date date = ModelUtils.getDateTimeAsObject(model.getIdentifiedDate()+"T00:00:00");
 
-        final List<ObservationModel> addList = new ArrayList<ObservationModel>(1);
+        final List<ObservationModel> addList = new ArrayList<>(1);
 
         ObservationModel observation = new ObservationModel();
         observation.setKarteBean(context.getKarte());
@@ -254,22 +260,8 @@ public final class AllergyInspector {
         StringBuilder sb = new StringBuilder();
         int numRows = view.getTable().getSelectedRowCount();
         int[] rowsSelected = view.getTable().getSelectedRows();
-//        int numColumns =   view.getTable().getColumnCount();
 
         for (int i = 0; i < numRows; i++) {
-//minagawa^ LSC Test
-//            StringBuilder s = new StringBuilder();
-//            for (int col = 0; col < numColumns; col++) {
-//                Object o = view.getTable().getValueAt(rowsSelected[i], col);
-//                if (o!=null) {
-//                    s.append(o.toString());
-//                }
-//                s.append(",");
-//            }
-//            if (s.length()>0) {
-//                s.setLength(s.length()-1);
-//            }
-//            sb.append(s.toString()).append("\n");
             
             AllergyModel am = tableModel.getObject(rowsSelected[i]);
             if (am!=null) {
@@ -279,8 +271,7 @@ public final class AllergyInspector {
             // 最後の改行を除く
             if (sb.length()>0) {
                 sb.setLength(sb.length()-1);
-            }
-//minagawa$            
+            }          
         }
         if (sb.length() > 0) {
             StringSelection stsel = new StringSelection(sb.toString());
@@ -290,6 +281,7 @@ public final class AllergyInspector {
 
     /**
      * テーブルで選択したアレルギーを削除する。
+     * @param row
      */
     public void delete(final int row) {
 
@@ -299,8 +291,8 @@ public final class AllergyInspector {
             return;
         }
 
-        final List<Long> list = new ArrayList<Long>(1);
-        list.add(new Long(model.getObservationId()));
+        final List<Long> list = new ArrayList<>(1);
+        list.add(model.getObservationId());
 
         DBTask task = new DBTask<Void, Void>(this.context) {
 

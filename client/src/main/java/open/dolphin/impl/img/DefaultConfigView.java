@@ -42,17 +42,18 @@ public class DefaultConfigView extends javax.swing.JPanel {
         ascRadio = new javax.swing.JRadioButton();
         descRadio = new javax.swing.JRadioButton();
 
-        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("画像・PDF文書の場所"));
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/impl/img/resources/DefaultConfigView"); // NOI18N
+        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder(bundle.getString("jPanel2.border.title"))); // NOI18N
 
-        jLabel4.setText("ベースディレクトリ:");
+        jLabel4.setText(bundle.getString("jLabel4.text")); // NOI18N
 
-        baseDirBtn.setText("設定...");
+        baseDirBtn.setText(bundle.getString("baseDirBtn.text")); // NOI18N
 
-        jLabel1.setText("ファイル Drop 動作:");
+        jLabel1.setText(bundle.getString("jLabel1.text")); // NOI18N
 
-        copyRadio.setText("コピー");
+        copyRadio.setText(bundle.getString("copyRadio.text")); // NOI18N
 
-        moveRadio.setText("移動");
+        moveRadio.setText(bundle.getString("moveRadio.text")); // NOI18N
 
         org.jdesktop.layout.GroupLayout jPanel2Layout = new org.jdesktop.layout.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -91,23 +92,23 @@ public class DefaultConfigView extends javax.swing.JPanel {
                 .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("表示"));
+        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder(bundle.getString("jPanel3.border.title"))); // NOI18N
 
-        jLabel5.setText("画像テーブルのカラム数:");
+        jLabel5.setText(bundle.getString("jLabel5.text")); // NOI18N
 
         columnSpinner.setModel(new javax.swing.SpinnerNumberModel(5, 1, 10, 1));
 
-        jLabel2.setText("ソート項目:");
+        jLabel2.setText(bundle.getString("jLabel2.text")); // NOI18N
 
-        filenameRadio.setText("ファイル名");
+        filenameRadio.setText(bundle.getString("filenameRadio.text")); // NOI18N
 
-        lastRadio.setText("最終更新日");
+        lastRadio.setText(bundle.getString("lastRadio.text")); // NOI18N
 
-        jLabel3.setText("ソート順:");
+        jLabel3.setText(bundle.getString("jLabel3.text")); // NOI18N
 
-        ascRadio.setText("昇順");
+        ascRadio.setText(bundle.getString("ascRadio.text")); // NOI18N
 
-        descRadio.setText("降順");
+        descRadio.setText(bundle.getString("descRadio.text")); // NOI18N
 
         org.jdesktop.layout.GroupLayout jPanel3Layout = new org.jdesktop.layout.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);

@@ -11,7 +11,7 @@ import open.dolphin.infomodel.PVTHealthInsuranceModel;
 public final class NewKarteParams {
     
     // ベースのカルテがあるかどうか、タブ及びEditorFrameの別、修正かどうか
-    private Chart.NewKarteOption option;
+    private final Chart.NewKarteOption option;
     
     // 空白、全コピー、前回処方適用のフラグ
     private Chart.NewKarteMode createMode;
@@ -42,7 +42,8 @@ public final class NewKarteParams {
     private String groupId;
     
     
-    /** Creates a new instance of NewKarteParams */
+    /** Creates a new instance of NewKarteParams
+     * @param option */
     public NewKarteParams(Chart.NewKarteOption option) {
         this.option = option;
     }

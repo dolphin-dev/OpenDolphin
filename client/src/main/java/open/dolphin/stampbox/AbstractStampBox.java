@@ -47,7 +47,7 @@ public abstract class AbstractStampBox extends JTabbedPane implements IStampBox 
     
     /**
      * 引数のカテゴリに対応するTreeを返す。
-     * @param category Treeのカテゴリ
+     * @param entity
      * @return カテゴリにマッチするStampTree
      */
     @Override
@@ -91,7 +91,7 @@ public abstract class AbstractStampBox extends JTabbedPane implements IStampBox 
      */
     @Override
     public List<TreeInfo> getAllTreeInfos() {
-        List<TreeInfo> ret = new ArrayList<TreeInfo>();
+        List<TreeInfo> ret = new ArrayList<>();
         int cnt = this.getTabCount();
         for (int i = 0; i < cnt; i++) {
             StampTreePanel tp = (StampTreePanel) this.getComponent(i);
@@ -108,7 +108,7 @@ public abstract class AbstractStampBox extends JTabbedPane implements IStampBox 
      */
     @Override
     public List<StampTree> getAllTrees() {
-        List<StampTree> ret = new ArrayList<StampTree>();
+        List<StampTree> ret = new ArrayList<>();
         int cnt = this.getTabCount();
         for (int i = 0; i < cnt; i++) {
             StampTreePanel tp = (StampTreePanel) this.getComponent(i);
@@ -124,7 +124,7 @@ public abstract class AbstractStampBox extends JTabbedPane implements IStampBox 
      */
     public List<StampTree> getAllPTrees() {
         
-        List<StampTree> ret = new ArrayList<StampTree>();
+        List<StampTree> ret = new ArrayList<>();
         int cnt = this.getTabCount();
         
         for (int i = 0; i < cnt; i++) {
@@ -134,7 +134,6 @@ public abstract class AbstractStampBox extends JTabbedPane implements IStampBox 
             // 病名StampTree はスキップする
             //
             if (tree.getEntity().equals(IInfoModel.ENTITY_DIAGNOSIS)){
-                continue;
             } else {
                 ret.add(tree);
             }
@@ -154,7 +153,7 @@ public abstract class AbstractStampBox extends JTabbedPane implements IStampBox 
         
         StampTree tree = getStampTree(entity);
         if (tree != null) {
-            List<ModuleInfoBean> ret = new ArrayList<ModuleInfoBean>();
+            List<ModuleInfoBean> ret = new ArrayList<>();
             DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) tree.getModel().getRoot();
             Enumeration e = rootNode.preorderEnumeration();
             while (e.hasMoreElements()) {
@@ -172,11 +171,11 @@ public abstract class AbstractStampBox extends JTabbedPane implements IStampBox 
     
     @Override
     public List<String> getEntities() {
-        List<String> ret = new ArrayList<String>();
+        List<String> ret = new ArrayList<>();
         List<TreeInfo> infos = getAllTreeInfos();
-        for (TreeInfo ti : infos) {
+        infos.stream().forEach((ti) -> {
             ret.add(ti.getEntity());
-        }
+        });
         return ret;
     }
     

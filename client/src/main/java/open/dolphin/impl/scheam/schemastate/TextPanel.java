@@ -42,7 +42,8 @@ public class TextPanel extends javax.swing.JPanel {
         sizeCb.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "12", "16", "20", "24", "28" }));
         sizeCb.setName("sizeCb"); // NOI18N
 
-        jLabel1.setText("サイズ");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/impl/scheam/schemastate/resources/TextState"); // NOI18N
+        jLabel1.setText(bundle.getString("sizeLabel.text")); // NOI18N
         jLabel1.setName("jLabel1"); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);

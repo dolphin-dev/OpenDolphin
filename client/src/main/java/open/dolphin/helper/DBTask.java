@@ -11,18 +11,19 @@ import javax.swing.SwingWorker;
 import open.dolphin.client.BlockGlass;
 import open.dolphin.client.Chart;
 import open.dolphin.client.ClientContext;
-import open.dolphin.util.Log;
 
 /**
  * @author Kazushi Minagawa, Digital Globe, Inc.
+ * @param <T>
+ * @param <V>
  */
 public abstract class DBTask<T, V> extends javax.swing.SwingWorker {
 
     protected static final String STATE = "state";
 
-    protected static final String TITLE = "DBタスク";
+    protected final String TITLE;
 
-    protected static final String ERROR_ACCESS = "データベースアクセスエラー";
+    protected final String ERROR_ACCESS;
     
     protected Chart context;
 
@@ -32,19 +33,19 @@ public abstract class DBTask<T, V> extends javax.swing.SwingWorker {
 
         super();
 
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(DBTask.class);
+        TITLE = bundle.getString("title.task");
+        ERROR_ACCESS = bundle.getString("error.access");
+        
         this.context = context;
 
-        pl = new PropertyChangeListener() {
-
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                if (STATE.equals(evt.getPropertyName())) {
-                    if (SwingWorker.StateValue.DONE==evt.getNewValue()) {
-                        stopProgress();
-                        DBTask.this.removePropertyChangeListener(pl);
-                    } else if (SwingWorker.StateValue.STARTED==evt.getNewValue()) {
-                        startProgress();
-                    }
+        pl = (PropertyChangeEvent evt) -> {
+            if (STATE.equals(evt.getPropertyName())) {
+                if (SwingWorker.StateValue.DONE==evt.getNewValue()) {
+                    stopProgress();
+                    DBTask.this.removePropertyChangeListener(pl);
+                } else if (SwingWorker.StateValue.STARTED==evt.getNewValue()) {
+                    startProgress();
                 }
             }
         };
@@ -91,7 +92,6 @@ public abstract class DBTask<T, V> extends javax.swing.SwingWorker {
         }
         Window parent = SwingUtilities.getWindowAncestor(context.getFrame());
         JOptionPane.showMessageDialog(parent, why.toString(), ClientContext.getFrameTitle(TITLE), JOptionPane.WARNING_MESSAGE);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(TITLE), why.toString(), (cause != null && cause.getMessage() != null) ? cause.getMessage() : e.getMessage());
     }
 
     protected void succeeded(T result) {

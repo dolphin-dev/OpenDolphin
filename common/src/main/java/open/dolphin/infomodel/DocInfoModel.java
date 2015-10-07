@@ -222,6 +222,12 @@ public class DocInfoModel extends InfoModel
     @Transient
     private boolean useGeneralName;
     
+//minagawa^ 入院対応
+    // 外来カルテ=V, 入院カルテ=A, 在宅カルテ=H
+    @Column(length=1)
+    private String admFlag;
+//minagawa$
+    
     //----------------------------------
     
     public long getDocPk() {
@@ -799,4 +805,18 @@ public class DocInfoModel extends InfoModel
         return ret;
     }
 //minagawa$    
+
+    /**
+     * @return the admFlag
+     */
+    public String getAdmFlag() {
+        return admFlag;
+    }
+
+    /**
+     * @param admFlag the admFlag to set
+     */
+    public void setAdmFlag(String admFlag) {
+        this.admFlag = admFlag;
+    }
 }

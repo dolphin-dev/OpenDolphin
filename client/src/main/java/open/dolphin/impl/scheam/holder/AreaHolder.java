@@ -68,6 +68,7 @@ public class AreaHolder implements DrawingHolder {
         this.ac = ac;
     }
     
+    @Override
     public boolean contains(Point p) {
         // 細すぎるとつかめないので，近くだったらつかめるようにする
         if (area.getBounds().width < 5 || area.getBounds().height < 5) {
@@ -77,6 +78,7 @@ public class AreaHolder implements DrawingHolder {
         }
     }
     
+    @Override
     public void draw(Graphics2D g2d) {
         g2d.setStroke(stroke);
         g2d.setComposite(ac);
@@ -86,16 +88,19 @@ public class AreaHolder implements DrawingHolder {
         else g2d.draw(area);
     }
     
+    @Override
     public void translate(double x, double y) {
         AffineTransform trans = AffineTransform.getTranslateInstance(x, y);
 	area.transform(trans);
     }
 
+    @Override
     public void rotate(double theta) {
         AffineTransform rotate = AffineTransform.getRotateInstance(theta);
         area.transform(rotate);
     }
 
+    @Override
     public void expand(double sx, double sy) {
         // stroke の拡大
         BasicStroke s = (BasicStroke) stroke;

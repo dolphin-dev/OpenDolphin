@@ -3,7 +3,6 @@ package open.dolphin.impl.lbtest;
 import java.awt.Color;
 import java.awt.Component;
 import javax.swing.JTable;
-import open.dolphin.client.ClientContext;
 import open.dolphin.infomodel.LabTestRowObject;
 import open.dolphin.infomodel.LabTestValueObject;
 import open.dolphin.table.StripeTableCellRenderer;
@@ -16,8 +15,6 @@ import open.dolphin.table.StripeTableCellRenderer;
 public class LabTestRenderer extends StripeTableCellRenderer {
 
     private Color penCol;
-    
-    private static final Color specimenColor = ClientContext.getColor("labotest.color.specimen");
 
     public LabTestRenderer() {
         setOpaque(true);

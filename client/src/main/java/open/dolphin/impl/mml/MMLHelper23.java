@@ -1,11 +1,13 @@
 package open.dolphin.impl.mml;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
 import open.dolphin.infomodel.*;
 import org.jdom.Document;
 import org.jdom.Element;
+import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 
 /**
@@ -41,7 +43,7 @@ public class MMLHelper23 {
     // Access Rights
     private List<AccessRightModel> accessRights;
     
-    private boolean DEBUG = false;
+    private final boolean DEBUG = false;
     
     /** Creates a new instance of MMLBuilder */
     public MMLHelper23() {
@@ -64,7 +66,7 @@ public class MMLHelper23 {
         Collection<ModuleModel> moduleBeans = getDocument().getModules();
         
         // P-Module List
-        bundle = new ArrayList<ClaimBundle>();
+        bundle = new ArrayList<>();
         
         // Moduleをイテレートして分ける
         for (ModuleModel module : moduleBeans) {
@@ -94,14 +96,14 @@ public class MMLHelper23 {
         // Schemaを抽出する
         Collection<SchemaModel> schemaC = getDocument().getSchema();
         if (schemaC != null && schemaC.size() > 0) {
-            schemas = new ArrayList<SchemaModel>(schemaC.size());
+            schemas = new ArrayList<>(schemaC.size());
             schemas.addAll(schemaC);
         }
         
         // アクセス権を抽出する
         Collection<AccessRightModel> arc = getDocument().getDocInfoModel().getAccessRights();
         if (arc != null && arc.size() > 0) {
-            accessRights = new ArrayList<AccessRightModel>(arc.size());
+            accessRights = new ArrayList<>(arc.size());
             accessRights.addAll(arc);
         }
         
@@ -163,6 +165,7 @@ public class MMLHelper23 {
      * 地域連携用の患者IDを返す。
      * 実装ルール  施設内のIDであることを示す。
      * <mmlCm:Id mmlCm:type="facility" mmlCm:tableId="JPN452015100001">12345</mmlCm:Id> 
+     * @return 
      */
     public String getCNPatientId() {
         return getPatientId();
@@ -171,6 +174,7 @@ public class MMLHelper23 {
     /**
      * 地域連携用の患者IDTypeを返す。
      * 実装ルール facility
+     * @return 
      */
     public String getCNPatientIdType() {
         return "facility";
@@ -179,6 +183,7 @@ public class MMLHelper23 {
     /**
      * 地域連携用の患者ID TableIdを返す。
      * 実装ルール その施設のJMARIコード
+     * @return 
      */
     public String getCNPatientIdTableId() {
         return getCNFacilityId();
@@ -208,6 +213,7 @@ public class MMLHelper23 {
      * 地域連携用の施設IDを返す。
      * 実装ルール JMARIコードを適用する
      * <mmlCm:Id mmlCm:type="JMARI" mmlCm:tableId="MML0027">JPN452015100001</mmlCm:Id> 
+     * @return 
      */
     public String getCNFacilityId() {
 //        // TODO 
@@ -234,6 +240,7 @@ public class MMLHelper23 {
     /**
      * 地域連携用の施設ID Typeを返す。
      * 実装ルール JMARI
+     * @return 
      */
     public String getCNFacilityIdType() {
         return "JMARI";
@@ -242,6 +249,7 @@ public class MMLHelper23 {
     /**
      * 地域連携用の施設ID tableIdを返す。
      * 実装ルール MML0027
+     * @return 
      */
     public String getCNFacilityIdTableId() {
         return "MML0027";
@@ -251,6 +259,7 @@ public class MMLHelper23 {
      * 地域連携用のCreatorIdを返す。
      * 実装ルール 
      * <mmlCm:Id mmlCm:type="local" mmlCm:tableId="MML0024">12345</mmlCm:Id>
+     * @return 
      */
     public String getCNCreatorId() {
 //        if (Project.getBoolean(Project.JOIN_AREA_NETWORK)) {
@@ -262,6 +271,7 @@ public class MMLHelper23 {
     /**
      * 地域連携用のCreatorId Typeを返す。
      * 実装ルール local
+     * @return 
      */
     public String getCNCreatorIdType() {
         return "local";
@@ -270,6 +280,7 @@ public class MMLHelper23 {
     /**
      * 地域連携用のCreatorId TableIdを返す。
      * 実装ルール MML0024
+     * @return 
      */
     public String getCNCreatorIdTableId() {
         return "MML0024";
@@ -346,6 +357,7 @@ public class MMLHelper23 {
     
     /**
      * 経過記録モジュールの自由記載表現を返す。
+     * @return 
      */
     public String getFreeExpression() {
         String ret = freeExp.toString();
@@ -370,7 +382,7 @@ public class MMLHelper23 {
             parseChildren(root);
             reader.close();
             
-        } catch (Exception e) {
+        } catch (JDOMException | IOException e) {
             e.printStackTrace(System.err);
         }
     }

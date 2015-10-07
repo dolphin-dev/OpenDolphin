@@ -1,61 +1,30 @@
 package open.dolphin.impl.login;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Desktop;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Frame;
-import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.*;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import open.dolphin.client.BlockGlass;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.ILoginDialog;
-import open.dolphin.dao.OrcaSqlDelegater;
-import open.dolphin.delegater.OrcaDelegater;
-import open.dolphin.delegater.OrcaDelegaterFactory;
 import open.dolphin.delegater.ServerInfoDelegater;
 import open.dolphin.delegater.UserDelegater;
 import open.dolphin.helper.SimpleWorker;
-import open.dolphin.infomodel.DepartmentModel;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.project.Project;
 import open.dolphin.project.ProjectSettingDialog;
-import open.dolphin.util.Log;
-import open.dolphin.utilities.common.CommonDefImpl;
 import open.dolphin.utilities.control.RssReaderPane;
-import open.dolphin.utilities.utility.HttpConnect;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 /**
  * ログインダイアログ　クラス。
@@ -90,6 +59,7 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
     
     /**
      * 認証結果プロパティリスナを登録する。
+     * @param prop
      * @param listener 登録する認証結果リスナ
      */
     @Override
@@ -99,6 +69,7 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
     
     /**
      * 認証結果プロパティリスナを登録する。
+     * @param prop
      * @param listener 削除する認証結果リスナ
      */
     @Override
@@ -126,7 +97,6 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
     protected void showMessageDialog(String msg) {
         String title = dialog.getTitle();
         JOptionPane.showMessageDialog(null, msg, title, JOptionPane.WARNING_MESSAGE);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, msg);
     }
     
     /**
@@ -140,7 +110,9 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
         //-------------------------
         JPanel content = createComponents();
 
-        loginAction = new AbstractAction("ログイン") {
+        //java.util.ResourceBundle bundle = ClientContext.getMyBundle(AbstractLoginDialog.class);
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(AbstractLoginDialog.class);
+        loginAction = new AbstractAction(bundle.getString("action.login")) {
             @Override
             public void actionPerformed(ActionEvent ae) {
                 tryLogin();
@@ -149,21 +121,23 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
         loginAction.setEnabled(false);
         getLoginButton().setAction(loginAction);
 
-        cancelAction = new AbstractAction("キャンセル") {
+        cancelAction = new AbstractAction(bundle.getString("action.cancel")) {
             @Override
             public void actionPerformed(ActionEvent ae) {
                 doCancel();
             }
         };
         getCancelButton().setAction(cancelAction);
+        getCancelButton().setToolTipText(bundle.getString("toolTipText.cancelBtn"));
 
-        settingAction = new AbstractAction("設 定") {
+        settingAction = new AbstractAction(bundle.getString("action.setting")) {
             @Override
             public void actionPerformed(ActionEvent ae) {
                 doSetting();
             }
         };
         getSettingButton().setAction(settingAction);
+        getSettingButton().setToolTipText(bundle.getString("toolTipText.settingBtn"));
         
         String title = ClientContext.getString("loginDialog.title");
         String windowTitle = ClientContext.getFrameTitle(title);
@@ -230,39 +204,26 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
     }
 
     protected void showUserIdPasswordError() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("認証に失敗しました。");
-        sb.append("\n");
-        sb.append("ユーザーIDまたはパスワードが違います。");
-        String msg = sb.toString();
+        String msg = ClientContext.getMyBundle(AbstractLoginDialog.class).getString("error.failedToLogin");
         showMessageDialog(msg);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, msg);
-        ClientContext.getPart11Logger().warn(msg);
+        java.util.logging.Logger.getLogger(this.getClass().getName()).warning(msg);
     }
 
     protected void showTryOutError() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("認証に規定の回数失敗しました。");
-        sb.append("\n");
-        sb.append("アプリケーションを終了します。");
-        String msg = sb.toString();
+        String msg = ClientContext.getMyBundle(AbstractLoginDialog.class).getString("error.tryout");
         showMessageDialog(msg);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, msg);
-        ClientContext.getPart11Logger().warn(msg);
+        java.util.logging.Logger.getLogger(this.getClass().getName()).warning(msg);
     }
     
     protected void showTestExpiredError() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("評価期間が終了しました。");
-        sb.append("\n");
-        sb.append("ご利用ありがとうございました。");
-        String msg = sb.toString();
+        String msg = ClientContext.getMyBundle(AbstractLoginDialog.class).getString("error.endEvalPeriod");
         showMessageDialog(msg);
-        ClientContext.getPart11Logger().warn(msg);
+        java.util.logging.Logger.getLogger(this.getClass().getName()).warning(msg);
     }
     
     protected boolean isTestUser(UserModel user) {
-        boolean test = ClientContext.is5mTest();
+        //boolean test = ClientContext.is5mTest();
+        boolean test = Project.isTester();
         test = test && user.getMemberType().equals("ASP_TESTER");
         return test;
     }
@@ -313,13 +274,9 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
         blockGlass.block();
         
         ProjectSettingDialog sd = new ProjectSettingDialog();
-        PropertyChangeListener pl = new PropertyChangeListener() {
-
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                blockGlass.unblock();
-                setNewParams((Boolean)evt.getNewValue());
-            }
+        PropertyChangeListener pl = (PropertyChangeEvent evt) -> {
+            blockGlass.unblock();
+            setNewParams((Boolean)evt.getNewValue());
         };
         sd.addPropertyChangeListener("SETTING_PROP", pl);
         sd.setLoginState(false);
@@ -328,7 +285,7 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
     
 //s.oh^ RSS対応
     protected void showRSSInfo() {
-        String rss = null;
+        String rss;
         //"http://www.lscc.co.jp/rss/rss_dolphin.xml";
         rss = Project.getString("dolphin.rss");
         if(rss == null || rss.length() <= 0) {
@@ -337,19 +294,19 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
         
         RssReaderPane rssPane = new RssReaderPane();
         
-        JDialog dialog = new JDialog(new JFrame(), "Dolphin RSS", true);
-        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        JDialog dlg = new JDialog(new JFrame(), "Dolphin RSS", true);
+        dlg.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         //dialog.getRootPane().setDefaultButton(done);
         //dialog.setPreferredSize(new Dimension(500, 500));
         
-        dialog.setContentPane(rssPane.createRssPane(rss));
-        dialog.pack();
+        dlg.setContentPane(rssPane.createRssPane(rss));
+        dlg.pack();
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         int n = ClientContext.isMac() ? 3 : 2;
-        int x = (screen.width - dialog.getPreferredSize().width) / 2;
-        int y = (screen.height - dialog.getPreferredSize().height) / n;
-        dialog.setLocation(x, y);
-        dialog.setVisible(true);
+        int x = (screen.width - dlg.getPreferredSize().width) / 2;
+        int y = (screen.height - dlg.getPreferredSize().height) / n;
+        dlg.setLocation(x, y);
+        dlg.setVisible(true);
     }
 //s.oh$
     
@@ -415,11 +372,9 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
                 SimpleDateFormat effectiveFormat = new SimpleDateFormat("yyyyMMddHHmmssSSS");
                 uuid = effectiveFormat.format(new Date()) + uuid;
             }
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, uuid);
             try {
                 ret = ud.checkLicense(uuid);
             } catch (Exception ex) {
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, ex.toString());
                 ret = 1;
             }
             if(ret == 0) {
@@ -427,19 +382,19 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
                 Project.setCloudZero(true);
             }else{
                 String msg;
+                java.util.ResourceBundle bundle = ClientContext.getMyBundle(AbstractLoginDialog.class);
                 if(ret == 1) {
-                    msg = "通信エラーが発生しました。";
+                    msg = bundle.getString("error.communication");
                 }else if(ret == 2) {
-                    msg = "ライセンスファイルエラーが発生しました。";
+                    msg = bundle.getString("error.licenceFile");
                 }else if(ret == 3) {
-                    msg = "ライセンスファイルエラーが発生しました。";
+                    msg = bundle.getString("error.licenceFile");
                 }else if(ret == 4) {
-                    msg = "ライセンス認証の制限数を超えました。";
+                    msg = bundle.getString("error.overLicensedNumber");
                 }else{
                     msg = "";
                 }
-                JOptionPane.showMessageDialog(null, msg, "ライセンス認証エラー", JOptionPane.ERROR_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "ライセンス認証エラー", msg, String.valueOf(ret));
+                JOptionPane.showMessageDialog(null, msg, bundle.getString("error.licenseAuthentication"), JOptionPane.ERROR_MESSAGE);
                 return false;
             }
         }
@@ -454,7 +409,6 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
         try {
             ret = sid.isCloudZero();
         } catch (Exception ex) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, ex.toString());
             ret = false;
         }
         

@@ -39,9 +39,10 @@ public class DefaultBrowserView extends javax.swing.JPanel {
         newdirBtn = new javax.swing.JButton();
         backdirBtn = new javax.swing.JButton();
 
-        refreshBtn.setText("更新");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/impl/img/resources/DefaultBrowser"); // NOI18N
+        refreshBtn.setText(bundle.getString("refreshBtn.text")); // NOI18N
 
-        settingBtn.setText("設定");
+        settingBtn.setText(bundle.getString("settingBtn.text")); // NOI18N
 
         table.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -56,11 +57,11 @@ public class DefaultBrowserView extends javax.swing.JPanel {
         ));
         jScrollPane1.setViewportView(table);
 
-        newdirBtn.setText("新規");
-        newdirBtn.setToolTipText("ディレクトリの新規作成");
+        newdirBtn.setText(bundle.getString("newdirBtn.text")); // NOI18N
+        newdirBtn.setToolTipText(bundle.getString("newdirBtn.toolTipText")); // NOI18N
 
-        backdirBtn.setText("上へ");
-        backdirBtn.setToolTipText("ディレクトリの新規作成");
+        backdirBtn.setText(bundle.getString("backdirBtn.text")); // NOI18N
+        backdirBtn.setToolTipText(bundle.getString("backdirBtn.toolTipText")); // NOI18N
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);
@@ -97,7 +98,7 @@ public class DefaultBrowserView extends javax.swing.JPanel {
                 .addContainerGap())
         );
 
-        backdirBtn.getAccessibleContext().setAccessibleDescription("一つ上の階層に戻る");
+        backdirBtn.getAccessibleContext().setAccessibleDescription("");
     }// </editor-fold>//GEN-END:initComponents
 
 

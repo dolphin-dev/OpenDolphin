@@ -5,12 +5,12 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.StringTokenizer;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import open.dolphin.client.AbstractMainTool;
 import open.dolphin.client.AddUser;
 import open.dolphin.client.AutoKanjiListener;
@@ -25,8 +25,6 @@ import open.dolphin.project.Project;
 import open.dolphin.table.ListTableModel;
 import open.dolphin.table.StripeTableCellRenderer;
 import open.dolphin.util.HashUtil;
-import open.dolphin.util.Log;
-import org.apache.log4j.Logger;
 
 /**
  * AddUserPlugin
@@ -35,18 +33,13 @@ import org.apache.log4j.Logger;
  */
 public class AddUserImpl extends AbstractMainTool implements AddUser {
     
-    private static final String TITLE = "ユーザ管理";
-    private static final String FACILITY_INFO = "施設情報編集";
-    private static final String ADD_USER = "院内ユーザ登録";
-    private static final String LIST_USER = "ユーザリスト";
-    private static final String FACILITY_SUCCESS_MSG = "施設情報を更新しました。";
-    private static final String ADD_USER_SUCCESS_MSG = "ユーザを登録しました。";
-    private static final String DELETE_USER_SUCCESS_MSG = "ユーザを削除しました。";
-    private static final String DELETE_OK_USER_ = "選択したユーザを削除します";
+    private final String TITLE;
+    private final String FACILITY_INFO;
+    private final String ADD_USER;
+    private final String LIST_USER;
     
     private int index;
     private JFrame frame;
-    private Logger logger;
 
     // timerTask 関連
     private SimpleWorker worker;
@@ -58,8 +51,14 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
     
     /** Creates a new instance of AddUserService */
     public AddUserImpl() {
+        super();
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(AddUserImpl.class);
+        TITLE = bundle.getString("title.window");
+        FACILITY_INFO = bundle.getString("title.editFacilityINfo");
+        ADD_USER = bundle.getString("title.addInternalUser");
+        LIST_USER = bundle.getString("title.listUsers");
+        
         setName(TITLE);
-        logger = ClientContext.getBootLogger();
     }
     
     @Override
@@ -78,49 +77,43 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
     @Override
     public void start() {
 
-        Runnable awt = new Runnable() {
-
-            @Override
-            public void run() {
-
-                // Super Class で Frame を初期化する
-                String title = ClientContext.getFrameTitle(getName());
-                JFrame frm = new JFrame(title);
-                setFrame(frm);
-                frm.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-                frm.addWindowListener(new WindowAdapter() {
-                    @Override
-                    public void windowClosing(WindowEvent e) {
-                        stop();
-                    }
-                });
-
-                // Component を生成する
-                AddUserPanel ap = new AddUserPanel();
-                FacilityInfoPanel fp = new FacilityInfoPanel();
-                UserListPanel mp = new UserListPanel();
-                JTabbedPane tabbedPane = new JTabbedPane();
-                
-                // 順番変更は可能か
-                tabbedPane.addTab(FACILITY_INFO, fp);
-                tabbedPane.addTab(ADD_USER, ap);
-                tabbedPane.addTab(LIST_USER, mp);
-                
-                fp.get();
-                tabbedPane.setSelectedIndex(index);
-
-                // Frame に加える
-                getFrame().getContentPane().add(tabbedPane, BorderLayout.CENTER);
-
-                getFrame().pack();
-                Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-                int x = (size.width - getFrame().getPreferredSize().width) / 2;
-                int y = (size.height - getFrame().getPreferredSize().height) / 3;
-                getFrame().setLocation(x, y);
-                
-                getFrame().setVisible(true);
-
-            }
+        Runnable awt = () -> {
+            // Super Class で Frame を初期化する
+            String title = ClientContext.getFrameTitle(getName());
+            JFrame frm = new JFrame(title);
+            setFrame(frm);
+            frm.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+            frm.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    stop();
+                }
+            });
+            
+            // Component を生成する
+            AddUserPanel ap = new AddUserPanel();
+            FacilityInfoPanel fp = new FacilityInfoPanel();
+            UserListPanel mp = new UserListPanel();
+            JTabbedPane tabbedPane = new JTabbedPane();
+            
+            // 順番変更は可能か
+            tabbedPane.addTab(FACILITY_INFO, fp);
+            tabbedPane.addTab(ADD_USER, ap);
+            tabbedPane.addTab(LIST_USER, mp);
+            
+            fp.get();
+            tabbedPane.setSelectedIndex(index);
+            
+            // Frame に加える
+            getFrame().getContentPane().add(tabbedPane, BorderLayout.CENTER);
+            
+            getFrame().pack();
+            Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+            int x = (size.width - getFrame().getPreferredSize().width) / 2;
+            int y = (size.height - getFrame().getPreferredSize().height) / 3;
+            getFrame().setLocation(x, y);
+            
+            getFrame().setVisible(true);
         };
         
         SwingUtilities.invokeLater(awt);
@@ -144,12 +137,12 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
     protected class FacilityInfoPanel extends JPanel {
         
         // View
-        private FacilityEditorView view;
+        private final FacilityEditorView view;
         
         // 更新等のボタン
-        private JButton updateBtn;
-        private JButton clearBtn;
-        private JButton closeBtn;
+        private final JButton updateBtn;
+        private final JButton clearBtn;
+        private final JButton closeBtn;
         private boolean hasInitialized;
         
         public FacilityInfoPanel() {
@@ -208,30 +201,23 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
             view.getUrlField().getDocument().addDocumentListener(dl);
             view.getUrlField().addFocusListener(AutoRomanListener.getInstance());
             
-            updateBtn = new JButton("更新");
+            java.util.ResourceBundle bundle = ClientContext.getMyBundle(AddUserImpl.class);
+            
+            updateBtn = new JButton(bundle.getString("actionText.update"));
             updateBtn.setEnabled(false);
-            updateBtn.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    update();
-                }
+            updateBtn.addActionListener((ActionEvent e) -> {
+                update();
             });
             
-            clearBtn = new JButton("戻す");
+            clearBtn = new JButton(bundle.getString("actionText.revert"));
             clearBtn.setEnabled(false);
-            clearBtn.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    get();
-                }
+            clearBtn.addActionListener((ActionEvent e) -> {
+                get();
             });
             
-            closeBtn = new JButton("閉じる");
-            closeBtn.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    stop();
-                }
+            closeBtn = new JButton(bundle.getString("actionText.close"));
+            closeBtn.addActionListener((ActionEvent e) -> {
+                stop();
             });
             
             JPanel btnPanel;
@@ -247,7 +233,7 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
             this.setBorder(BorderFactory.createEmptyBorder(12, 12, 11, 11));
         }
         
-        public void get() {
+        public final void get() {
             
             UserModel user = Project.getUserModel();
             FacilityModel facility = user.getFacilityModel();
@@ -314,14 +300,14 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
                 return;
             }
             
-            boolean nameEmpty = view.getFacilityName().getText().trim().equals("") ? true : false;
-            boolean fidEmpty = view.getFacilityId().getText().trim().equals("") ? true : false;
-            boolean zip1Empty = view.getZipField1().getText().trim().equals("") ? true : false;
-            boolean zip2Empty = view.getZipField2().getText().trim().equals("") ? true : false;
-            boolean addressEmpty = view.getAddressField().getText().trim().equals("") ? true : false;
-            boolean areaEmpty = view.getAreaField().getText().trim().equals("") ? true : false;
-            boolean cityEmpty = view.getCityField().getText().trim().equals("") ? true : false;
-            boolean numberEmpty = view.getNumberField().getText().trim().equals("") ? true : false;
+            boolean nameEmpty = view.getFacilityName().getText().trim().equals("");
+            boolean fidEmpty = view.getFacilityId().getText().trim().equals("");
+            boolean zip1Empty = view.getZipField1().getText().trim().equals("");
+            boolean zip2Empty = view.getZipField2().getText().trim().equals("");
+            boolean addressEmpty = view.getAddressField().getText().trim().equals("");
+            boolean areaEmpty = view.getAreaField().getText().trim().equals("");
+            boolean cityEmpty = view.getCityField().getText().trim().equals("");
+            boolean numberEmpty = view.getNumberField().getText().trim().equals("");
             
             if (nameEmpty && fidEmpty && zip1Empty && zip2Empty && addressEmpty
                     && areaEmpty && cityEmpty && numberEmpty) {
@@ -408,24 +394,25 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
         
                 @Override
                 protected Boolean doInBackground() throws Exception {
-                    logger.debug("updateUser doInBackground");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).fine("updateUser doInBackground");
                     int cnt = udl.updateFacility(user);
-                    return cnt > 0 ? true : false;
+                    return cnt > 0;
                 }
                 
                 @Override
                 protected void succeeded(Boolean result) {
-                    logger.debug("updateUser succeeded");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).fine("updateUser succeeded");
+                    java.util.ResourceBundle bundle = ClientContext.getMyBundle(AddUserImpl.class);
+                    String msg = bundle.getString("message.updatedFacilityInfo");
                     JOptionPane.showMessageDialog(getFrame(),
-                            FACILITY_SUCCESS_MSG,
+                            msg,
                             ClientContext.getFrameTitle(getName()),
                             JOptionPane.INFORMATION_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(getName()), FACILITY_SUCCESS_MSG);
                 }
 
                 @Override
                 protected void cancelled() {
-                    logger.debug("updateUser cancelled");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).fine("updateUser cancelled");
                 }
 
                 @Override
@@ -434,10 +421,9 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
                                 cause.getMessage(),
                                 ClientContext.getFrameTitle(getName()),
                                 JOptionPane.WARNING_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(getName()), cause.getMessage());
-                    logger.warn("updateUser failed");
-                    logger.warn(cause.getCause());
-                    logger.warn(cause.getMessage());
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning("updateUser failed");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getCause().getMessage());
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
                 }
 
                 @Override
@@ -457,24 +443,21 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
 
             Component c = getFrame();
             String message = null;
-            String note = ClientContext.getString("task.default.updateMessage");
-            maxEstimation = ClientContext.getInt("task.default.maxEstimation");
-            delay = ClientContext.getInt("task.default.delay");
+            ResourceBundle bundle = ClientContext.getMyBundle(AddUserImpl.class);
+            String note = bundle.getString("task.default.updateMessage");
+            maxEstimation = Integer.parseInt(bundle.getString("task.default.maxEstimation"));
+            delay = Integer.parseInt(bundle.getString("task.default.delay"));
 
             monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-            taskTimer = new Timer(delay, new ActionListener() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    delayCount++;
-
-                    if (monitor.isCanceled() && (!worker.isCancelled())) {
-                        worker.cancel(true);
-
-                    } else {
-                        monitor.setProgress(delayCount);
-                    }
+            taskTimer = new Timer(delay, (ActionEvent e) -> {
+                delayCount++;
+                
+                if (monitor.isCanceled() && (!worker.isCancelled())) {
+                    worker.cancel(true);
+                    
+                } else {
+                    monitor.setProgress(delayCount);
                 }
             });
 
@@ -489,13 +472,15 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
         
         private ListTableModel<UserModel> tableModel;
         private JTable table;
-        private JButton getButton;
-        private JButton deleteButton;
-        private JButton cancelButton;
+        private final JButton getButton;
+        private final JButton deleteButton;
+        private final JButton cancelButton;
         
         public UserListPanel() {
             
-            String[] columns = new String[] { "ユーザID", "姓", "名", "医療資格", "診療科" };
+            java.util.ResourceBundle bundle = ClientContext.getMyBundle(AddUserImpl.class);
+            String line = bundle.getString("columnNames.userListTable");
+            String[] columns = line.split(",");
             
             // ユーザテーブル
             tableModel = new ListTableModel<UserModel>(columns, 0) {
@@ -547,7 +532,7 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
             // Selection を設定する
             table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
             table.setRowSelectionAllowed(true);
-            table.setToolTipText(DELETE_OK_USER_);
+            table.setToolTipText(bundle.getString("toolTipText.deleteSelectedUser"));
             
             // renderer
             StripeTableCellRenderer rederer = new StripeTableCellRenderer();
@@ -555,18 +540,14 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
             rederer.setDefaultRenderer();
             
             ListSelectionModel m = table.getSelectionModel();
-            m.addListSelectionListener(new ListSelectionListener() {
-                
-                @Override
-                public void valueChanged(ListSelectionEvent e) {
-                    if (e.getValueIsAdjusting() == false) {
-                        // 削除ボタンをコントロールする
-                        // 医療資格が other 以外は削除できない
-                        int index = table.getSelectedRow();
-                        UserModel entry = tableModel.getObject(index);
-                        if (entry!=null) {
-                            controleDelete(entry);
-                        }
+            m.addListSelectionListener((ListSelectionEvent e) -> {
+                if (e.getValueIsAdjusting() == false) {
+                    // 削除ボタンをコントロールする
+                    // 医療資格が other 以外は削除できない
+                    int index1 = table.getSelectedRow();
+                    UserModel entry = tableModel.getObject(index1);
+                    if (entry!=null) {
+                        controleDelete(entry);
                     }
                 }
             });
@@ -577,33 +558,24 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
                     JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             scroller.getViewport().setPreferredSize(new Dimension(480,200));
             
-            getButton = new JButton("ユーザリスト");
+            getButton = new JButton(bundle.getString("actionText.listUsers"));
             getButton.setEnabled(true);
             //getButton.setMnemonic('L');
-            getButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    getUsers();
-                }
+            getButton.addActionListener((ActionEvent e) -> {
+                getUsers();
             });
             
-            deleteButton = new JButton("削除");
+            deleteButton = new JButton(bundle.getString("actionText.delete"));
             deleteButton.setEnabled(false);
             //deleteButton.setMnemonic('D');
-            deleteButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    deleteUser();
-                }
+            deleteButton.addActionListener((ActionEvent e) -> {
+                deleteUser();
             });
-            deleteButton.setToolTipText(DELETE_OK_USER_);
+            deleteButton.setToolTipText(bundle.getString("toolTipText.deleteBtn"));
             
-            cancelButton = new JButton("閉じる");
-            cancelButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    stop();
-                }
+            cancelButton = new JButton(bundle.getString("actionText.close"));
+            cancelButton.addActionListener((ActionEvent e) -> {
+                stop();
             });
             //cancelButton.setMnemonic('C');
             
@@ -628,7 +600,7 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
          * @param user
          */
         private void controleDelete(UserModel user) {          
-            boolean isMe = user.getId() == Project.getUserModel().getId() ? true : false;
+            boolean isMe = user.getId() == Project.getUserModel().getId();
             deleteButton.setEnabled(!isMe);
         }
         
@@ -643,17 +615,17 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
         
                 @Override
                 protected List<UserModel> doInBackground() throws Exception {
-                    logger.debug("getUsers doInBackground");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).fine("getUsers doInBackground");
                     ArrayList<UserModel> result = udl.getAllUser();
                     return result;
                 }
                 
                 @Override
                 protected void succeeded(List<UserModel> results) {
-                    logger.debug("getUsers succeeded");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).fine("getUsers succeeded");
 //s.oh^ 2013/01/21 メンテユーザの非表示
                     //tableModel.setDataProvider(results);
-                    ArrayList<UserModel> list = new ArrayList<UserModel>();
+                    ArrayList<UserModel> list = new ArrayList<>();
                     for(UserModel model : results) {
                         if(model.getUserId().endsWith("lscmainte")) {
                         }else{
@@ -666,7 +638,7 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
 
                 @Override
                 protected void cancelled() {
-                    logger.debug("getUsers cancelled");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).fine("getUsers cancelled");
                 }
 
                 @Override
@@ -675,10 +647,9 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
                                 cause.getMessage(),
                                 ClientContext.getFrameTitle(getName()),
                                 JOptionPane.WARNING_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(getName()), cause.getMessage());
-                    logger.warn("getUsers failed");
-                    logger.warn(cause.getCause());
-                    logger.warn(cause.getMessage());
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning("getUsers failed");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getCause().getMessage());
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
                 }
 
                 @Override
@@ -698,24 +669,21 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
             
             Component c = getFrame();
             String message = null;
-            String note = ClientContext.getString("task.default.searchMessage");
-            maxEstimation = ClientContext.getInt("task.default.maxEstimation");
-            delay = ClientContext.getInt("task.default.delay");
+            ResourceBundle bundle = ClientContext.getMyBundle(AddUserImpl.class);
+            String note = bundle.getString("task.default.searchMessage");
+            maxEstimation = Integer.parseInt(bundle.getString("task.default.maxEstimation"));
+            delay = Integer.parseInt(bundle.getString("task.default.delay"));
 
             monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-            taskTimer = new Timer(delay, new ActionListener() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    delayCount++;
-
-                    if (monitor.isCanceled() && (!worker.isCancelled())) {
-                        worker.cancel(true);
-
-                    } else {
-                        monitor.setProgress(delayCount);
-                    }
+            taskTimer = new Timer(delay, (ActionEvent e) -> {
+                delayCount++;
+                
+                if (monitor.isCanceled() && (!worker.isCancelled())) {
+                    worker.cancel(true);
+                    
+                } else {
+                    monitor.setProgress(delayCount);
                 }
             });
 
@@ -749,7 +717,7 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
         
                 @Override
                 protected List<UserModel> doInBackground() throws Exception {
-                    logger.debug("deleteUser doInBackground");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).fine("deleteUser doInBackground");
                     ArrayList<UserModel> result = null;
                     if (udl.deleteUser(deleteId) > 0) {
                         result = udl.getAllUser();
@@ -759,10 +727,10 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
                 
                 @Override
                 protected void succeeded(List<UserModel> results) {
-                    logger.debug("deleteUser succeeded");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).fine("deleteUser succeeded");
 //s.oh^ 2013/01/21 メンテユーザの非表示
                     //tableModel.setDataProvider(results);
-                    ArrayList<UserModel> list = new ArrayList<UserModel>();
+                    ArrayList<UserModel> list = new ArrayList<>();
                     for(UserModel model : results) {
                         if(model.getUserId().endsWith("lscmainte")) {
                         }else{
@@ -771,16 +739,16 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
                     }
                     tableModel.setDataProvider(list);
 //s.oh$
+                    String msg = ClientContext.getMyBundle(AddUserImpl.class).getString("message.deletedUser");
                     JOptionPane.showMessageDialog(getFrame(),
-                            DELETE_USER_SUCCESS_MSG,
+                            msg,
                             ClientContext.getFrameTitle(getName()),
                             JOptionPane.INFORMATION_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(getName()), DELETE_USER_SUCCESS_MSG);
                 }
 
                 @Override
                 protected void cancelled() {
-                    logger.debug("deleteUser cancelled");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).fine("deleteUser cancelled");
                 }
 
                 @Override
@@ -789,10 +757,9 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
                                 cause.getMessage(),
                                 ClientContext.getFrameTitle(getName()),
                                 JOptionPane.WARNING_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(getName()), cause.getMessage());
-                    logger.warn("deleteUser failed");
-                    logger.warn(cause.getCause());
-                    logger.warn(cause.getMessage());
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning("deleteUser failed");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getCause().getMessage());
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
                 }
 
                 @Override
@@ -812,23 +779,21 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
 
             Component c = getFrame();
             String message = null;
-            String note = ClientContext.getString("task.default.deleteMessage");
-            maxEstimation = ClientContext.getInt("task.default.maxEstimation");
-            delay = ClientContext.getInt("task.default.delay");
+            ResourceBundle bundle = ClientContext.getMyBundle(AddUserImpl.class);
+            String note = bundle.getString("task.default.deleteMessage");
+            maxEstimation = Integer.parseInt(bundle.getString("task.default.maxEstimation"));
+            delay = Integer.parseInt(bundle.getString("task.default.delay"));
+            
             monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-            taskTimer = new Timer(delay, new ActionListener() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    delayCount++;
-
-                    if (monitor.isCanceled() && (!worker.isCancelled())) {
-                        worker.cancel(true);
-
-                    } else {
-                        monitor.setProgress(delayCount);
-                    }
+            taskTimer = new Timer(delay, (ActionEvent e) -> {
+                delayCount++;
+                
+                if (monitor.isCanceled() && (!worker.isCancelled())) {
+                    worker.cancel(true);
+                    
+                } else {
+                    monitor.setProgress(delayCount);
                 }
             });
 
@@ -842,20 +807,20 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
     protected class AddUserPanel extends JPanel {
         
         // cn 氏名(sn & ' ' & givenName)
-        private LicenseModel[] licenses; // 職種(MML0026)
-        private DepartmentModel[] depts; // 診療科(MML0028)
+        private final LicenseModel[] licenses; // 職種(MML0026)
+        private final DepartmentModel[] depts; // 診療科(MML0028)
         
         // JTextField description;
-        private JButton okButton;
-        private JButton cancelButton;
+        private final JButton okButton;
+        private final JButton cancelButton;
         
         private boolean ok;
         
         // UserId と Password の長さ
-        private int[] userIdLength; // min,max
-        private int[] passwordLength; // min,max
-        private String idPassPattern;
-        private String usersRole; // user に与える role 名
+        private final int[] userIdLength; // min,max
+        private final int[] passwordLength; // min,max
+        private final String idPassPattern;
+        private final String usersRole; // user に与える role 名
         
         private AddUserView view;
         
@@ -891,74 +856,53 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
 //s.oh^ 不具合修正
             uid.enableInputMethods(false);
 //s.oh$
-            uid.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    view.getUserPassword1().requestFocus();
-                }
+            uid.addActionListener((ActionEvent e) -> {
+                view.getUserPassword1().requestFocus();
             });
             
             JTextField userPassword1 = view.getUserPassword1();
             userPassword1.addFocusListener(AutoRomanListener.getInstance());
             userPassword1.getDocument().addDocumentListener(dl);
             userPassword1.setDocument(new RegexConstrainedDocument(idPassPattern));
-            userPassword1.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    view.getUserPassword2().requestFocus();
-                }
+            userPassword1.addActionListener((ActionEvent e) -> {
+                view.getUserPassword2().requestFocus();
             });
             
             JTextField userPassword2 = view.getUserPassword2();
             userPassword2.addFocusListener(AutoRomanListener.getInstance());
             userPassword2.getDocument().addDocumentListener(dl);
             userPassword2.setDocument(new RegexConstrainedDocument(idPassPattern));
-            userPassword2.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    view.getSn().requestFocus();
-                }
+            userPassword2.addActionListener((ActionEvent e) -> {
+                view.getSn().requestFocus();
             });
             
             JTextField sn = view.getSn();
             sn.addFocusListener(AutoKanjiListener.getInstance());
             sn.getDocument().addDocumentListener(dl);
-            sn.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    view.getGivenName().requestFocus();
-                }
+            sn.addActionListener((ActionEvent e) -> {
+                view.getGivenName().requestFocus();
             });
             
             JTextField givenName = view.getGivenName();
             givenName.addFocusListener(AutoKanjiListener.getInstance());
             givenName.getDocument().addDocumentListener(dl);
-            givenName.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    view.getEmailField().requestFocus();
-                }
+            givenName.addActionListener((ActionEvent e) -> {
+                view.getEmailField().requestFocus();
             });
             
             JTextField emailField = view.getEmailField();
             emailField.addFocusListener(AutoRomanListener.getInstance());
             emailField.getDocument().addDocumentListener(dl);
-            emailField.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    view.getMayakuField().requestFocus();
-                }
+            emailField.addActionListener((ActionEvent e) -> {
+                view.getMayakuField().requestFocus();
             });
             
             // 麻薬
             JTextField mayaku = view.getMayakuField();
             mayaku.addFocusListener(AutoRomanListener.getInstance());
             mayaku.getDocument().addDocumentListener(dl);
-            mayaku.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    view.getUid().requestFocus();
-                }
+            mayaku.addActionListener((ActionEvent e) -> {
+                view.getUid().requestFocus();
             });
             
             // 医療資格
@@ -969,22 +913,16 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
             depts = ClientContext.getDepartmentModel();
             view.getDeptCombo().setModel(new DefaultComboBoxModel(depts));
             
-            ActionListener al = new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    addUserEntry();
-                }
+            ActionListener al = (ActionEvent e) -> {
+                addUserEntry();
             };
-            
-            okButton = new JButton("追加");
+            java.util.ResourceBundle bundle = ClientContext.getMyBundle(AddUserImpl.class);
+            okButton = new JButton(bundle.getString("actionText.add"));
             okButton.addActionListener(al);
             okButton.setEnabled(false);
-            cancelButton = new JButton("閉じる");
-            cancelButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    stop();
-                }
+            cancelButton = new JButton(bundle.getString("actionText.close"));
+            cancelButton.addActionListener((ActionEvent e) -> {
+                stop();
             });
             
             JPanel btnPanel;
@@ -1015,11 +953,6 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
             String pass = new String(view.getUserPassword1().getPassword());
             UserModel loginUser = Project.getUserModel();
             String facilityId = loginUser.getFacilityModel().getFacilityId();
-            
-            String Algorithm = ClientContext.getString("addUser.password.hash.algorithm");
-            String encoding = ClientContext.getString("addUser.password.hash.encoding");
-            //String charset = ClientContext.getString("addUser.password.hash.charset");
-            String charset = null;
             String hashPass = HashUtil.MD5(pass);
             
             final UserModel user = new UserModel();
@@ -1078,39 +1011,34 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
         
                 @Override
                 protected Boolean doInBackground() throws Exception {
-                    logger.debug("addUserEntry doInBackground");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).fine("addUserEntry doInBackground");
                     int cnt = udl.addUser(user);
                     return true;
                 }
                 
                 @Override
                 protected void succeeded(Boolean results) {
-                    logger.debug("addUserEntry succeeded");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).fine("addUserEntry succeeded");
+                    String msg = ClientContext.getMyBundle(AddUserImpl.class).getString("message.addedUser");
                     JOptionPane.showMessageDialog(getFrame(),
-                            ADD_USER_SUCCESS_MSG,
+                            msg,
                             ClientContext.getFrameTitle(getName()),
                             JOptionPane.INFORMATION_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(getName()), ADD_USER_SUCCESS_MSG);
                 }
 
                 @Override
                 protected void cancelled() {
-                    logger.debug("addUserEntry cancelled");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).fine("addUserEntry cancelled");
                 }
 
                 @Override
                 protected void failed(java.lang.Throwable cause) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("診療録と関連しているため、既存及び削除したユーザーと").append("\n");
-                    sb.append("同じIDのユーザーを再度登録することはできません。");
+                    String msg = ClientContext.getMyBundle(AddUserImpl.class).getString("warning.dupuricatedID");
                     JOptionPane.showMessageDialog(getFrame(),
-                                sb.toString(),
+                                msg,
                                 ClientContext.getFrameTitle(getName()),
                                 JOptionPane.WARNING_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(getName()), sb.toString());
-                    logger.warn("addUserEntry failed");
-                    //logger.warn(cause.getCause());
-                    //logger.warn(cause.getMessage());
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning("addUserEntry failed");
                 }
 
                 @Override
@@ -1130,23 +1058,20 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
 
             Component c = getFrame();
             String message = null;
-            String note = ClientContext.getString("task.default.addMessage");
-            maxEstimation = ClientContext.getInt("task.default.maxEstimation");
-            delay = ClientContext.getInt("task.default.delay");
+            ResourceBundle bundle = ClientContext.getMyBundle(AddUserImpl.class);
+            String note = bundle.getString("task.default.addMessage");
+            maxEstimation = Integer.parseInt(bundle.getString("task.default.maxEstimation"));
+            delay = Integer.parseInt(bundle.getString("task.default.delay"));
             monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-            taskTimer = new Timer(delay, new ActionListener() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    delayCount++;
-
-                    if (monitor.isCanceled() && (!worker.isCancelled())) {
-                        worker.cancel(true);
-
-                    } else {
-                        monitor.setProgress(delayCount);
-                    }
+            taskTimer = new Timer(delay, (ActionEvent e) -> {
+                delayCount++;
+                
+                if (monitor.isCanceled() && (!worker.isCancelled())) {
+                    worker.cancel(true);
+                    
+                } else {
+                    monitor.setProgress(delayCount);
                 }
             });
 
@@ -1161,11 +1086,8 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
             }
             
             int len = userId.length();
-//minagawa^ LSC Test            
-//            return (len >= userIdLength[0] && len <= userIdLength[1]) ? true
-//                    : false;
-            return (len >= userIdLength[0]);
-//minagawa$            
+            
+            return (len >= userIdLength[0]);           
         }
         
         private boolean passwordOk() {
@@ -1176,33 +1098,23 @@ public class AddUserImpl extends AbstractMainTool implements AddUser {
             if (passwd1.equals("") || passwd2.equals("")) {
                 return false;
             }
-//minagawa^ LSC Test            
-//            if ((passwd1.length() < passwordLength[0])
-//            || (passwd1.length() > passwordLength[1])) {
-//                return false;
-//            }
-//            
-//            if ((passwd2.length() < passwordLength[0])
-//            || (passwd2.length() > passwordLength[1])) {
-//                return false;
-//            }            
+           
             if ((passwd1.length() < passwordLength[0]) || (passwd2.length() < passwordLength[0])) {
                 return false;
             }
-//minagawa$            
-            return passwd1.equals(passwd2) ? true : false;
+           
+            return passwd1.equals(passwd2);
         }
         
         private void checkButton() {
             
             boolean userOk = userIdOk();
             boolean passwordOk = passwordOk();
-            boolean snOk = view.getSn().getText().trim().equals("") ? false : true;
-            boolean givenOk = view.getGivenName().getText().trim().equals("") ? false : true;
-            boolean emailOk = view.getEmailField().getText().trim().equals("") ? false : true;
+            boolean snOk = !view.getSn().getText().trim().equals("");
+            boolean givenOk = !view.getGivenName().getText().trim().equals("");
+            boolean emailOk = !view.getEmailField().getText().trim().equals("");
             
-            boolean newOk = (userOk && passwordOk && snOk && givenOk && emailOk) ? true
-                    : false;
+            boolean newOk = (userOk && passwordOk && snOk && givenOk && emailOk);
             
             if (ok != newOk) {
                 ok = newOk;

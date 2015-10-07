@@ -21,7 +21,7 @@ public class LogFilter implements Filter {
     private static final String PASSWORD = "password";
     private static final String UNAUTHORIZED_USER = "Unauthorized user: ";
     
-    private static final String SYSAD_USER_ID = "1.3.6.1.4.1.9414.70.1:dolphin";
+    private static final String SYSAD_USER_ID = "1.3.6.1.4.1.9414.10.1:dolphin";
     private static final String SYSAD_PASSWORD = "36cdf8b887a5cffc78dcd5c08991b993";
     private static final String SYSAD_PATH = "dolphin";
 

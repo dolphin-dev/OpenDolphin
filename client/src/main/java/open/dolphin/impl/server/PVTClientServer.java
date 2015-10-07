@@ -7,11 +7,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.util.Date;
-import open.dolphin.client.ClientContext;
+import java.util.logging.Level;
 import open.dolphin.client.MainWindow;
 import open.dolphin.infomodel.UserModel;
-import open.dolphin.project.Project;
-import org.apache.log4j.Level;
 
 /**
  * PVT socket server<br>
@@ -46,11 +44,8 @@ public final class PVTClientServer implements Runnable,open.dolphin.server.PVTSe
     private MainWindow context;
     private String name;
 
-    private boolean DEBUG;
-
     /** Creates new ClaimServer */
     public PVTClientServer() {
-       DEBUG = ClientContext.getPvtLogger().getLevel() == Level.DEBUG ? true : false;
     }
     
     @Override
@@ -134,9 +129,7 @@ public final class PVTClientServer implements Runnable,open.dolphin.server.PVTSe
             String test = getBindAddress();
             
             if (test !=null && (!test.equals("")) ) {
-                if (DEBUG) {
-                    ClientContext.getPvtLogger().debug("PVT ServerSocket bind address = " + getBindAddress());
-                }
+                java.util.logging.Logger.getLogger(this.getClass().getName()).log(Level.FINE, "PVT ServerSocket bind address = {0}", getBindAddress());
                 try {
                     InetAddress addr = InetAddress.getByName(test);
                     address = new InetSocketAddress(addr, port);
@@ -151,7 +144,7 @@ public final class PVTClientServer implements Runnable,open.dolphin.server.PVTSe
             
             listenSocket = new ServerSocket();
             listenSocket.bind(address);
-            ClientContext.getPvtLogger().info("PVT Server is binded " + address + " with encoding: " + encoding);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).log(Level.INFO, "PVT Server is binded {0} with encoding: {1}", new Object[]{address, encoding});
 
             serverThread = new Thread(this);
             serverThread.setPriority(Thread.NORM_PRIORITY);
@@ -159,7 +152,7 @@ public final class PVTClientServer implements Runnable,open.dolphin.server.PVTSe
 
         } catch (IOException e) {
             e.printStackTrace(System.err);
-            ClientContext.getPvtLogger().warn("IOException while creating the ServerSocket: " + e.toString());
+            java.util.logging.Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "IOException while creating the ServerSocket: {0}", e.toString());
         }
     }
 
@@ -178,7 +171,7 @@ public final class PVTClientServer implements Runnable,open.dolphin.server.PVTSe
                 listenSocket = null;
             } catch (IOException e) {
                 e.printStackTrace(System.err);
-                ClientContext.getPvtLogger().warn(e);
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(e.getMessage());
             }
         }
 
@@ -208,10 +201,10 @@ public final class PVTClientServer implements Runnable,open.dolphin.server.PVTSe
                 t.start();
             } catch (IOException e) {
                 if (thisThread!=serverThread) {
-                    ClientContext.getPvtLogger().info("PVTServer stopped");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning("PVTServer stopped");
                 } else {
                     e.printStackTrace(System.err);
-                    ClientContext.getPvtLogger().warn("Exception while listening for connections:" + e);
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Exception while listening for connections:{0}", e);
                 }
             }
         }
@@ -243,7 +236,7 @@ public final class PVTClientServer implements Runnable,open.dolphin.server.PVTSe
         private void printInfo() {
             String addr = this.client.getInetAddress().getHostAddress();
             String time = DateFormat.getDateTimeInstance().format(new Date());
-            ClientContext.getPvtLogger().info("Connected from " + addr + " at " + time);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Connected from {0} at {1}", new Object[]{addr, time});
         }
 
         
@@ -271,9 +264,7 @@ public final class PVTClientServer implements Runnable,open.dolphin.server.PVTSe
                     readLen = reader.read(buffer);
 
                     if (readLen == -1) {
-                        if (DEBUG) {
-                            ClientContext.getPvtLogger().debug("EOF");
-                        }
+                        java.util.logging.Logger.getLogger(this.getClass().getName()).fine("EOF");
                         break;
                     }
 
@@ -284,18 +275,15 @@ public final class PVTClientServer implements Runnable,open.dolphin.server.PVTSe
                         int len = recieved.length();
                         bo.close();
                         buf.close();
-                        if (DEBUG) {
-                            ClientContext.getPvtLogger().info("Recieved EOT length = " + len + " bytes");
-                            ClientContext.getPvtLogger().debug(recieved);
-                        }
+                        java.util.logging.Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Recieved EOT length = {0} bytes", len);
+                        java.util.logging.Logger.getLogger(this.getClass().getName()).info(recieved);
 
                         // add queue
                         sender.processPvt(recieved);
 
                         // Reply ACK
-                        if (DEBUG) {
-                            ClientContext.getPvtLogger().debug("return ACK");
-                        }
+                        java.util.logging.Logger.getLogger(this.getClass().getName()).fine("return ACK");
+                        
                         writer.write(ACK);
                         writer.flush();
 
@@ -310,8 +298,8 @@ public final class PVTClientServer implements Runnable,open.dolphin.server.PVTSe
                 client = null;
                 
             } catch (IOException e) {
-                ClientContext.getPvtLogger().warn("IOException while reading streams");
-                ClientContext.getPvtLogger().warn("Exception details:" + e);
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning("IOException while reading streams");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Exception details:{0}", e);
 
             } finally {
                 if (client != null) {
@@ -319,8 +307,8 @@ public final class PVTClientServer implements Runnable,open.dolphin.server.PVTSe
                         client.close();
                         client = null;
                     } catch (IOException e2) {
-                        ClientContext.getPvtLogger().warn("Exception while closing socket conenction after reading streams");
-                        ClientContext.getPvtLogger().warn("Exception details:" + e2);
+                        java.util.logging.Logger.getLogger(this.getClass().getName()).warning("Exception while closing socket conenction after reading streams");
+                        java.util.logging.Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Exception details:{0}", e2);
                     }
                 }
             }

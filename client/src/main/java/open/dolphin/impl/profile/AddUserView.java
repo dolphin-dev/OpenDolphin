@@ -47,31 +47,32 @@ public class AddUserView extends javax.swing.JPanel {
         jLabel10 = new javax.swing.JLabel();
         jLabel11 = new javax.swing.JLabel();
 
-        jLabel1.setText("ユーザーID:");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/impl/profile/resources/AddUserView"); // NOI18N
+        jLabel1.setText(bundle.getString("userIdLabel.text")); // NOI18N
 
-        jLabel2.setText("パスワード:");
+        jLabel2.setText(bundle.getString("passwordLabel.text")); // NOI18N
 
-        jLabel3.setText("確認:");
+        jLabel3.setText(bundle.getString("confirmLabel.text")); // NOI18N
 
-        jLabel4.setText("姓:");
+        jLabel4.setText(bundle.getString("familyNameLabel.text")); // NOI18N
 
-        jLabel5.setText("名:");
+        jLabel5.setText(bundle.getString("givenNameLabel.text")); // NOI18N
 
-        jLabel6.setText("医療資格:");
+        jLabel6.setText(bundle.getString("licenseLabel.text")); // NOI18N
 
         licenseCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
-        jLabel7.setText("診療科:");
+        jLabel7.setText(bundle.getString("departmentLabel.text")); // NOI18N
 
         deptCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
-        jLabel8.setText("電子メール:");
+        jLabel8.setText(bundle.getString("emailAddressLabel.text")); // NOI18N
 
-        jLabel9.setText("麻薬施用者免許番号:");
+        jLabel9.setText(bundle.getString("narcoticdrugs.admin.license.label.text")); // NOI18N
 
-        jLabel10.setText("ユーザーID: 半角英数字と記号 _+-.#$&@ で4文字以上");
+        jLabel10.setText(bundle.getString("instractionLabel.userId")); // NOI18N
 
-        jLabel11.setText("パスワード: 半角英数字と記号 _+-.#$&@ で6文字以上");
+        jLabel11.setText(bundle.getString("instractionLabel.password")); // NOI18N
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);

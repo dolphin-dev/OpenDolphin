@@ -2,6 +2,7 @@ package open.dolphin.client;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -79,7 +80,7 @@ public final class ReflectActionListener implements ActionListener {
                 Method mth = target.getClass().getMethod(method, argClasses);
                 mth.invoke(target, args);
                 
-            } catch (Exception ex) {
+            } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                 ex.printStackTrace(System.err);
             }
         }

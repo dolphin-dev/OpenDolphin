@@ -1,12 +1,12 @@
 package open.dolphin.helper;
 
-import java.awt.Color;
 import java.awt.Component;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import open.dolphin.client.ClientContext;
+import open.dolphin.client.GUIConst;
 import open.dolphin.client.NameValuePair;
 
 /**
@@ -14,8 +14,7 @@ import open.dolphin.client.NameValuePair;
  * @author Kazushi Minagawa.
  */
 public class PdfOfficeIconRenderer extends DefaultListCellRenderer {
-    
-//minagawa^ Icon Server    
+        
 ////s.oh^ プレイン文書アイコンの追加
 //    private static final ImageIcon ICON_PLAIN = ClientContext.getImageIcon("plain_icon16.png");
 ////s.oh$
@@ -26,10 +25,6 @@ public class PdfOfficeIconRenderer extends DefaultListCellRenderer {
 //s.oh$
     private static final ImageIcon ICON_PDF = ClientContext.getImageIconArias("icon_pdf_small");
     private static final ImageIcon ICON_OFFICE = ClientContext.getImageIconArias("icon_plain_document_small");
-//minagawa$    
-    
-    private static final Color DEFAULT_ODD_COLOR = ClientContext.getColor("color.odd");
-    private static final Color DEFAULT_EVENN_COLOR = ClientContext.getColor("color.even");
     
     public PdfOfficeIconRenderer() {
         setOpaque(true);
@@ -50,9 +45,9 @@ public class PdfOfficeIconRenderer extends DefaultListCellRenderer {
             setForeground(list.getForeground());
             
             if (index % 2 == 0) {
-                setBackground(DEFAULT_EVENN_COLOR);
+                setBackground(GUIConst.TABLE_ODD_COLOR);
             } else {
-                setBackground(DEFAULT_ODD_COLOR);
+                setBackground(GUIConst.TABLE_EVEN_COLOR);
             }
         }
         

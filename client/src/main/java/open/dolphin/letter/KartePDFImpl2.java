@@ -38,10 +38,7 @@ import javax.print.attribute.DocAttributeSet;
 import javax.print.attribute.HashDocAttributeSet;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
-import javax.print.attribute.standard.Copies;
-import javax.print.attribute.standard.MediaSizeName;
 import javax.swing.ImageIcon;
-import javax.swing.JPanel;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.KartePaneDumper_2;
 import open.dolphin.impl.lbtest.LaboTestOutputPDF;
@@ -58,9 +55,9 @@ import org.jdom.input.SAXBuilder;
  * @author Life Sciences Computing Corporation.
  */
 public class KartePDFImpl2 {
-    private KartePaneDumper_2 pdfSOA;  // PDF SOA
-    private KartePaneDumper_2 pdfPlan; // PDF Plan
-    private KartePDFMaker2 pdfMarker;   // PDF Marker
+    private final KartePaneDumper_2 pdfSOA;  // PDF SOA
+    private final KartePaneDumper_2 pdfPlan; // PDF Plan
+    private final KartePDFMaker2 pdfMarker;   // PDF Marker
 
     private static final String COMPONENT_ELEMENT_NAME = "component";
     private static final String STAMP_HOLDER = "stampHolder";
@@ -96,10 +93,14 @@ public class KartePDFImpl2 {
     /**
      * コンストラクタ
      * @param valPath フォルダパス
-     * @param valPathID タイトル
+     * @param valDocID
+     * @param valPatID
+     * @param valPatName
+     * @param valTitle
      * @param valDate 保存時刻
      * @param valSOA SOA
      * @param valPlan Plan
+     * @param docNo
      */
     public KartePDFImpl2(String valPath, String valDocID, String valPatID, String valPatName, String valTitle, Date valDate, KartePaneDumper_2 valSOA, KartePaneDumper_2 valPlan, String docNo) {
         // SOA
@@ -428,7 +429,7 @@ public class KartePDFImpl2 {
                 AttachmentModel[] attachments = pdfSOA.getAttachment();
                 AttachmentModel attachment = (attachments != null && attachments.length > idx) ? attachments[idx] : null;
                 if(attachment != null) {
-                    startContent(null, null, null, null, null, "添付：" + attachment.getTitle() + "(" + attachment.getContentType() + ")");
+                    startContent(null, null, null, null, null, java.text.MessageFormat.format(ClientContext.getMyBundle(KartePDFImpl2.class).getString("messageFormat.attachment"), new Object[] {attachment.getTitle(), attachment.getContentType()}));
                 }
             }
         } catch (Exception e) {

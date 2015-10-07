@@ -5,6 +5,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import open.dolphin.client.Chart;
 import open.dolphin.client.ChartImpl;
+import open.dolphin.client.ClientContext;
 import open.dolphin.client.DocumentViewer;
 import open.dolphin.delegater.LetterDelegater;
 import open.dolphin.helper.DBTask;
@@ -77,7 +78,7 @@ public class MedicalCertificateViewer extends MedicalCertificateImpl implements 
                 editor.start();
                 ChartImpl chart = (ChartImpl)getContext();
                 StringBuilder sb = new StringBuilder();
-                sb.append("修正").append("(").append(editor.getTitle()).append(")");
+                sb.append(ClientContext.getMyBundle(MedicalCertificateViewer.class).getString("modify")).append("(").append(editor.getTitle()).append(")");
                 chart.addChartDocument(editor, sb.toString());
             }
         };
@@ -114,7 +115,7 @@ public class MedicalCertificateViewer extends MedicalCertificateImpl implements 
                 editor.start();
                 ChartImpl chart = (ChartImpl)getContext();
                 StringBuilder sb = new StringBuilder();
-                sb.append("複製").append("(").append(editor.getTitle()).append(")");
+                sb.append(ClientContext.getMyBundle(MedicalCertificateViewer.class).getString("dupuricate")).append("(").append(editor.getTitle()).append(")");
                 chart.addChartDocument(editor, sb.toString());
             }
         };
@@ -124,8 +125,8 @@ public class MedicalCertificateViewer extends MedicalCertificateImpl implements 
 
     class LetterGetTask extends DBTask<LetterModule, Void> {
 
-        private long letterPk;
-        private JScrollPane scroller;
+        private final long letterPk;
+        private final JScrollPane scroller;
 
         public LetterGetTask(Chart app, long letterPk, JScrollPane scroller) {
             super(app);
@@ -144,12 +145,10 @@ public class MedicalCertificateViewer extends MedicalCertificateImpl implements 
         protected void succeeded(LetterModule letter) {
             model = letter;
             modelToView(model);
-            setEditables(false);
-//minagawa^ センターへ表示             
+            setEditables(false);            
             JPanel p = new JPanel(new FlowLayout(FlowLayout.CENTER));
             p.add(view);
-            scroller.setViewportView(p);
-//minagawa$    
+            scroller.setViewportView(p);    
             stateMgr.processCleanEvent();
             getContext().showDocument(0);
         }

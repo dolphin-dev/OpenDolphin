@@ -166,28 +166,40 @@
                 <Column editable="true" title="Title 4" type="java.lang.Object"/>
               </Table>
             </Property>
-            <Property name="toolTipText" type="java.lang.String" value="&#x30bb;&#x30c3;&#x30c8;&#x5185;&#x5bb9;&#x306f; Drag &amp; Drop &#x3067;&#x9806;&#x756a;&#x3092;&#x5165;&#x308c;&#x66ff;&#x3048;&#x308b;&#x3053;&#x3068;&#x304c;&#x3067;&#x304d;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+            <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+              <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="setTable.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+            </Property>
           </Properties>
         </Component>
       </SubComponents>
     </Container>
     <Component class="javax.swing.JCheckBox" name="usageCheck">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x7528;&#x6cd5;" noResource="true"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x30bb;&#x30c3;&#x30c8;&#x306b;&#x7528;&#x6cd5;&#x304c;&#x3042;&#x308c;&#x3070;&#x30c1;&#x30a7;&#x30c3;&#x30af;&#x3055;&#x308c;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="usageCheck.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="usageCheck.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JCheckBox" name="medicineCheck">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x85ac;&#x5264;" noResource="true"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x85ac;&#x5264;&#x304c;&#x30bb;&#x30c3;&#x30c8;&#x306b;&#x3042;&#x308c;&#x3070;&#x30c1;&#x30a7;&#x30c3;&#x30af;&#x3055;&#x308c;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="medicineCheck.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="medicineCheck.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
         <Property name="enabled" type="boolean" value="false"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x30bb;&#x30c3;&#x30c8;&#x540d;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="jLabel2.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="stampNameField">
@@ -195,52 +207,76 @@
         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
           <Color blue="0" green="ff" red="ff" type="rgb"/>
         </Property>
-        <Property name="toolTipText" type="java.lang.String" value="&#x30bb;&#x30c3;&#x30c8;&#x540d;&#x3092;&#x7de8;&#x96c6;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="stampNameField.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JRadioButton" name="inRadio">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x9662;&#x5185;" noResource="true"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x9662;&#x5185;&#x51e6;&#x65b9;&#x306e;&#x6642;&#x9078;&#x629e;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="inRadio.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="inRadio.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JRadioButton" name="outRadio">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x9662;&#x5916;" noResource="true"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x9662;&#x5916;&#x51e6;&#x65b9;&#x306e;&#x6642;&#x9078;&#x629e;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="outRadio.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="outRadio.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="okCntBtn">
       <Properties>
-        <Property name="toolTipText" type="java.lang.String" value="&#x30bb;&#x30c3;&#x30c8;&#x3092;&#x30ab;&#x30eb;&#x30c6;&#x306b;&#x5c55;&#x958b;&#x3057;&#x7d99;&#x7d9a;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="okCntBtn.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="okBtn">
       <Properties>
-        <Property name="toolTipText" type="java.lang.String" value="&#x30bb;&#x30c3;&#x30c8;&#x3092;&#x30ab;&#x30eb;&#x30c6;&#x306b;&#x5c55;&#x958b;&#x3057;&#x7d42;&#x4e86;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="okBtn.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="clearBtn">
       <Properties>
-        <Property name="toolTipText" type="java.lang.String" value="&#x30bb;&#x30c3;&#x30c8;&#x5185;&#x5bb9;&#x3092;&#x30af;&#x30ea;&#x30a2;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="clearBtn.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="deleteBtn">
       <Properties>
-        <Property name="toolTipText" type="java.lang.String" value="&#x9078;&#x629e;&#x3057;&#x305f;&#x9805;&#x76ee;&#x3092;&#x524a;&#x9664;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="deleteBtn.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel3">
     </Component>
     <Component class="javax.swing.JTextField" name="searchTextField">
       <Properties>
-        <Property name="toolTipText" type="java.lang.String" value="&#x691c;&#x7d22;&#x3057;&#x305f;&#x3044;&#x533b;&#x85ac;&#x54c1;&#x540d;&#x3092;&#x5165;&#x529b;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="searchTextField.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JCheckBox" name="rtCheck">
       <Properties>
-        <Property name="text" type="java.lang.String" value="RT" noResource="true"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x30c1;&#x30a7;&#x30c3;&#x30af;&#x3059;&#x308b;&#x3068;&#x5165;&#x529b;&#x4e2d;&#x306b;&#x30ea;&#x30a2;&#x30eb;&#x30bf;&#x30a4;&#x30e0;&#x3067;&#x691c;&#x7d22;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="rtCheck.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="rtCheck.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JComboBox" name="usageCombo">
@@ -259,17 +295,23 @@
             <StringItem index="9" value="&#x5168;&#x3066;"/>
           </StringArray>
         </Property>
-        <Property name="toolTipText" type="java.lang.String" value="&#x7528;&#x6cd5;&#x3092;&#x691c;&#x7d22;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="usageCombo.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="countField">
       <Properties>
-        <Property name="toolTipText" type="java.lang.String" value="&#x691c;&#x7d22;&#x7d50;&#x679c;&#x306e;&#x4ef6;&#x6570;&#x3092;&#x8868;&#x793a;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="countField.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel4">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x4ef6;&#x6570;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="jLabel4.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Container class="javax.swing.JScrollPane" name="jScrollPane2">
@@ -295,20 +337,32 @@
     </Container>
     <Component class="javax.swing.JCheckBox" name="tonyoChk">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x9813;&#x7528;" noResource="true"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x9813;&#x7528;&#x306e;&#x3068;&#x304d;&#x30c1;&#x30a7;&#x30c3;&#x30af;&#x3057;&#x3066;&#x304f;&#x3060;&#x3055;&#x3044;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="tonyoChk.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="tonyoChk.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JCheckBox" name="partialChk">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x90e8;&#x5206;&#x4e00;&#x81f4;" noResource="true"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x90e8;&#x5206;&#x4e00;&#x81f4;&#x691c;&#x7d22;&#x3092;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="partialChk.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="partialChk.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
     <Component class="javax.swing.JCheckBox" name="temporalChk">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x81e8;&#x6642;" noResource="true"/>
-        <Property name="toolTipText" type="java.lang.String" value="&#x81e8;&#x6642;&#x51e6;&#x65b9;&#x306e;&#x6642;&#x30c1;&#x30a7;&#x30c3;&#x30af;&#x3057;&#x307e;&#x3059;&#x3002;" noResource="true"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="temporalChk.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
+        <Property name="toolTipText" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/order/resources/RpView.properties" key="temporalChk.toolTipText" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
       </Properties>
     </Component>
   </SubComponents>

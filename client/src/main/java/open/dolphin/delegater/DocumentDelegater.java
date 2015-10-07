@@ -14,7 +14,6 @@ import open.dolphin.dto.ImageSearchSpec;
 import open.dolphin.dto.ModuleSearchSpec;
 import open.dolphin.infomodel.*;
 import open.dolphin.util.BeanUtils;
-import open.dolphin.util.Log;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -24,10 +23,6 @@ import org.codehaus.jackson.map.ObjectMapper;
  *
  */
 public final class DocumentDelegater extends BusinessDelegater {
-
-    private static final String TITLE_LETTER = "紹介状:";
-    private static final String TITLE_REPLY = "返書:";
-    private static final String TITLE_CERTIFICATE = "診断書";
     
     /**
      * 患者のカルテを取得する。
@@ -52,9 +47,9 @@ public final class DocumentDelegater extends BusinessDelegater {
         // reconnect
         List<PatientMemoModel> memoList = karte.getMemoList();
         if (memoList!=null && memoList.size()>0) {
-            for (PatientMemoModel pm : memoList) {
+            memoList.stream().forEach((pm) -> {
                 pm.setKarteBean(karte);
-            }
+            });
         }
         return karte;
     }
@@ -208,6 +203,10 @@ public final class DocumentDelegater extends BusinessDelegater {
                 //docInfo.setFirstConfirmDate(module.getConfirmed());
                 docInfo.setFirstConfirmDate(module.getStarted());
 //minagawa$                
+                String TITLE_LETTER = ClientContext.getMyBundle(DocumentDelegater.class).getString("title.Letter");
+                String TITLE_REPLY = ClientContext.getMyBundle(DocumentDelegater.class).getString("title.reply");
+                String TITLE_CERTIFICATE = ClientContext.getMyBundle(DocumentDelegater.class).getString("title.certificate");
+                
                 sb = new StringBuilder();
                 if (module.getTitle()!=null) {
                     sb.append(module.getTitle());
@@ -228,7 +227,6 @@ public final class DocumentDelegater extends BusinessDelegater {
                 ret.add(docInfo);
             }
         } else {
-            Log.outputFuncLog(Log.LOG_LEVEL_0,"E","parse no results");
             System.err.println("parse no results");
         }
 
@@ -259,10 +257,8 @@ public final class DocumentDelegater extends BusinessDelegater {
             return result.getList();
             
         } catch (Exception e) {
-            String err = "文書が他から参照されている等の理由により、削除できませんでした。";
-            Log.outputFuncLog(Log.LOG_LEVEL_0,"E",err);
-            
-            ClientContext.getDelegaterLogger().warn(err);
+            String err = ClientContext.getMyBundle(DocumentDelegater.class).getString("error.cannotDelete");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(err);
             throw new RuntimeException(err);
         }        
     }

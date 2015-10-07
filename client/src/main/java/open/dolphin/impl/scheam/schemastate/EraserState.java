@@ -16,7 +16,7 @@ import open.dolphin.impl.scheam.holder.PathHolder;
 public class EraserState extends AbstractState {
 
     private GeneralPath gpath;
-    private Stroke eraserStroke = properties.getEraserStroke();
+    private final Stroke eraserStroke = properties.getEraserStroke();
 
     public EraserState(SchemaEditorImpl context) {
         super(context);

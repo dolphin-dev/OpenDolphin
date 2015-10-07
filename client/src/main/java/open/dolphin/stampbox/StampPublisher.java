@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.UnsupportedEncodingException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -25,7 +26,6 @@ import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.IStampTreeModel;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  * StampTreePublisher
@@ -41,8 +41,8 @@ public class StampPublisher {
     private static final int TT_LOCAL = 0;
     private static final int TT_PUBLIC = 1;
     
-    private StampBoxPlugin stampBox;
-    private String title = "スタンプ公開";
+    private final StampBoxPlugin stampBox;
+    private final String title;
     
     private JFrame dialog;
     private BlockGlass blockGlass;
@@ -74,46 +74,42 @@ public class StampPublisher {
     private javax.swing.Timer taskTimer;
     private ProgressMonitor monitor;
     private int delayCount;
-    private int maxEstimation = 90*1000;    // 90 秒
-    private int delay = 300;                // 300 mmsec
+    private final int maxEstimation = 90*1000;    // 90 秒
+    private final int delay = 300;                // 300 mmsec
     
     
     public StampPublisher(StampBoxPlugin stampBox) {
+        title = ClientContext.getMyBundle(StampPublisher.class).getString("title.window");
         this.stampBox = stampBox;
     }
     
     public void start() {
 
-        Runnable awt = new Runnable() {
-
-            @Override
-            public void run() {
-
-                stampBox.getBlockGlass().block();
-
-                dialog = new JFrame(ClientContext.getFrameTitle(title));
-                dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-                dialog.addWindowListener(new WindowAdapter() {
-                    @Override
-                    public void windowClosing(WindowEvent e) {
-                        stop();
-                    }
-                });
-                JPanel contentPane = createContentPane();
-                contentPane.setOpaque(true);
-                dialog.setContentPane(contentPane);
-                dialog.pack();
-
-                Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-                int n = ClientContext.isMac() ? 3 : 2;
-                int x = (screen.width - dialog.getPreferredSize().width) / 2;
-                int y = (screen.height - dialog.getPreferredSize().height) / n;
-                dialog.setLocation(x, y);
-
-                blockGlass = new BlockGlass();
-                dialog.setGlassPane(blockGlass);
-                dialog.setVisible(true);
-            }
+        Runnable awt = () -> {
+            stampBox.getBlockGlass().block();
+            
+            dialog = new JFrame(ClientContext.getFrameTitle(title));
+            dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+            dialog.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    stop();
+                }
+            });
+            JPanel contentPane = createContentPane();
+            contentPane.setOpaque(true);
+            dialog.setContentPane(contentPane);
+            dialog.pack();
+            
+            Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+            int n = ClientContext.isMac() ? 3 : 2;
+            int x = (screen.width - dialog.getPreferredSize().width) / 2;
+            int y = (screen.height - dialog.getPreferredSize().height) / n;
+            dialog.setLocation(x, y);
+            
+            blockGlass = new BlockGlass();
+            dialog.setGlassPane(blockGlass);
+            dialog.setVisible(true);
         };
         
         SwingUtilities.invokeLater(awt);
@@ -129,41 +125,46 @@ public class StampPublisher {
         
         JPanel contentPane = new JPanel();
         
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampPublisher.class);
+        String toolTipTexMandatory = bundle.getString("toolTipText.mandatory");
+        String buttonTextStopPublish = bundle.getString("buttonText.stopPublish");
+        String buttonTextClose = bundle.getString("toolTipText.closeDalog");
+        
         // GUIコンポーネントを生成する
-//minagawa^ Icon Server        
-        //infoLable = new JLabel(ClientContext.getImageIcon("about_16.gif"));
-        infoLable = new JLabel(ClientContext.getImageIconArias("icon_info_small"));
-//minagawa$        
+        infoLable = new JLabel(ClientContext.getImageIconArias("icon_info_small"));       
         instLabel = new JLabel("");
-        instLabel.setFont(new Font("Dialog", Font.PLAIN, ClientContext.getInt("watingList.state.font.size")));
+        instLabel.setFont(new Font("Dialog", Font.PLAIN, 10));
         publishedDate = new JLabel("");
         
         stampBoxName = GUIFactory.createTextField(15, null, null, null);
         partyName = GUIFactory.createTextField(20, null, null, null);
         contact = GUIFactory.createTextField(30, null, null, null);
         description = GUIFactory.createTextField(30, null, null, null);
-        stampBoxName.setToolTipText("必須です。");
-        partyName.setToolTipText("必須です。");
-        contact.setToolTipText("必須です。");
-        description.setToolTipText("必須です。");
+        stampBoxName.setToolTipText(toolTipTexMandatory);
+        partyName.setToolTipText(toolTipTexMandatory);
+        contact.setToolTipText(toolTipTexMandatory);
+        description.setToolTipText(toolTipTexMandatory);
         local = new JRadioButton(IInfoModel.PUBLISH_TREE_LOCAL);
         publc = new JRadioButton(IInfoModel.PUBLISH_TREE_PUBLIC);
         publish = new JButton("");
         publish.setEnabled(false);
-        cancelPublish = new JButton("公開を止める");
+        cancelPublish = new JButton(buttonTextStopPublish);
         cancelPublish.setEnabled(false);
-        cancel = new JButton("ダイアログを閉じる");
-        entities = new JCheckBox[IInfoModel.STAMP_NAMES.length];
-        for (int i = 0; i < IInfoModel.STAMP_NAMES.length; i++) {
-            entities[i] = new JCheckBox(IInfoModel.STAMP_NAMES[i]);
-            if (IInfoModel.STAMP_NAMES[i].equals(IInfoModel.TABNAME_ORCA)) {
+        cancel = new JButton(buttonTextClose);
+        java.util.ResourceBundle b = java.util.ResourceBundle.getBundle("open.dolphin.stampbox.StampBoxResource");
+        String[] stampNames = (String[])b.getObject("STAMP_NAMES");
+        String tabNameORCA = b.getString("TABNAME_ORCA");
+        entities = new JCheckBox[stampNames.length];
+        for (int i = 0; i < stampNames.length; i++) {
+            entities[i] = new JCheckBox(stampNames[i]);
+            if (stampNames[i].equals(tabNameORCA)) {
                 entities[i].setEnabled(false);
             }
         }
         JPanel chkPanel1 = GUIFactory.createCheckBoxPanel(new JCheckBox[]{entities[0], entities[1], entities[2], entities[3], entities[4], entities[5], entities[6], entities[7]});
         JPanel chkPanel2 = GUIFactory.createCheckBoxPanel(new JCheckBox[]{entities[8], entities[9], entities[10], entities[11], entities[12], entities[13], entities[14], entities[15]});
         
-        String[] categories = ClientContext.getStringArray("stamp.publish.categories");
+        String[] categories = bundle.getString("stamp.publish.categories").split(",");
         category = new JComboBox(categories);
         JPanel categoryPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         categoryPanel.add(category);
@@ -172,14 +173,16 @@ public class StampPublisher {
         JPanel radioPanel = GUIFactory.createRadioPanel(new JRadioButton[]{local, publc});
         
         // 属性設定パネル
-        GridBagBuilder gbl = new GridBagBuilder("スタンプ公開設定");
+        String labelText = bundle.getString("labelText.publishSetting");
+        GridBagBuilder gbl = new GridBagBuilder(labelText);
         
         int y = 0;
         gbl.add(infoLable, 0, y, GridBagConstraints.EAST);
         gbl.add(instLabel, 1, y, GridBagConstraints.WEST);
         
         y++;
-        gbl.add(new JLabel("公開スタンプセット名"), 0, y, GridBagConstraints.EAST);
+        labelText = bundle.getString("labelText.setName.publishedStamp");
+        gbl.add(new JLabel(labelText), 0, y, GridBagConstraints.EAST);
         gbl.add(stampBoxName, 1, y, GridBagConstraints.WEST);
         
         // DolphinPro NO
@@ -187,16 +190,19 @@ public class StampPublisher {
         // OpenDolphin YES
         if (Project.canGlobalPublish()) {
             y++;
-            gbl.add(new JLabel("公開先"), 0, y, GridBagConstraints.EAST);
+            labelText = bundle.getString("labelText.publishDestination");
+            gbl.add(new JLabel(labelText), 0, y, GridBagConstraints.EAST);
             gbl.add(radioPanel, 1, y, GridBagConstraints.WEST);
         }
         
         y++;
-        gbl.add(new JLabel("カテゴリ"), 0, y, GridBagConstraints.EAST);
+        labelText = bundle.getString("labelText.category");
+        gbl.add(new JLabel(labelText), 0, y, GridBagConstraints.EAST);
         gbl.add(categoryPanel, 1, y, GridBagConstraints.WEST);
         
         y++;
-        gbl.add(new JLabel("公開するスタンプ"), 0, y, GridBagConstraints.EAST);
+        labelText = bundle.getString("labelText.stampToPublish");
+        gbl.add(new JLabel(labelText), 0, y, GridBagConstraints.EAST);
         gbl.add(chkPanel1, 1, y, GridBagConstraints.WEST);
         
         y++;
@@ -204,19 +210,23 @@ public class StampPublisher {
         gbl.add(chkPanel2, 1, y, GridBagConstraints.WEST);
         
         y++;
-        gbl.add(new JLabel("公開者名"), 0, y, GridBagConstraints.EAST);
+        labelText = bundle.getString("labelText.publisherName");
+        gbl.add(new JLabel(labelText), 0, y, GridBagConstraints.EAST);
         gbl.add(partyName, 1, y, GridBagConstraints.WEST);
         
         y++;
-        gbl.add(new JLabel("URL等"), 0, y, GridBagConstraints.EAST);
+        labelText = bundle.getString("labelText.url");
+        gbl.add(new JLabel(labelText), 0, y, GridBagConstraints.EAST);
         gbl.add(contact, 1, y, GridBagConstraints.WEST);
         
         y++;
-        gbl.add(new JLabel("利用者への説明"), 0, y, GridBagConstraints.EAST);
+        labelText = bundle.getString("labelText.description");
+        gbl.add(new JLabel(labelText), 0, y, GridBagConstraints.EAST);
         gbl.add(description, 1, y, GridBagConstraints.WEST);
         
         y++;
-        gbl.add(new JLabel("公開日"), 0, y, GridBagConstraints.EAST);
+        labelText = bundle.getString("labelText.publishedDate");
+        gbl.add(new JLabel(labelText), 0, y, GridBagConstraints.EAST);
         gbl.add(publishedDate, 1, y, GridBagConstraints.WEST);
         
         // コマンドパネル
@@ -266,7 +276,8 @@ public class StampPublisher {
         switch (publishState) {
             
             case NONE:
-                instLabel.setText("このスタンプは公開されていません。");
+                labelText = bundle.getString("labeltext.notPublished");
+                instLabel.setText(labelText);
                 partyName.setText(facility.getFacilityName());
                 String url = facility.getUrl();
                 if (url != null) {
@@ -274,11 +285,13 @@ public class StampPublisher {
                 }
                 String dateStr = ModelUtils.getDateAsString(new Date());
                 publishedDate.setText(dateStr);
-                publish.setText("公開する");
+                String btnText = bundle.getString("buttonText.publish");
+                publish.setText(btnText);
                 break;
                 
             case SAVED_NONE:
-                instLabel.setText("このスタンプは公開されていません。");
+                labelText = bundle.getString("labeltext.notPublished");
+                instLabel.setText(labelText);
                 partyName.setText(stmpTree.getPartyName());
                 url = facility.getUrl();
                 if (url != null) {
@@ -286,11 +299,13 @@ public class StampPublisher {
                 }
                 dateStr = ModelUtils.getDateAsString(new Date());
                 publishedDate.setText(dateStr);
-                publish.setText("公開する");
+                btnText = bundle.getString("buttonText.publish");
+                publish.setText(btnText);
                 break;
                 
             case LOCAL:
-                instLabel.setText("このスタンプは院内に公開されています。");
+                labelText = bundle.getString("labelText.underPublishedInternally");
+                instLabel.setText(labelText);
                 stampBoxName.setText(stmpTree.getName());
                 local.setSelected(true);
                 publc.setSelected(false);
@@ -317,19 +332,22 @@ public class StampPublisher {
                 partyName.setText(stmpTree.getPartyName());
                 contact.setText(stmpTree.getUrl());
                 description.setText(stmpTree.getDescription());
-                StringBuilder sb = new StringBuilder();
-                sb.append(ModelUtils.getDateAsString(stmpTree.getPublishedDate()));
-                sb.append("  最終更新日( ");
-                sb.append(ModelUtils.getDateAsString(stmpTree.getLastUpdated()));
-                sb.append(" )");
-                publishedDate.setText(sb.toString());
-                publish.setText("更新する");
+                
+                String fmt = bundle.getString("messageFormat.updatedDate");
+                String info = new MessageFormat(fmt).format(new Object[]{
+                    ModelUtils.getDateAsString(stmpTree.getPublishedDate()),
+                    ModelUtils.getDateAsString(stmpTree.getLastUpdated())
+                });
+                btnText = bundle.getString("buttonText.update");
+                publishedDate.setText(info);
+                publish.setText(btnText);
                 publish.setEnabled(true);
                 cancelPublish.setEnabled(true);
                 break;
                 
             case GLOBAL:
-                instLabel.setText("このスタンプはグローバルに公開されています。");
+                labelText = bundle.getString("labelText.underPublishedGlobal");
+                instLabel.setText(labelText);
                 stampBoxName.setText(stmpTree.getName());
                 local.setSelected(false);
                 publc.setSelected(true);
@@ -353,13 +371,14 @@ public class StampPublisher {
                     }
                 }
                 
-                sb = new StringBuilder();
-                sb.append(ModelUtils.getDateAsString(stmpTree.getPublishedDate()));
-                sb.append("  最終更新日( ");
-                sb.append(ModelUtils.getDateAsString(stmpTree.getLastUpdated()));
-                sb.append(" )");
-                publishedDate.setText(sb.toString());
-                publish.setText("更新する");
+                fmt = bundle.getString("messageFormat.updatedDate");
+                info = new MessageFormat(fmt).format(new Object[]{
+                    ModelUtils.getDateAsString(stmpTree.getPublishedDate()),
+                    ModelUtils.getDateAsString(stmpTree.getLastUpdated())
+                });
+                publishedDate.setText(info);
+                btnText = bundle.getString("buttonText.update");
+                publish.setText(btnText);
                 publish.setEnabled(true);
                 cancelPublish.setEnabled(true);
                 break;
@@ -409,7 +428,8 @@ public class StampPublisher {
         cancelPublish.addActionListener(new ReflectActionListener(this, "cancelPublish"));
         cancel.addActionListener(new ReflectActionListener(this, "stop"));
 
-        if (ClientContext.isDolphinPro()) {
+        //if (ClientContext.isDolphinPro()) {
+        if (!Project.canGlobalPublish()) {    
             local.doClick();
         }
         
@@ -422,7 +442,9 @@ public class StampPublisher {
         public void actionPerformed(ActionEvent e) {
             if (local.isSelected()) {
                 publishType = TT_LOCAL;
-                category.setSelectedIndex(ClientContext.getInt("stamp.publish.categories.localItem"));
+                java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampPublisher.class);
+                int index = Integer.parseInt(bundle.getString("stamp.publish.categories.localItem"));
+                category.setSelectedIndex(index);
             } else if (publc.isSelected()) {
                 publishType = TT_PUBLIC;
             }
@@ -436,7 +458,7 @@ public class StampPublisher {
     public void publish() {
         
         // 公開するStampTreeを取得する
-        ArrayList<StampTree> publishList = new ArrayList<StampTree>(IInfoModel.STAMP_ENTITIES.length);
+        ArrayList<StampTree> publishList = new ArrayList<>(IInfoModel.STAMP_ENTITIES.length);
         
         // Entity のカンマ連結用 StringBuilder 
         StringBuilder sb = new StringBuilder();
@@ -575,11 +597,11 @@ public class StampPublisher {
             
             @Override
             protected void succeeded(Void result) {
+                String msg = ClientContext.getMyBundle(StampPublisher.class).getString("message.publishedDone");
                 JOptionPane.showMessageDialog(dialog,
-                        "スタンプを公開しました。",
+                        msg,
                         ClientContext.getFrameTitle(title),
                         JOptionPane.INFORMATION_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(title), "スタンプを公開しました。");
                 stop();
 
             }
@@ -588,21 +610,22 @@ public class StampPublisher {
             protected void failed(java.lang.Throwable cause) {
                 String dispErr;
                 String test = (cause!=null && cause.getMessage()!=null) ? cause.getMessage() : null;
-                if (test!=null && test.indexOf("First Commit Win")>=0) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("スタンプツリーは他の端末により先に保存されています。").append("\n");
-                    sb.append("整合性を保ため、再ログインし、改めて実行してください。");
-                    dispErr = sb.toString();
+                if (test!=null && test.contains("First Commit Win")) {
+//                    StringBuilder sb = new StringBuilder();
+//                    sb.append("スタンプツリーは他の端末により先に保存されています。").append("\n");
+//                    sb.append("整合性を保ため、再ログインし、改めて実行してください。");
+//                    dispErr = sb.toString();
+                    dispErr = ClientContext.getMyBundle(StampPublisher.class).getString("warning.firstCommitWin");
                 } else {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("スタンプツリーの保存に失敗しました。");
-                    dispErr = sb.toString();
+//                    StringBuilder sb = new StringBuilder();
+//                    sb.append("スタンプツリーの保存に失敗しました。");
+//                    dispErr = sb.toString();
+                    dispErr = ClientContext.getMyBundle(StampPublisher.class).getString("error.saveStampTree");
                 }
                 JOptionPane.showMessageDialog(dialog,
                             dispErr,
                             ClientContext.getFrameTitle(title),
                             JOptionPane.WARNING_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), cause.getMessage(), dispErr);
             }
 
             @Override
@@ -622,25 +645,22 @@ public class StampPublisher {
             }
         };
 
-        String message = "スタンプ公開";
-        String note = "公開しています...";
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampPublisher.class);
+        String message = bundle.getString("message.progress.publishStamp");
+        String note = bundle.getString("note.publisStamp");
         Component c = dialog;
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-        taskTimer = new Timer(delay, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-
-                if (monitor.isCanceled() && (!worker.isCancelled())) {
-                   // no cancel
-                } else if (delayCount >= monitor.getMaximum() && (!worker.isCancelled())) {
-                    worker.cancel(true);
-
-                } else {
-                    monitor.setProgress(delayCount);
-                }
+        taskTimer = new Timer(delay, (ActionEvent e) -> {
+            delayCount++;
+            
+            if (monitor.isCanceled() && (!worker.isCancelled())) {
+                // no cancel
+            } else if (delayCount >= monitor.getMaximum() && (!worker.isCancelled())) {
+                worker.cancel(true);
+                
+            } else {
+                monitor.setProgress(delayCount);
             }
         });
 
@@ -653,8 +673,12 @@ public class StampPublisher {
     public void cancelPublish() {
         
         // 確認を行う
-        JLabel msg1 = new JLabel("公開を取り消すとサブスクライブしているユーザがあなたの");
-        JLabel msg2 = new JLabel("スタンプを使用できなくなります。公開を取り消しますか?");
+        final java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampPublisher.class);
+        String msg_1 = bundle.getString("message.stopPublish_1");
+        String msg_2 = bundle.getString("message.stopPublish_2");
+        
+        JLabel msg1 = new JLabel(msg_1);
+        JLabel msg2 = new JLabel(msg_2);
         JPanel p1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 3));
         p1.add(msg1);
         JPanel p2 = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 3));
@@ -697,8 +721,10 @@ public class StampPublisher {
         stmpTree.setPublishedDate(null);
         stmpTree.setLastUpdated(null);
         stmpTree.setCategory(null);
-        stmpTree.setName(ClientContext.getString("stampTree.personal.box.name"));
-        stmpTree.setDescription(ClientContext.getString("stampTree.personal.box.tooltip"));
+        String name = bundle.getString("name.personalStampTree");
+        stmpTree.setName(name);
+        String toolTipText = bundle.getString("toolTipText.personalTree");
+        stmpTree.setDescription(toolTipText);
 
         // task
         final SimpleWorker worker = new SimpleWorker<Void, Void>() {
@@ -716,11 +742,11 @@ public class StampPublisher {
             
             @Override
             protected void succeeded(Void result) {
+                String message = bundle.getString("message.stoppedPublish");
                 JOptionPane.showMessageDialog(dialog,
-                            "公開を取り消しました。",
+                            message,
                             ClientContext.getFrameTitle(title),
                             JOptionPane.INFORMATION_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(title), "公開を取り消しました。");
                 stop();
             }
             
@@ -730,7 +756,6 @@ public class StampPublisher {
                             cause.getMessage(),
                             ClientContext.getFrameTitle(title),
                             JOptionPane.WARNING_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), cause.getMessage());
             }
 
             @Override
@@ -751,25 +776,21 @@ public class StampPublisher {
 
         };
 
-        String message = "スタンプ公開";
-        String note = "取り消しています...";
+        String message = bundle.getString("message.progress.publishStamp");
+        String note = bundle.getString("note.canceling");
         Component c = dialog;
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-        taskTimer = new Timer(delay, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-
-                if (monitor.isCanceled() && (!worker.isCancelled())) {
-                   // no cancel
-                } else if (delayCount >= monitor.getMaximum() && (!worker.isCancelled())) {
-                    worker.cancel(true);
-
-                } else {
-                    monitor.setProgress(delayCount);
-                }
+        taskTimer = new Timer(delay, (ActionEvent e) -> {
+            delayCount++;
+            
+            if (monitor.isCanceled() && (!worker.isCancelled())) {
+                // no cancel
+            } else if (delayCount >= monitor.getMaximum() && (!worker.isCancelled())) {
+                worker.cancel(true);
+                
+            } else {
+                monitor.setProgress(delayCount);
             }
         });
 

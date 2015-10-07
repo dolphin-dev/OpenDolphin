@@ -8,7 +8,6 @@ import open.dolphin.helper.UserDocumentHelper;
 import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.letter.KartePDFMaker;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  *
@@ -38,7 +37,7 @@ public class KartePDFSender implements IKarteSender {
         }
         // 出力先を取得
         String outputDir = Project.getString(Project.KARTE_PDF_SEND_DIRECTORY);
-        String title = "カルテ";
+        String title = ClientContext.getMyBundle(KartePDFSender.class).getString("text.karte");
         String ext = ".pdf";
         String ptName = context.getPatient().getFullName();
         ptName = ptName.replace(" ", "").replace("　", "");
@@ -51,14 +50,14 @@ public class KartePDFSender implements IKarteSender {
         if (send) {
 //s.oh^ 2013/09/05
             if(pathToOutput == null) {
-                String msg1 = "PDFファイルの保存に失敗しました。";
-                String msg2 = "PDFの保存先を確認してください。";
+                java.util.ResourceBundle bundle = ClientContext.getMyBundle(KartePDFSender.class);
+                String msg1 = bundle.getString("error.savePDF1");
+                String msg2 = bundle.getString("instraction.savePDF");
                 Object obj = new String[]{msg1, msg2};
                 JOptionPane.showMessageDialog(null, obj, ClientContext.getString("productString"), JOptionPane.ERROR_MESSAGE);
-                Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, msg1, msg2);
             }else if(send) {
 //s.oh$
-                List<DocumentModel> list = new ArrayList<DocumentModel>(1);
+                List<DocumentModel> list = new ArrayList<>(1);
                 list.add(data);
                 KartePDFMaker maker = new KartePDFMaker();
                 maker.setContext(getContext());

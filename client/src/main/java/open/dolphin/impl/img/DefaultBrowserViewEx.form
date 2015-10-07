@@ -103,19 +103,10 @@
       </SubComponents>
     </Container>
     <Component class="javax.swing.JButton" name="otherProcess1Btn">
-      <Properties>
-        <Property name="label" type="java.lang.String" value="List"/>
-      </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="otherProcess2Btn">
-      <Properties>
-        <Property name="label" type="java.lang.String" value="Image"/>
-      </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="otherProcess3Btn">
-      <Properties>
-        <Property name="label" type="java.lang.String" value="Today"/>
-      </Properties>
     </Component>
     <Component class="javax.swing.JButton" name="newdirBtn">
       <Properties>

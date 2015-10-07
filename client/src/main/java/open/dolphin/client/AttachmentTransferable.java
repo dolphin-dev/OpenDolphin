@@ -16,9 +16,10 @@ public final class AttachmentTransferable implements Transferable, ClipboardOwne
     
     public static final DataFlavor[] flavors = {AttachmentTransferable.attachmentFlavor};
     
-    private AttachmentModel attachment;
+    private final AttachmentModel attachment;
     
-    /** Creates new AttachmentTransferable */
+    /** Creates new AttachmentTransferable
+     * @param attachment */
     public AttachmentTransferable(AttachmentModel attachment) {
         this.attachment = attachment;
     }
@@ -30,7 +31,7 @@ public final class AttachmentTransferable implements Transferable, ClipboardOwne
     
     @Override
     public boolean isDataFlavorSupported(DataFlavor flavor) {
-        return flavor.equals(attachmentFlavor) ? true : false;
+        return flavor.equals(attachmentFlavor);
     }
     
     @Override

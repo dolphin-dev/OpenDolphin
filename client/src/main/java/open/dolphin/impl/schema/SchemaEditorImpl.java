@@ -16,7 +16,6 @@ import open.dolphin.client.SchemaEditor;
 import open.dolphin.infomodel.ExtRefModel;
 import open.dolphin.infomodel.SchemaModel;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  *
@@ -29,13 +28,11 @@ public class SchemaEditorImpl implements SchemaEditor {
     private static final float DEFAULT_ALPHA = 0.5f;
     private static final int DEFAULT_TEXT_SIZE = 24;
     private static final String DEFAULT_FONT_NAME = "Dialog";
-    private static final String TITLE = "シェーマエディタ";
-    //private static final String OK_BTN_TEXT = "カルテに展開";
-    private static final String DEFAULT_ROLE = "参考図";
-    private static final String DEFAULT_TITLE = "参考画像";
+    private static final String TITLE = java.util.ResourceBundle.getBundle("open/dolphin/impl/schema/resources/SchemaEditorImpl").getString("title.schemaEditor");
+    private static final String DEFAULT_ROLE = java.util.ResourceBundle.getBundle("open/dolphin/impl/schema/resources/SchemaEditorImpl").getString("defaultRole.refFig");
+    private static final String DEFAULT_TITLE = java.util.ResourceBundle.getBundle("open/dolphin/impl/schema/resources/SchemaEditorImpl").getString("defaultTitle.refImage");
     
     private SchemaModel model;
-    //protected BufferedImage srcImage;
     protected Image srcImage;
     private Insets margin;
     protected ArrayList<DrawingHolder> drawingList;
@@ -103,9 +100,9 @@ public class SchemaEditorImpl implements SchemaEditor {
             
             g2.drawImage(srcImage, x, y, srcImage.getWidth(null), srcImage.getHeight(null), null);
             
-            for (DrawingHolder d : drawingList) {
+            drawingList.stream().forEach((d) -> {
                 d.draw(g2);
-            }
+            });
             
         } catch (Exception e) {
             e.printStackTrace(System.err);
@@ -206,13 +203,9 @@ public class SchemaEditorImpl implements SchemaEditor {
         String canceltext = (String) UIManager.get("OptionPane.cancelButtonText");
         JButton cancelBtn = view.getCancelBtn();
         cancelBtn.setText(canceltext);
-        cancelBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                 close();
-                 firePropertyChange(null);
-            }
+        cancelBtn.addActionListener((ActionEvent e) -> {
+            close();
+            firePropertyChange(null);
         });
         
         int height = canvas.getPreferredSize().height + 150;
@@ -279,27 +272,23 @@ public class SchemaEditorImpl implements SchemaEditor {
         lines[2] = ShapeIconMaker.createRectFillIcon(Color.BLACK, new Dimension(30, 4));
         lines[3] = ShapeIconMaker.createRectFillIcon(Color.BLACK, new Dimension(30, 8));
         widthCombo.setModel(new DefaultComboBoxModel(lines));
-        widthCombo.addItemListener(new ItemListener() {
-
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                if (e.getStateChange() == ItemEvent.SELECTED) {
-                    JComboBox cmb = (JComboBox) e.getSource();
-                    int index = cmb.getSelectedIndex();
-                    switch (index) {
-                        case 0:
-                            setLineWidth(1);
-                            break;
-                        case 1:
-                            setLineWidth(2);
-                            break;
-                        case 2:
-                            setLineWidth(4);
-                            break; 
-                        case 3:
-                            setLineWidth(8);
-                            break; 
-                    }
+        widthCombo.addItemListener((ItemEvent e) -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                JComboBox cmb = (JComboBox) e.getSource();
+                int index = cmb.getSelectedIndex();
+                switch (index) {
+                    case 0:
+                        setLineWidth(1);
+                        break;
+                    case 1:
+                        setLineWidth(2);
+                        break;
+                    case 2:
+                        setLineWidth(4);
+                        break;
+                    case 3:
+                        setLineWidth(8);
+                        break;
                 }
             }
         });
@@ -362,105 +351,56 @@ public class SchemaEditorImpl implements SchemaEditor {
             
         });
         
-        selectBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stateMgr.startSelect();
-            }
+        selectBtn.addActionListener((ActionEvent e) -> {
+            stateMgr.startSelect();
         });
         
-        lineBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stateMgr.startLine();
-            }
+        lineBtn.addActionListener((ActionEvent e) -> {
+            stateMgr.startLine();
         });
         
-        rectBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stateMgr.startRect();
-            }
+        rectBtn.addActionListener((ActionEvent e) -> {
+            stateMgr.startRect();
         });
         
-        ellipseBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stateMgr.startEllipse();
-            }
+        ellipseBtn.addActionListener((ActionEvent e) -> {
+            stateMgr.startEllipse();
         });
 
-        openPathBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stateMgr.startOpenPath();
-            }
+        openPathBtn.addActionListener((ActionEvent e) -> {
+            stateMgr.startOpenPath();
         });
         
-        polygonBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stateMgr.startPolygon();
-            }
+        polygonBtn.addActionListener((ActionEvent e) -> {
+            stateMgr.startPolygon();
         });
         
-        rectFillBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stateMgr.startRectFill();
-            }
+        rectFillBtn.addActionListener((ActionEvent e) -> {
+            stateMgr.startRectFill();
         });
         
-        ellipseFillBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stateMgr.startEllipseFill();
-            }
+        ellipseFillBtn.addActionListener((ActionEvent e) -> {
+            stateMgr.startEllipseFill();
         });
         
-        polygonFillBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stateMgr.startPolygonFill();
-            }
+        polygonFillBtn.addActionListener((ActionEvent e) -> {
+            stateMgr.startPolygonFill();
         });
         
-        textBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stateMgr.startText();
-            }
+        textBtn.addActionListener((ActionEvent e) -> {
+            stateMgr.startText();
         });
         
-        colorBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                chooseColor();
-            }
+        colorBtn.addActionListener((ActionEvent e) -> {
+            chooseColor();
         });
         
-        undoBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stateMgr.undo();
-            }
+        undoBtn.addActionListener((ActionEvent e) -> {
+            stateMgr.undo();
         });
         
-        clearBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stateMgr.clear();
-            }
+        clearBtn.addActionListener((ActionEvent e) -> {
+            stateMgr.clear();
         });
         
         JTextField titleFld = view.getTitleFld();
@@ -482,28 +422,20 @@ public class SchemaEditorImpl implements SchemaEditor {
             }
         }
         
-        drawingList = new ArrayList<DrawingHolder>(5);
+        drawingList = new ArrayList<>(5);
         stateMgr = new StateMgr();
         
         JButton okBtn = view.getOkBtn();
-        okBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                close();
-                firePropertyChange(createImage());
-            }
+        okBtn.addActionListener((ActionEvent e) -> {
+            close();
+            firePropertyChange(createImage());
         });
         String canceltext = (String) UIManager.get("OptionPane.cancelButtonText");
         JButton cancelBtn = view.getCancelBtn();
         cancelBtn.setText(canceltext);
-        cancelBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                 close();
-                firePropertyChange(null);
-            }
+        cancelBtn.addActionListener((ActionEvent e) -> {
+            close();
+            firePropertyChange(null);
         });
         
         int height = canvas.getPreferredSize().height + 150;
@@ -528,7 +460,7 @@ public class SchemaEditorImpl implements SchemaEditor {
     
     private void chooseColor() {
         
-        Color newColor = JColorChooser.showDialog(view, "塗りつぶしカラー選択", getFillColor());
+        Color newColor = JColorChooser.showDialog(view, ClientContext.getMyBundle(SchemaEditorImpl.class).getString("title.colorChooser.selectColor"), getFillColor());
         if (newColor != null) {
             setFillColor(newColor);
             ImageIcon icon = ShapeIconMaker.createRectFillIcon(getFillColor(), new Dimension(32, 32));
@@ -682,11 +614,7 @@ public class SchemaEditorImpl implements SchemaEditor {
             int x = Math.abs(start.x - end.x);
             int y = Math.abs(start.y - end.y);
             
-            if (x > 5 || y > 5) {
-                return true;
-            }
-            
-            return false;
+            return x > 5 || y > 5;
         }
     }
     
@@ -1102,15 +1030,12 @@ public class SchemaEditorImpl implements SchemaEditor {
         
         @Override
         public void mouseDown(Point p) {
-            inputText = JOptionPane.showInputDialog(view, "テキストを入力してください。");
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "テキストを入力してください。");
+            inputText = JOptionPane.showInputDialog(view, ClientContext.getMyBundle(SchemaEditorImpl.class).getString("inputText.inputDialog"));
             if (inputText != null) {
-                Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "OK", inputText);
                 start = p;
                 end = null;
                 canvas.repaint();
             } else {
-                Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "キャンセル");
                 start = null;
                 end = null;
             }
@@ -1180,21 +1105,21 @@ public class SchemaEditorImpl implements SchemaEditor {
     
     class StateMgr {
         
-        private State selectState;
+        private final State selectState;
         
-        private State lineState;
-        private State rectState;
-        private State ellipseState;
-        private State openPathState;
-        private State polygonState;
+        private final State lineState;
+        private final State rectState;
+        private final State ellipseState;
+        private final State openPathState;
+        private final State polygonState;
         
         private State rectFillState;
-        private State ellipseFillState;
-        private State polygonFillState;
+        private final State ellipseFillState;
+        private final State polygonFillState;
         
-        private State textState;
+        private final State textState;
         
-        private State undoState;
+        private final State undoState;
         private State curState = rectFillState;
         private State savedState;
         

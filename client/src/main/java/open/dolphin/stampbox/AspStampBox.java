@@ -19,12 +19,13 @@ public class AspStampBox extends AbstractStampBox {
     protected void buildStampBox() {
         
         try {
-            // Build stampTree
-            BufferedReader reader = new BufferedReader(new StringReader(stampTreeModel.getTreeXml()));
-            ASpStampTreeBuilder builder = new ASpStampTreeBuilder();
-            StampTreeDirector director = new StampTreeDirector(builder);
-            List<StampTree> aspTrees = director.build(reader);
-            reader.close();
+            List<StampTree> aspTrees;
+            try ( // Build stampTree
+                    BufferedReader reader = new BufferedReader(new StringReader(stampTreeModel.getTreeXml()))) {
+                ASpStampTreeBuilder builder = new ASpStampTreeBuilder();
+                StampTreeDirector director = new StampTreeDirector(builder);
+                aspTrees = director.build(reader);
+            }
             stampTreeModel.setTreeXml(null);
             
             // StampTreeに設定するポップアップメニューとトランスファーハンドラーを生成する

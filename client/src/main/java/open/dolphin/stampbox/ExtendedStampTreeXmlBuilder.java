@@ -6,14 +6,11 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Date;
 import java.util.LinkedList;
-import open.dolphin.client.ClientContext;
 import open.dolphin.delegater.StampDelegater;
 import open.dolphin.infomodel.ModuleInfoBean;
 import open.dolphin.infomodel.StampModel;
 import open.dolphin.project.Project;
 import open.dolphin.util.HexBytesTool;
-import open.dolphin.util.Log;
-import org.apache.log4j.Logger;
 
 /**
  * stampBytesも含めたStampTreeXmlBuilder
@@ -34,11 +31,17 @@ public class ExtendedStampTreeXmlBuilder {
     private BufferedWriter writer;
     private StringWriter stringWriter;
     private StampTreeNode rootNode;
-    private Logger logger;
+    
+    // Logger
+    private static final boolean DEBUG=false;
+    private static final java.util.logging.Logger logger;
+    static {
+        logger = java.util.logging.Logger.getLogger(ExtendedStampTreeXmlBuilder.class.getName());
+        logger.setLevel(DEBUG ? java.util.logging.Level.FINE : java.util.logging.Level.INFO);
+    }
 
     // Creates new ExtendedStampTreeXmlBuilder
     public ExtendedStampTreeXmlBuilder() {
-        logger = ClientContext.getBootLogger();
     }
 
     /**
@@ -47,19 +50,19 @@ public class ExtendedStampTreeXmlBuilder {
      */
     public String getProduct() {
         String result = stringWriter.toString();
-        if (logger != null) {
-            logger.debug(result);
+        if (DEBUG) {
+            logger.fine(result);
         }
         return result;
     }
 
     /**
      * Return the product of this builder
-     * @return StampTree XML data
+     * @throws java.io.IOException
      */
     public void buildStart() throws IOException {
-        if (logger != null) {
-            logger.debug("StampTree Build start");
+        if (DEBUG) {
+            logger.fine("StampTree Build start");
         }
         stringWriter = new StringWriter();
         writer = new BufferedWriter(stringWriter);
@@ -83,8 +86,8 @@ public class ExtendedStampTreeXmlBuilder {
     }
 
     public void buildRoot(StampTreeNode root) throws IOException {
-        if (logger != null) {
-            logger.debug("Build Root Node: " + root.toString());
+        if (DEBUG) {
+            logger.fine("Build Root Node: " + root.toString());
         }
         rootNode = root;
         TreeInfo treeInfo = (TreeInfo)rootNode.getUserObject();
@@ -93,7 +96,7 @@ public class ExtendedStampTreeXmlBuilder {
         writer.write(" entity=");
         writer.write(addQuote(treeInfo.getEntity()));
         writer.write(">\n");
-        linkedList = new LinkedList<StampTreeNode>();
+        linkedList = new LinkedList<>();
         linkedList.addFirst(rootNode);
     }
 
@@ -111,8 +114,8 @@ public class ExtendedStampTreeXmlBuilder {
         // 子ノードを持たないディレクトリノードは書き出さない
         if (node.getChildCount() != 0) {
 
-            if (logger != null) {
-                logger.debug("Build Directory Node: " + node.toString());
+            if (DEBUG) {
+                logger.fine("Build Directory Node: " + node.toString());
             }
 
             StampTreeNode myParent = (StampTreeNode) node.getParent();
@@ -128,14 +131,13 @@ public class ExtendedStampTreeXmlBuilder {
             String val = toXmlText(node.toString());
             writer.write(addQuote(val));
             writer.write(">\n");
-            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "Dir name", node.toString());
         }
     }
 
     private void buildLeafNode(StampTreeNode node) throws IOException {
 
-        if (logger != null) {
-            logger.debug("Build Leaf Node: " + node.toString());
+        if (DEBUG) {
+            logger.fine("Build Leaf Node: " + node.toString());
         }
 
         StampTreeNode myParent = (StampTreeNode) node.getParent();
@@ -149,8 +151,7 @@ public class ExtendedStampTreeXmlBuilder {
         writer.write("<stampInfo name=");
         String val = toXmlText(node.toString());
         writer.write(addQuote(val));
-        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "Stamp name", node.toString());
-
+        
         ModuleInfoBean info = (ModuleInfoBean) node.getUserObject();
 
         writer.write(" role=");
@@ -172,7 +173,6 @@ public class ExtendedStampTreeXmlBuilder {
 
         if (info.isSerialized()) {
             val = info.getStampId();
-            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, "Stamp id", val);
             writer.write(" stampId=");
             writer.write(addQuote(val));
             // ここで対応するstampBytesをデータベースから読み込み登録する。
@@ -214,16 +214,16 @@ public class ExtendedStampTreeXmlBuilder {
 
     public void buildRootEnd() throws IOException {
 
-        if (logger != null) {
-            logger.debug("Build Root End");
+        if (DEBUG) {
+            logger.fine("Build Root End");
         }
         closeBeforeMyParent(rootNode);
         writer.write("</root>\n");
     }
 
     public void buildEnd() throws IOException {
-        if (logger != null) {
-            logger.debug("Build end");
+        if (DEBUG) {
+            logger.fine("Build end");
         }
         writer.write("</extendedStampTree>\n");
         writer.flush();
@@ -237,8 +237,8 @@ public class ExtendedStampTreeXmlBuilder {
 
         int index = linkedList.indexOf(parent);
 
-        if (logger != null) {
-            logger.debug("Close before my parent: " + index);
+        if (DEBUG) {
+            logger.fine("Close before my parent: " + index);
         }
         for (int j = 0; j < index; j++) {
             writer.write("</node>\n");

@@ -19,6 +19,7 @@ import javax.ws.rs.core.MediaType;
 import open.dolphin.infomodel.ActivityModel;
 import open.dolphin.infomodel.RoleModel;
 import open.dolphin.infomodel.UserModel;
+import open.dolphin.session.AccountSummary;
 import open.dolphin.session.SystemServiceBean;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -46,7 +47,8 @@ public class SystemResource extends AbstractResource {
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public void addFacilityAdmin(String json) throws IOException {
+    @Produces(MediaType.TEXT_PLAIN)
+    public String addFacilityAdmin(String json) throws IOException {
         
         ObjectMapper mapper = new ObjectMapper();
         // 2013/06/24
@@ -59,7 +61,9 @@ public class SystemResource extends AbstractResource {
             role.setUserModel(user);
         }
 
-        systemServiceBean.addFacilityAdmin(user);
+        AccountSummary summary = systemServiceBean.addFacilityAdmin(user);
+        String ret = summary.getFacilityId()+":"+summary.getUserId();
+        return ret;
     }
     
     @GET

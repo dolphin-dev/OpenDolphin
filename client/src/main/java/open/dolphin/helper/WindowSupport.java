@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
+import open.dolphin.client.ClientContext;
 
 /**
  * Window Menu をサポートするためのクラス。
@@ -14,22 +15,20 @@ import javax.swing.event.MenuListener;
  */
 public class WindowSupport implements MenuListener {
     
-    private static ArrayList<WindowSupport> allWindows = new ArrayList<WindowSupport>(5);
-    
-    private static final String WINDOW_MWNU_NAME = "ウインドウ";
+    private static final ArrayList<WindowSupport> allWindows = new ArrayList<>(5);
     
     // Window support が提供するスタッフ
     // フレーム
-    private JFrame frame;
+    private final JFrame frame;
     
     // メニューバー
-    private JMenuBar menuBar;
+    private final JMenuBar menuBar;
     
     // ウインドウメニュー
-    private JMenu windowMenu;
+    private final JMenu windowMenu;
     
     // Window Action
-    private Action windowAction;
+    private final Action windowAction;
     
     /**
      * WindowSupportを生成する。
@@ -45,7 +44,7 @@ public class WindowSupport implements MenuListener {
         JMenuBar menuBar = new JMenuBar();
         
         // Window メニューを生成する
-        JMenu windowMenu = new JMenu(WINDOW_MWNU_NAME);
+        JMenu windowMenu = new JMenu(ClientContext.getMyBundle(WindowSupport.class).getString("menuName.window"));
         
         // メニューバーへWindow メニューを追加する
         menuBar.add(windowMenu);

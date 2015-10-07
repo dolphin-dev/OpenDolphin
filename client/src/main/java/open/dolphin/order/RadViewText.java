@@ -58,7 +58,6 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
         setMinimumSize(new java.awt.Dimension(700, 600));
         setPreferredSize(new java.awt.Dimension(700, 600));
 
-        infoLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/resources/images/about_16.gif"))); // NOI18N
         infoLabel.setText("info"); // NOI18N
 
         setTable.setModel(new javax.swing.table.DefaultTableModel(
@@ -72,40 +71,41 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        setTable.setToolTipText("セット内容は Drag & Drop で順番を入れ替えることができます。"); // NOI18N
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/order/resources/RadView"); // NOI18N
+        setTable.setToolTipText(bundle.getString("setTable.toolTipText")); // NOI18N
         jScrollPane1.setViewportView(setTable);
 
-        partCheck.setText("部位"); // NOI18N
-        partCheck.setToolTipText("セットに部位があればチェックされます。"); // NOI18N
+        partCheck.setText(bundle.getString("partCheck.text")); // NOI18N
+        partCheck.setToolTipText(bundle.getString("partCheck.toolTipText")); // NOI18N
         partCheck.setEnabled(false);
 
-        techCheck.setText("診療行為"); // NOI18N
-        techCheck.setToolTipText("セットに診療行為があればチェックされます。"); // NOI18N
+        techCheck.setText(bundle.getString("teckCheck.text")); // NOI18N
+        techCheck.setToolTipText(bundle.getString("techCheck.toolTipText")); // NOI18N
         techCheck.setEnabled(false);
 
         stampNameField.setBackground(new java.awt.Color(255, 255, 0));
-        stampNameField.setToolTipText("セット名を編集します。"); // NOI18N
+        stampNameField.setToolTipText(bundle.getString("stampNameField.toolTipText")); // NOI18N
 
-        okCntBtn.setText("展開継続"); // NOI18N
-        okCntBtn.setToolTipText("セットをカルテに展開し継続します。"); // NOI18N
+        okCntBtn.setText(bundle.getString("okCntBtn.text")); // NOI18N
+        okCntBtn.setToolTipText(bundle.getString("okCntBtn.toolTipText")); // NOI18N
 
-        okBtn.setText("展開"); // NOI18N
-        okBtn.setToolTipText("セットをカルテに展開し終了します。"); // NOI18N
+        okBtn.setText(bundle.getString("okBtn.text")); // NOI18N
+        okBtn.setToolTipText(bundle.getString("okBtn.toolTipText")); // NOI18N
 
-        clearBtn.setText("クリア"); // NOI18N
-        clearBtn.setToolTipText("セットの内容をクリアします。"); // NOI18N
+        clearBtn.setText(bundle.getString("clearBtn.text")); // NOI18N
+        clearBtn.setToolTipText(bundle.getString("clearBtn.toolTipText")); // NOI18N
 
-        deleteBtn.setText("削除"); // NOI18N
-        deleteBtn.setToolTipText("選択した内容を削除します。"); // NOI18N
+        deleteBtn.setText(bundle.getString("deleteBtn.text")); // NOI18N
+        deleteBtn.setToolTipText(bundle.getString("deleteBtn.toolTipText")); // NOI18N
 
-        searchTextField.setToolTipText("検索したい点数マスタ項目を入力します。"); // NOI18N
+        searchTextField.setToolTipText(bundle.getString("searchTextField.toolTipText")); // NOI18N
 
-        rtCheck.setText("RT"); // NOI18N
-        rtCheck.setToolTipText("チェックすると入力中にリアルタイムで検索します。"); // NOI18N
+        rtCheck.setText(bundle.getString("rtCheck.text")); // NOI18N
+        rtCheck.setToolTipText(bundle.getString("rtCheck.toolTipText")); // NOI18N
 
-        countField.setToolTipText("検索結果の件数を表示します。"); // NOI18N
+        countField.setToolTipText(bundle.getString("countField.toolTipText")); // NOI18N
 
-        jLabel4.setText("件数"); // NOI18N
+        jLabel4.setText(bundle.getString("jLabel4.text")); // NOI18N
 
         searchResultTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -120,18 +120,17 @@ public class RadViewText extends javax.swing.JPanel implements IRadView {
         ));
         jScrollPane2.setViewportView(searchResultTable);
 
-        partBtn.setText("部位"); // NOI18N
-        partBtn.setToolTipText("撮影部位を検索します。"); // NOI18N
+        partBtn.setText(bundle.getString("partBtn.text")); // NOI18N
+        partBtn.setToolTipText(bundle.getString("partBtn.toolTipText")); // NOI18N
 
-        partialChk.setText("部分一致"); // NOI18N
-        partialChk.setToolTipText("部分一致検索をします。"); // NOI18N
+        partialChk.setText(bundle.getString("partialChk.text")); // NOI18N
+        partialChk.setToolTipText(bundle.getString("partialChk.toolTipText")); // NOI18N
 
         numberCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" }));
-        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/order/Bundle"); // NOI18N
-        numberCombo.setToolTipText(bundle.getString("RadViewText.numberCombo.toolTipText")); // NOI18N
+        numberCombo.setToolTipText(bundle.getString("numberCombo.toolTipText")); // NOI18N
         numberCombo.setName("numberCombo"); // NOI18N
 
-        numberLabel.setText(bundle.getString("RadViewText.numberLabel.text")); // NOI18N
+        numberLabel.setText(bundle.getString("numberLabel.text")); // NOI18N
         numberLabel.setName("numberLabel"); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);

@@ -7,6 +7,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.logging.Level;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
@@ -14,7 +15,6 @@ import javax.swing.text.StyleConstants;
 import open.dolphin.infomodel.AttachmentModel;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.SchemaModel;
-import org.apache.log4j.Logger;
 
 /**
  * KartePane の dumper
@@ -23,10 +23,8 @@ import org.apache.log4j.Logger;
  */
 public final class KartePaneDumper_2 {
     
-    //private static final String[] MATCHES = new String[] { "<", ">", "&", "'","\""};
     private static final String[] MATCHES = new String[] { "&", "<", ">", "'","\""};
     
-    //private static final String[] REPLACES = new String[] { "&lt;", "&gt;", "&amp;" ,"&apos;", "&quot;"};
     private static final String[] REPLACES = new String[] { "&amp;" ,"&lt;", "&gt;", "&apos;", "&quot;"};
     
     private ArrayList<ModuleModel> moduleList;
@@ -37,13 +35,18 @@ public final class KartePaneDumper_2 {
     
     private String spec;
     
-    private Logger logger;
+    // Logger
+    private static final boolean DEBUG = false;
+    private static final java.util.logging.Logger logger;
+    static {
+        logger = java.util.logging.Logger.getLogger(KartePaneDumper_2.class.getName());
+        logger.setLevel(DEBUG ? Level.FINE : Level.INFO);
+    }
     
-    private boolean DEBUG;
+    
     
     /** Creates a new instance of TextPaneDumpBuilder */
     public KartePaneDumper_2() {
-        logger = ClientContext.getBootLogger();
     }
     
     /**
@@ -52,9 +55,7 @@ public final class KartePaneDumper_2 {
      * @return Documentの内容を XML で表したもの
      */
     public String getSpec() {
-        if (DEBUG) {
-            logger.debug(spec);
-        }
+        logger.fine(spec);
         //System.err.println(spec);
         return spec;
     }
@@ -126,7 +127,7 @@ public final class KartePaneDumper_2 {
             writer.close();
             spec = sw.toString();
             
-        } catch (Exception e) {
+        } catch (IOException | BadLocationException e) {
             e.printStackTrace(System.err);
         }
     }
@@ -144,10 +145,8 @@ public final class KartePaneDumper_2 {
         // 要素の開始及び終了のオフセット値を保存する
         int start = element.getStartOffset();
         int end = element.getEndOffset();
-        if (DEBUG) {
-            logger.debug("start = " + start);
-            logger.debug("end = " + end);
-        }
+        logger.log(Level.FINE, "start = {0}", start);
+        logger.log(Level.FINE, "end = {0}", end);
         
         // このエレメントの属性セットを得る
         AttributeSet atts = element.getAttributes().copyAttributes();
@@ -170,9 +169,7 @@ public final class KartePaneDumper_2 {
                 
                 if (nextName != StyleConstants.ResolveAttribute) {
                     
-                    if (DEBUG) {
-                        logger.debug("attribute name = " + nextName.toString());
-                    }
+                    logger.log(Level.FINE, "attribute name = {0}", nextName.toString());
                     
                     // $enameは除外する
                     if (nextName.toString().startsWith("$")) {
@@ -193,9 +190,7 @@ public final class KartePaneDumper_2 {
                     // foreground 属性の場合は再構築の際に利用しやすい形に分解する
                     if (nextName.toString().equals("foreground")) {
                         Color c = (Color) atts.getAttribute(StyleConstants.Foreground);
-                        if (DEBUG) {
-                            logger.debug("color = " + c.toString());
-                        }
+                        logger.log(Level.FINE, "color = {0}", c.toString());
                         StringBuilder buf = new StringBuilder();
                         buf.append(String.valueOf(c.getRed()));
                         buf.append(",");
@@ -207,14 +202,12 @@ public final class KartePaneDumper_2 {
                     } else {
                         // 属性セットから名前をキーにして属性オブジェクトを取得する
                         Object attObject = atts.getAttribute(nextName);
-                        if (DEBUG) {
-                            logger.debug("attribute object = " + attObject.toString());
-                        }
+                        logger.log(Level.FINE, "attribute object = {0}", attObject.toString());
                         
                         if (attObject instanceof StampHolder) {
                             // スタンプの場合
                             if (moduleList == null) {
-                                moduleList = new ArrayList<ModuleModel>();
+                                moduleList = new ArrayList<>();
                             }
                             StampHolder sh = (StampHolder) attObject;
                             moduleList.add((ModuleModel) sh.getStamp());
@@ -224,7 +217,7 @@ public final class KartePaneDumper_2 {
                         } else if (attObject instanceof SchemaHolder) {
                             // シュェーマの場合
                             if (schemaList == null) {
-                                schemaList = new ArrayList<SchemaModel>();
+                                schemaList = new ArrayList<>();
                             }
                             SchemaHolder ch = (SchemaHolder)attObject;
                             schemaList.add(ch.getSchema());
@@ -234,7 +227,7 @@ public final class KartePaneDumper_2 {
                         } else if (attObject instanceof AttachmentHolder) {
                             // アタッチメントの場合
                             if (attachmentList == null) {
-                                attachmentList = new ArrayList<AttachmentModel>();
+                                attachmentList = new ArrayList<>();
                             }
                             AttachmentHolder ah = (AttachmentHolder)attObject;
                             attachmentList.add(ah.getAttachment());
@@ -266,9 +259,7 @@ public final class KartePaneDumper_2 {
             writer.write("<text>");
             int len = end - start;
             String text = element.getDocument().getText(start, len);
-            if (DEBUG) {
-                logger.debug("text = " + text);
-            }
+            logger.log(Level.FINE, "text = {0}", text);
             
             // 特定の文字列を置換する
             for (int i = 0; i < REPLACES.length; i++) {

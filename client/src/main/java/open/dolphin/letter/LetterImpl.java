@@ -1,17 +1,15 @@
 package open.dolphin.letter;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.FlowLayout;
 import java.awt.Window;
 import java.awt.print.PageFormat;
-import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.Date;
+import java.util.concurrent.ExecutionException;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -25,15 +23,11 @@ import open.dolphin.helper.DBTask;
 import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
 import open.dolphin.util.AgeCalculater;
-import open.dolphin.util.Log;
-import org.apache.log4j.Level;
 
 /**
  * @author Kazushi Minagawa, Digital Globe, Inc.
  */
 public class LetterImpl extends AbstractChartDocument implements Letter {
-
-    protected static final String TITLE = "診療情報提供書";
     
     protected static final String ITEM_DISEASE = "disease";
     protected static final String ITEM_PURPOSE = "purpose";
@@ -42,24 +36,19 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
     protected static final String TEXT_MEDICATION = "medication";
     protected static final String ITEM_REMARKS = "remarks";
 
-    private static final String TITLE__PREFIX = "紹介状:";
-
     protected LetterModule model;
     protected LetterView view;
     private boolean listenerIsAdded;
 
     protected LetterStateMgr stateMgr;
-    protected boolean DEBUG;
     
     private boolean modify;
 
     /** Creates a new instance of LetterDocument */
     public LetterImpl() {
-        setTitle(TITLE);
-        DEBUG = ClientContext.getBootLogger().getLevel() == Level.DEBUG ? true : false;
+        setTitle(ClientContext.getMyBundle(LetterImpl.class).getString("title.refferalLetter"));
     }
-    
-//minagawa^ LSC Test    
+       
     public LetterModule getModel() {
         return model;
     }
@@ -75,7 +64,6 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
     public void setModify(boolean b) {
         modify = b;
     }
-//minagawa$
     
     @Override
     public void modelToView(LetterModule m) {
@@ -85,10 +73,7 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
         }
 
         // 日付
-//minagawa^ LSC 1.4 bug fix 文書の印刷日付 2013/06/24
-        //String dateStr = LetterHelper.getDateAsString(m.getConfirmed());
-        String dateStr = LetterHelper.getDateAsString(m.getStarted());
-//minagawa$        
+        String dateStr = LetterHelper.getDateAsString(m.getStarted());       
         LetterHelper.setModelValue(view.getConfirmed(), dateStr);
 
         // 紹介先（宛先）医療機関名
@@ -102,10 +87,10 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
 
         // title
         StringBuilder sb = new StringBuilder();
-        sb.append("先生　");
+        sb.append(ClientContext.getMyBundle(LetterImpl.class).getString("doctorTitle"));
         String title = Project.getString("letter.atesaki.title");
         if (title!=null && (!title.equals("無し"))) {
-            sb.append(title);
+            sb.append(" ").append(title);
         }
         LetterHelper.setModelValue(view.getAtesakiLbl(), sb.toString());
 
@@ -208,18 +193,6 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
     //public void viewToModel() {
     public void viewToModel(boolean save) {
 
-//minagawa^ LSC 1.4 bug fix 文書の印刷日付 2013/06/24
-//        long savedId = model.getId();
-//        model.setId(0L);
-//        model.setLinkId(savedId);
-//
-//        Date d = new Date();
-//        model.setConfirmed(d);
-//        model.setRecorded(d);
-//        model.setKarteBean(getContext().getKarte());
-//        model.setUserModel(Project.getUserModel());
-//        model.setStatus(IInfoModel.STATUS_FINAL);
-        
         if (save) {
             if (model.getId()==0L) {
                 // 新規作成で保存 日時を現時刻で再設定する
@@ -235,8 +208,7 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
                 model.setLinkId(model.getId());     // LinkId
                 model.setId(0L);                    // id=0L -> 常に新規保存 persit される、元のモデルは削除される（要変更）
             }
-        }
-//minagawa$        
+        }     
 
         // 紹介先（宛先）
         model.setConsultantHospital(LetterHelper.getFieldValue(view.getConsultantHospital()));
@@ -319,13 +291,12 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
 
         // Title
         StringBuilder sb = new StringBuilder();
-        sb.append(TITLE__PREFIX).append(model.getConsultantHospital());
+        sb.append(ClientContext.getMyBundle(LetterImpl.class).getString("refferalLetter")).append(model.getConsultantHospital());
         model.setTitle(sb.toString());
     }
 
     @Override
-    public void start() {
-//minagawa^ LSC Test        
+    public void start() {       
         if (this.model==null) {
 
             this.model = new LetterModule();
@@ -370,8 +341,7 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
             this.model.setClientFax(user.getFacilityModel().getFacsimile());
             this.model.setClientZipCode(user.getFacilityModel().getZipCode());
             this.model.setClientAddress(user.getFacilityModel().getAddress());
-        }
-//minagawa$        
+        }       
 //s.oh^ 2014/04/03 文書の複製
         else if(this.modify && this.model.getId() == 0) {
             Date d = new Date();
@@ -411,36 +381,19 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
 //s.oh$
 
         // view を生成
-        this.view = new LetterView();
-// minagawa 中央へ位置するように変更 ^        
+        this.view = new LetterView();       
         JPanel p = new JPanel(new FlowLayout(FlowLayout.CENTER));
         p.add(this.view);
         JScrollPane scroller = new JScrollPane(p);
         getUI().setLayout(new BorderLayout());
-        getUI().add(scroller, BorderLayout.CENTER);
-        //JScrollPane scroller = new JScrollPane(this.view);
-        //getUI().setLayout(new BorderLayout());
-        //getUI().add(scroller, BorderLayout.NORTH);
-        //getUI().setLayout(new FlowLayout(FlowLayout.CENTER));
-        //getUI().add(scroller);
-// minagawa $  
+        getUI().add(scroller, BorderLayout.CENTER); 
         
         modelToView(this.model);
         setEditables(true);
         setListeners();
         
-//minagawa^ LSC 1.4 bug fix : Mac JDK7 bug マックの上下キー問題 2013/06/24
-        if (ClientContext.isMac()) {
-            new MacInputFixer().fix(view.getPastFamily());
-            new MacInputFixer().fix(view.getClinicalCourse());
-            new MacInputFixer().fix(view.getMedication());
-        }
-//minagawa$         
-        
-        stateMgr = new LetterStateMgr(this);
-//minagawa^ LSC Test        
-        this.enter();
-//minagawa$        
+        stateMgr = new LetterStateMgr(this);       
+        this.enter();       
 
 //s.oh^ 文書の必要事項対応
         //view.getConsultantHospital().setBackground(Color.YELLOW);
@@ -471,21 +424,13 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
             }
 
             @Override
-            protected void succeeded(Boolean result) {
-//minagawa^ Chartの close box 押下で保存する場合、保存終了を通知しておしまい。                    
-            if (boundSupport!=null) {
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "診療情報提供書", "保存成功", "インスペクタの終了");
-                setChartDocDidSave(true);
-                return;
-            }
-//minagawa$                
-// minagawa 紹介状等の履歴に遷移 ^                
+            protected void succeeded(Boolean result) {                   
+                if (boundSupport!=null) {
+                    setChartDocDidSave(true);
+                    return;
+                }              
                 getContext().getDocumentHistory().getLetterHistory();
-//                getContext().getDocumentHistory().getDocumentHistory();
-// minagawa $
                 stateMgr.processSavedEvent();
-                
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "診療情報提供書", "保存成功");
             }
         };
 
@@ -509,31 +454,28 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
         
         viewToModel(false);
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("PDFファイルを作成しますか?");
+        String msg = ClientContext.getMyBundle(LetterImpl.class).getString("question.createPDFFile");
+        String optionCreatePDF = ClientContext.getMyBundle(LetterImpl.class).getString("option.createPDF");
+        String optionPrintForm = ClientContext.getMyBundle(LetterImpl.class).getString("option.printForm");
+        String title = ClientContext.getMyBundle(LetterImpl.class).getString("title.optionPane");
 
         int option = JOptionPane.showOptionDialog(
                 getContext().getFrame(),
-                sb.toString(),
-                ClientContext.getFrameTitle("御報告書印刷"),
+                msg,
+                ClientContext.getFrameTitle(title),
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.INFORMATION_MESSAGE,
                 null,
-                new String[]{"PDF作成", "フォーム印刷", GUIFactory.getCancelButtonText()},
-                "PDF作成");
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle("御報告書印刷"), sb.toString());
-
+                new String[]{optionCreatePDF, optionPrintForm, GUIFactory.getCancelButtonText()},
+                optionCreatePDF);
+        
         if (option == 0) {
-            Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "PDF作成");
             makePDF();
         } else if (option == 1) {
-            Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "フォーム印刷");
             PageFormat pageFormat = getContext().getContext().getPageFormat();
             String name = getContext().getPatient().getFullName();
             Panel2 panel = (Panel2) this.view;
             panel.printPanel(pageFormat, 1, false, name, 0, true);
-        }else{
-            Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "取消し");
         }
     }
 
@@ -558,23 +500,18 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
             protected void done() {
                 String err = null;
                 try {
-//minagawa^ jdk7                   
-                    //String pathToPDF = get();
-                    //Desktop.getDesktop().open(new File(pathToPDF));
                     URI uri = Paths.get(get()).toUri();
-                    Desktop.getDesktop().browse(uri);
-//minagawa$                    
+                    Desktop.getDesktop().browse(uri);                  
                 } catch (IOException ex) {
-                    err = "PDFファイルに関連づけされたアプリケーションを起動できません。";
+                    err = ClientContext.getMyBundle(LetterImpl.class).getString("error.cannotLaunchApplication");
                 } catch (InterruptedException ex) {
-                } catch (Throwable ex) {
+                } catch (ExecutionException ex) {
                     err = ex.getMessage();
                 }
                 
                 if (err!=null) {
                     Window parent = SwingUtilities.getWindowAncestor(getContext().getFrame());
-                    JOptionPane.showMessageDialog(parent, err, ClientContext.getFrameTitle("PDF作成"), JOptionPane.WARNING_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle("PDF作成"), err);
+                    JOptionPane.showMessageDialog(parent, err, ClientContext.getFrameTitle(ClientContext.getMyBundle(LetterImpl.class).getString("title.optionPane.PDFCreation")), JOptionPane.WARNING_MESSAGE);
                 }
             }
         };
@@ -590,11 +527,6 @@ public class LetterImpl extends AbstractChartDocument implements Letter {
             return super.isDirty();
         }
     }
-//minagawa^ LSC Test
-//    public void modifyKarte() {
-//        stateMgr.processModifyKarteEvent();      
-//    }
-//minagawa$
     
     @Override
     public void setEditables(boolean b) {

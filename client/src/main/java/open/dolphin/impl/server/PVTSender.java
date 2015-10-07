@@ -4,11 +4,9 @@ import java.io.BufferedReader;
 import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.List;
-import open.dolphin.client.ClientContext;
 import open.dolphin.delegater.PVTDelegater1;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  *
@@ -55,7 +53,6 @@ public final class PVTSender implements Runnable {
         PVTDelegater1 pdl = new PVTDelegater1();
         try {
             pdl.addPvt(model);
-            Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "受付：", model.getPatientId());
         } catch (Exception e) {
         }
         
@@ -108,11 +105,9 @@ public final class PVTSender implements Runnable {
         while (thisThread==senderThread) {
             try {
                 String pvtXml = getPvt();
-                Log.outputOperLogOper(null, Log.LOG_LEVEL_0, "ORCAからCLAIM受信");
-                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, pvtXml);
                 addPvt(pvtXml);
             } catch (InterruptedException e) {
-                ClientContext.getPvtLogger().warn("PVT Sender interrupted");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning("PVT Sender interrupted");
             }
         }
     }

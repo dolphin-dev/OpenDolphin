@@ -56,6 +56,7 @@ public abstract class AbstractState {
     /** 
      * mouseDown から mouseUp まで，drag されている間の途中経過を描く　
      * SchemaCanvas の paintComponent から StateMgr 経由で呼ばれる
+     * @param g2d
      */
     public void draw(Graphics2D g2d) {
         if (shape != null) {
@@ -66,14 +67,14 @@ public abstract class AbstractState {
 
     /**
      * DrawingHolder を drawingList に加える
-     * @param DrawingHolder s
+     * @param s
      */
     public void addShape(DrawingHolder s) {
         drawingList.add(s);
     }
     /**
      * Shape を AreaHolder に入れて drawingList に加える
-     * @param Shape shape
+     * @param shape
      */
     public void addAreaShape(Shape shape) {
         AreaHolder sh = new AreaHolder(new Area(shape),

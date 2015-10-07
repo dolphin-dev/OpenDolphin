@@ -1,6 +1,7 @@
 package open.dolphin.client;
 
 import java.awt.event.ActionEvent;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
@@ -10,8 +11,6 @@ import javax.swing.Icon;
  * @author Kazushi Minagawa.
  */
 public class ReflectAction extends AbstractAction {
-    
-    private static final long serialVersionUID = 4592935637937407137L;
     
     private Object target;
     private String method;
@@ -48,7 +47,7 @@ public class ReflectAction extends AbstractAction {
             Method mth = target.getClass().getMethod(method, (Class[]) null);
             mth.invoke(target, (Object[])null);
             
-        } catch (Exception ex) {
+        } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             ex.printStackTrace(System.err);
         }
     }

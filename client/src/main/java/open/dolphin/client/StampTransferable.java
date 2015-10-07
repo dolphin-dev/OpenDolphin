@@ -16,9 +16,10 @@ public final class StampTransferable implements Transferable, ClipboardOwner {
   
     public static final DataFlavor[] flavors = {StampTransferable.stampFlavor};
       
-    private ModuleModel stamp;
+    private final ModuleModel stamp;
 
-    /** Creates new StampTransferable */
+    /** Creates new StampTransferable
+     * @param stamp */
     public StampTransferable(ModuleModel stamp) {
     		this.stamp = stamp;
     }
@@ -30,7 +31,7 @@ public final class StampTransferable implements Transferable, ClipboardOwner {
      
     @Override
     public boolean isDataFlavorSupported(DataFlavor flavor) {
-    		return flavor.equals(stampFlavor) ? true : false;
+    		return flavor.equals(stampFlavor);
     }
 
     @Override

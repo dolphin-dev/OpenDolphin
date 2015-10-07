@@ -144,26 +144,27 @@ public class SchemaCanvasView extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setAlwaysOnTop(true);
-        setResizable(false);
         setUndecorated(true);
+        setResizable(false);
 
         canvasPanel.setBackground(new java.awt.Color(255, 255, 255));
         canvasPanel.setPreferredSize(new java.awt.Dimension(100, 150));
 
-        jLabel1.setText("タイトル:");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/impl/scheam/resources/SchemaCanvasView"); // NOI18N
+        jLabel1.setText(bundle.getString("titleLabel.text")); // NOI18N
 
-        jLabel2.setText("用途:");
+        jLabel2.setText(bundle.getString("usageLabel.text")); // NOI18N
 
-        roleCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "検体検査", "内視鏡検査", "単純レントゲン写真", "上部消化管造影検査", "バリウム注腸検査", "CTスキャン注腸検査", "MRI", "R画像検査", "血管造影", "その他の放射線学的検査", "エコー", "心電図", "脳波", "筋電図", "心電図", "肺機能検査", "その他の生理学的検査", "処方箋", "熱型表", "理学的所見（図など）", "麻酔経過表", "病理検査（画像など）", "手術記録", "参考文献", "参考図", "処置（指示、記録など）", "上記に含まれないもの" }));
+        roleCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Laboratory specimen test", "Endoscope test", "Simple X-ray", "Upper gastrointestinal tract test", "Barium enema test", "CT scan", "MRI", "RI image test", "Angiography", "Other radiological tests", "Echo", "Electrocardiography", "Electroencephalography", "Electromyography", "Phonocardiography", "Pulmonary function test", "Other physiological tests", "Prescription", "Vital sign table", "Physical findings (e.g. chart)）", "Anesthesia record table", "Pathological test (e.g. image)", "Surgical record figure", "Reference document", "Reference figure", "Treatment (instruction, record, etc.)", "Items other than the above" }));
 
-        okBtn.setText("カルテに展開");
+        okBtn.setText(bundle.getString("okBtn.text")); // NOI18N
         okBtn.setSelected(true);
 
-        cancelBtn.setText("破棄");
+        cancelBtn.setText(bundle.getString("cancelBtn.text.discard")); // NOI18N
 
         titleLabel.setFont(new java.awt.Font("Lucida Grande", 0, 9)); // NOI18N
         titleLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        titleLabel.setText("シェーマエディタ");
+        titleLabel.setText(bundle.getString("editorTitleLabel.text")); // NOI18N
         titleLabel.setMaximumSize(new java.awt.Dimension(10000, 16));
         titleLabel.setMinimumSize(new java.awt.Dimension(72, 16));
         titleLabel.setPreferredSize(new java.awt.Dimension(72, 16));
@@ -172,7 +173,7 @@ public class SchemaCanvasView extends javax.swing.JFrame {
         titlePanel.setLayout(titlePanelLayout);
         titlePanelLayout.setHorizontalGroup(
             titlePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(titleLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 562, Short.MAX_VALUE)
+            .addComponent(titleLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         titlePanelLayout.setVerticalGroup(
             titlePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -184,25 +185,23 @@ public class SchemaCanvasView extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(titlePanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(titleFld, javax.swing.GroupLayout.PREFERRED_SIZE, 456, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(roleCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 56, Short.MAX_VALUE)
-                .addComponent(cancelBtn)
-                .addGap(18, 18, 18)
-                .addComponent(okBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(canvasPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 522, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 92, Short.MAX_VALUE)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(titleFld, javax.swing.GroupLayout.PREFERRED_SIZE, 456, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(roleCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(cancelBtn)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(okBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(canvasPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(

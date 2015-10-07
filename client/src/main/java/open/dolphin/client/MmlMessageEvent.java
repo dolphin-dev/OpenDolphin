@@ -24,7 +24,8 @@ public class MmlMessageEvent extends java.util.EventObject {
     private String content;
     private String confirmDate;
     
-    /** Creates new MmlPackage */
+    /** Creates new MmlPackage
+     * @param source */
     public MmlMessageEvent(Object source) {
         super(source);
     }

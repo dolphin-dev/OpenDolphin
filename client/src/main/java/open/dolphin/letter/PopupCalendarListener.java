@@ -18,7 +18,7 @@ public class PopupCalendarListener extends MouseAdapter implements PropertyChang
     
     private JPopupMenu popup;
 
-    private JTextField tf;
+    private final JTextField tf;
 
     public PopupCalendarListener(JTextField tf) {
         this.tf = tf;

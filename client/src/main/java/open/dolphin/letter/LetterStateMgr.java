@@ -10,11 +10,10 @@ import open.dolphin.project.Project;
  */
 public class LetterStateMgr {
 
-    private Letter letterImpl;
-    private LetterState emptyState = new EmptyState();
-    private LetterState cleanState = new CleanState();
-//    private StartEditingState startEditingState = new StartEditingState();
-    private DirtyState dirtyState = new DirtyState();
+    private final Letter letterImpl;
+    private final LetterState emptyState = new EmptyState();
+    private final LetterState cleanState = new CleanState();
+    private final DirtyState dirtyState = new DirtyState();
     private LetterState currentState;
 
     public LetterStateMgr(Letter letterImpl) {
@@ -49,7 +48,7 @@ public class LetterStateMgr {
     }
 
     public boolean isDirtyState() {
-        return currentState == dirtyState ? true : false;
+        return currentState == dirtyState;
     }
 
     public void enter() {
@@ -71,18 +70,8 @@ public class LetterStateMgr {
 
         @Override
         public void enter() {
-//minagawa^ LSC Test (新規カルテは
-//            boolean canEdit = letterImpl.getContext().isReadOnly() ? false : true;            
-//            letterImpl.getContext().enabledAction(GUIConst.ACTION_NEW_KARTE, canEdit);
-//            letterImpl.getContext().enabledAction(GUIConst.ACTION_NEW_DOCUMENT, canEdit);
-//            letterImpl.getContext().enabledAction(GUIConst.ACTION_SAVE, false);
             letterImpl.getContext().enabledAction(GUIConst.ACTION_MODIFY_KARTE, false);
-//            letterImpl.getContext().enabledAction(GUIConst.ACTION_DELETE, false);
-            letterImpl.getContext().enabledAction(GUIConst.ACTION_PRINT, false);
-//            letterImpl.getContext().enabledAction(GUIConst.ACTION_ASCENDING, false);
-//            letterImpl.getContext().enabledAction(GUIConst.ACTION_DESCENDING, false);
-//            letterImpl.getContext().enabledAction(GUIConst.ACTION_SHOW_MODIFIED, false);
-//minagawa$            
+            letterImpl.getContext().enabledAction(GUIConst.ACTION_PRINT, false);       
         }
     }
 
@@ -94,16 +83,14 @@ public class LetterStateMgr {
         @Override
         public void enter() {
             letterImpl.setEditables(false);
-            letterImpl.getContext().enabledAction(GUIConst.ACTION_SAVE, false);
-//minagawa^ LSC Test             
-            boolean canEdit = letterImpl.getContext().isReadOnly() ? false : true;           
+            letterImpl.getContext().enabledAction(GUIConst.ACTION_SAVE, false);             
+            boolean canEdit = !letterImpl.getContext().isReadOnly();           
             letterImpl.getContext().enabledAction(GUIConst.ACTION_MODIFY_KARTE, canEdit);   // 修正
 //s.oh^ 2014/08/19 ID権限
             //letterImpl.getContext().enabledAction(GUIConst.ACTION_PRINT, true);             // Print
             letterImpl.getContext().enabledAction(GUIConst.ACTION_PRINT, !Project.isOtherCare());
             letterImpl.getContext().enabledAction(GUIConst.ACTION_PRINTER_SETUP, !Project.isOtherCare());
 //s.oh$
-//minagawa$
         }
     }
 

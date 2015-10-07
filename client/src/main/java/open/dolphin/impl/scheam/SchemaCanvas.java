@@ -12,8 +12,8 @@ import javax.swing.JComponent;
  */
 public class SchemaCanvas extends JComponent {
     
-    private SchemaEditorImpl context;
-    private SchemaEditorProperties properties;
+    private final SchemaEditorImpl context;
+    private final SchemaEditorProperties properties;
 
     // baseImage はここで管理する
     private BufferedImage baseImage;

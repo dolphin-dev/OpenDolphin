@@ -15,9 +15,10 @@ public final class ImageEntryTransferable implements Transferable, ClipboardOwne
     
     public static final DataFlavor[] flavors = {ImageEntryTransferable.imageEntryFlavor};
     
-    private ImageEntry entry;
+    private final ImageEntry entry;
     
-    /** Creates new ImgeIconTransferable */
+    /** Creates new ImgeIconTransferable
+     * @param entry */
     public ImageEntryTransferable(ImageEntry entry) {
         this.entry = entry;
     }
@@ -29,7 +30,7 @@ public final class ImageEntryTransferable implements Transferable, ClipboardOwne
     
     @Override
     public boolean isDataFlavorSupported(DataFlavor flavor) {
-        return flavor.equals(imageEntryFlavor) ? true : false;
+        return flavor.equals(imageEntryFlavor);
     }
     
     @Override

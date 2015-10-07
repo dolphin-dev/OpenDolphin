@@ -1,5 +1,6 @@
 package open.dolphin.letter;
 
+import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -17,7 +18,6 @@ import open.dolphin.infomodel.ModelUtils;
 public class LetterHelper {
 
     protected static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd";
-    //protected static final SimpleDateFormat SDF = new SimpleDateFormat(SIMPLE_DATE_FORMAT);
 
     protected static void setModelValue(JTextField tf, String value) {
         if (value != null) {
@@ -77,7 +77,7 @@ public class LetterHelper {
     }
 
     protected static String getDateAsString(Date date) {
-        return getDateAsString(date, "yyyy年M月d日");
+        return getDateAsString(date, java.util.ResourceBundle.getBundle("open/dolphin/letter/resources/LetterHelper").getString("dateFormat.simple"));
     }
 
     protected static Date getSimpleDateFromString(String dateStr) {
@@ -97,19 +97,12 @@ public class LetterHelper {
     }
 
     protected static String getBirdayWithAge(String birthday, String age) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(birthday);
-        sb.append(" (");
-        sb.append(age);
-        sb.append(" 歳)");
-        return sb.toString();
+        String fmt = java.util.ResourceBundle.getBundle("open/dolphin/letter/resources/LetterHelper").getString("messageFormat.birthdayWithAge");
+        return new MessageFormat(fmt).format(new Object[]{birthday});
     }
 
     protected static String getAddressWithZipCode(String address, String zip) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(zip);
-        sb.append(" ");
-        sb.append(address);
-        return sb.toString();
+        String fmt = java.util.ResourceBundle.getBundle("open/dolphin/letter/resources/LetterHelper").getString("messageFormat.zipCodeAddress");
+        return new MessageFormat(fmt).format(new Object[]{zip,address});
     }
 }

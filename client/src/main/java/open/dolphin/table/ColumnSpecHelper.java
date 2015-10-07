@@ -1,7 +1,6 @@
 package open.dolphin.table;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JCheckBoxMenuItem;
@@ -23,11 +22,11 @@ public class ColumnSpecHelper {
     private static final String CAMMA = ",";
     
     private JTable table;
-    private String specName;
-    private String[] columnNames;
-    private String[] propNames;
-    private Class[] columnClasses;
-    private int[] columnWidth;
+    private final String specName;
+    private final String[] columnNames;
+    private final String[] propNames;
+    private final Class[] columnClasses;
+    private final int[] columnWidth;
     
     // カラム仕様リスト
     private List<ColumnSpec> columnSpecs;
@@ -194,7 +193,7 @@ public class ColumnSpecHelper {
         String line = Project.getString(specName, defaultLine);
 
         // 仕様を保存
-        columnSpecs = new ArrayList<ColumnSpec>();
+        columnSpecs = new ArrayList<>();
         String[] params = line.split(",");
 
         // 保存していた名称・メソッド・クラスが同じか調べる
@@ -203,9 +202,9 @@ public class ColumnSpecHelper {
         boolean same = len == columnNames.length;
         // 各項目は同じか
         if (same) {
-            List<String> savedColumns = new ArrayList<String>();
-            List<String> savedProps = new ArrayList<String>();
-            List<String> savedClasses = new ArrayList<String>();
+            List<String> savedColumns = new ArrayList<>();
+            List<String> savedProps = new ArrayList<>();
+            List<String> savedClasses = new ArrayList<>();
             for (int i = 0; i < len; ++i) {
                 int k = 4 * i;
                 savedColumns.add(params[k]);
@@ -269,11 +268,13 @@ public class ColumnSpecHelper {
     }
     
     public JMenu createMenuItem() {
+        
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/table/resources/ColumnSpecHelper");
 
-        JMenu menu = new JMenu("表示カラム");
+        JMenu menu = new JMenu(bundle.getString("menuText.displayColumn"));
         for (ColumnSpec cs : columnSpecs) {
 //minagawa^ lsctest 全てのカラムを非表示にする人がいるため
-            if (cs.getName().equals("受付")){
+            if (cs.getName().equals(bundle.getString("column.number"))){
                 continue;
             }
 //minagawa$            
@@ -282,17 +283,13 @@ public class ColumnSpecHelper {
             if (cs.getWidth() != 0) {
                 cbm.setSelected(true);
             }
-            cbm.addActionListener(new ActionListener() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (cbm.isSelected()) {
-                        cbm.getColumnSpec().setWidth(50);
-                    } else {
-                        cbm.getColumnSpec().setWidth(0);
-                    }
-                    updateColumnWidth();
+            cbm.addActionListener((ActionEvent e) -> {
+                if (cbm.isSelected()) {
+                    cbm.getColumnSpec().setWidth(50);
+                } else {
+                    cbm.getColumnSpec().setWidth(0);
                 }
+                updateColumnWidth();
             });
             menu.add(cbm);
         }

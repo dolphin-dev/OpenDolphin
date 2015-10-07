@@ -55,8 +55,8 @@ public class ModelUtils implements IInfoModel {
 
             StringBuilder sb = new StringBuilder();
             sb.append(age);
-            sb.append(" ");
-            sb.append(AGE);
+            //sb.append(" ");
+            //sb.append(AGE);
             sb.append(" (");
             sb.append(mmlBirthday);
             sb.append(")");
@@ -437,8 +437,8 @@ public class ModelUtils implements IInfoModel {
         if (age != null) {
             StringBuilder sb = new StringBuilder();
             sb.append(age);
-            sb.append(" ");
-            sb.append(AGE);
+            //sb.append(" ");
+            //sb.append(AGE);
             sb.append(" ([");
             sb.append(toNengo(mmlBirthday).substring(0, 3));
             sb.append("]");

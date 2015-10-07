@@ -49,7 +49,7 @@ import open.dolphin.util.MMLDate;
  */
 public class AppointTablePanel extends JPanel implements PropertyChangeListener {
     
-    private final String[] COLUMN_NAMES   = ClientContext.getStringArray("appoint.table.columnNames");
+//    private final String[] COLUMN_NAMES   = ClientContext.getStringArray("appoint.table.columnNames");
     private final int[] COLUMN_WIDTH      = {90, 90,300};
     private final int NUM_ROWS            = 0;
     private final int MEMO_COLUMN         = 2;
@@ -61,13 +61,18 @@ public class AppointTablePanel extends JPanel implements PropertyChangeListener 
     private CareMapDocument parent;
     //private boolean dirty;
     
-    /** Creates new AppointTablePanel */
+    /** Creates new AppointTablePanel
+     * @param updateBtn */
     public AppointTablePanel(JButton updateBtn) {
         
         super(new BorderLayout(0, 5));
         
         todayRenderer = new TodayRowRenderer();
-        tableModel = new CareTableModel(COLUMN_NAMES, NUM_ROWS);
+        
+        String columnLine = ClientContext.getMyBundle(AppointTablePanel.class).getString("columnNames");
+        String [] columnNames = columnLine.split(",");
+        
+        tableModel = new CareTableModel(columnNames, NUM_ROWS);
         careTable = new JTable(tableModel) {
             
             @Override
@@ -122,7 +127,8 @@ public class AppointTablePanel extends JPanel implements PropertyChangeListener 
         // Copy 機能を実装する
         //-----------------------------------------------
         KeyStroke copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-        final AbstractAction copyAction = new AbstractAction("コピー") {
+        String actionText = ClientContext.getMyBundle(AppointTablePanel.class).getString("actionText.copy");
+        final AbstractAction copyAction = new AbstractAction(actionText) {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
@@ -217,7 +223,7 @@ public class AppointTablePanel extends JPanel implements PropertyChangeListener 
             SimpleCalendarPanel[] calendars = (SimpleCalendarPanel[])e.getNewValue();
             
             int len = calendars.length;
-            ArrayList<AppointmentModel> list = new ArrayList<AppointmentModel>();
+            ArrayList<AppointmentModel> list = new ArrayList<>();
             
             for (int i = 0; i < len; i++) {
                 
@@ -265,7 +271,7 @@ public class AppointTablePanel extends JPanel implements PropertyChangeListener 
         
         @Override
         public boolean isCellEditable(int row, int col) {
-            return (isValidRow(row) && col == MEMO_COLUMN) ? true : false;
+            return (isValidRow(row) && col == MEMO_COLUMN);
         }
         
         @Override

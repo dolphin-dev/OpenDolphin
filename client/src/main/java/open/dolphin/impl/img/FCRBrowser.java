@@ -4,7 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -24,7 +23,6 @@ import open.dolphin.client.ImageEntry;
 import open.dolphin.infomodel.DocInfoModel;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 import open.dolphin.utilities.utility.FCRLink;
 
 /**
@@ -38,12 +36,12 @@ public class FCRBrowser extends AbstractBrowser {
     private static final String DATE_FORMAT = "yyyyMMdd";
 
     private ImageTableRenderer imageRenderer;
-    private int cellWidth = MAX_IMAGE_SIZE + CELL_WIDTH_MARGIN;
-    private int cellHeight = MAX_IMAGE_SIZE + CELL_HEIGHT_MARGIN;
+    private final int cellWidth = MAX_IMAGE_SIZE + CELL_WIDTH_MARGIN;
+    private final int cellHeight = MAX_IMAGE_SIZE + CELL_HEIGHT_MARGIN;
 
     private FCRBrowserView view;
     private String savePath;
-    private boolean zeroSup;
+    private final boolean zeroSup;
   
     public FCRBrowser() {
         
@@ -468,14 +466,12 @@ public class FCRBrowser extends AbstractBrowser {
             return;
         }
         if(file.isFile()) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, file.getPath());
             file.delete();
         }else if(file.isDirectory()) {
             File[] files = file.listFiles();
             for(int i = 0; i < files.length; i++) {
                 delete(files[i]);
             }
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, file.getPath());
             file.delete();
         }
     }
@@ -494,7 +490,6 @@ public class FCRBrowser extends AbstractBrowser {
                 try {
                     entry.setUrl(newFile.toURI().toURL().toString());
                 } catch (MalformedURLException ex) {
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "ImageEntryのURL作成失敗", ex.getMessage());
                 }
                 newEntry.setFileName(name);
                 newEntry.setPath(newFile.getPath());
@@ -524,7 +519,6 @@ public class FCRBrowser extends AbstractBrowser {
                 }
             }
             name = nowLocation + File.separator + name;
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, name);
             File folder = new File(name);
             folder.mkdir();
             
@@ -532,7 +526,6 @@ public class FCRBrowser extends AbstractBrowser {
             try {
                 entry.setUrl(folder.toURI().toURL().toString());
             } catch (MalformedURLException ex) {
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "ImageEntryのURL作成失敗", ex.getMessage());
             }
             entry.setPath(folder.getPath());
             entry.setFileName(folder.getName());
@@ -564,7 +557,7 @@ public class FCRBrowser extends AbstractBrowser {
     @Override
     protected void initComponents() {
 
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
+        ResourceBundle resource = ClientContext.getMyBundle(FCRBrowser.class);
         final ActionMap map = getActionMap(resource);
 
         // TableModel

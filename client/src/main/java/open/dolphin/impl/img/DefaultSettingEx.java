@@ -16,11 +16,11 @@ import open.dolphin.client.GUIFactory;
  */
 public class DefaultSettingEx {
 
-    private AbstractBrowser context;
-    private Component parent;
+    private final AbstractBrowser context;
+    private final Component parent;
     private DefaultConfigViewEx view;
     private JDialog dialog;
-    private Properties properties;
+    private final Properties properties;
    
     public DefaultSettingEx(AbstractBrowser context, Component parent) {
         this.context = context;
@@ -131,7 +131,7 @@ public class DefaultSettingEx {
         orderRgp.add(view.getDescRadio());
 
         // Inject Actions
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
+        ResourceBundle resource = ClientContext.getMyBundle(DefaultSettingEx.class);
         ActionMap map = getAction(resource);
 
         view.getBaseDirBtn().setAction(map.get("setBaseDirectory"));

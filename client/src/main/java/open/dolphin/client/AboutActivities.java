@@ -6,14 +6,13 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import open.dolphin.infomodel.ActivityModel;
-import open.dolphin.table.OddEvenRowRenderer;
+import open.dolphin.table.StripeTableCellRenderer;
 
 /**
  *
@@ -33,34 +32,42 @@ public final class AboutActivities  {
     // カラム名
     private final String[] columnNames;
     
-    private JDialog dialog;
+    // Activityモデル
     private final ActivityModel[] am;
     
+    // 行見出し配列
+    private final String[] rowProperties;
+    
+    private JDialog dialog;
+    
     public AboutActivities(ActivityModel[] am) {
-        this.am = am;
-        columnNames = new String[am.length+1];
         
+        this.am = am;
+        
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(AboutActivities.class);
+        String simpleDateFormat = bundle.getString("dateFormat.column");
+        targetMonth = new SimpleDateFormat(simpleDateFormat).format(new Date());
+        
+        // 行見出し
+        rowProperties = bundle.getString("rowItems.activity").split(",");
+        
+        columnNames = new String[am.length+1];
         columnNames[0]  = "";
         int lastIndex = columnNames.length-1;
-        columnNames[lastIndex] = "総 数";
-        columnNames[--lastIndex] = "当 月";
+        columnNames[lastIndex] = bundle.getString("columnName.total");
+        columnNames[--lastIndex] = bundle.getString("columnName.thisMonth");
         lastIndex-=1;
         for (int col=0; col < lastIndex; col++) {
             if (am[col].getFromDate()!=null) {
-                columnNames[col+1] = yearMontSringFromDate(am[col].getFromDate());
+                SimpleDateFormat sdf = new SimpleDateFormat(simpleDateFormat);
+                columnNames[col+1] = sdf.format(am[col].getFromDate());
             }
         }
-        
-        targetMonth = new SimpleDateFormat("yyyy'年'M'月'd'日'").format(new Date());
     }
     
     public void start() {
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                createAndShowGUI();
-            }
+        SwingUtilities.invokeLater(() -> {
+            createAndShowGUI();
         });
     }
     
@@ -91,44 +98,40 @@ public final class AboutActivities  {
                 switch (row) {
                     
                     case 0:
-                        ret = col==0 ? "登録患者数" : stringFromLong(am[col-1].getNumOfPatients());
+                        ret = col==0 ? rowProperties[0] : stringFromLong(am[col-1].getNumOfPatients());
                         break;
                     
                     case 1:
-                        ret = col==0 ? "受付数" : stringFromLong(am[col-1].getNumOfPatientVisits());
+                        ret = col==0 ? rowProperties[1] : stringFromLong(am[col-1].getNumOfPatientVisits());
                         break;
                         
                     case 2:
-                        ret = col==0 ? "カルテ枚数" : stringFromLong(am[col-1].getNumOfKarte());
+                        ret = col==0 ? rowProperties[2] : stringFromLong(am[col-1].getNumOfKarte());
                         break;     
                         
                     case 3:
-                        ret = col==0 ? "画像数" : stringFromLong(am[col-1].getNumOfImages());
+                        ret = col==0 ? rowProperties[3] : stringFromLong(am[col-1].getNumOfImages());
                         break;
                         
                     case 4:
-                        ret = col==0 ? "添付書類数" : stringFromLong(am[col-1].getNumOfAttachments());
+                        ret = col==0 ? rowProperties[4] : stringFromLong(am[col-1].getNumOfAttachments());
                         break;
                         
                     case 5:
-                        ret = col==0 ? "病名数" : stringFromLong(am[col-1].getNumOfDiagnosis());
+                        ret = col==0 ? rowProperties[5] : stringFromLong(am[col-1].getNumOfDiagnosis());
                         break;
                         
                     case 6:
-                        ret = col==0 ? "紹介状数" : stringFromLong(am[col-1].getNumOfLetters());
+                        ret = col==0 ? rowProperties[6] : stringFromLong(am[col-1].getNumOfLetters());
                         break;    
                         
                     case 7:
-                        ret = col==0 ? "検査数" : stringFromLong(am[col-1].getNumOfLabTests());
+                        ret = col==0 ? rowProperties[7] : stringFromLong(am[col-1].getNumOfLabTests());
                         break;     
                         
                     case 8:
-                        ret = col==0 ? "利用者数" : col!=am.length ? "---" : stringFromLong(am[am.length-1].getNumOfUsers());
+                        ret = col==0 ? rowProperties[8] : col!=am.length ? "---" : stringFromLong(am[am.length-1].getNumOfUsers());
                         break;
-                        
-//                    case 9:
-//                        ret = col==0 ? "データベース容量" : col!=am.length ? "NA" : am[am.length-1].getDbSize();
-//                        break;  
                 }
                 
                 return ret;
@@ -139,11 +142,10 @@ public final class AboutActivities  {
         table.setRowSelectionAllowed(false);
         table.setCellSelectionEnabled(false);
         table.setFocusable(false);
-        table.setIntercellSpacing(new Dimension(5,5));
-        table.setRowHeight(ClientContext.getMoreHigherRowHeight());
         
-        OddEvenRowRenderer c0r = new OddEvenRowRenderer();
+        StripeTableCellRenderer c0r = new StripeTableCellRenderer();
         c0r.setHorizontalAlignment(SwingConstants.RIGHT);
+        c0r.setTable(table);
 
         for (int col=0; col<columnNames.length; col++) {
             table.getColumnModel().getColumn(col).setCellRenderer(c0r);
@@ -154,16 +156,15 @@ public final class AboutActivities  {
             table.getColumnModel().getColumn(col).setPreferredWidth(columnWidth);
         }
         
+        table.setIntercellSpacing(new Dimension(5,5));
+        table.setRowHeight(ClientContext.getMoreHigherRowHeight());
         table.setBorder(BorderFactory.createEtchedBorder());
         
-        JButton done = new JButton("閉じる");
-        done.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                dialog.setVisible(false);
-                dialog.dispose();
-            }
+        String actionText = ClientContext.getMyBundle(AboutActivities.class).getString("actionText.close");
+        JButton done = new JButton(actionText);
+        done.addActionListener((ActionEvent ae) -> {
+            dialog.setVisible(false);
+            dialog.dispose();
         });
         
         // 集計月を表示するパネル
@@ -191,7 +192,8 @@ public final class AboutActivities  {
         contentPane.add(btnPanel, BorderLayout.SOUTH);
         contentPane.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
         
-        dialog = new JDialog(new JFrame(), ClientContext.getFrameTitle("統計情報"), true);
+        String title = ClientContext.getMyBundle(AboutActivities.class).getString("title.window");
+        dialog = new JDialog(new JFrame(), ClientContext.getFrameTitle(title), true);
         dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         dialog.setContentPane(contentPane);
         dialog.getRootPane().setDefaultButton(done);
@@ -202,10 +204,6 @@ public final class AboutActivities  {
         int y = (screen.height - dialog.getPreferredSize().height) / n;
         dialog.setLocation(x, y);
         dialog.setVisible(true);
-    }
-    
-    private String yearMontSringFromDate(Date d) {
-        return new SimpleDateFormat("yyyy'年'M'月'").format(d);
     }
     
     private String stringFromLong(long l) {

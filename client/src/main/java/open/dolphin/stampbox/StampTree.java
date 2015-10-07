@@ -7,9 +7,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.XMLEncoder;
 import java.io.*;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
@@ -20,8 +22,6 @@ import open.dolphin.helper.SimpleWorker;
 import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
 import open.dolphin.util.GUIDGenerator;
-import open.dolphin.util.Log;
-import org.apache.log4j.Logger;
 
 /**
  * StampTree
@@ -33,8 +33,6 @@ public class StampTree extends JTree implements TreeModelListener {
     public static final String SELECTED_NODE_PROP = "selectedNodeProp";
     
     private static final int TOOLTIP_LENGTH = 35;
-    private static final String NEW_FOLDER_NAME = "新規フォルダ";
-    private static final String STAMP_SAVE_TASK_NAME = "スタンプ保存";
     
     // ASP Tree かどうかのフラグ 
     private boolean asp;
@@ -45,16 +43,13 @@ public class StampTree extends JTree implements TreeModelListener {
     // StampBox
     private StampBoxPlugin stampBox;
     
-    // Logger, Application
-    private Logger logger;
-    
     // timerTask 関連
     private SimpleWorker worker;
     private javax.swing.Timer taskTimer;
     private ProgressMonitor monitor;
     private int delayCount;
-    private int maxEstimation = 60*1000;  // 60 秒
-    private int delay = 300;              // 300 mmsec
+    private final int maxEstimation = 60*1000;  // 60 秒
+    private final int delay = 300;              // 300 mmsec
 
     /**
      * StampTreeオブジェクトを生成する。
@@ -64,8 +59,6 @@ public class StampTree extends JTree implements TreeModelListener {
     public StampTree(TreeModel model) {
         
         super(model);
-        
-        logger = ClientContext.getBootLogger();
         
         this.putClientProperty("JTree.lineStyle", "Angled");    // 水平及び垂直線を使用する
         this.setEditable(false);                                // ノード名を編集不可にする
@@ -144,6 +137,7 @@ public class StampTree extends JTree implements TreeModelListener {
     
     /**
      * Enable or disable tooltip
+     * @param state
      */
     public final void enableToolTips(boolean state) {
         
@@ -159,6 +153,7 @@ public class StampTree extends JTree implements TreeModelListener {
     
     /**
      * Set StampBox reference
+     * @param stampBox
      */
     public void setStampBox(StampBoxPlugin stampBox) {
         this.stampBox = stampBox;
@@ -166,6 +161,7 @@ public class StampTree extends JTree implements TreeModelListener {
     
     /**
      * 選択されているノードを返す。
+     * @return 
      */
     public StampTreeNode getSelectedNode() {
         return (StampTreeNode)this.getLastSelectedPathComponent();
@@ -173,6 +169,8 @@ public class StampTree extends JTree implements TreeModelListener {
     
     /**
      * 引数のポイント位置のノードを返す。
+     * @param p
+     * @return 
      */
     public StampTreeNode getNode(Point p) {
         TreePath path = this.getPathForLocation(p.x, p.y);
@@ -185,7 +183,6 @@ public class StampTree extends JTree implements TreeModelListener {
      */
     public void enter() {
     }
-
 
     /**
      * Stamp を treeに追加する
@@ -246,14 +243,14 @@ public class StampTree extends JTree implements TreeModelListener {
 
             @Override
             protected void cancelled() {
-                logger.debug("addStamp cancelled");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).fine("addStamp cancelled");
             }
 
             @Override
             protected void failed(java.lang.Throwable cause) {
-                logger.debug("addStamp failed");
-                logger.warn(cause.getCause());
-                logger.warn(cause.getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning("addStamp failed");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getCause().getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
             }
 
             @Override
@@ -271,23 +268,21 @@ public class StampTree extends JTree implements TreeModelListener {
             }
         };
 
-        String message = "スタンプ保存";
-        String note = info.getStampName() + "を保存しています...";
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampTree.class);
+        String message = bundle.getString("message.progress");
+        String fmt = bundle.getString("messageFormat.note.saving");
+        String note = new MessageFormat(fmt).format(new Object[]{info.getStampName()});
         Component c = SwingUtilities.getWindowAncestor(this);
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-        taskTimer = new Timer(delay, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-
-                if (monitor.isCanceled() && (!worker.isCancelled())) {
-                    worker.cancel(true);
-
-                } else {
-                    monitor.setProgress(delayCount);
-                }
+        taskTimer = new Timer(delay, (ActionEvent e) -> {
+            delayCount++;
+            
+            if (monitor.isCanceled() && (!worker.isCancelled())) {
+                worker.cancel(true);
+                
+            } else {
+                monitor.setProgress(delayCount);
             }
         });
         worker.execute();
@@ -298,6 +293,9 @@ public class StampTree extends JTree implements TreeModelListener {
     /**
      * 1. KartePaneから drop されたスタンプをツリーに加える。
      * 2. スタンプ道具箱エディタで編集されたスタンプを加える。
+     * @param droppedStamp
+     * @param selected
+     * @return 
      */
     public boolean addStamp(ModuleModel droppedStamp, final StampTreeNode selected) {
         
@@ -348,14 +346,14 @@ public class StampTree extends JTree implements TreeModelListener {
             
             @Override
             protected void cancelled() {
-                logger.debug("addStamp cancelled");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).fine("addStamp cancelled");
             }
             
             @Override
             protected void failed(java.lang.Throwable cause) {
-                logger.debug("addStamp failed");
-                logger.warn(cause.getCause());
-                logger.warn(cause.getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning("addStamp failed");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getCause().getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
             }
 
             @Override
@@ -372,9 +370,10 @@ public class StampTree extends JTree implements TreeModelListener {
                 monitor = null;
             }
         };
-        
-        String message = "スタンプ保存";
-        String note = info.getStampName() + "を保存しています...";
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampTree.class);
+        String message = bundle.getString("message.progress");
+        String fmt = bundle.getString("messageFormat.note.saving");
+        String note = new MessageFormat(fmt).format(new Object[]{info.getStampName()});
         Component c = SwingUtilities.getWindowAncestor(this);
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
@@ -448,7 +447,7 @@ public class StampTree extends JTree implements TreeModelListener {
 
             // Stamp ボックスから entity に対応する tree を得る
             StampTree another = stampBox.getStampTree(info.getEntity());
-            boolean myTree = (another == this) ? true : false;
+            boolean myTree = (another == this);
             final String treeName = another.getTreeName();
             DefaultTreeModel model = (DefaultTreeModel) another.getModel();
             StampTreeNode root = (StampTreeNode) model.getRoot();
@@ -463,20 +462,16 @@ public class StampTree extends JTree implements TreeModelListener {
             
             // メッセージを表示する
             if (!myTree) {
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        StringBuilder buf = new StringBuilder();
-                        buf.append("スタンプは個人用の ");
-                        buf.append(treeName);
-                        buf.append(" に保存しました。");
-                        JOptionPane.showMessageDialog(
-                                StampTree.this,
-                                buf.toString(),
-                                ClientContext.getFrameTitle(STAMP_SAVE_TASK_NAME),
-                                JOptionPane.INFORMATION_MESSAGE);
-                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(STAMP_SAVE_TASK_NAME), buf.toString());
-                    }
+                SwingUtilities.invokeLater(() -> {
+                    java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampTree.class);
+                    String fmt = bundle.getString("meesageFormat.savedInPersonalBox");
+                    String msg = new MessageFormat(fmt).format(new Object[]{treeName});
+                    String title = bundle.getString("message.progress");
+                    JOptionPane.showMessageDialog(
+                            StampTree.this,
+                            msg,
+                            ClientContext.getFrameTitle(title),
+                            JOptionPane.INFORMATION_MESSAGE);
                 });
             }
         }
@@ -525,14 +520,14 @@ public class StampTree extends JTree implements TreeModelListener {
 
             @Override
             protected void cancelled() {
-                logger.debug("addStamp cancelled");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).fine("addStamp cancelled");
             }
 
             @Override
             protected void failed(java.lang.Throwable cause) {
-                logger.debug("addStamp failed");
-                logger.warn(cause.getCause());
-                logger.warn(cause.getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning("addStamp failed");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getCause().toString());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
             }
 
             @Override
@@ -550,23 +545,22 @@ public class StampTree extends JTree implements TreeModelListener {
             }
         };
 
-        String message = "スタンプ保存";
-        String note = stampInfo.getStampName() + "を保存しています...";
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampTree.class);
+        String message = bundle.getString("message.progress");
+        String fmt = bundle.getString("messageFormat.note.saving");
+        String note = new MessageFormat(fmt).format(new Object[]{stampInfo.getStampName()});
+        
         Component c = SwingUtilities.getWindowAncestor(this);
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-        taskTimer = new Timer(delay, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-
-                if (monitor.isCanceled() && (!worker.isCancelled())) {
-                    worker.cancel(true);
-
-                } else {
-                    monitor.setProgress(delayCount);
-                }
+        taskTimer = new Timer(delay, (ActionEvent e) -> {
+            delayCount++;
+            
+            if (monitor.isCanceled() && (!worker.isCancelled())) {
+                worker.cancel(true);
+                
+            } else {
+                monitor.setProgress(delayCount);
             }
         });
 
@@ -575,6 +569,10 @@ public class StampTree extends JTree implements TreeModelListener {
 
     /**
      * Diagnosis Table から Drag & Drop されたRegisteredDiagnosisをスタンプ化する。
+     * @param parent
+     * @param rd
+     * @param childIndex
+     * @return 
      */
     public boolean addDiagnosis(final StampTreeNode parent, RegisteredDiagnosisModel rd, final int childIndex) {
 
@@ -651,14 +649,14 @@ public class StampTree extends JTree implements TreeModelListener {
 
             @Override
             protected void cancelled() {
-                logger.debug("addDiagnosis cancelled");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).fine("addDiagnosis cancelled");
             }
 
             @Override
             protected void failed(java.lang.Throwable cause) {
-                logger.warn("addDiagnosis failed");
-                logger.warn(cause.getCause());
-                logger.warn(cause.getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning("addDiagnosis failed");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getCause().toString());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
             }
 
             @Override
@@ -676,23 +674,22 @@ public class StampTree extends JTree implements TreeModelListener {
             }
         };
 
-        String message = "スタンプ保存";
-        String note = info.getStampName() + "を保存しています...";
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampTree.class);
+        String message = bundle.getString("message.progress");
+        String fmt = bundle.getString("messageFormat.note.saving");
+        String note = new MessageFormat(fmt).format(new Object[]{info.getStampName()});
+        
         Component c = SwingUtilities.getWindowAncestor(this);
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-        taskTimer = new Timer(delay, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-
-                if (monitor.isCanceled() && (!worker.isCancelled())) {
-                    worker.cancel(true);
-
-                } else {
-                    monitor.setProgress(delayCount);
-                }
+        taskTimer = new Timer(delay, (ActionEvent e) -> {
+            delayCount++;
+            
+            if (monitor.isCanceled() && (!worker.isCancelled())) {
+                worker.cancel(true);
+                
+            } else {
+                monitor.setProgress(delayCount);
             }
         });
 
@@ -703,6 +700,7 @@ public class StampTree extends JTree implements TreeModelListener {
     
     /**
      * エディタで生成した病名リストを登録する。
+     * @param list
      */
     public void addDiagnosis(ArrayList<RegisteredDiagnosisModel> list) {
 
@@ -712,8 +710,8 @@ public class StampTree extends JTree implements TreeModelListener {
             return;
         }
         
-        final ArrayList<StampModel> stampList = new ArrayList<StampModel>();
-        final ArrayList<ModuleInfoBean> infoList = new ArrayList<ModuleInfoBean>();
+        final ArrayList<StampModel> stampList = new ArrayList<>();
+        final ArrayList<ModuleInfoBean> infoList = new ArrayList<>();
         
         for (RegisteredDiagnosisModel rd : list) {
             // クリア
@@ -781,21 +779,21 @@ public class StampTree extends JTree implements TreeModelListener {
             
             @Override
             protected void succeeded(List<String> result) {
-                for(ModuleInfoBean info : infoList) {
+                infoList.stream().forEach((info) -> {
                     addInfoToTree(info, null);
-                }
+                });
             }
             
             @Override
             protected void cancelled() {
-                logger.debug("addDiagnosis cancelled");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).fine("addDiagnosis cancelled");
             }
             
             @Override
             protected void failed(java.lang.Throwable cause) {
-                logger.warn("addDiagnosis failed");
-                logger.warn(cause.getCause());
-                logger.warn(cause.getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning("addDiagnosis failed");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getCause().toString());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
             }
 
             @Override
@@ -812,24 +810,20 @@ public class StampTree extends JTree implements TreeModelListener {
                 monitor = null;
             }
         };
-        
-        String message = "スタンプ保存";
-        String note = "病名スタンプを保存しています...";
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampTree.class);
+        String message = bundle.getString("message.progress");
+        String note = bundle.getString("note.savingDiceaseStamp");
         Component c = SwingUtilities.getWindowAncestor(this);
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-        taskTimer = new Timer(delay, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-
-                if (monitor.isCanceled() && (!worker.isCancelled())) {
-                    worker.cancel(true);
-
-                } else {
-                    monitor.setProgress(delayCount);
-                }
+        taskTimer = new Timer(delay, (ActionEvent e) -> {
+            delayCount++;
+            
+            if (monitor.isCanceled() && (!worker.isCancelled())) {
+                worker.cancel(true);
+                
+            } else {
+                monitor.setProgress(delayCount);
             }
         });
 
@@ -839,6 +833,10 @@ public class StampTree extends JTree implements TreeModelListener {
 
     /**
      * テキストスタンプを追加する。
+     * @param parent
+     * @param text
+     * @param childIndex
+     * @return 
      */
     public boolean addTextStamp(final StampTreeNode parent, String text, final int childIndex) {
 
@@ -893,14 +891,14 @@ public class StampTree extends JTree implements TreeModelListener {
 
             @Override
             protected void cancelled() {
-                logger.debug("addTextStamp cancelled");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).fine("addTextStamp cancelled");
             }
 
             @Override
             protected void failed(java.lang.Throwable cause) {
-                logger.warn("addTextStamp failed");
-                logger.warn(cause.getCause());
-                logger.warn(cause.getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning("addTextStamp failed");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getCause().toString());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
             }
 
             @Override
@@ -918,23 +916,22 @@ public class StampTree extends JTree implements TreeModelListener {
             }
         };
 
-        String message = "スタンプ保存";
-        String note = info.getStampName() + "を保存しています...";
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampTree.class);
+        String message = bundle.getString("message.progress");
+        String fmt = bundle.getString("messageFormat.note.saving");
+        String note = new MessageFormat(fmt).format(new Object[]{info.getStampName()});
+        
         Component c = SwingUtilities.getWindowAncestor(this);
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-        taskTimer = new Timer(delay, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-
-                if (monitor.isCanceled() && (!worker.isCancelled())) {
-                    worker.cancel(true);
-
-                } else {
-                    monitor.setProgress(delayCount);
-                }
+        taskTimer = new Timer(delay, (ActionEvent e) -> {
+            delayCount++;
+            
+            if (monitor.isCanceled() && (!worker.isCancelled())) {
+                worker.cancel(true);
+                
+            } else {
+                monitor.setProgress(delayCount);
             }
         });
 
@@ -945,6 +942,9 @@ public class StampTree extends JTree implements TreeModelListener {
     
     /**
      * テキストスタンプを追加する。
+     * @param text
+     * @param selected
+     * @return 
      */
     public boolean addTextStamp(String text, final StampTreeNode selected) {
         
@@ -997,14 +997,14 @@ public class StampTree extends JTree implements TreeModelListener {
             
             @Override
             protected void cancelled() {
-                logger.debug("addTextStamp cancelled");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).fine("addTextStamp cancelled");
             }
             
             @Override
             protected void failed(java.lang.Throwable cause) {
-                logger.warn("addTextStamp failed");
-                logger.warn(cause.getCause());
-                logger.warn(cause.getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning("addTextStamp failed");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getCause().toString());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
             }
 
             @Override
@@ -1021,24 +1021,22 @@ public class StampTree extends JTree implements TreeModelListener {
                 monitor = null;
             }
         };
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampTree.class);
+        String message = bundle.getString("message.progress");
+        String fmt = bundle.getString("messageFormat.note.saving");
+        String note = new MessageFormat(fmt).format(new Object[]{info.getStampName()});
         
-        String message = "スタンプ保存";
-        String note = info.getStampName() + "を保存しています...";
         Component c = SwingUtilities.getWindowAncestor(this);
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-        taskTimer = new Timer(delay, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-
-                if (monitor.isCanceled() && (!worker.isCancelled())) {
-                    worker.cancel(true);
-
-                } else {
-                    monitor.setProgress(delayCount);
-                }
+        taskTimer = new Timer(delay, (ActionEvent e) -> {
+            delayCount++;
+            
+            if (monitor.isCanceled() && (!worker.isCancelled())) {
+                worker.cancel(true);
+                
+            } else {
+                monitor.setProgress(delayCount);
             }
         });
 
@@ -1058,20 +1056,19 @@ public class StampTree extends JTree implements TreeModelListener {
         
         try {
             StringBuilder buf = new StringBuilder();
-            BufferedReader reader = new BufferedReader(new StringReader(stamp.getModel().toString()));
-            
-            String line;
-            while ( (line = reader.readLine()) != null ) {
-                
-                buf.append(line);
-                
-                if (buf.length() < TOOLTIP_LENGTH) {
-                    buf.append(",");
-                } else {
-                    break;
+            try (BufferedReader reader = new BufferedReader(new StringReader(stamp.getModel().toString()))) {
+                String line;
+                while ( (line = reader.readLine()) != null ) {
+                    
+                    buf.append(line);
+                    
+                    if (buf.length() < TOOLTIP_LENGTH) {
+                        buf.append(",");
+                    } else {
+                        break;
+                    }
                 }
             }
-            reader.close();
             if (buf.length() > TOOLTIP_LENGTH) {
                 buf.setLength(TOOLTIP_LENGTH);
             }
@@ -1084,22 +1081,7 @@ public class StampTree extends JTree implements TreeModelListener {
         
         return ret;
     }
-    
-    /**
-     * スタンプタスク共通の warning ダイアログを表示する。
-     * @param title  ダイアログウインドウに表示するタイトル
-     * @param message　エラーメッセージ
-     */
-    private void warning(String message) {
-        String title = ClientContext.getString("stamptree.title");
-        JOptionPane.showMessageDialog(
-                StampTree.this,
-                message,
-                ClientContext.getFrameTitle(title),
-                JOptionPane.WARNING_MESSAGE);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), message);
-    }
-        
+            
     /**
      * ノードの名前を変更する。
      */
@@ -1129,7 +1111,7 @@ public class StampTree extends JTree implements TreeModelListener {
      */
     public void deleteNode() {
         
-        logger.debug("stampTree deleteNode");
+        java.util.logging.Logger.getLogger(this.getClass().getName()).fine("stampTree deleteNode");
         
         if (!isUserTree()) {
             return;
@@ -1153,7 +1135,7 @@ public class StampTree extends JTree implements TreeModelListener {
         //
         // このリストのなかに削除するノードとその子を含める
         //
-        final ArrayList<String> deleteList = new ArrayList<String>();
+        final ArrayList<String> deleteList = new ArrayList<>();
         
         // エディタから発行があるかどうかのフラグ
         boolean hasEditor = false;
@@ -1161,7 +1143,7 @@ public class StampTree extends JTree implements TreeModelListener {
         // 列挙する
         while (e.hasMoreElements()) {
             
-            logger.debug("stampTree deleteNode e.hasMoreElements()");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).fine("stampTree deleteNode e.hasMoreElements()");
             StampTreeNode node = (StampTreeNode) e.nextElement();
             
             if (node.isLeaf()) {
@@ -1171,7 +1153,8 @@ public class StampTree extends JTree implements TreeModelListener {
                 //
                 // エディタから発行がある場合は中止する
                 //
-                if (info.getStampName().equals("エディタから発行...") && (! info.isSerialized()) ) {
+                String treeName = ClientContext.getMyBundle(StampTree.class).getString("treeName.fromEditor");
+                if (info.getStampName().equals(treeName) && (! info.isSerialized()) ) {
                     hasEditor = true;
                     break;
                 }
@@ -1181,7 +1164,7 @@ public class StampTree extends JTree implements TreeModelListener {
                 //
                 if (stampId != null) {
                     deleteList.add(stampId);
-                    logger.debug("added " + info.getStampName());
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).log(Level.FINE, "added {0}", info.getStampName());
                 }
             }
         }
@@ -1191,16 +1174,17 @@ public class StampTree extends JTree implements TreeModelListener {
         // リターンする
         //
         if (hasEditor) {
-            String msg0 = "エディタから発行は消去できません。フォルダに含まれている";
-            String msg1 = "場合は Drag & Drop で移動後、再度実行してください。";
-            String taskTitle = ClientContext.getString("stamptree.title");
+            java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampTree.class);
+            String msg0 = bundle.getString("message.cannotDeleteFromEditor_1");
+            String msg1 = bundle.getString("message.cannotDeleteFromEditor_2");
+            String taskTitle = bundle.getString("title.optionPane");
+            //String taskTitle = ClientContext.getString("stamptree.title");
             JOptionPane.showMessageDialog(
                         (Component) null,
                         new Object[]{msg0, msg1},
                         ClientContext.getFrameTitle(taskTitle),
                         JOptionPane.INFORMATION_MESSAGE
                         );
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(taskTitle), msg0, msg1);
             return;
         }
         
@@ -1236,7 +1220,7 @@ public class StampTree extends JTree implements TreeModelListener {
             
             @Override
             protected void cancelled() {
-                logger.debug("deleteNode cancelled");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).fine("deleteNode cancelled");
             }
             
             @Override
@@ -1246,9 +1230,9 @@ public class StampTree extends JTree implements TreeModelListener {
                 //---------------------------------------
                 DefaultTreeModel model = (DefaultTreeModel) (StampTree.this).getModel();
                 model.removeNodeFromParent(theNode);
-                logger.debug("deleteNode failed");
-                logger.warn(cause.getCause());
-                logger.warn(cause.getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning("deleteNode failed");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getCause().toString());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
             }
 
             @Override
@@ -1265,24 +1249,20 @@ public class StampTree extends JTree implements TreeModelListener {
                 monitor = null;
             }
         };
-        
-        String message = "スタンプ削除";
-        String note = "スタンプを削除しています...";
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampTree.class);
+        String message = bundle.getString("message.progress.deleteStamp");
+        String note = bundle.getString("note.progress.deletingStamp");
         Component c = SwingUtilities.getWindowAncestor(this);
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-        taskTimer = new Timer(delay, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-
-                if (monitor.isCanceled() && (!worker.isCancelled())) {
-                    worker.cancel(true);
-
-                } else {
-                    monitor.setProgress(delayCount);
-                }
+        taskTimer = new Timer(delay, (ActionEvent e1) -> {
+            delayCount++;
+            
+            if (monitor.isCanceled() && (!worker.isCancelled())) {
+                worker.cancel(true);
+                
+            } else {
+                monitor.setProgress(delayCount);
             }
         });
 
@@ -1299,7 +1279,8 @@ public class StampTree extends JTree implements TreeModelListener {
         }
         
         // フォルダノードを生成する
-        StampTreeNode folder = new StampTreeNode(NEW_FOLDER_NAME);
+        String name = ClientContext.getMyBundle(StampTree.class).getString("name.newFolder");
+        StampTreeNode folder = new StampTreeNode(name);
         
         //
         // 生成位置となる選択されたノードを得る
@@ -1346,9 +1327,9 @@ public class StampTree extends JTree implements TreeModelListener {
     
     private byte[] getXMLBytes(Object bean) {
         ByteArrayOutputStream bo = new ByteArrayOutputStream();
-        XMLEncoder e = new XMLEncoder(new BufferedOutputStream(bo));
-        e.writeObject(bean);
-        e.close();
+        try (XMLEncoder e = new XMLEncoder(new BufferedOutputStream(bo))) {
+            e.writeObject(bean);
+        }
         return bo.toByteArray();
     }
     

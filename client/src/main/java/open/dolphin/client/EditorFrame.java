@@ -2,17 +2,15 @@ package open.dolphin.client;
 
 import java.awt.*;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.print.PageFormat;
-import java.awt.print.PrinterJob;
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.ResourceBundle;
 import java.util.concurrent.CopyOnWriteArrayList;
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -20,7 +18,6 @@ import javax.swing.event.PopupMenuListener;
 import open.dolphin.helper.WindowSupport;
 import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  * EditorFrame
@@ -33,9 +30,7 @@ public class EditorFrame extends AbstractMainTool implements Chart {
     public enum EditorMode {BROWSER, EDITOR};
     
     // 全インスタンスを保持するリスト
-    private static List<Chart> allEditorFrames = new CopyOnWriteArrayList<Chart>();
-
-    private static final String PROP_FRMAE_BOUNDS = "editorFrame.bounds";
+    private static final List<Chart> allEditorFrames = new CopyOnWriteArrayList<>();
     
     // このフレームの実のコンテキストチャート
     private Chart realChart;
@@ -67,11 +62,8 @@ public class EditorFrame extends AbstractMainTool implements Chart {
     // Block GlassPane 
     private BlockGlass blockGlass;
     
-    // 親チャートの位置 
-    private Point parentLoc;
-    
+    // Content panel
     private JPanel content;
-    
     
     /**
      * 全インスタンスを保持するリストを返す。
@@ -79,12 +71,6 @@ public class EditorFrame extends AbstractMainTool implements Chart {
      */
     public static List<Chart> getAllEditorFrames() {
         return allEditorFrames;
-    }
-    
-    private static PageFormat pageFormat = null;
-    static {
-        PrinterJob printJob = PrinterJob.getPrinterJob();
-        pageFormat = printJob.defaultPage();
     }
     
     /**
@@ -100,7 +86,6 @@ public class EditorFrame extends AbstractMainTool implements Chart {
      */
     public void setChart(Chart chartCtx) {
         this.realChart = chartCtx;
-        parentLoc = realChart.getFrame().getLocation();
         super.setContext(chartCtx.getContext());
     }
     
@@ -216,7 +201,7 @@ public class EditorFrame extends AbstractMainTool implements Chart {
     
     /**
      * ReadOnly 属性を設定する。
-     * @param readOnly の時 true
+     * @param b
      */
     @Override
     public void setReadOnly(boolean b) {
@@ -261,6 +246,8 @@ public class EditorFrame extends AbstractMainTool implements Chart {
     
     /**
      * Menu アクションを制御する。
+     * @param name
+     * @param enabled
      */
     @Override
     public void enabledAction(String name, boolean enabled) {
@@ -321,30 +308,25 @@ public class EditorFrame extends AbstractMainTool implements Chart {
      * 初期化する。
      */
     private void initialize() {
-
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
-        
+    
         // Frame を生成する
         // Frame のタイトルを
         // 患者氏名(カナ):性別:患者ID に設定する
-        String karteStr = resource.getString("karteStr");
-        StringBuilder sb = new StringBuilder();
-        sb.append(getPatient().getFullName());
-        sb.append("(");
-        String kana = getPatient().getKanaName();
-        kana = kana.replace("　", " ");
-        sb.append(kana);
-        sb.append(")");
-        sb.append(" : ");
-        sb.append(getPatient().getPatientId());
-        sb.append(karteStr);
+        String patientName = getPatient().getFullName();
+        String kana = getPatient().getKanaName().replace("　", " ");
+        String patientId = getPatient().getPatientId();
         
-        windowSupport = WindowSupport.create(sb.toString());
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(EditorFrame.class);
+        
+        String frameFormat = bundle.getString("messageFormat.frame.title");
+        MessageFormat msf0 = new MessageFormat(frameFormat);
+        String frameTitle = msf0.format(new Object[]{patientName,kana,patientId});
+        
+        windowSupport = WindowSupport.create(frameTitle);
         
         JMenuBar myMenuBar = windowSupport.getMenuBar();
         
         JFrame frame = windowSupport.getFrame();
-        frame.setName("editorFrame");
         content = new JPanel(new BorderLayout());
         
         // Mediator が変更になる
@@ -357,8 +339,7 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         mediator.registerActions(appMenu.getActionMap());
         myToolPanel = appMenu.getToolPanelProduct();
         content.add(myToolPanel, BorderLayout.NORTH);
-        
-//minagawa^ lsctest        
+                
         // adminとそれ以外
         Action addUserAction = mediator.getAction(GUIConst.ACTION_ADD_USER);
         boolean admin = false;
@@ -370,11 +351,10 @@ public class EditorFrame extends AbstractMainTool implements Chart {
             }
         }
         addUserAction.setEnabled(admin);
-//minagawa$
+        
 //s.oh^ 2014/04/16 メニュー制御
         mediator.getAction(GUIConst.ACTION_EDIT_FACILITY_INFO).setEnabled(admin);
 //s.oh$
-        
         // このクラス固有のToolBarを生成する
         JToolBar toolBar = appMenu.getToolBar();
         toolBar.addSeparator();
@@ -382,33 +362,28 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         // テキストツールを生成する
         Action action = mediator.getActions().get(GUIConst.ACTION_INSERT_TEXT);
         final JToggleButton textBtn = new JToggleButton();
-        textBtn.setName("textBtn");
         textBtn.setAction(action);
-        textBtn.addItemListener(new ItemListener() {
-
-            @Override
-            public void itemStateChanged(ItemEvent ie) {
-                if (ie.getStateChange()==ItemEvent.SELECTED) {
-                    if (mediator.getActions().get(GUIConst.ACTION_INSERT_TEXT).isEnabled()) {
-                        JPopupMenu menu = new JPopupMenu();
-                        mediator.addTextMenu(menu);
-                        
-                        menu.addPopupMenuListener(new PopupMenuListener() {
-                            @Override
-                            public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
-                            }
-                            @Override
-                            public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
-                                textBtn.setSelected(false);
-                            }
-                            @Override
-                            public void popupMenuCanceled(PopupMenuEvent pme) {
-                                textBtn.setSelected(false);
-                            }
-                        });
-                        Component c = (Component)ie.getSource();
-                        menu.show(c, 0, c.getHeight());
-                    }
+        textBtn.addItemListener((ItemEvent ie) -> {
+            if (ie.getStateChange()==ItemEvent.SELECTED) {
+                if (mediator.getActions().get(GUIConst.ACTION_INSERT_TEXT).isEnabled()) {
+                    JPopupMenu menu = new JPopupMenu();
+                    mediator.addTextMenu(menu);
+                    
+                    menu.addPopupMenuListener(new PopupMenuListener() {
+                        @Override
+                        public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
+                        }
+                        @Override
+                        public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
+                            textBtn.setSelected(false);
+                        }
+                        @Override
+                        public void popupMenuCanceled(PopupMenuEvent pme) {
+                            textBtn.setSelected(false);
+                        }
+                    });
+                    Component c = (Component)ie.getSource();
+                    menu.show(c, 0, c.getHeight());
                 }
             }
         });
@@ -420,18 +395,13 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         // シェーマツールを生成する
         action = mediator.getActions().get(GUIConst.ACTION_INSERT_SCHEMA);
         final JToggleButton schemaBtn = new JToggleButton();
-        schemaBtn.setName("schemaBtn");
         schemaBtn.setAction(action);
-        schemaBtn.addItemListener(new ItemListener() {
-
-            @Override
-            public void itemStateChanged(ItemEvent ie) {
-                if (ie.getStateChange()==ItemEvent.SELECTED) {
-                    if (mediator.getActions().get(GUIConst.ACTION_INSERT_SCHEMA).isEnabled()) {
-                        getContext().showSchemaBox();
-                    }
-                    schemaBtn.setSelected(false);
+        schemaBtn.addItemListener((ItemEvent ie) -> {
+            if (ie.getStateChange()==ItemEvent.SELECTED) {
+                if (mediator.getActions().get(GUIConst.ACTION_INSERT_SCHEMA).isEnabled()) {
+                    getContext().showSchemaBox();
                 }
+                schemaBtn.setSelected(false);
             }
         });
         schemaBtn.setFocusable(false);
@@ -442,34 +412,29 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         // スタンプツールを生成する
         action = mediator.getActions().get(GUIConst.ACTION_INSERT_STAMP);
         final JToggleButton stampBtn = new JToggleButton();
-        stampBtn.setName("stampBtn");
         stampBtn.setAction(action);
-        stampBtn.addItemListener(new ItemListener() {
-
-            @Override
-            public void itemStateChanged(ItemEvent ie) {
-                if (ie.getStateChange()==ItemEvent.SELECTED) {
-                    if (mediator.getActions().get(GUIConst.ACTION_INSERT_STAMP).isEnabled()) {
-                        JPopupMenu menu = new JPopupMenu();
-                        mediator.addStampMenu(menu);
-                        
-                        menu.addPopupMenuListener(new PopupMenuListener() {
-                            @Override
-                            public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
-                            }
-                            @Override
-                            public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
-                                stampBtn.setSelected(false);
-                            }
-                            @Override
-                            public void popupMenuCanceled(PopupMenuEvent pme) {
-                                stampBtn.setSelected(false);
-                            }
-                        });
-                        
-                        Component c = (Component)ie.getSource();
-                        menu.show(c, 0, c.getHeight());
-                    }
+        stampBtn.addItemListener((ItemEvent ie) -> {
+            if (ie.getStateChange()==ItemEvent.SELECTED) {
+                if (mediator.getActions().get(GUIConst.ACTION_INSERT_STAMP).isEnabled()) {
+                    JPopupMenu menu = new JPopupMenu();
+                    mediator.addStampMenu(menu);
+                    
+                    menu.addPopupMenuListener(new PopupMenuListener() {
+                        @Override
+                        public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
+                        }
+                        @Override
+                        public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
+                            stampBtn.setSelected(false);
+                        }
+                        @Override
+                        public void popupMenuCanceled(PopupMenuEvent pme) {
+                            stampBtn.setSelected(false);
+                        }
+                    });
+                    
+                    Component c = (Component)ie.getSource();
+                    menu.show(c, 0, c.getHeight());
                 }
             }
         });
@@ -482,43 +447,38 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         // 保険選択ツールを生成する
         action = mediator.getActions().get(GUIConst.ACTION_SELECT_INSURANCE);
         final JToggleButton insBtn = new JToggleButton();
-        insBtn.setName("insBtn");
         insBtn.setAction(action);
-        insBtn.addItemListener(new ItemListener() {
-
-            @Override
-            public void itemStateChanged(ItemEvent ie) {
-                if (ie.getStateChange()==ItemEvent.SELECTED) {
-                    if (mediator.getActions().get(GUIConst.ACTION_SELECT_INSURANCE).isEnabled()) {
-                        JPopupMenu menu = new JPopupMenu();
-                        PVTHealthInsuranceModel[] insurances = getHealthInsurances();
-                        for (PVTHealthInsuranceModel hm : insurances) {
-                            ReflectActionListener ra = new ReflectActionListener(mediator,
-                                    "applyInsurance",
-                                    new Class[]{hm.getClass()},
-                                    new Object[]{hm});
-                            JMenuItem mi = new JMenuItem(hm.toString());
-                            mi.addActionListener(ra);
-                            menu.add(mi);
-                        }
-                        
-                        menu.addPopupMenuListener(new PopupMenuListener() {
-                            @Override
-                            public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
-                            }
-                            @Override
-                            public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
-                                insBtn.setSelected(false);
-                            }
-                            @Override
-                            public void popupMenuCanceled(PopupMenuEvent pme) {
-                                insBtn.setSelected(false);
-                            }
-                        });
-                        
-                        Component c = (Component)ie.getSource();
-                        menu.show(c, 0, c.getHeight());
+        insBtn.addItemListener((ItemEvent ie) -> {
+            if (ie.getStateChange()==ItemEvent.SELECTED) {
+                if (mediator.getActions().get(GUIConst.ACTION_SELECT_INSURANCE).isEnabled()) {
+                    JPopupMenu menu = new JPopupMenu();
+                    PVTHealthInsuranceModel[] insurances = getHealthInsurances();
+                    for (PVTHealthInsuranceModel hm : insurances) {
+                        ReflectActionListener ra = new ReflectActionListener(mediator,
+                                "applyInsurance",
+                                new Class[]{hm.getClass()},
+                                new Object[]{hm});
+                        JMenuItem mi = new JMenuItem(hm.toString());
+                        mi.addActionListener(ra);
+                        menu.add(mi);
                     }
+                    
+                    menu.addPopupMenuListener(new PopupMenuListener() {
+                        @Override
+                        public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
+                        }
+                        @Override
+                        public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
+                            insBtn.setSelected(false);
+                        }
+                        @Override
+                        public void popupMenuCanceled(PopupMenuEvent pme) {
+                            insBtn.setSelected(false);
+                        }
+                    });
+                    
+                    Component c = (Component)ie.getSource();
+                    menu.show(c, 0, c.getHeight());
                 }
             }
         });
@@ -533,7 +493,8 @@ public class EditorFrame extends AbstractMainTool implements Chart {
             JButton insertSOATextBtn = new JButton();
             insertSOATextBtn.setAction(mediator.getActions().get("insertSOAText"));
             insertSOATextBtn.setText(null);
-            insertSOATextBtn.setToolTipText("所見欄にテキストを追加します。");
+            String toolTipText = bundle.getString("toolTipText.insertSOABtn");
+            insertSOATextBtn.setToolTipText(toolTipText);
             insertSOATextBtn.setMargin(new Insets(3,3,3,3));
             insertSOATextBtn.setFocusable(false);
             insertSOATextBtn.setBorderPainted(true);
@@ -545,14 +506,14 @@ public class EditorFrame extends AbstractMainTool implements Chart {
             JButton insertPTextBtn = new JButton();
             insertPTextBtn.setAction(mediator.getActions().get("insertPText"));
             insertPTextBtn.setText(null);
-            insertPTextBtn.setToolTipText("所見欄にテキストを追加します。");
+            String toolTipText = bundle.getString("toolTiptext.insertPBtn");
+            insertPTextBtn.setToolTipText(toolTipText);
             insertPTextBtn.setMargin(new Insets(3,3,3,3));
             insertPTextBtn.setFocusable(false);
             insertPTextBtn.setBorderPainted(true);
             toolBar.add(insertPTextBtn);
         }
 //s.oh$
-
         // Status 情報
         setStatusPanel(new StatusPanel(false));
         getStatusPanel().setRightInfo(getPatient().getPatientId());
@@ -571,8 +532,6 @@ public class EditorFrame extends AbstractMainTool implements Chart {
             editor.setContext(EditorFrame.this); // context
             editor.initialize();
             editor.start();
-            //scroller = new JScrollPane(editor.getUI());
-            //scroller.getVerticalScrollBar().setUnitIncrement(16);
             scroller = editor.getScroller();
             mediator.enabledAction(GUIConst.ACTION_NEW_KARTE, false);
             mediator.enabledAction(GUIConst.ACTION_NEW_DOCUMENT, false);
@@ -582,37 +541,27 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         frame.getContentPane().setLayout(new BorderLayout(0, 7));
         frame.getContentPane().add(content, BorderLayout.CENTER);
         frame.getContentPane().add((JPanel) statusPanel, BorderLayout.SOUTH);
+        
         // Injection
-//minagawa^ Icon Server        
-        //textBtn.setIcon(ClientContext.getImageIcon(resource.getString("textBtn.icon")));
         textBtn.setIcon(ClientContext.getImageIconArias("icon_text_stap_menu"));
         textBtn.setText(null);
-        textBtn.setToolTipText(resource.getString("textBtn.toolTipText"));
-        //textBtn.setMargin(new Insets(5,5,5,5));
+        String toolTipText = bundle.getString("toolTipText.textBtn");
+        textBtn.setToolTipText(toolTipText);
 
-        //schemaBtn.setIcon(ClientContext.getImageIcon(resource.getString("schemaBtn.icon")));
         schemaBtn.setIcon(ClientContext.getImageIconArias("icon_open_schema_box"));
         schemaBtn.setText(null);
-        schemaBtn.setToolTipText(resource.getString("schemaBtn.toolTipText"));
-        //schemaBtn.setMargin(new Insets(5,5,5,5));
-
-        //stampBtn.setIcon(ClientContext.getImageIcon(resource.getString("stampBtn.icon")));
+        toolTipText = bundle.getString("toolTipText.schemaBtn");
+        schemaBtn.setToolTipText(toolTipText);
+        
         stampBtn.setIcon(ClientContext.getImageIconArias("icon_stamp_menu"));
         stampBtn.setText(null);
-        stampBtn.setToolTipText(resource.getString("stampBtn.toolTipText"));
-        //stampBtn.setMargin(new Insets(5,5,5,5));
-
-//        chgBtn.setIcon(ClientContext.getImageIcon(resource.getString("chgBtn.icon")));
-//        chgBtn.setText(null);
-//        chgBtn.setToolTipText(resource.getString("chgBtn.toolTipText"));
-//        chgBtn.setMargin(new Insets(5,5,5,5));
-
-        //insBtn.setIcon(ClientContext.getImageIcon(resource.getString("insBtn.icon")));
-        insBtn.setIcon(ClientContext.getImageIconArias("icon_health_insurance"));
-//minagawa$         
+        toolTipText = bundle.getString("toolTipText.stampBtn");
+        stampBtn.setToolTipText(toolTipText);
+        
+        insBtn.setIcon(ClientContext.getImageIconArias("icon_health_insurance"));        
         insBtn.setText(null);
-        insBtn.setToolTipText(resource.getString("insBtn.toolTipText"));
-        //insBtn.setMargin(new Insets(5,5,5,5));
+        toolTipText = bundle.getString("toolTipText.insBtn");
+        insBtn.setToolTipText(toolTipText);
 
         frame.addWindowListener(new WindowAdapter() {
             @Override
@@ -627,29 +576,29 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         frame.setGlassPane(blockGlass);
 
         // デフォルト値を用意して userDefaults から読み込む
-        int x = Integer.parseInt(resource.getString("frameX"));
-        int y = Integer.parseInt(resource.getString("frameY"));
-        int width = Integer.parseInt(resource.getString("frameWidth"));
-        int height = Integer.parseInt(resource.getString("frameHeight"));
+        String frameX = bundle.getString("frame.x");
+        String frameY = bundle.getString("frame.y");
+        String frameWidth = bundle.getString("frame.width");
+        String frameHeight = bundle.getString("frame.height");
+        int x = Integer.parseInt(frameX);
+        int y = Integer.parseInt(frameY);
+        int width = Integer.parseInt(frameWidth);
+        int height = Integer.parseInt(frameHeight);
+        
         Rectangle defRect = new Rectangle(x, y, width, height);
-        Rectangle bounds = Project.getRectangle(PROP_FRMAE_BOUNDS, defRect);
+        Rectangle bounds = Project.getRectangle("editorFrame.bounds", defRect);
 
         frame.setBounds(bounds);
         windowSupport.getFrame().setVisible(true);
 
-        Runnable awt = new Runnable() {
-            @Override
-            public void run() {
-                //scroller.getVerticalScrollBar().setUnitIncrement(16);
-                if (view != null) {
-                    view.getUI().scrollRectToVisible(new Rectangle(0,0,view.getUI().getWidth(), 50));
-                } else if (editor != null) {
-                    editor.getUI().scrollRectToVisible(new Rectangle(0,0,editor.getUI().getWidth(), 50));
-                }
+        Runnable awt = () -> {
+            if (view != null) {
+                view.getUI().scrollRectToVisible(new Rectangle(0,0,view.getUI().getWidth(), 50));
+            } else if (editor != null) {
+                editor.getUI().scrollRectToVisible(new Rectangle(0,0,editor.getUI().getWidth(), 50));
             }
         };
         EventQueue.invokeLater(awt);
-
     }
     
     /**
@@ -659,15 +608,12 @@ public class EditorFrame extends AbstractMainTool implements Chart {
     public void stop() {
         mediator.dispose();
         allEditorFrames.remove(this);
-        Project.setRectangle(PROP_FRMAE_BOUNDS, getFrame().getBounds());
-        getFrame().setVisible(false);
-        getFrame().dispose();
-//s.oh^ Xronos連携
-        if(editor != null) {
-            editor.setClosedFrame(true);
+        if (editor!=null) {
             editor.stop();
         }
-//s.oh$
+        Project.setRectangle("editorFrame.bounds", getFrame().getBounds());
+        getFrame().setVisible(false);
+        getFrame().dispose();
     }
     
     /**
@@ -815,28 +761,20 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         
         final DocumentModel theModel = editModel;
         
-        Runnable r = new Runnable() {
+        Runnable r = () -> {
+            editor = chart.createEditor();
+            editor.setModel(theModel);
+            editor.setEditable(true);
+            editor.setContext(EditorFrame.this);
+            editor.setMode(KarteEditor.DOUBLE_MODE);
             
-            @Override
-            public void run() {
-                
-                editor = chart.createEditor();
-                editor.setModel(theModel);
-                editor.setEditable(true);
-                editor.setContext(EditorFrame.this);
-                editor.setMode(KarteEditor.DOUBLE_MODE);
-                
-                Runnable awt = new Runnable() {
-                    @Override
-                    public void run() {
-                        editor.initialize();
-                        editor.start();
-                        replaceView();
-                    }
-                };
-                
-                EventQueue.invokeLater(awt);
-            }
+            Runnable awt = () -> {
+                editor.initialize();
+                editor.start();
+                replaceView();
+            };
+            
+            EventQueue.invokeLater(awt);
         };
         
         Thread t = new Thread(r);
@@ -865,21 +803,29 @@ public class EditorFrame extends AbstractMainTool implements Chart {
             Calendar c2 = Calendar.getInstance();
             c2.setTime(view.getModel().getStarted());
             if(c1.get(Calendar.YEAR) != c2.get(Calendar.YEAR) || c1.get(Calendar.MONTH) != c2.get(Calendar.MONTH) || c1.get(Calendar.DATE) != c2.get(Calendar.DATE)) {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日");
-                StringBuilder msg = new StringBuilder();
-                msg.append(sdf.format(c2.getTime()));
-                msg.append("に作成したカルテを修正しますか？");
-                String[] btn = new String[]{"はい", GUIFactory.getCancelButtonText()};
+
+                java.util.ResourceBundle bundle = ClientContext.getMyBundle(EditorFrame.class);
+                
+                String cDateFmt = bundle.getString("dateFormat.started.modifyKarte");
+                String question = bundle.getString("messageFormat.question.modifyKarte");
+                String optionModify = bundle.getString("optionText.modify");
+                String title = bundle.getString("title.optionPane.modifyKarte");
+                
+                SimpleDateFormat sdf = new SimpleDateFormat(cDateFmt);
+                MessageFormat msft = new MessageFormat(question);
+                
+                String msg = msft.format(new Object[]{sdf.format(c2.getTime())});
+                String[] btn = new String[]{optionModify, GUIFactory.getCancelButtonText()};
+                
                 int option = JOptionPane.showOptionDialog(
                         getFrame(),
-                        msg.toString(),
-                        "カルテ修正",
+                        msg,
+                        ClientContext.getFrameTitle(title),
                         JOptionPane.DEFAULT_OPTION,
                         JOptionPane.QUESTION_MESSAGE,
                         null,
                         btn,
                         btn[1]);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "カルテ修正", msg.toString());
                 if(option != 0) {
                     return;
                 }
@@ -887,36 +833,26 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         }
 //s.oh$
         
-        Runnable r = new Runnable() {
-            
-            @Override
-            public void run() {
-                
-                ChartImpl chart = (ChartImpl)realChart;
-                DocumentModel editModel = getKarteModelToEdit(view.getModel());
-                editor = chart.createEditor();
-                editor.setModel(editModel);
-                editor.setEditable(true);
-                editor.setContext(EditorFrame.this);
-//s.oh^ 2014/06/17 複数カルテ修正制御
-                editor.setEditorFrame(EditorFrame.this);
-//s.oh$
-                editor.setModify(true);
-                String docType = editModel.getDocInfoModel().getDocType();
-                int mode = docType.equals(IInfoModel.DOCTYPE_KARTE) ? KarteEditor.DOUBLE_MODE : KarteEditor.SINGLE_MODE;
-                editor.setMode(mode);
-                
-                Runnable awt = new Runnable() {
-                    @Override
-                    public void run() {
-                        editor.initialize();
-                        editor.start();
-                        replaceView();
-                    }
-                };
-                
-                EventQueue.invokeLater(awt);
-            }
+        Runnable r = () -> {
+            ChartImpl chart = (ChartImpl)realChart;
+            DocumentModel editModel = getKarteModelToEdit(view.getModel());
+            editor = chart.createEditor();
+            editor.setModel(editModel);
+            editor.setEditable(true);
+            editor.setContext(EditorFrame.this);
+            //s.oh^ 2014/06/17 複数カルテ修正制御
+            editor.setEditorFrame(EditorFrame.this);
+            //s.oh$
+            editor.setModify(true);
+            String docType = editModel.getDocInfoModel().getDocType();
+            int mode1 = docType.equals(IInfoModel.DOCTYPE_KARTE) ? KarteEditor.DOUBLE_MODE : KarteEditor.SINGLE_MODE;
+            editor.setMode(mode1);
+            Runnable awt = () -> {
+                editor.initialize();
+                editor.start();
+                replaceView();
+            };
+            EventQueue.invokeLater(awt);
         };
         
         Thread t = new Thread(r);
@@ -929,7 +865,7 @@ public class EditorFrame extends AbstractMainTool implements Chart {
     }
     
     /**
-     * 印刷する。
+     * Prints
      */
     public void print() {
         
@@ -950,7 +886,7 @@ public class EditorFrame extends AbstractMainTool implements Chart {
     }
     
     /**
-     * クローズする。
+     * Close
      */
     @Override
     public void close() {
@@ -958,12 +894,13 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         if (mode == EditorMode.EDITOR) {
             
             if (editor.isDirty()) {
-                ResourceBundle resource = ClientContext.getBundle(this.getClass());
-                String save = resource.getString("unsavedtask.saveText"); //"保存";
-                String discard = resource.getString("unsavedtask.discardText"); //"破棄";
-                String question = resource.getString("unsavedtask.question"); // 未保存のドキュメントがあります。保存しますか ?
-                String title = resource.getString("unsavedtask.title"); // 未保存処理
+                java.util.ResourceBundle bundle = ClientContext.getMyBundle(EditorFrame.class);
+                String save = bundle.getString("optionText.save.unsaved");
+                String discard = bundle.getString("optionText.discard.unsaved");
+                String question = bundle.getString("question.unsaved");
+                String title = bundle.getString("title.optionPane.unsaved");
                 String cancelText =  (String) UIManager.get("OptionPane.cancelButtonText");
+                
                 int option = JOptionPane.showOptionDialog(
                         getFrame(),
                         question,
@@ -974,17 +911,14 @@ public class EditorFrame extends AbstractMainTool implements Chart {
                         new String[]{save, discard, cancelText},
                         save
                         );
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle(title), question);
                 
                 switch (option) {
                     
                     case 0:
-                        Log.outputOperLogDlg(realChart, Log.LOG_LEVEL_0, save);
                         editor.save();
                         break;
                         
                     case 1:
-                        Log.outputOperLogDlg(realChart, Log.LOG_LEVEL_0, discard);
                         // 破棄の場合、もし病名をDropしていればクリアする
                         if (realChart.getDroppedDiagnosisList()!=null) {
                             realChart.getDroppedDiagnosisList().clear();
@@ -993,7 +927,6 @@ public class EditorFrame extends AbstractMainTool implements Chart {
                         break;
                         
                     case 2:
-                        Log.outputOperLogDlg(realChart, Log.LOG_LEVEL_0, cancelText);
                         break;
                 }
                 
@@ -1004,6 +937,5 @@ public class EditorFrame extends AbstractMainTool implements Chart {
         } else {
             stop();
         }
-        Log.outputOperLogOper(realChart, Log.LOG_LEVEL_0, "カルテ編集終了");
     }
 }

@@ -70,29 +70,15 @@ public class SendMmlImpl implements MmlMessageListener {
         return csgwPath;
     }
     
-    private Logger getLogger() {
-        return ClientContext.getMmlLogger();
-    }
-    
     @Override
     public void setCSGWPath(String val) {
-        csgwPath = val;
-//minagawa^ mac jdk7        
-//        File directory = new File(csgwPath);
-//        if (! directory.exists()) {
-//            if (directory.mkdirs()) {
-//                getLogger().debug("MMLファイル出力先のディレクトリを作成しました");
-//            } else {
-//                getLogger().warn("MMLファイル出力先のディレクトリを作成できません");
-//            }
-//        }       
+        csgwPath = val;     
         try {
             Path path = Paths.get(csgwPath);
             Files.createDirectories(path);
         } catch (Exception e) {
-            getLogger().warn("MMLファイル出力先のディレクトリを作成できません。");
-        }
-//minagawa$        
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning("MMLファイル出力先のディレクトリを作成できません。");
+        }      
     }
     
     @Override
@@ -116,7 +102,7 @@ public class SendMmlImpl implements MmlMessageListener {
         kicker = new Kicker();
         sendThread = new Thread(kicker);
         sendThread.start();
-        getLogger().info("Send MML statered with CSGW = " + getCSGWPath());
+        java.util.logging.Logger.getLogger(this.getClass().getName()).info("Send MML statered with CSGW = " + getCSGWPath());
     }
     
     @Override
@@ -144,7 +130,7 @@ public class SendMmlImpl implements MmlMessageListener {
 
             while (iter.hasNext()) {
                 MmlMessageEvent evt = (MmlMessageEvent) iter.next();
-                getLogger().warn(evt.getMmlInstance());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(evt.getMmlInstance());
             }
 
             queue.clear();
@@ -178,39 +164,6 @@ public class SendMmlImpl implements MmlMessageListener {
                     String groupId = mevt.getGroupId();
                     String instance = mevt.getMmlInstance();
                     List<SchemaModel> schemas = mevt.getSchema();
-//minagawa^ mac jdk7                    
-//                    // ファイル名を生成する
-//                    String dest = getCSGWPathname(groupId, "xml");
-//                    String temp = getCSGWPathname(groupId, "xml.tmp");
-//                    File f = new File(temp);
-//                    
-//                    // インスタンスをUTF8で書き込む
-//                    writer = new BufferedOutputStream(new FileOutputStream(f));
-//                    byte[] bytes = instance.getBytes(encoding);
-//                    writer.write(bytes);
-//                    writer.flush();
-//                    writer.close();
-//                    
-//                    // 書き込み終了後にリネームする (.tmp -> .xml)
-//                    f.renameTo(new File(dest));
-//                    getLogger().debug("MMLファイルを書き込みました");
-//                    
-//                    // 画像を送信する
-//                    if (schemas != null) {
-//                        for (SchemaModel schema : schemas) {
-//                            dest = csgwPath + File.separator + schema.getExtRefModel().getHref();
-//                            temp = dest + ".tmp";
-//                            f = new File(temp);
-//                            writer = new BufferedOutputStream(new FileOutputStream(f));
-//                            writer.write(schema.getJpegByte());
-//                            writer.flush();
-//                            writer.close();
-//                            
-//                            // Renameする
-//                            f.renameTo(new File(dest));
-//                            getLogger().debug("画像ファイルを書き込みました");
-//                        }
-//                    }         
                     String filename = groupId+".xml.tmp";
                     Path dest = Paths.get(getCSGWPath(),filename);
                     Files.write(dest, instance.getBytes(encoding));
@@ -223,18 +176,14 @@ public class SendMmlImpl implements MmlMessageListener {
                             Files.write(dest, schema.getJpegByte());
                             Files.move(dest, dest.resolveSibling(schema.getExtRefModel().getHref()));
                         }
-                    }
-//minagawa$                    
+                    }                 
                 } catch (IOException e) {
                     e.printStackTrace(System.err);
-                    getLogger().warn(e.getMessage());
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning(e.getMessage());
                     
                 } catch (InterruptedException ie) {
-                    getLogger().warn("Interrupted sending MML");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning("Interrupted sending MML");
 
-                } catch (Exception ee) {
-                    ee.printStackTrace(System.err);
-                    getLogger().warn(ee.getMessage());
                 }
             }
         }

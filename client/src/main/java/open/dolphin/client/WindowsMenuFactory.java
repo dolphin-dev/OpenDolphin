@@ -1,6 +1,5 @@
 package open.dolphin.client;
 
-import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -11,12 +10,12 @@ import java.util.ResourceBundle;
 import javax.swing.*;
 import open.dolphin.helper.MenuSupport;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  * Menu Factory for Mac. 
  * 
  * @author Minagawa, Kazushi
+ * 2015/04/21 setName() 廃止、コメントアウトコードを削除
  */
 public class WindowsMenuFactory extends AbstractMenuFactory {
     
@@ -68,14 +67,10 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
 
         // New Karte
         String text = resource.getString("newKarte.Action.text");
-//minagawa^ Icon Server        
-        //ImageIcon icon = ClientContext.getImageIcon(resource.getString("newKarte.Action.icon"));
-        ImageIcon icon = ClientContext.getImageIconArias("icon_new_karte");
-//minagawa$        
+        ImageIcon icon = ClientContext.getImageIconArias("icon_new_karte");       
         AbstractAction newKarte = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("newKarte.Action.text"));
                 chart.sendToChain("newKarte");
             }
         };
@@ -83,14 +78,10 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
 
         // New Document
         text = resource.getString("newDocument.Action.text");
-//minagawa^ Icon Server        
-        //icon = ClientContext.getImageIcon(resource.getString("newDocument.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_new_document");
-//minagawa$         
+        icon = ClientContext.getImageIconArias("icon_new_document");        
         AbstractAction newDocument = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("newDocument.Action.text"));
                 chart.sendToChain("newDocument");
             }
         };
@@ -101,7 +92,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction openKarte = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("openKarte.Action.text"));
                 main.sendToChain("openKarte");
             }
         };
@@ -112,7 +102,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction close = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("close.Action.text"));
                 chart.sendToChain("close");
             }
         };
@@ -120,14 +109,10 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
 
         // Save
         text = resource.getString("save.Action.text");
-//minagawa^ Icon Server        
-        //icon = ClientContext.getImageIcon(resource.getString("save.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_save");
-//minagawa$         
+        icon = ClientContext.getImageIconArias("icon_save");        
         AbstractAction save = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("save.Action.text"));
                 chart.sendToChain("save");
             }
         };
@@ -138,7 +123,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction delete = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("delete.Action.text"));
                 chart.sendToChain("delete");
             }
         };
@@ -149,7 +133,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction printerSetup = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("printerSetup.Action.text"));
                 main.sendToChain("printerSetup");
             }
         };
@@ -157,14 +140,10 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
 
         // Print
         text = resource.getString("print.Action.text");
-//minagawa^ Icon Server        
-        //icon = ClientContext.getImageIcon(resource.getString("print.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_printer");
-//minagawa$         
+        icon = ClientContext.getImageIconArias("icon_printer");         
         AbstractAction print = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("print.Action.text"));
                 chart.sendToChain("print");
             }
         };
@@ -175,7 +154,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction processExit = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("processExit.Action.text"));
                 main.sendToChain("processExit");
             }
         };
@@ -183,21 +161,18 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
 
         // Modify
         text = resource.getString("modifyKarte.Action.text");
-//minagawa^ Icon Server        
-        //icon = ClientContext.getImageIcon(resource.getString("modifyKarte.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_edit_karte_document");
-//minagawa$         
+        icon = ClientContext.getImageIconArias("icon_edit_karte_document");         
         AbstractAction modifyKarte = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("modifyKarte.Action.text"));
                 chart.sendToChain("modifyKarte");
             }
         };
         map.put("modifyKarte", modifyKarte);
         
 //s.oh^ 2014/04/03 文書の複製
-        text = "複製";
+        //text = "複製";
+        text = resource.getString("copyDocument.Action.text");
         icon = ClientContext.getImageIconArias("icon_edit_karte_document");
         AbstractAction copyDocument = new AbstractAction(text, icon) {
             @Override
@@ -210,14 +185,10 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
 
         // Undo
         text = resource.getString("undo.Action.text");
-//minagawa^ Icon Server        
-        //icon = ClientContext.getImageIcon(resource.getString("undo.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_undo");
-//minagawa$         
+        icon = ClientContext.getImageIconArias("icon_undo");        
         AbstractAction undo = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("undo.Action.text"));
                 chart.sendToChain("undo");
             }
         };
@@ -225,14 +196,10 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
 
         // Redo
         text = resource.getString("redo.Action.text");
-//minagawa^ Icon Server        
-        //icon = ClientContext.getImageIcon(resource.getString("redo.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_redo");
-//minagawa$         
+        icon = ClientContext.getImageIconArias("icon_redo");        
         AbstractAction redo = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("redo.Action.text"));
                 chart.sendToChain("redo");
             }
         };
@@ -240,14 +207,10 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
 
         // Cut
         text = resource.getString("cut.Action.text");
-//minagawa^ Icon Server        
-        //icon = ClientContext.getImageIcon(resource.getString("cut.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_cut");
-//minagawa$                 
+        icon = ClientContext.getImageIconArias("icon_cut");                
         AbstractAction cut = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("cut.Action.text"));
                 chart.cut();
             }
         };
@@ -255,14 +218,10 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
 
         // Copy
         text = resource.getString("copy.Action.text");
-//minagawa^ Icon Server        
-        //icon = ClientContext.getImageIcon(resource.getString("copy.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_copy");
-//minagawa$         
+        icon = ClientContext.getImageIconArias("icon_copy");        
         AbstractAction copy = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("copy.Action.text"));
                 chart.copy();
             }
         };
@@ -270,14 +229,10 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
 
         // Paste
         text = resource.getString("paste.Action.text");
-//minagawa^ Icon Server        
-        //icon = ClientContext.getImageIcon(resource.getString("paste.Action.icon"));
-        icon = ClientContext.getImageIconArias("icon_paste");
-//minagawa$         
+        icon = ClientContext.getImageIconArias("icon_paste");       
         AbstractAction paste = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("paste.Action.text"));
                 chart.paste();
             }
         };
@@ -288,7 +243,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction changeNumOfDatesAll = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("changeNumOfDatesAll.Action.text"));
                 chart.sendToChain("changeNumOfDatesAll");
             }
         };
@@ -299,7 +253,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction createPrescription = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("createPrescription.Action.text"));
                 chart.sendToChain("createPrescription");
             }
         };
@@ -310,7 +263,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction sendClaim = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("sendClaim.Action.text"));
                 chart.sendToChain("sendClaim");
             }
         };
@@ -321,7 +273,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction checkInteraction = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("checkInteraction.Action.text"));
                 chart.sendToChain("checkInteraction");
             }
         };
@@ -340,7 +291,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction ascending = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("ascending.Action.text"));
                 chart.sendToChain("ascending");
             }
         };
@@ -351,7 +301,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction descending = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("descending.Action.text"));
                 chart.sendToChain("descending");
             }
         };
@@ -362,7 +311,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction showModified = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("showModified.Action.text"));
                 chart.sendToChain("showModified");
             }
         };
@@ -373,7 +321,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction setKarteEnviroment = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("setKarteEnviroment.Action.text"));
                 main.sendToChain("setKarteEnviroment");
             }
         };
@@ -385,7 +332,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction nimbus = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("nimbusLookAndFeel.Action.text"));
                 main.sendToChain("nimbusLookAndFeel");
             }
         };
@@ -395,7 +341,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction nativeLaf = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("nativeLookAndFeel.Action.text"));
                 main.sendToChain("nativeLookAndFeel");
             }
         };
@@ -408,7 +353,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction insertDisease = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("insertDisease.Action.text"));
             }
         };
         map.put("insertDisease", insertDisease);
@@ -418,7 +362,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction insertText = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("insertText.Action.text"));
             }
         };
         map.put("insertText", insertText);
@@ -428,7 +371,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction insertSchema = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("insertSchema.Action.text"));
             }
         };
         map.put("insertSchema", insertSchema);
@@ -438,7 +380,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction attachment = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("attachment.Action.text"));
                 chart.sendToChain("attachment");
             }
         };
@@ -449,7 +390,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction insertStamp = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("insertStamp.Action.text"));
             }
         };
         map.put("insertStamp", insertStamp);
@@ -459,7 +399,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction size = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("size.text"));
             }
         };
         map.put("size", size);
@@ -469,7 +408,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction fontLarger = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("fontLarger.Action.text"));
                 chart.sendToChain("fontLarger");
             }
         };
@@ -480,7 +418,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction fontSmaller = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("fontSmaller.Action.text"));
                 chart.sendToChain("fontSmaller");
             }
         };
@@ -491,7 +428,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction fontStandard = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("fontStandard.Action.text"));
                 chart.sendToChain("fontStandard");
             }
         };
@@ -502,7 +438,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction style = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("style.text"));
             }
         };
         map.put("style", style);
@@ -512,7 +447,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction fontBold = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("fontBold.Action.text"));
                 chart.sendToChain("fontBold");
             }
         };
@@ -523,7 +457,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction fontItalic = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("fontItalic.Action.text"));
                 chart.sendToChain("fontItalic");
             }
         };
@@ -534,7 +467,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction fontUnderline = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("fontUnderline.Action.text"));
                 chart.sendToChain("fontUnderline");
             }
         };
@@ -545,7 +477,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction justify = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("justify.text"));
             }
         };
         map.put("justify", justify);
@@ -555,7 +486,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction leftJustify = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("leftJustify.Action.text"));
                 chart.sendToChain("leftJustify");
             }
         };
@@ -566,7 +496,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction centerJustify = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("centerJustify.Action.text"));
                 chart.sendToChain("centerJustify");
             }
         };
@@ -577,7 +506,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction rightJustify = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("rightJustify.Action.text"));
                 chart.sendToChain("rightJustify");
             }
         };
@@ -588,7 +516,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction color = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("color.text"));
             }
         };
         map.put("color", color);
@@ -598,7 +525,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction fontRed = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("fontRed.Action.text"));
                 chart.sendToChain("fontRed");
             }
         };
@@ -609,7 +535,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction fontOrange = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("fontOrange.Action.text"));
                 chart.sendToChain("fontOrange");
             }
         };
@@ -620,7 +545,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction fontYellow = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("fontYellow.Action.text"));
                 chart.sendToChain("fontYellow");
             }
         };
@@ -631,7 +555,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction fontGreen = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("fontGreen.Action.text"));
                 chart.sendToChain("fontGreen");
             }
         };
@@ -642,7 +565,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction fontBlue = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("fontBlue.Action.text"));
                 chart.sendToChain("fontBlue");
             }
         };
@@ -653,7 +575,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction fontPurple = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("fontPurple.Action.text"));
                 chart.sendToChain("fontPurple");
             }
         };
@@ -664,7 +585,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction fontGray = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("fontGray.Action.text"));
                 chart.sendToChain("fontGray");
             }
         };
@@ -675,7 +595,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction fontBlack = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("fontBlack.Action.text"));
                 chart.sendToChain("fontBlack");
             }
         };
@@ -685,7 +604,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction resetStyle = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, "リセット");
                 chart.sendToChain("resetStyle");
             }
         };
@@ -696,7 +614,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction showStampBox = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("showStampBox.Action.text"));
                 main.sendToChain("showStampBox");
             }
         };
@@ -707,7 +624,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction showSchemaBox = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("showSchemaBox.Action.text"));
                 main.sendToChain("showSchemaBox");
             }
         };
@@ -718,7 +634,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction changePassword = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("changePassword.Action.text"));
                 main.sendToChain("changePassword");
             }
         };
@@ -729,7 +644,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction editFacilityInfo = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("editFacilityInfo.Action.text"));
                 main.sendToChain("editFacilityInfo");
             }
         };
@@ -740,24 +654,20 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction addUser = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("addUser.Action.text"));
                 main.sendToChain("addUser");
             }
         };
         map.put("addUser", addUser);
         
 //s.oh^ 2014/07/08 クラウド0対応
-//minagawa^ 統計情報
         text = resource.getString("activities.Action.text");
         AbstractAction fetchActivities = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("activities.Action.text"));
                 main.sendToChain("fetchActivities");
             }
         };
         map.put("fetchActivities", fetchActivities);
-//minagawa$
 //s.oh$
         
         // 医療機関コード取得
@@ -765,7 +675,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction fetchFacilityCode = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("fetchFacilityCode.Action.text"));
                 main.sendToChain("fetchFacilityCode");
             }
         };
@@ -776,7 +685,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction browseDolphinSupport = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("browseDolphinSupport.Action.text"));
                 main.sendToChain("browseDolphinSupport");
             }
         };
@@ -787,7 +695,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction browseDolphinProject = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("browseDolphinProject.Action.text"));
                 main.sendToChain("browseDolphinProject");
             }
         };
@@ -798,7 +705,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction browseMedXml = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("browseMedXml.Action.text"));
                 main.sendToChain("browseMedXml");
             }
         };
@@ -809,7 +715,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction showAbout = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("showAbout.Action.text"));
                 main.sendToChain("showAbout");
             }
         };
@@ -817,10 +722,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
 //s.oh^ テキストの挿入 2013/08/12
         text = resource.getString("soapane.Action.text");
-//minagawa^ Icon Server        
-        //icon = ClientContext.getImageIcon(resource.getString("soapane.Action.icon"));
         icon = ClientContext.getImageIconArias(resource.getString("soapane.Action.icon"));
-//minagawa$
         AbstractAction insertSOAText = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -830,10 +732,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         map.put("insertSOAText", insertSOAText);
         
         text = resource.getString("ppane.Action.text");
-//minagawa^ Icon Server        
-        //icon = ClientContext.getImageIcon(resource.getString("ppane.Action.icon"));
         icon = ClientContext.getImageIconArias(resource.getString("ppane.Action.icon"));
-//minagawa$
         AbstractAction insertPText = new AbstractAction(text, icon) {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -890,7 +789,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         AbstractAction outputAllKartePdf = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                outputOperLogOper(Log.LOG_LEVEL_0, resrc.getString("allkartepdf.Action.text"));
                 main.sendToChain("outputAllKartePdf");
             }
         };
@@ -903,7 +801,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
         this.menuBar = menuBar;
 
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
+        ResourceBundle resource = ClientContext.getMyBundle(WindowsMenuFactory.class);
         actionMap = new ActionMap();
         storeActions(actionMap, resource);
         
@@ -921,13 +819,13 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
             toolPanel.add(toolBar);
         }
         
-        // File
+        //************************************************************
+        // File Menu
+        //************************************************************
         JMenu file = new JMenu();
-        file.setName("fileMenu");
         
         // 新規カルテ
         JMenuItem newKarte = new JMenuItem();
-        newKarte.setName("newKarte");
         newKarte.setAction(actionMap.get("newKarte"));
         setAccelerator(newKarte, KeyEvent.VK_N);
         newKarte.setIcon(null);
@@ -936,7 +834,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
             JButton newKarteBtn = new JButton();
             newKarteBtn.setAction(actionMap.get("newKarte"));
             newKarteBtn.setText(null);
-            newKarteBtn.setToolTipText("カルテを新規に作成します。");
+            newKarteBtn.setToolTipText(resource.getString("newKarte.Action.toolTipText"));
             newKarteBtn.setMargin(new Insets(3,3,3,3));
             newKarteBtn.setFocusable(false);
             newKarteBtn.setBorderPainted(false);
@@ -945,7 +843,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
         // 新規文書
         JMenuItem newDocument = new JMenuItem();
-        newDocument.setName("newDocument");
         newDocument.setAction(actionMap.get("newDocument"));
         newDocument.setIcon(null);
         file.add(newDocument);
@@ -953,7 +850,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
             JButton newDocBtn = new JButton();
             newDocBtn.setAction(actionMap.get("newDocument"));
             newDocBtn.setText(null);
-            newDocBtn.setToolTipText("紹介状等の文書を新規に作成します。");
+            newDocBtn.setToolTipText(resource.getString("newDocument.Action.toolTipText"));
             newDocBtn.setMargin(new Insets(3,3,3,3));
             newDocBtn.setFocusable(false);
             newDocBtn.setBorderPainted(false);
@@ -962,7 +859,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
         // 開く
         JMenuItem openKarte = new JMenuItem();
-        openKarte.setName("openKarte");
         openKarte.setAction(actionMap.get("openKarte"));
         setAccelerator(openKarte, KeyEvent.VK_O);
         file.add(openKarte);
@@ -971,14 +867,12 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
         // 閉じる
         JMenuItem close = new JMenuItem();
-        close.setName("close");
         close.setAction(actionMap.get("close"));
         setAccelerator(close, KeyEvent.VK_W);
         file.add(close);
         
         // 保存
         JMenuItem save = new JMenuItem();
-        save.setName("save");
         save.setAction(actionMap.get("save"));
         setAccelerator(save, KeyEvent.VK_S);
         save.setIcon(null);
@@ -987,7 +881,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
             JButton saveBtn = new JButton();
             saveBtn.setAction(actionMap.get("save"));
             saveBtn.setText(null);
-            saveBtn.setToolTipText("カルテや文書を保存します。");
+            saveBtn.setToolTipText(resource.getString("save.Action.toolTipText"));
             saveBtn.setMargin(new Insets(3,3,3,3));
             saveBtn.setFocusable(false);
             saveBtn.setBorderPainted(false);
@@ -1001,7 +895,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         if(Project.getBoolean("delete.karte.enable", true)) {
 //s.oh$
             JMenuItem delete = new JMenuItem();
-            delete.setName("delete");
             delete.setAction(actionMap.get("delete"));
             file.add(delete);
 
@@ -1010,13 +903,11 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
         // 印刷設定
         JMenuItem printerSetup = new JMenuItem();
-        printerSetup.setName("printerSetup");
         printerSetup.setAction(actionMap.get("printerSetup"));
         file.add(printerSetup);
         
         // 印刷
         JMenuItem print = new JMenuItem();
-        print.setName("print");
         print.setAction(actionMap.get("print"));
         setAccelerator(print, KeyEvent.VK_P);
         print.setIcon(null);
@@ -1025,7 +916,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
             JButton printBtn = new JButton();
             printBtn.setAction(actionMap.get("print"));
             printBtn.setText(null);
-            printBtn.setToolTipText("印刷します。");
+            printBtn.setToolTipText(resource.getString("print.Action.toolTipText"));
             printBtn.setMargin(new Insets(3,3,3,3));
             printBtn.setFocusable(false);
             printBtn.setBorderPainted(false);
@@ -1036,21 +927,18 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
         // 終了
         JMenuItem exit = new JMenuItem();
-        exit.setName("processExit");
         exit.setAction(actionMap.get("processExit"));
         file.add(exit);
         setAccelerator(exit, KeyEvent.VK_Q);
         
-        /******************************************************/
-        
-        // Edit
+        //******************************************************
+        // Edit Menu
+        //******************************************************
         JMenu edit = new JMenu();
-        edit.setName("editMenu");
         toolBar.addSeparator();
         
         // 修正
         JMenuItem modifyKarte = new JMenuItem();
-        modifyKarte.setName("modifyKarte");
         modifyKarte.setAction(actionMap.get("modifyKarte"));
         setAccelerator(modifyKarte, KeyEvent.VK_M);
         modifyKarte.setIcon(null);
@@ -1059,7 +947,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
             JButton modifyKarteBtn = new JButton();
             modifyKarteBtn.setAction(actionMap.get("modifyKarte"));
             modifyKarteBtn.setText(null);
-            modifyKarteBtn.setToolTipText("カルテや文書を修正します。");
+            modifyKarteBtn.setToolTipText(resource.getString("modifyKarte.Action.toolTipText"));
             modifyKarteBtn.setMargin(new Insets(3,3,3,3));
             modifyKarteBtn.setFocusable(false);
             modifyKarteBtn.setBorderPainted(false);
@@ -1070,7 +958,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
         // Undo
         JMenuItem undo = new JMenuItem();
-        undo.setName("undo");
         undo.setAction(actionMap.get("undo"));
         setAccelerator(undo, KeyEvent.VK_Z);
         undo.setIcon(null);
@@ -1079,7 +966,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
             JButton undoBtn = new JButton();
             undoBtn.setAction(actionMap.get("undo"));
             undoBtn.setText(null);
-            undoBtn.setToolTipText("操作をやり直します。");
+            undoBtn.setToolTipText(resource.getString("undo.Action.toolTipText"));
             undoBtn.setMargin(new Insets(3,3,3,3));
             undoBtn.setFocusable(false);
             undoBtn.setBorderPainted(false);
@@ -1088,7 +975,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
         // Redo
         JMenuItem redo = new JMenuItem();
-        redo.setName("redo");
         redo.setAction(actionMap.get("redo"));
         setAccelerator(redo, KeyEvent.VK_Z, true);
         redo.setIcon(null);
@@ -1097,7 +983,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
             JButton redoBtn = new JButton();
             redoBtn.setAction(actionMap.get("redo"));
             redoBtn.setText(null);
-            redoBtn.setToolTipText("操作を再実行します。");
+            redoBtn.setToolTipText(resource.getString("redo.Action.toolTipText"));
             redoBtn.setMargin(new Insets(3,3,3,3));
             redoBtn.setFocusable(false);
             redoBtn.setBorderPainted(false);
@@ -1108,7 +994,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
         // Cut
         JMenuItem cut = new JMenuItem();
-        cut.setName("cut");
         cut.setAction(actionMap.get("cut"));
         setAccelerator(cut, KeyEvent.VK_X);
         cut.setIcon(null);
@@ -1117,7 +1002,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
             JButton cutBtn = new JButton();
             cutBtn.setAction(actionMap.get("cut"));
             cutBtn.setText(null);
-            cutBtn.setToolTipText("テキスト、スタンプ、画像をカットします。");
+            cutBtn.setToolTipText(resource.getString("cut.Action.toolTipText"));
             cutBtn.setMargin(new Insets(3,3,3,3));
             cutBtn.setFocusable(false);
             cutBtn.setBorderPainted(false);
@@ -1126,7 +1011,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
         // Copy
         JMenuItem copy = new JMenuItem();
-        copy.setName("copy");
         copy.setAction(actionMap.get("copy"));
         setAccelerator(copy, KeyEvent.VK_C);
         copy.setIcon(null);
@@ -1135,7 +1019,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
             JButton copyBtn = new JButton();
             copyBtn.setAction(actionMap.get("copy"));
             copyBtn.setText(null);
-            copyBtn.setToolTipText("テキスト、スタンプ、画像をコピーします。");
+            copyBtn.setToolTipText(resource.getString("copy.Action.toolTipText"));
             copyBtn.setMargin(new Insets(3,3,3,3));
             copyBtn.setFocusable(false);
             copyBtn.setBorderPainted(false);
@@ -1144,7 +1028,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
         // Paste
         JMenuItem paste = new JMenuItem();
-        paste.setName("paste");
         paste.setAction(actionMap.get("paste"));
         setAccelerator(paste, KeyEvent.VK_V);
         paste.setIcon(null);
@@ -1153,33 +1036,26 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
             JButton pasteBtn = new JButton();
             pasteBtn.setAction(actionMap.get("paste"));
             pasteBtn.setText(null);
-            pasteBtn.setToolTipText("テキスト、スタンプ、画像をペーストします。");
+            pasteBtn.setToolTipText(resource.getString("paste.Action.toolTipText"));
             pasteBtn.setMargin(new Insets(3,3,3,3));
             pasteBtn.setFocusable(false);
             pasteBtn.setBorderPainted(false);
             toolBar.add(pasteBtn);
         }
         
-        /******************************************************/
-        
-        // Karte
+        //*******************************************************
+        // Karte menu
+        //*******************************************************
         JMenu karte = new JMenu();
-        karte.setName("karteMenu");
 
-        //-------------------
         // 処方日数変更
-        //-------------------
         JMenuItem changeNumOfDatesAll = new JMenuItem();
-        changeNumOfDatesAll.setName("changeNumOfDatesAll");
         changeNumOfDatesAll.setAction(actionMap.get("changeNumOfDatesAll"));
         setAccelerator(changeNumOfDatesAll, KeyEvent.VK_R);
         karte.add(changeNumOfDatesAll);
 
-        //--------------------
         // 元町皮ふ科 CLAIM 送信
-        //--------------------
         JMenuItem sendClaim = new JMenuItem();
-        sendClaim.setName("sendClaim");
         sendClaim.setAction(actionMap.get("sendClaim"));
         setAccelerator(sendClaim, KeyEvent.VK_L);
         karte.add(sendClaim);
@@ -1194,13 +1070,11 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         ////setAccelerator(createPrescription, KeyEvent.VK_M);
         //karte.add(createPrescription);
 //s.oh$
-        
         //-------------------
         // 併用禁忌チェック checkInteraction
         //-------------------
 //s.oh^ 不要機能の削除(復活)
         JMenuItem checkInteraction = new JMenuItem();
-        checkInteraction.setName("checkInteraction");
         checkInteraction.setAction(actionMap.get("checkInteraction"));
         setAccelerator(checkInteraction, KeyEvent.VK_I);
         karte.add(checkInteraction);
@@ -1210,14 +1084,12 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
         // 昇順
         JRadioButtonMenuItem ascending = new JRadioButtonMenuItem();
-        ascending.setName("ascending");
         ascending.setAction(actionMap.get("ascending"));
         actionMap.get("ascending").putValue("menuItem",ascending);
         karte.add(ascending);
         
         // 降順
         JRadioButtonMenuItem descending = new JRadioButtonMenuItem();
-        descending.setName("descending");
         descending.setAction(actionMap.get("descending"));
         actionMap.get("descending").putValue("menuItem",descending);
         karte.add(descending);
@@ -1229,7 +1101,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
         // 修正履歴表示 
         JCheckBoxMenuItem showModified = new JCheckBoxMenuItem();
-        showModified.setName("showModified");
         showModified.setAction(actionMap.get("showModified"));
         actionMap.get("showModified").putValue("menuItem",showModified);
         karte.add(showModified);
@@ -1238,258 +1109,207 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         
         // 環境設定 
         JMenuItem setKarteEnviroment = new JMenuItem();
-        setKarteEnviroment.setName("setKarteEnviroment");
         setKarteEnviroment.setAction(actionMap.get("setKarteEnviroment"));
         setAccelerator(setKarteEnviroment, KeyEvent.VK_E);
         karte.add(setKarteEnviroment);
         
-        //masuda^
+//masuda^
         // Look&Feel
         JMenu lookAndFeel = new JMenu();
-        //lookAndFeel.setName("lookAndFeel");
-        lookAndFeel.setText("ルック & フィール");
+        lookAndFeel.setText(resource.getString("lookAndFeel.menu.text"));
         karte.add(lookAndFeel);
 
         JRadioButtonMenuItem nimbusLaf = new JRadioButtonMenuItem();
-        nimbusLaf.setName("nimbusLookAndFeel");
         nimbusLaf.setAction(actionMap.get("nimbusLookAndFeel"));
         lookAndFeel.add(nimbusLaf);
 
         JRadioButtonMenuItem nativeLaf = new JRadioButtonMenuItem();
-        nativeLaf.setName("nativeLookAndFeel");
         nativeLaf.setAction(actionMap.get("nativeLookAndFeel"));
         lookAndFeel.add(nativeLaf);
-
-//        JRadioButtonMenuItem quaquaLaf = new JRadioButtonMenuItem();
-//        quaquaLaf.setName("quaquaLookAndFeel");
-//        quaquaLaf.setAction(actionMap.get("quaquaLookAndFeel"));
-//        lookAndFeel.add(quaquaLaf);
 
         ButtonGroup lafbg = new ButtonGroup();
         lafbg.add(nimbusLaf);
         lafbg.add(nativeLaf);
-//        lafbg.add(quaquaLaf);
 
         String systemLaf = UIManager.getSystemLookAndFeelClassName();
-//        String quaquaCls = "ch.randelshofer.quaqua.QuaquaLookAndFeel";
-        String nimbusCls = "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
-        //String userLaf = Project.getString("lookAndFeel", nimbusCls);
+        //String nimbusCls = "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
         String userLaf = Project.getString("lookAndFeel");
 
         if (userLaf!=null && userLaf.equals(systemLaf)) {
             nativeLaf.setSelected(true);
-//        } else if (userLaf.equals(quaquaCls)) {
-//            quaquaLaf.setSelected(true);
         } else {
             nimbusLaf.setSelected(true);
         }
 //masuda$
 
-        /******************************************************/
-        
-        // Insert
+        //*******************************************************
+        // Insert Menu
+        //*******************************************************
         JMenu insert = new JMenu();
-        insert.setName("insertMenu");
+        insert.setName(GUIConst.MENU_NAME_INSERT);
         if (chart != null) {
             insert.addMenuListener(chart);
         }
         
+        // 病名
         JMenu insertDisease = new JMenu();
-        insertDisease.setName("insertDisease");
         insertDisease.setAction(actionMap.get("insertDisease"));
         insert.add(insertDisease);
         
+        // テキスト
         JMenu insertText = new JMenu();
-        insertText.setName("insertText");
         insertText.setAction(actionMap.get("insertText"));
         insert.add(insertText);
         
+        // シェーマ
         JMenu insertSchema = new JMenu();
-        insertSchema.setName("insertSchema");
         insertSchema.setAction(actionMap.get("insertSchema"));
         insert.add(insertSchema);
         
+        // スタンプ
         JMenu insertStamp = new JMenu();
-        insertStamp.setName("insertStamp");
         insertStamp.setAction(actionMap.get("insertStamp"));
         insert.add(insertStamp);
         
-        /******************************************************/
-        
-        // Text
+        //*******************************************************
+        // Text Menu
+        //*******************************************************
         JMenu text = new JMenu();
-        text.setName("textMenu");
+        text.setName(GUIConst.MENU_NAME_TEXT);
         if (chart != null) {
             text.addMenuListener(chart);
         }
         
         //// size ////
         JMenu size = new JMenu();
-        size.setName("size");
         size.setAction(actionMap.get("size"));
         text.add(size);
         
         JMenuItem fontLarger = new JMenuItem();
-        fontLarger.setName("fontLarger");
         fontLarger.setAction(actionMap.get("fontLarger"));
-        //setAccelerator(fontLarger, KeyEvent.VK_PLUS, true);
         size.add(fontLarger);
         
         JMenuItem fontSmaller = new JMenuItem();
-        fontSmaller.setName("fontSmaller");
         fontSmaller.setAction(actionMap.get("fontSmaller"));
-        //setAccelerator(fontSmaller, KeyEvent.VK_MINUS);
         size.add(fontSmaller);
         
         JMenuItem fontStandard = new JMenuItem();
-        fontStandard.setName("fontStandard");
         fontStandard.setAction(actionMap.get("fontStandard"));
-        //setAccelerator(fontStandard, KeyEvent.VK_NUMBER_SIGN, true);
         size.add(fontStandard);  
         
         //// style ////
         JMenu style = new JMenu();
-        style.setName("style");
         style.setAction(actionMap.get("style"));
         text.add(style);
         
         JMenuItem fontBold = new JMenuItem();
-        fontBold.setName("fontBold");
         fontBold.setAction(actionMap.get("fontBold"));
         setAccelerator(fontBold, KeyEvent.VK_B);
         style.add(fontBold);
         
         JMenuItem fontItalic = new JMenuItem();
-        fontItalic.setName("fontItalic");
         fontItalic.setAction(actionMap.get("fontItalic"));
         setAccelerator(fontItalic, KeyEvent.VK_I);
         style.add(fontItalic);
         
         JMenuItem fontUnderline = new JMenuItem();
-        fontUnderline.setName("fontUnderline");
         fontUnderline.setAction(actionMap.get("fontUnderline"));
         setAccelerator(fontUnderline, KeyEvent.VK_U);
         style.add(fontUnderline);
 
         //// justify ////
         JMenu justify = new JMenu();
-        justify.setName("justify");
         justify.setAction(actionMap.get("justify"));
         text.add(justify);
         
         JMenuItem leftJustify = new JMenuItem();
-        leftJustify.setName("leftJustify");
         leftJustify.setAction(actionMap.get("leftJustify"));
-        //setAccelerator(leftJustify, KeyEvent.VK_OPEN_BRACKET);
         justify.add(leftJustify);
         
         JMenuItem centerJustify = new JMenuItem();
-        centerJustify.setName("centerJustify");
         centerJustify.setAction(actionMap.get("centerJustify"));
-        //setAccelerator(centerJustify, KeyEvent.VK_CIRCUMFLEX);
         justify.add(centerJustify);
         
         JMenuItem rightJustify = new JMenuItem();
-        rightJustify.setName("rightJustify");
         rightJustify.setAction(actionMap.get("rightJustify"));
-        //setAccelerator(rightJustify, KeyEvent.VK_CLOSE_BRACKET);
         justify.add(rightJustify);
         
         //// Color ////
         JMenu color = new JMenu();
-        color.setName("color");
         color.setAction(actionMap.get("color"));
         text.add(color);
         
         JMenuItem fontRed = new JMenuItem();
-        fontRed.setName("fontRed");
         fontRed.setAction(actionMap.get("fontRed"));
         color.add(fontRed);
         
         JMenuItem fontOrange = new JMenuItem();
-        fontOrange.setName("fontOrange");
         fontOrange.setAction(actionMap.get("fontOrange"));
         color.add(fontOrange);
         
         JMenuItem fontYellow = new JMenuItem();
-        fontYellow.setName("fontYellow");
         fontYellow.setAction(actionMap.get("fontYellow"));
         color.add(fontYellow);
         
         JMenuItem fontGreen = new JMenuItem();
-        fontGreen.setName("fontGreen");
         fontGreen.setAction(actionMap.get("fontGreen"));
         color.add(fontGreen);
         
         JMenuItem fontBlue = new JMenuItem();
-        fontBlue.setName("fontBlue");
         fontBlue.setAction(actionMap.get("fontBlue"));
         color.add(fontBlue);
         
         JMenuItem fontPurple = new JMenuItem();
-        fontPurple.setName("fontPurple");
         fontPurple.setAction(actionMap.get("fontPurple"));
         color.add(fontPurple);
         
         JMenuItem fontGray = new JMenuItem();
-        fontGray.setName("fontGray");
         fontGray.setAction(actionMap.get("fontGray"));
         color.add(fontGray);
         
         JMenuItem fontBlack = new JMenuItem();
-        fontBlack.setName("fontBlack");
         fontBlack.setAction(actionMap.get("fontBlack"));
         color.add(fontBlack);
         
-        /******************************************************/
-        
-        // Tool
+        //*******************************************************
+        // Tool Menu
+        //*******************************************************
         JMenu tool = new JMenu();
-        tool.setName("toolMenu");
         
         JMenuItem showStampBox = new JMenuItem();
-        showStampBox.setName("showStampBox");
         showStampBox.setAction(actionMap.get("showStampBox"));
         tool.add(showStampBox);
         
         JMenuItem showSchemaBox = new JMenuItem();
-        showSchemaBox.setName("showSchemaBox");
         showSchemaBox.setAction(actionMap.get("showSchemaBox"));
         tool.add(showSchemaBox);
         
         tool.add(new JSeparator());
         
         JMenuItem changePassword = new JMenuItem();
-        changePassword.setName("changePassword");
         changePassword.setAction(actionMap.get("changePassword"));
         tool.add(changePassword);
         
         JMenuItem editFacilityInfo = new JMenuItem();
-        editFacilityInfo.setName("editFacilityInfo");
         editFacilityInfo.setAction(actionMap.get("editFacilityInfo"));
         tool.add(editFacilityInfo);
         
         JMenuItem addUser = new JMenuItem();
-        addUser.setName("addUser");
         addUser.setAction(actionMap.get("addUser"));
         tool.add(addUser);
         
         tool.add(new JSeparator());
         
-//s.oh^ 2014/07/08 クラウド0対応
-//minagawa^ 統計情報        
+//s.oh^ 2014/07/08 クラウド0対応      
         if(Project.isCloudZero()) {
             JMenuItem activities = new JMenuItem();
-            activities.setName("activities");
             activities.setAction(actionMap.get("fetchActivities"));
             tool.add(activities);
-        }
-//mingawa$         
+        }         
 //s.oh$
         
 //s.oh^ 不要機能の削除(復活)
         JMenuItem fetchFacilityCode = new JMenuItem();
-        fetchFacilityCode.setName("fetchFacilityCode");
         fetchFacilityCode.setAction(actionMap.get("fetchFacilityCode"));//
         tool.add(fetchFacilityCode);
 //s.oh$
@@ -1520,7 +1340,6 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
 //s.oh^ 2014/08/19 受付バーコード対応
         tool.add(new JSeparator());
         JMenuItem receiptBarcode = new JMenuItem();
-        receiptBarcode.setName("receiptBarcode");
         receiptBarcode.setAction(actionMap.get("receiptBarcode"));
         tool.add(receiptBarcode);
 //s.oh$
@@ -1529,39 +1348,31 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         if(!Project.isReadOnly() && Project.getBoolean("output.all.karte.pdf")) {
             tool.add(new JSeparator());
             JMenuItem outputAllKartePdf = new JMenuItem();
-            outputAllKartePdf.setName("outputAllKartePdf");
             outputAllKartePdf.setAction(actionMap.get("outputAllKartePdf"));
             tool.add(outputAllKartePdf);
         }
 //s.oh$
         
-        /******************************************************/
-        
+        //******************************************************
         // Help
+        //******************************************************
         JMenu help = new JMenu();
-        help.setName("helpMenu");
         
         JMenuItem browseDolphinSupport = new JMenuItem();
-        browseDolphinSupport.setName("browseDolphinSupport");
         browseDolphinSupport.setAction(actionMap.get("browseDolphinSupport"));
         help.add(browseDolphinSupport);
         
         JMenuItem browseDolphinProject = new JMenuItem();
-        browseDolphinProject.setName("browseDolphinProject");
         browseDolphinProject.setAction(actionMap.get("browseDolphinProject"));
         help.add(browseDolphinProject);
         
-        //help.add(new JSeparator());
-        
         JMenuItem browseMedXml = new JMenuItem();
-        browseMedXml.setName("browseMedXml");
         browseMedXml.setAction(actionMap.get("browseMedXml"));
         help.add(browseMedXml);
         
         help.add(new JSeparator());
         
         JMenuItem showAbout = new JMenuItem();
-        showAbout.setName("showAbout");
         showAbout.setAction(actionMap.get("showAbout"));
         help.add(showAbout);
         
@@ -1615,21 +1426,5 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         if(chart != null && chart.getChains() != null && chart.getChains().length > 2) {
             obj = chart.getChains()[2];
         }
-        Log.outputOperLogOper(obj, level, ms);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

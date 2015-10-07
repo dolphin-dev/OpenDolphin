@@ -4,6 +4,7 @@ import java.awt.Window;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.HashMap;
+import java.util.ResourceBundle;
 import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -16,7 +17,6 @@ import open.dolphin.infomodel.ClaimItem;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.TensuMaster;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 import open.dolphin.util.ZenkakuUtils;
 
 /**
@@ -31,152 +31,18 @@ public abstract class AbstractStampEditor {
     public static final String EDIT_END_PROP = "editEnd";
     public static final String CURRENT_SHINKU_PROP = "currentShinkuProp";
 
-//s.oh^ 2014/06/19 薬剤の単位対応
-    //protected static final String DEFAULT_NUMBER = "1";
-    protected static final String DEFAULT_NUMBER = "0";
-//s.oh$
-
-    protected static final String DEFAULT_STAMP_NAME     = "新規スタンプ";
-    protected static final String FROM_EDITOR_STAMP_NAME = "エディタから";
-
-    protected static final String[] MED_COST_FLGAS = {"廃","金","都","","","","","減","不"};
-    protected static final String[] TOOL_COST_FLGAS = {"廃","金","都","","","%加","","","","乗"};
-    protected static final String[] TREAT_COST_FLGAS = {"廃","金","","+点","都","%加","%減","減","-点"};
-    protected static final String[] IN_OUT_FLAGS = {"入外","入","外"};
-    protected static final String[] HOSPITAL_CLINIC_FLAGS = {"病診","病","診"};
-    protected static final String[] OLD_FLAGS = {"社老","社","老"};
-
-    protected static final String ADMIN_MARK = "[用法] ";
-    protected static final String REG_ADMIN_MARK = "\\[用法\\] ";
-
-    //protected static final int START_NUM_ROWS = 20;
-    
-    // 組み合わせができるマスター項目
-    protected static final String REG_BASE_CHARGE           = "[手そ]";
-    protected static final String REG_INSTRACTION_CHARGE    = "[手そ薬材]";     // 在宅で薬剤、材料を追加
-    //protected static final String REG_STAY_ON_HOME_CHARGE   = "[手そ薬材]";     // 在宅で薬剤、材料を追加
-    protected static final String REG_MED_ORDER             = "[薬用材そ]";     // 保険適用外の医薬品等追加
-    protected static final String REG_INJECTION_ORDER       = "[手そ注材]";
-    protected static final String REG_TREATMENT             = "[手そ薬材]";
-    protected static final String REG_SURGERY_ORDER         = "[手そ薬材]";
-    protected static final String REG_BACTERIA_ORDER        = "[手そ薬材]";
-    protected static final String REG_PHYSIOLOGY_ORDER      = "[手そ薬材]";
-    protected static final String REG_LABO_TEST             = "[手そ薬材]";
-    protected static final String REG_RADIOLOGY_ORDER       = "[手そ薬材部]";
-    protected static final String REG_OTHER_ORDER           = "[手そ薬材]";
-    protected static final String REG_GENERAL_ORDER         = "[手そ薬材用部]";
-
-    // セットできる診療行為区分
-    protected static final String SHIN_BASE_CHARGE           = "^(11|12)";
-    protected static final String SHIN_INSTRACTION_CHARGE    = "^(13|14)";
-    //protected static final String SHIN_STAY_ON_HOME_CHARGE  = "^13";
-    protected static final String SHIN_MED_ORDER             = "";              // 210|220|230
-    protected static final String SHIN_INJECTION_ORDER       = "^3";            // 310|320|330
-    protected static final String SHIN_TREATMENT             = "^4";
-    protected static final String SHIN_SURGERY_ORDER         = "^5";
-    protected static final String SHIN_BACTERIA_ORDER        = "^6";
-    protected static final String SHIN_PHYSIOLOGY_ORDER      = "^6";
-    protected static final String SHIN_LABO_TEST             = "^6";
-    protected static final String SHIN_RADIOLOGY_ORDER       = "^7";
-    protected static final String SHIN_OTHER_ORDER           = "^8";
-    protected static final String SHIN_GENERAL_ORDER         = "\\d";
-
-    // エディタに表示する名前
-    protected static final String NAME_BASE_CHARGE           = "診断料";
-    protected static final String NAME_INSTRACTION_CHARGE    = "管理料 ";       // 指導・在宅
-    //protected static final String NAME_STAY_ON_HOME_CHARGE   = "在宅管理料 ";    // 在宅
-    protected static final String NAME_MED_ORDER             = "処 方";
-    protected static final String NAME_INJECTION_ORDER       = "注 射";
-    protected static final String NAME_TREATMENT             = "処 置";
-    protected static final String NAME_SURGERY_ORDER         = "手 術";
-    protected static final String NAME_BACTERIA_ORDER        = "細菌検査";
-    protected static final String NAME_PHYSIOLOGY_ORDER      = "生理・内視鏡検査";
-    protected static final String NAME_LABO_TEST             = "検体検査";
-    protected static final String NAME_RADIOLOGY_ORDER       = "放射線";
-    protected static final String NAME_OTHER_ORDER           = "その他";
-    protected static final String NAME_GENERAL_ORDER         = "汎 用";
-
-    // 暗黙の診療行為区分
-    protected static final String IMPLIED_BASE_CHARGE           = "";
-    protected static final String IMPLIED_INSTRACTION_CHARGE    = "";
-    //protected static final String IMPLIED_STAY_ON_HOME_CHARGE   = "";
-    protected static final String IMPLIED_MED_ORDER             = "";
-    protected static final String IMPLIED_INJECTION_ORDER       = "";
-    protected static final String IMPLIED_TREATMENT             = "400";
-    protected static final String IMPLIED_SURGERY_ORDER         = "";
-    protected static final String IMPLIED_BACTERIA_ORDER        = "600";
-    protected static final String IMPLIED_PHYSIOLOGY_ORDER      = "600";
-    protected static final String IMPLIED_LABO_TEST             = "600";
-    protected static final String IMPLIED_RADIOLOGY_ORDER       = "700";
-    protected static final String IMPLIED_OTHER_ORDER           = "800";
-    protected static final String IMPLIED_GENERAL_ORDER         = "";
-
-    // 情報
-    protected static final String INFO_BASE_CHARGE           = "診断料（診区=110-120）";
-    protected static final String INFO_INSTRACTION_CHARGE    = "管理料（診区=130-140）";
-    //protected static final String INFO_STAY_ON_HOME_CHARGE   = "在宅管理料（診区=130）";
-    protected static final String INFO_MED_ORDER             = "処 方";
-    protected static final String INFO_INJECTION_ORDER       = "注 射（診区=300）";
-    protected static final String INFO_TREATMENT             = "処 置（診区=400）";
-    protected static final String INFO_SURGERY_ORDER         = "手 術（診区=500）";
-    protected static final String INFO_BACTERIA_ORDER        = "細菌検査（診区=600）";
-    protected static final String INFO_PHYSIOLOGY_ORDER      = "生理・内視鏡検査（診区=600）";
-    protected static final String INFO_LABO_TEST             = "検体検査（診区=600）";
-    protected static final String INFO_RADIOLOGY_ORDER       = "放射線（診区=700）";
-    protected static final String INFO_OTHER_ORDER           = "その他（診区=800）";
-    protected static final String INFO_GENERAL_ORDER         = "汎 用（診区=100-999）";
-
-    // 病名
-    protected static final String NAME_DIAGNOSIS             = "傷病名";
-    protected static final String REG_DIAGNOSIS              = "[手そ薬材用部]";
-
-    // 辞書のキー
-    protected static final String KEY_ORDER_NAME    = "orderName";
-    protected static final String KEY_PASS_REGEXP   = "passRegExp";
-    protected static final String KEY_SHIN_REGEXP   = "shinkuRegExp";
-    protected static final String KEY_INFO          = "info";
-    protected static final String KEY_IMPLIED       = "implied007";
-
-    // 編集可能コメント
-    protected static final String EDITABLE_COMMENT_81 = "81";;   //"810000001";
-    protected static final String EDITABLE_COMMENT_0081 = "0081";
-    protected static final String EDITABLE_COMMENT_83 = "83";
-    protected static final String EDITABLE_COMMENT_0083 = "0083";
-    protected static final String EDITABLE_COMMENT_84 = "84";
-    protected static final String EDITABLE_COMMENT_0084 = "0084";
-    protected static final String EDITABLE_COMMENT_85 = "85";
-    protected static final String EDITABLE_COMMENT_0085 = "0085";  //"008500000";
-//s.oh^ 2014/01/27 86コメント対応
-    protected static final String EDITABLE_COMMENT_86 = "86";
-    protected static final String EDITABLE_COMMENT_0086 = "0086";  //"008600000";
-//s.oh$
-
-    // 検索特殊記号文字
-    protected static final String ASTERISK_HALF = "*";
-    protected static final String ASTERISK_FULL = "＊";
-    protected static final String TENSU_SEARCH_HALF = "///";    //"///";
-    protected static final String TENSU_SEARCH_FULL = "／／／";  //"／／／";
-    protected static final String COMMENT_SEARCH_HALF = "8";
-    protected static final String COMMENT_SEARCH_FULL = "８";
-    protected static final String COMMENT_85_SEARCH_HALF = "85";
-    protected static final String COMMENT_85_SEARCH_FULL = "８５";
-
     // 検索タイプ
     protected static final int TT_INVALID       = -1;
     protected static final int TT_LIST_TECH     = 0;
     protected static final int TT_TENSU_SEARCH  = 1;
-    protected static final int TT_85_SEARCH     = 2;
-    protected static final int TT_CODE_SEARCH   = 3;
-    protected static final int TT_LETTER_SEARCH = 4;
-    protected static final int TT_SHINKU_SERACH = 5;
+    protected static final int TT_CODE_SEARCH   = 2;
+    protected static final int TT_LETTER_SEARCH = 3;
+    protected static final int TT_SHINKU_SERACH = 4;
     
     // Editor button
     protected static final String STAMP_EDITOR_BUTTON_TYPE = "stamp.editor.buttonType";
     protected static final String BUTTON_TYPE_IS_ICON = "icon";
     protected static final String BUTTON_TYPE_IS_ITEXT = "text";
-
-    // ORCA 有効期限用のDF
-    //protected static SimpleDateFormat effectiveFormat = new SimpleDateFormat("yyyyMMdd");
 
     // ドルフィンのオーダ履歴用の名前
     protected String orderName;
@@ -185,10 +51,10 @@ public abstract class AbstractStampEditor {
     protected String classCode;
 
     // 診療行為区分定義のテーブルID == Claim007
-    protected String classCodeId    = "Claim007";
+    protected String classCodeId    = ClaimConst.CLASS_CODE_ID;
 
     // ClaimItem (項目) の種別を定義しているテーブルID = Claim003
-    protected String subclassCodeId = "Claim003";
+    protected String subclassCodeId = ClaimConst.SUBCLASS_CODE_ID;
 
     // このエディタのエンティティ
     protected String entity;
@@ -212,10 +78,6 @@ public abstract class AbstractStampEditor {
     // 通知用の束縛サポート
     protected PropertyChangeSupport boundSupport;
 
-    // マスタ検索用の便利オブジェクト
-    //protected MasterDelegater dao;
-    //protected String now;
-
     // セットの有効性を制御する便利フラグ
     protected Boolean setIsEmpty;
     protected Boolean setIsValid;
@@ -223,157 +85,148 @@ public abstract class AbstractStampEditor {
     // StampEditor から起動された時 true
     // StampMaker から起動された時は false
     private Boolean fromStampEditor;
-    
-//minagawa^ LSC Test    
+        
     protected boolean modifyFromStampHolder;
-//minagawa$
 
     /**
      * Entity からマスタ検索に必要な正規表現を生成する。
      * @param entity エンティティ
      * @return 正規表現を格納した Hashtable
      */
-    public static HashMap<String, String> getEditorSpec(String entity) {
+    public final HashMap<String, String> getEditorSpec(String entity) {
 
-        HashMap<String, String> ht = new HashMap<String, String>(10, 0.75f);
-        String orderName = null;
-        String passRegExp = null;
-        String shinkuRegExp = null;
-        String implied007 = null;
-        String info = null;
+        HashMap<String, String> ht = new HashMap<>(10, 0.75f);
+        String orderName_ = null;
+        String passRegExp_ = null;
+        String shinkuRegExp_ = null;
+        String implied007_ = null;
+        String info_ = null;
+        
+        ResourceBundle bdl = ClientContext.getClaimBundle();
 
         if (entity.equals(IInfoModel.ENTITY_BASE_CHARGE_ORDER)) {
-
-            orderName = NAME_BASE_CHARGE;
-            passRegExp = REG_BASE_CHARGE;
-            shinkuRegExp = SHIN_BASE_CHARGE;
-            info = INFO_BASE_CHARGE;
-
+            // 診断料　初診・
+            orderName_ = bdl.getString("NAME_BASE_CHARGE");
+            passRegExp_ = bdl.getString("REG_BASE_CHARGE");
+            shinkuRegExp_ = bdl.getString("SHIN_BASE_CHARGE");
+            info_ = bdl.getString("INFO_BASE_CHARGE");
 
         } else if (entity.equals(IInfoModel.ENTITY_INSTRACTION_CHARGE_ORDER)) {
-
-            orderName = NAME_INSTRACTION_CHARGE;
-            passRegExp = REG_INSTRACTION_CHARGE;
-            shinkuRegExp = SHIN_INSTRACTION_CHARGE;
-            info = INFO_INSTRACTION_CHARGE;
+            // 指導・在宅
+            orderName_ = bdl.getString("NAME_INSTRACTION_CHARGE");
+            passRegExp_ = bdl.getString("REG_INSTRACTION_CHARGE");
+            shinkuRegExp_ = bdl.getString("SHIN_INSTRACTION_CHARGE");
+            info_ = bdl.getString("INFO_INSTRACTION_CHARGE");
             
         } else if (entity.equals(IInfoModel.ENTITY_MED_ORDER)) {
-
-            orderName = NAME_MED_ORDER;
-            passRegExp = REG_MED_ORDER;                     // 薬剤、用法、材料、その他(保険適用外医薬品）
-            info = INFO_MED_ORDER;
+            // 処方: 薬剤、用法、材料、その他(保険適用外医薬品）
+            orderName_ = bdl.getString("NAME_MED_ORDER");
+            passRegExp_ = bdl.getString("REG_MED_ORDER");
+            info_ = bdl.getString("INFO_MED_ORDER");
 
         } else if (entity.equals(IInfoModel.ENTITY_INJECTION_ORDER)) {
-
-            orderName = NAME_INJECTION_ORDER;
-            passRegExp = REG_INJECTION_ORDER;               // 手技、その他、注射薬、材料
-            shinkuRegExp = SHIN_INJECTION_ORDER;
-            info = INFO_INJECTION_ORDER;
-
+            // 注射: 手技、その他、注射薬、材料
+            orderName_ = bdl.getString("NAME_INJECTION_ORDER");
+            passRegExp_ = bdl.getString("REG_INJECTION_ORDER");
+            shinkuRegExp_ = bdl.getString("SHIN_INJECTION_ORDER");
+            info_ = bdl.getString("INFO_INJECTION_ORDER");
 
         } else if (entity.equals(IInfoModel.ENTITY_TREATMENT)) {
-
-            orderName = NAME_TREATMENT;
-            passRegExp = REG_TREATMENT;                     // 手技、その他、薬剤、材料
-            shinkuRegExp = SHIN_TREATMENT;
-            implied007 = IMPLIED_TREATMENT;
-            info = INFO_TREATMENT;
-
+            // 処置: 手技、その他、薬剤、材料
+            orderName_ = bdl.getString("NAME_TREATMENT");
+            passRegExp_ = bdl.getString("REG_TREATMENT");
+            shinkuRegExp_ = bdl.getString("SHIN_TREATMENT");
+            implied007_ = bdl.getString("IMPLIED_TREATMENT");
+            info_ = bdl.getString("INFO_TREATMENT");
 
         } else if (entity.equals(IInfoModel.ENTITY_SURGERY_ORDER)) {
-
-            orderName = NAME_SURGERY_ORDER;
-            passRegExp = REG_SURGERY_ORDER;                 // 手技、その他、薬剤、材料
-            shinkuRegExp = SHIN_SURGERY_ORDER;
-            info = INFO_SURGERY_ORDER;
-
+            // 手術: 手技、その他、薬剤、材料
+            orderName_ = bdl.getString("NAME_SURGERY_ORDER");
+            passRegExp_ = bdl.getString("REG_SURGERY_ORDER");
+            shinkuRegExp_ = bdl.getString("SHIN_SURGERY_ORDER");
+            info_ = bdl.getString("INFO_SURGERY_ORDER");
 
         } else if (entity.equals(IInfoModel.ENTITY_BACTERIA_ORDER)) {
-
-            orderName = NAME_BACTERIA_ORDER;
-            passRegExp = REG_BACTERIA_ORDER;                // 手技、その他、薬剤、材料
-            shinkuRegExp = SHIN_BACTERIA_ORDER;
-            implied007 = IMPLIED_BACTERIA_ORDER;
-            info = INFO_BACTERIA_ORDER;
+            // 細菌検査: 手技、その他、薬剤、材料
+            orderName_ = bdl.getString("NAME_BACTERIA_ORDER");
+            passRegExp_ = bdl.getString("REG_BACTERIA_ORDER");
+            shinkuRegExp_ = bdl.getString("SHIN_BACTERIA_ORDER");
+            implied007_ = bdl.getString("IMPLIED_BACTERIA_ORDER");
+            info_ = bdl.getString("INFO_BACTERIA_ORDER");
 
         } else if (entity.equals(IInfoModel.ENTITY_PHYSIOLOGY_ORDER)) {
-
-            orderName = NAME_PHYSIOLOGY_ORDER;
-            passRegExp = REG_PHYSIOLOGY_ORDER;              // 手技、その他、薬剤、材料
-            shinkuRegExp = SHIN_PHYSIOLOGY_ORDER;
-            implied007 = IMPLIED_PHYSIOLOGY_ORDER;
-            info = INFO_PHYSIOLOGY_ORDER;
-
+            // 生体検査: 手技、その他、薬剤、材料
+            orderName_ = bdl.getString("NAME_PHYSIOLOGY_ORDER");
+            passRegExp_ = bdl.getString("REG_PHYSIOLOGY_ORDER");
+            shinkuRegExp_ = bdl.getString("SHIN_PHYSIOLOGY_ORDER");
+            implied007_ = bdl.getString("IMPLIED_PHYSIOLOGY_ORDER");
+            info_ = bdl.getString("INFO_PHYSIOLOGY_ORDER");
 
         } else if (entity.equals(IInfoModel.ENTITY_LABO_TEST)) {
-
-            orderName = NAME_LABO_TEST;
-            passRegExp = REG_LABO_TEST;                     // 手技、その他、薬剤、材料
-            shinkuRegExp = SHIN_LABO_TEST;
-            implied007 = IMPLIED_LABO_TEST;
-            info = INFO_LABO_TEST;
-
+            // 検体検査: 手技、その他、薬剤、材料
+            orderName_ = bdl.getString("NAME_LABO_TEST");
+            passRegExp_ = bdl.getString("REG_LABO_TEST");
+            shinkuRegExp_ = bdl.getString("SHIN_LABO_TEST");
+            implied007_ = bdl.getString("IMPLIED_LABO_TEST");
+            info_ = bdl.getString("INFO_LABO_TEST");
 
         } else if (entity.equals(IInfoModel.ENTITY_RADIOLOGY_ORDER)) {
-
-            orderName = NAME_RADIOLOGY_ORDER;
-            passRegExp = REG_RADIOLOGY_ORDER;               // 手技、その他、薬剤、材料、部位
-            shinkuRegExp = SHIN_RADIOLOGY_ORDER;
-            implied007 = IMPLIED_RADIOLOGY_ORDER;
-            info = INFO_RADIOLOGY_ORDER;
-
+            // 画像: 手技、その他、薬剤、材料、部位
+            orderName_ = bdl.getString("NAME_RADIOLOGY_ORDER");
+            passRegExp_ = bdl.getString("REG_RADIOLOGY_ORDER");
+            shinkuRegExp_ = bdl.getString("SHIN_RADIOLOGY_ORDER");
+            implied007_ = bdl.getString("IMPLIED_RADIOLOGY_ORDER");
+            info_ = bdl.getString("INFO_RADIOLOGY_ORDER");
 
         }   else if (entity.equals(IInfoModel.ENTITY_OTHER_ORDER)) {
-
-            orderName = NAME_OTHER_ORDER;
-            passRegExp = REG_OTHER_ORDER;                   // 手技、その他、薬剤、材料
-            shinkuRegExp = SHIN_OTHER_ORDER;
-            implied007 = IMPLIED_OTHER_ORDER;
-            info = INFO_OTHER_ORDER;
-
+            // その他: 手技、その他、薬剤、材料
+            orderName_ = bdl.getString("NAME_OTHER_ORDER");
+            passRegExp_ = bdl.getString("REG_OTHER_ORDER");
+            shinkuRegExp_ = bdl.getString("SHIN_OTHER_ORDER");
+            implied007_ = bdl.getString("IMPLIED_OTHER_ORDER");
+            info_ = bdl.getString("INFO_OTHER_ORDER");
 
         } else if (entity.equals(IInfoModel.ENTITY_GENERAL_ORDER)) {
-
-            orderName = NAME_GENERAL_ORDER;
-            passRegExp = REG_GENERAL_ORDER;                 // 手技、その他、薬剤、材料、用法、部位
-            shinkuRegExp = SHIN_GENERAL_ORDER;
-            info = INFO_GENERAL_ORDER;
+            // 汎用: 手技、その他、薬剤、材料、用法、部位
+            orderName_ = bdl.getString("NAME_GENERAL_ORDER");
+            passRegExp_ = bdl.getString("REG_GENERAL_ORDER");
+            shinkuRegExp_ = bdl.getString("SHIN_GENERAL_ORDER");
+            info_ = bdl.getString("INFO_GENERAL_ORDER");
 
         } else if (entity.equals(IInfoModel.ENTITY_DIAGNOSIS)) {
-
-            orderName = NAME_DIAGNOSIS;
-            passRegExp = REG_DIAGNOSIS;
+            // 傷病名
+            orderName_ = bdl.getString("NAME_DIAGNOSIS");
+            passRegExp_ = bdl.getString("EG_DIAGNOSIS");
         }
 
-        ht.put(KEY_ORDER_NAME, orderName);
+        ht.put(bdl.getString("KEY_ORDER_NAME"), orderName_);
 
-        if (passRegExp!=null) {
-            ht.put(KEY_PASS_REGEXP, passRegExp);
+        if (passRegExp_!=null) {
+            ht.put(bdl.getString("KEY_PASS_REGEXP"), passRegExp_);
         }
         
-        if (shinkuRegExp!=null) {
-            ht.put(KEY_SHIN_REGEXP, shinkuRegExp);
+        if (shinkuRegExp_!=null) {
+            ht.put(bdl.getString("KEY_SHIN_REGEXP"), shinkuRegExp_);
         }
 
-        if (info!=null) {
-            ht.put(KEY_INFO, info);
+        if (info_!=null) {
+            ht.put(bdl.getString("KEY_INFO"), info_);
         }
 
-        if (implied007!=null) {
-            ht.put(KEY_IMPLIED, implied007);
+        if (implied007_!=null) {
+            ht.put(bdl.getString("KEY_IMPLIED"), implied007_);
         }
 
         return ht;
     }
 
-    protected static boolean isCode(String text) {
+    protected boolean isCode(String text) {
         boolean maybe = true;
         if (text != null) {
             for (int i = 0; i < text.length(); i++) {
                 char c = text.charAt(i);
                 int type = Character.getType(c);
                 if (type == Character.DECIMAL_DIGIT_NUMBER) {
-                    continue;
                 } else {
                     maybe = false;
                     break;
@@ -387,102 +240,126 @@ public abstract class AbstractStampEditor {
     //-----------------------------------------
     // 点数で検索する場合の入力 =  ///11 etc
     //-----------------------------------------
-    protected static boolean isTensuSearch(String text) {
-        boolean maybe = (text != null && text.length() > 3 && (text.startsWith(TENSU_SEARCH_HALF) || text.startsWith(TENSU_SEARCH_FULL)))
-                      ? true
-                      : false;
+    protected boolean isTensuSearch(String text) {
+        ResourceBundle bdl = ClientContext.getClaimBundle();
+        String half = bdl.getString("TENSU_SEARCH_HALF");
+        String full = bdl.getString("TENSU_SEARCH_FULL");
+        boolean maybe = (text != null && 
+                         text.length() > 3 && 
+                         (text.startsWith(half) || text.startsWith(full)));
         return maybe;
     }
 
     //---------------------------------------
-    // 内容を編集できるコメントコード
+    // 内容を編集できるコメントコード 81 83 85 86
     //---------------------------------------
-    protected static boolean isNameEditableComment(String code) {
-
-        boolean ans = true;
-        ans = ans && (code!=null);
-
-        if (!ans) {
-            return ans;
-        }
-
-        boolean ed = (code.startsWith(EDITABLE_COMMENT_81) ||
-                      code.startsWith(EDITABLE_COMMENT_0081) ||
-                      code.startsWith(EDITABLE_COMMENT_83) ||
-                      code.startsWith(EDITABLE_COMMENT_0083) ||
-                      code.startsWith(EDITABLE_COMMENT_85) ||
-//s.oh^ 2014/01/27 86コメント対応
-                      //code.startsWith(EDITABLE_COMMENT_0085)c);
-                      code.startsWith(EDITABLE_COMMENT_0085) ||
-                      code.startsWith(EDITABLE_COMMENT_86) ||
-                      code.startsWith(EDITABLE_COMMENT_0086));
-//s.oh$
-
-        return ed;
-    }
-
-    //---------------------------------------
-    protected static boolean isNumberEditableComment(String code) {
-
-        boolean ans = true;
-        ans = ans && (code!=null);
-
-        if (!ans) {
-            return ans;
-        }
-
-        boolean ed = (code.startsWith(EDITABLE_COMMENT_84) ||
-                      code.startsWith(EDITABLE_COMMENT_0084));
-
-        return ed;
-    }
-
-    protected static boolean is82Comment(String code) {
+    protected boolean isNameEditableComment(String code) {
         if (code==null) {
             return false;
         }
-        boolean ans = true;
-        ans = ans && (code.startsWith("82") ||
-                      code.startsWith("0082") ||
-                      code.startsWith("８２") ||
-                      code.startsWith("００８２"));
+        ResourceBundle bdl = ClientContext.getClaimBundle();
+        String[] targets = (String[])bdl.getObject("NAME_EDITABLE_COMMENT");
+
+        boolean ans = false;
+        for (String str : targets) {
+            if (code.startsWith(str)) {
+                ans = true;
+                break;
+            }
+        }
+        return ans;
+    }
+
+    //---------------------------------------
+    // 数量を編集できるコメントコード 84
+    //---------------------------------------
+    protected boolean isNumberEditableComment(String code) {
+        if (code==null) {
+            return false;
+        }
+        ResourceBundle bdl = ClientContext.getClaimBundle();
+        String[] targets = (String[])bdl.getObject("NUMBER_EDITABLE_COMMENT");
+        
+        boolean ans = false;
+        for (String str : targets) {
+            if (code.startsWith(str)) {
+                ans = true;
+                break;
+            }
+        }
+        return ans;
+    }
+
+    //---------------------------------------
+    // 固定コメントコード 82
+    //---------------------------------------
+    protected boolean is82Comment(String code) {
+        if (code==null) {
+            return false;
+        }
+        ResourceBundle bdl = ClientContext.getClaimBundle();
+        String[] targets = (String[])bdl.getObject("COMMENT_82");
+        
+        boolean ans = false;
+        for (String str : targets) {
+            if (code.startsWith(str)) {
+                ans = true;
+                break;
+            }
+        }
+        return ans;
+    }
+    
+    //---------------------------------------
+    // 注射診区コード  31 32 33
+    //---------------------------------------
+    protected boolean isInjection(String code) {
+        if (code==null) {
+            return false;
+        }
+        ResourceBundle bdl = ClientContext.getClaimBundle();
+        String[] targets = (String[])bdl.getObject("INJECTION_CLASS_CODE");
+        
+        boolean ans = false;
+        for (String str : targets) {
+            if (code.startsWith(str)) {
+                ans = true;
+                break;
+            }
+        }
         return ans;
     }
 
     //-----------------------------------------
     // 入力されたテキストから検索タイプを返す
     //-----------------------------------------
-    protected static int getSearchType(String test, boolean hitReturn) {
+    protected int getSearchType(String test, boolean hitReturn) {
 
         if (test == null || test.equals("")) {
             return TT_INVALID;
         }
+        
+        ResourceBundle bdl = ClientContext.getClaimBundle();
 
         // *
-        if (test.equals(ASTERISK_HALF) || test.equals(ASTERISK_FULL)) {
+        if (test.equals(bdl.getString("ASTERISK_HALF")) || 
+            test.equals(bdl.getString("ASTERISK_FULL"))) {
             return TT_LIST_TECH;
         }
-
-//minagawa^ lsctest        
+       
         if (test.startsWith("/") || test.startsWith("／")) {
-//            //  ///12
-//            if (test.startsWith(TENSU_SEARCH_HALF) || test.startsWith(TENSU_SEARCH_FULL)) {
-                if (isTensuSearch(test) && hitReturn) {
-                    return TT_TENSU_SEARCH;
-                } else {
-                    return TT_INVALID;
-                }
-//           }
+            if (isTensuSearch(test) && hitReturn) {
+                return TT_TENSU_SEARCH;
+            } else {
+                return TT_INVALID;
+            }
         }
-//minagawa$
 
-        // 81,82,83,84,85
-        if ( (test.startsWith(COMMENT_SEARCH_HALF) || test.startsWith(COMMENT_SEARCH_FULL)) && test.length() >1 ) {
-//            if (test.startsWith(COMMENT_85_SEARCH_HALF) || test.startsWith(COMMENT_85_SEARCH_FULL)) {
-//                return TT_85_SEARCH;
-//            } else {
-//                return TT_CODE_SEARCH;
-//            }
+        // 81,82,83,84,85,86
+        if ( (test.startsWith(bdl.getString("COMMENT_SEARCH_HALF")) || 
+              test.startsWith(bdl.getString("COMMENT_SEARCH_FULL"))) && 
+              test.length() >1 ) {
+            
             return TT_CODE_SEARCH;
         }
 
@@ -510,17 +387,19 @@ public abstract class AbstractStampEditor {
 
         return TT_INVALID;
     }
-
-    // 注射診区コード
-    protected static boolean isInjection(String code) {
-        return (code != null &&
-                (code.startsWith("31") || code.startsWith("32") || code.startsWith("33"))) ? true : false;
-    }
     
     // Editor Button Type
     protected boolean editorButtonTypeIsIcon() {
         String prop = Project.getString(STAMP_EDITOR_BUTTON_TYPE);
-        return prop.equals(BUTTON_TYPE_IS_ICON) ? true : false;
+        return prop.equals(BUTTON_TYPE_IS_ICON);
+    }
+    
+    protected String getDefaultStampName() {
+        return ClientContext.getClaimBundle().getString("DEFAULT_STAMP_NAME");
+    }
+    
+    protected String getStampNameFromEditor() {
+        return ClientContext.getClaimBundle().getString("FROM_EDITOR_STAMP_NAME");
     }
 
     public abstract JPanel getView();
@@ -645,7 +524,6 @@ public abstract class AbstractStampEditor {
 //s.oh^ 2014/08/08 スタンプ編集制御
         ret.setSrysyukbn(tm.getSrysyukbn());
 //s.oh$
-
         // code
         ret.setCode(tm.getSrycd());
 
@@ -659,8 +537,10 @@ public abstract class AbstractStampEditor {
         // 及び診療行為区分（診区）を設定する
         // 0: 手技  1: 材料  2: 薬剤 3: 用法 4:部位 5:その他
         String test = tm.getSlot();
+        
+        ResourceBundle clb = ClientContext.getClaimBundle();
 
-        if (test.equals(ClaimConst.SLOT_SYUGI)) {
+        if (test.equals(clb.getString("SLOT_SYUGI"))) {
 
             // 手技
             ret.setClassCode(ClaimConst.SYUGI);
@@ -670,10 +550,10 @@ public abstract class AbstractStampEditor {
 
             // もしかして数量があるかも...
             if (ret.getUnit()!=null) {
-                ret.setNumber(DEFAULT_NUMBER);
+                ret.setNumber(ClientContext.getClaimBundle().getString("DEFAULT_NUMBER"));
             }
 
-        } else if (Pattern.compile(ClaimConst.SLOT_MEDICINE).matcher(test).find()) {
+        } else if (Pattern.compile(clb.getString("SLOT_MEDICINE")).matcher(test).find()) {
 
             // 薬剤
             ret.setClassCode(ClaimConst.YAKUZAI);
@@ -681,29 +561,20 @@ public abstract class AbstractStampEditor {
             ret.setYkzKbn(tm.getYkzkbn());
             //System.out.println("剤型区分=" + ret.getYkzKbn());
 
-            String inputNum = DEFAULT_NUMBER;
+            String inputNum = ClientContext.getClaimBundle().getString("DEFAULT_NUMBER");
 
-            if (ret.getUnit()!= null && ret.getUnit().equals(ClaimConst.UNIT_T)) {
-                //inputNum = Project.getString("defaultZyozaiNum", "3");
+            if (ret.getUnit()!= null && ret.getUnit().equals(clb.getString("UNIT_T"))) {
                 inputNum = Project.getString("defaultZyozaiNum");
 
-            } else if (ret.getUnit()!= null && ret.getUnit().equals(ClaimConst.UNIT_CAPSULE)) {
-                //inputNum = Project.getString("defaultCapsuleNum", "1");   // ?
-                //inputNum = Project.getString("defaultZyozaiNum", "3");
-                //inputNum = Project.getString("defaultZyozaiNum");
+            } else if (ret.getUnit()!= null && ret.getUnit().equals(clb.getString("UNIT_CAPSULE"))) {
                 inputNum = Project.getString("defaultCapsuleNum");
 
-            } else if (ret.getUnit()!= null && ret.getUnit().equals(ClaimConst.UNIT_G)) {
-                //inputNum = Project.getString("defaultSanyakuNum", "1.0");
+            } else if (ret.getUnit()!= null && ret.getUnit().equals(clb.getString("UNIT_G"))) {
                 inputNum = Project.getString("defaultSanyakuNum");
 
-            } else if (ret.getUnit()!= null && ret.getUnit().equals(ClaimConst.UNIT_ML)) {
-                //inputNum = Project.getString("defaultMizuyakuNum", "1");
+            } else if (ret.getUnit()!= null && ret.getUnit().equals(clb.getString("UNIT_ML"))) {
                 inputNum = Project.getString("defaultMizuyakuNum");
-
-            } //else if (ret.getUnit().equals(ClaimConst.UNIT_CAPSULE)) {
-                //inputNum = Project.getString("defaultKapuselNum", "1");
-            //}
+            }
 
             // zero -> null 
 //s.oh^ 2014/06/19 薬剤の単位対応
@@ -713,23 +584,23 @@ public abstract class AbstractStampEditor {
             ret.setNumber(inputNum);
 
 
-        } else if (test.equals(ClaimConst.SLOT_ZAIRYO)) {
+        } else if (test.equals(clb.getString("SLOT_ZAIRYO"))) {
             // 材料
             ret.setClassCode(ClaimConst.ZAIRYO);
-            ret.setNumber(DEFAULT_NUMBER);
+            ret.setNumber(ClientContext.getClaimBundle().getString("DEFAULT_NUMBER"));
 
-        } else if (test.equals(ClaimConst.SLOT_YOHO)) {
+        } else if (test.equals(clb.getString("SLOT_YOHO"))) {
             // 用法
             ret.setClassCode(ClaimConst.ADMIN);
-            ret.setName(ADMIN_MARK + tm.getName());
+            ret.setName(ClientContext.getClaimBundle().getString("ADMIN_MARK") + tm.getName());
             ret.setDummy("X");
             ret.setBundleNumber(Project.getString("defaultRpNum", "1"));
 
-        } else if (test.equals(ClaimConst.SLOT_BUI)) {
+        } else if (test.equals(clb.getString("SLOT_BUI"))) {
             // 部位
             ret.setClassCode(ClaimConst.BUI);
 
-        } else if (test.equals(ClaimConst.SLOT_OTHER)) {
+        } else if (test.equals(clb.getString("OTHER"))) {
             // その他
 //minagawa^ LSC Test 初診、再診(DUMMY)
             String tenName = tm.getName();
@@ -742,7 +613,7 @@ public abstract class AbstractStampEditor {
             }
 //minagawa$            
             if (ret.getUnit()!=null) {
-                ret.setNumber(DEFAULT_NUMBER);
+                ret.setNumber(ClientContext.getClaimBundle().getString("DEFAULT_NUMBER"));
             }
         }
 
@@ -790,6 +661,8 @@ public abstract class AbstractStampEditor {
     /**
      * Returns Claim004 Number Code 21 材料個数 when subclassCode = 1 11
      * 薬剤投与量（１回）when subclassCode = 2
+     * @param subclassCode
+     * @return 
      */
     protected String getNumberCode(int subclassCode) {
         return (subclassCode == 1) ? ClaimConst.ZAIRYO_KOSU : ClaimConst.YAKUZAI_TOYORYO; // 材料個数 : 薬剤投与量１回
@@ -798,47 +671,33 @@ public abstract class AbstractStampEditor {
     }
 
     protected void alertIpAddress() {
-
-        String msg0 = "レセコンのIPアドレスが設定されていないため、マスターを検索できません。";
-        String msg1 = "環境設定メニューからレセコンのIPアドレスを設定してください。";
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(AbstractStampEditor.class);
+        String msg0 = bundle.getString("warning.noIpAddress");
+        String msg1 = bundle.getString("message.setIpAddress");
         Object message = new String[]{msg0, msg1};
         Window parent = SwingUtilities.getWindowAncestor(getView());
-        String title = ClientContext.getFrameTitle("マスタ検索");
+        String title = ClientContext.getFrameTitle(bundle.getString("title.optionPane.masterSearch"));
         JOptionPane.showMessageDialog(parent, message, title, JOptionPane.WARNING_MESSAGE);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, msg0, msg1);
     }
 
     protected void alertSearchError(String err) {
-
-        String msg0 = "マスターを検索できません。アクセスが許可されているかご確認ください。";
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(AbstractStampEditor.class);
+        String msg0 = bundle.getString("warning.noPrevilaggeToSearch");
         String msg1 = err;
 
         Object message = new String[]{msg0, msg1};
         Window parent = SwingUtilities.getWindowAncestor(getView());
-        String title = ClientContext.getFrameTitle("マスタ検索");
+        String title = ClientContext.getFrameTitle(bundle.getString("title.optionPane.masterSearch"));
         JOptionPane.showMessageDialog(parent, message, title, JOptionPane.WARNING_MESSAGE);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, msg0, msg1);
     }
 
     protected Boolean ipOk() {
-        
         return Project.canSearchMaster();
-
-//        // CLAIM(Master) Address が設定されていない場合に警告する
-//        String address = Project.getString(Project.CLAIM_ADDRESS);
-//        if (address == null || address.equals("")) {
-//            alertIpAddress();
-//            return false;
-//        }
-//
-//        return true;
     }
 
     protected abstract void search(final String text, boolean hitRet);
 
     protected abstract void clear();
-
-    protected abstract void initComponents();
 
     public JTextField getSearchTextField() {
         return searchTextField;
@@ -848,14 +707,11 @@ public abstract class AbstractStampEditor {
         if (boundSupport == null) {
             boundSupport = new PropertyChangeSupport(this);
         }
-        boundSupport.addPropertyChangeListener(prop, listener);
-//minagawa^ LSC Test        
+        boundSupport.addPropertyChangeListener(prop, listener);        
         if (listener instanceof StampHolder) {
             modifyFromStampHolder = true;
-        }
-//minagawa$        
+        }       
     }
-
 
     public void remopvePropertyChangeListener(String prop, PropertyChangeListener listener) {
         boundSupport.removePropertyChangeListener(prop, listener);
@@ -869,7 +725,7 @@ public abstract class AbstractStampEditor {
     }
 
     /**
-     * @param passRegExp the passRegExp to set
+     * @param passPattern
      */
     public final void setPassPattern(Pattern passPattern) {
         this.passPattern = passPattern;
@@ -1010,39 +866,39 @@ public abstract class AbstractStampEditor {
     }
 
     public AbstractStampEditor() {
-        this.initComponents();
     }
 
-    public AbstractStampEditor(String entity) {
-        this(entity,true);
-    }
+//    public AbstractStampEditor(String entity) {
+//        this(entity,true);
+//    }
 
     public AbstractStampEditor(String entity, boolean mode) {
 
-        HashMap<String, String> ht = AbstractStampEditor.getEditorSpec(entity);
-
+        HashMap<String, String> ht = getEditorSpec(entity);
+        
         this.setEntity(entity);
-        this.setOrderName(ht.get(KEY_ORDER_NAME));
+        
+        ResourceBundle bdl = ClientContext.getClaimBundle();
 
-        if (ht.get(KEY_PASS_REGEXP)!=null) {
-            this.setPassPattern(Pattern.compile(ht.get(KEY_PASS_REGEXP)));
+        this.setOrderName(ht.get(bdl.getString("KEY_ORDER_NAME")));
+
+        if (ht.get(bdl.getString("KEY_PASS_REGEXP"))!=null) {
+            this.setPassPattern(Pattern.compile(ht.get(bdl.getString("KEY_PASS_REGEXP"))));
         }
         
-        if (ht.get(KEY_SHIN_REGEXP)!=null) {
-            this.setShinkuRegExp(ht.get(KEY_SHIN_REGEXP));
-            this.setShinkuPattern(Pattern.compile(ht.get(KEY_SHIN_REGEXP)));
+        if (ht.get(bdl.getString("KEY_SHIN_REGEXP"))!=null) {
+            this.setShinkuRegExp(ht.get(bdl.getString("KEY_SHIN_REGEXP")));
+            this.setShinkuPattern(Pattern.compile(ht.get(bdl.getString("KEY_SHIN_REGEXP"))));
         }
 
-        if (ht.get(KEY_INFO)!=null) {
-            this.setInfo(ht.get(KEY_INFO));
+        if (ht.get(bdl.getString("KEY_INFO"))!=null) {
+            this.setInfo(ht.get(bdl.getString("KEY_INFO")));
         }
 
-        if (ht.get(KEY_IMPLIED)!=null) {
-            this.setImplied007(ht.get(KEY_IMPLIED));
+        if (ht.get(bdl.getString("KEY_IMPLIED"))!=null) {
+            this.setImplied007(ht.get(bdl.getString("KEY_IMPLIED")));
         }
 
         setFromStampEditor(mode);
-
-        initComponents();
     }
 }

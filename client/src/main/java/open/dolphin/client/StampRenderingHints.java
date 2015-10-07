@@ -17,9 +17,7 @@ public class StampRenderingHints {
     private int border = 0;
     private int cellSpacing = 2;
     private int cellPadding = 3;
-//minagawa^ LSC Test
-    private boolean showStampName;
-//minagawa$    
+    private boolean showStampName; 
 
     public int getFontSize() {
         return fontSize;

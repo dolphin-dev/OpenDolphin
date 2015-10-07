@@ -30,11 +30,7 @@ public class LabParserFactory {
             LabResultParser ret = (LabResultParser) Class.forName(clsName).newInstance();
             return ret;
             
-        } catch (InstantiationException ex) {
-            ex.printStackTrace(System.err);
-        } catch (IllegalAccessException ex) {
-            ex.printStackTrace(System.err);
-        } catch (ClassNotFoundException ex) {
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
             ex.printStackTrace(System.err);
         }
         return null;

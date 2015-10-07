@@ -15,8 +15,6 @@ import open.dolphin.infomodel.IInfoModel;
  */
 public class DocumentBridgeImpl extends AbstractChartDocument 
     implements PropertyChangeListener, DocumentBridger {
-    
-    private static final String TITLE = "参 照";
         
     // 文書表示クラスのインターフェイス
     private DocumentViewer curViwer;
@@ -28,10 +26,10 @@ public class DocumentBridgeImpl extends AbstractChartDocument
     private String handleClass;
     
     public DocumentBridgeImpl() {
+        String TITLE = ClientContext.getMyBundle(DocumentBridgeImpl.class).getString("title.document");
         setTitle(TITLE);
     }
     
-
     @Override
     public void start() {
         
@@ -93,7 +91,7 @@ public class DocumentBridgeImpl extends AbstractChartDocument
                     curViwer = createLetterModuleViewer(handleClass);
                     curViwer.setContext(getContext());
                     curViwer.start();
-                } catch (Throwable e) {
+                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
                     e.printStackTrace(System.err);
                 }
             }
@@ -116,31 +114,7 @@ public class DocumentBridgeImpl extends AbstractChartDocument
 
             // 文書種別が変更された場合
             String docType = (String) evt.getNewValue();
-//minagawa^ LSC Test            
-//            if (docType.equals(IInfoModel.DOCTYPE_LETTER)) {
-//                // 紹介状
-//                curViwer = null;
-//                handleClass = null;
-//                
-//            } else if (docType.equals(IInfoModel.DOCTYPE_LETTER_REPLY)) {
-//                // 紹介状返書
-//                curViwer = null;
-//                handleClass = null;
-//                
-//            } else if (docType.equals(IInfoModel.DOCTYPE_LETTER_REPLY2)) {
-//                // 紹介状返書2
-//                curViwer = null;
-//                handleClass = null;
-//                
-//            } else if (docType.equals(IInfoModel.DOCTYPE_LETTER_PLUGIN)) {
-//                // 紹介状 plugin type
-//                curViwer = null;
-//                handleClass = null;
-//                
-//            } else {
-//                // カルテ文書
-//                curViwer = createKarteDocumentViewer();
-//            }  
+
             // showDocumentsがコールされるまでどのクラスがインスタンス化されるか不明
             // 紹介状等の履歴が空の場合 showDocumentがコールされないので
             // メニューを制御するためここでenterする
@@ -150,8 +124,7 @@ public class DocumentBridgeImpl extends AbstractChartDocument
                 docType.equals(IInfoModel.DOCTYPE_LETTER_PLUGIN)) {
                 curViwer = null;
                 handleClass = null;
-                this.enter();
-//minagawa$                
+                this.enter();               
             } else {
                 // カルテ文書
                 curViwer = createKarteDocumentViewer();

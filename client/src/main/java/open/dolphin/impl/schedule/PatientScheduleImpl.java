@@ -5,6 +5,7 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.beans.EventHandler;
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.swing.*;
@@ -12,7 +13,6 @@ import javax.swing.event.*;
 import open.dolphin.client.*;
 import open.dolphin.delegater.ScheduleDelegater;
 import open.dolphin.helper.SimpleWorker;
-import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.PatientModel;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.infomodel.PostSchedule;
@@ -31,29 +31,12 @@ import open.dolphin.util.AgeCalculator;
  *
  * @author Kazushi Minagawa
  */
-public class PatientScheduleImpl extends AbstractMainComponent {
+public class PatientScheduleImpl extends AbstractMainComponent { 
     
-//    private static final Color DEFAULT_ODD_COLOR = ClientContext.getColor("color.odd");
-//    private static final Color DEFAULT_EVEN_COLOR = ClientContext.getColor("color.even");
-//minagawa^ Icon Server    
-    //private static final ImageIcon SCHEDULE_ICON = ClientContext.getImageIcon("favs_16.gif");
-//minagawa$    
-    
-    private static final String NAME = "予定患者";
-    
-    private static final String[] COLUMN_NAMES = {
-        "患者ID", "氏   名", "性別", "保険", "生年月日", "担当医", "診療科", "カルテ"};
-    
-    // 来院テーブルのカラムメソッド
-    private static final String[] PROPERTY_NAMES = {
-        "getPatientId", "getPatientName", "getPatientGenderDesc", "getFirstInsurance",
-        "getPatientAgeBirthday", "getDoctorName", "getDeptName", "getLastDocDate"};
-    
-    private static final Class[] COLUMN_CLASSES = {
-        String.class, String.class, String.class, String.class, String.class, 
-        String.class, String.class, String.class};
-    
-    private static final int[] COLUMN_WIDTH = {80, 100, 40, 130, 130, 50, 60, 40};
+    private final String[] COLUMN_NAMES;
+    private final String[] PROPERTY_NAMES;
+    private final Class[] COLUMN_CLASSES;
+    private final int[] COLUMN_WIDTH;
    
     // カラム仕様名
     private static final String COLUMN_SPEC_NAME = "patientScheduleTable.withoutAddress.column.spec";
@@ -108,7 +91,13 @@ public class PatientScheduleImpl extends AbstractMainComponent {
 
     /** Creates new PatientSearch */
     public PatientScheduleImpl() {
-        setName(NAME);
+        // Resource Injection
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(PatientScheduleImpl.class);
+        setName(bundle.getString("title.scheduleKarte"));
+        COLUMN_NAMES = bundle.getString("columnNames.table").split(",");
+        PROPERTY_NAMES = bundle.getString("methods.table").split(",");
+        COLUMN_CLASSES = new Class[]{String.class, String.class, String.class, String.class, String.class, String.class, String.class, String.class};
+        COLUMN_WIDTH = new int[]{80, 100, 40, 130, 130, 50, 60, 40};
         assignedOnly = Project.getBoolean("PATIENT_SCHEDULE_ASSIGNED_ONLY", false);
     }
 
@@ -123,12 +112,9 @@ public class PatientScheduleImpl extends AbstractMainComponent {
     @Override
     public void enter() {
         controlMenu();
-        SwingUtilities.invokeLater(new Runnable(){
-            @Override
-            public void run() {
-                view.getKeywordFld().requestFocusInWindow();
-                view.getKeywordFld().selectAll();
-            }
+        SwingUtilities.invokeLater(() -> {
+            view.getKeywordFld().requestFocusInWindow();
+            view.getKeywordFld().selectAll();
         });
     }
 
@@ -160,7 +146,8 @@ public class PatientScheduleImpl extends AbstractMainComponent {
             view.getKeywordFld().setText("");
             return;
         }
-        SimpleDateFormat frmt = new SimpleDateFormat(IInfoModel.DATE_FORMAT_FOR_SCHEDULE);
+        String dateFmt = ClientContext.getMyBundle(PatientScheduleImpl.class).getString("DATE_FORMAT_FOR_SCHEDULE");
+        SimpleDateFormat frmt = new SimpleDateFormat(dateFmt);
         view.getKeywordFld().setText(frmt.format(scheduleDate.getTime()));
         String test = stringFromCalendar(scheduleDate);
         find(test);
@@ -283,31 +270,32 @@ public class PatientScheduleImpl extends AbstractMainComponent {
                 ListTableModel<PatientVisitModel> tModel = getTableModel();
                 PatientVisitModel obj = tModel.getObject(row);
                 int selected = view.getTable().getSelectedRow();
+                
+                java.util.ResourceBundle bundle = ClientContext.getMyBundle(PatientScheduleImpl.class);
 
                 if (row == selected && obj != null) {
-                    contextMenu.add(new JMenuItem(new ReflectAction("カルテを開く", PatientScheduleImpl.this, "openKarte")));
+                    String actionText = bundle.getString("actionText.openKarte");
+                    contextMenu.add(new JMenuItem(new ReflectAction(actionText, PatientScheduleImpl.this, "openKarte")));
                     contextMenu.addSeparator();
                     contextMenu.add(new JMenuItem(copyAction));
-                    contextMenu.add(new JMenuItem(new ReflectAction("予定削除", PatientScheduleImpl.this, "remove")));
+                    actionText = bundle.getString("actionText.deleteSchedule");
+                    contextMenu.add(new JMenuItem(new ReflectAction(actionText, PatientScheduleImpl.this, "remove")));
                     contextMenu.addSeparator();
                 }
                 
                 if (Project.getUserModel().getOrcaId()!=null) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("担当分(").append(Project.getUserModel().getCommonName()).append(")のみ表示");
-                    JCheckBoxMenuItem item = new JCheckBoxMenuItem(sb.toString());
+                    String fmt = bundle.getString("messageFormat.showAssignedOnly");
+                    String chkText = new MessageFormat(fmt).format(new String[]{Project.getUserModel().getCommonName()});
+                    JCheckBoxMenuItem item = new JCheckBoxMenuItem(chkText);
                     item.setSelected(isAssignedOnly());
-                    item.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            setAssignedOnly(!isAssignedOnly());
-                        }
+                    item.addActionListener((ActionEvent e1) -> {
+                        setAssignedOnly(!isAssignedOnly());
                     });
                     contextMenu.add(item);
                     contextMenu.addSeparator();
                 }
 
-                JCheckBoxMenuItem item = new JCheckBoxMenuItem("年齢表示");
+                JCheckBoxMenuItem item = new JCheckBoxMenuItem(bundle.getString("actionText.showAge"));
                 contextMenu.add(item);
                 item.setSelected(ageDisplay);
                 item.addActionListener((ActionListener) EventHandler.create(ActionListener.class, PatientScheduleImpl.this, "switchAgeDisplay"));
@@ -395,11 +383,6 @@ public class PatientScheduleImpl extends AbstractMainComponent {
         view.getTable().getColumnModel().getColumn(stateColumn).setIdentifier(COLUMN_IDENTIFIER_STATE);       
         
         // レンダラー
-//        StripeTableCellRenderer sr = new StripeTableCellRenderer();
-//        sr.setTable(view.getTable());
-//        sr.setDefaultRenderer();
-//        // ChecBox用
-//        view.getTable().getColumnModel().getColumn(stateColumn).setCellRenderer(new CheckBoxRenderer());
         PatientListTableRenderer render = new PatientListTableRenderer();
         render.setTable(view.getTable());
         render.setDefaultRenderer();
@@ -457,7 +440,9 @@ public class PatientScheduleImpl extends AbstractMainComponent {
 
         // Copy 機能を実装する
         KeyStroke copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-        copyAction = new AbstractAction("コピー") {
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(PatientScheduleImpl.class);
+        String actionText = bundle.getString("actionText.copy");
+        copyAction = new AbstractAction(actionText) {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
@@ -468,34 +453,37 @@ public class PatientScheduleImpl extends AbstractMainComponent {
         view.getTable().getActionMap().put("Copy", copyAction);
         
         // 未来処方適用ボタン
-        applyRpAction = new AbstractAction("処方適用") {
+        actionText = bundle.getString("actionText.applyRp");
+        applyRpAction = new AbstractAction(actionText) {
             @Override
             public void actionPerformed(ActionEvent ae) {
                 applyRp();
             }
         };
         view.getRpButton().setAction(applyRpAction);
-        view.getRpButton().setToolTipText("前回処方を適用し、予定日のカルテを作成します。");
+        view.getRpButton().setToolTipText(bundle.getString("toolTipText.applyRp"));
         applyRpAction.setEnabled(false);
         
-        updateAction = new AbstractAction("更 新") {
+        actionText = bundle.getString("actionText.update");
+        updateAction = new AbstractAction(actionText) {
             @Override
             public void actionPerformed(ActionEvent ae) {
                 setScheduleDate(getScheduleDate());
             }
         };
         view.getUpdateButton().setAction(updateAction);
-        view.getUpdateButton().setToolTipText("予定リストを更新します。");
+        view.getUpdateButton().setToolTipText(bundle.getString("toolTipText.updateScheduleList"));
         updateAction.setEnabled(false);
         
-        claimAction = new AbstractAction("CLAIM送信") {
+        actionText = bundle.getString("actionText.sendClaim");
+        claimAction = new AbstractAction(actionText) {
             @Override
             public void actionPerformed(ActionEvent ae) {
                 setSendClaim(view.getClaimChk().isSelected());
             }
         };
         view.getClaimChk().setAction(claimAction);
-        view.getClaimChk().setToolTipText("カルテの作成と同時にORCAへ送信します。");
+        view.getClaimChk().setToolTipText(bundle.getString("toolTipText.sendClaim"));
 //s.oh^ 2014/04/02 閲覧権限の制御
         //claimAction.setEnabled(Project.claimSenderIsServer());
         claimAction.setEnabled((Project.isReadOnly()) ? false : Project.claimSenderIsServer());
@@ -608,11 +596,8 @@ public class PatientScheduleImpl extends AbstractMainComponent {
                     if (cnt==1) {
                         // ScheduleDateでカルテが作成されている
                         pvt.setLastDocDate(getScheduleDate().getTime());
-                        SwingUtilities.invokeLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                tableModel.fireTableDataChanged();
-                            }
+                        SwingUtilities.invokeLater(() -> {
+                            tableModel.fireTableDataChanged();
                         }); 
                     }
                 }
@@ -643,8 +628,7 @@ public class PatientScheduleImpl extends AbstractMainComponent {
     }
 
     /**
-     * カルテを開く。
-     * @param value 対象患者
+     * カルテを開くalue 対象患者
      */
     public void openKarte() {
 
@@ -761,8 +745,9 @@ public class PatientScheduleImpl extends AbstractMainComponent {
     // ステータスラベルに検索件数を表示
     private void updateStatusLabel() {
         int count = tableModel.getObjectCount();
-        String msg = String.valueOf(count) + " 件";
-        view.getCountLbl().setText(msg);
+        String fmt = ClientContext.getMyBundle(PatientScheduleImpl.class).getString("messageFormat.numRecords");
+        String text = new MessageFormat(fmt).format(new Object[]{String.valueOf(count)});
+        view.getCountLbl().setText(text);
     }
     
     private String stringFromCalendar(GregorianCalendar gc) {
@@ -796,9 +781,10 @@ public class PatientScheduleImpl extends AbstractMainComponent {
         final String startDate = stringFromCalendar(getScheduleDate());
 
         // ダイアログを表示し確認する
-        StringBuilder sb = new StringBuilder(pvtModel.getPatientName());
-        sb.append("様の予定を削除しますか?");
-        if (!showCancelDialog(sb.toString())) {
+        String fmt = ClientContext.getMyBundle(PatientScheduleImpl.class).getString("messageFormat.deletePatientSchedule");
+        String question = new MessageFormat(fmt).format(new Object[]{pvtModel.getPatientName()});
+        
+        if (!showCancelDialog(question)) {
             return;
         }
         
@@ -836,7 +822,9 @@ public class PatientScheduleImpl extends AbstractMainComponent {
     
     private boolean showCancelDialog(String msg) {
 
-        final String[] cstOptions = new String[]{"はい", "いいえ"};
+        String optinDelete = ClientContext.getMyBundle(PatientScheduleImpl.class).getString("optionText.delete");
+        
+        final String[] cstOptions = new String[]{optinDelete, GUIFactory.getCancelButtonText()};
 
         int select = JOptionPane.showOptionDialog(
                 SwingUtilities.getWindowAncestor(view.getTable()),
@@ -844,39 +832,11 @@ public class PatientScheduleImpl extends AbstractMainComponent {
                 ClientContext.getFrameTitle(getName()),
                 JOptionPane.YES_NO_CANCEL_OPTION,
                 JOptionPane.QUESTION_MESSAGE,
-//minagawa^ Icon Server                
-                //ClientContext.getImageIcon("cancl_32.gif"),
-                ClientContext.getImageIconArias("icon_caution"),
-//minagawa$                
+                ClientContext.getImageIconArias("icon_caution"),           
                 cstOptions, cstOptions[1]);
         
         return (select == 0);
     } 
-    
-//    class CheckBoxRenderer extends JCheckBox implements TableCellRenderer {
-//
-//        CheckBoxRenderer() {
-//            setHorizontalAlignment(JLabel.CENTER);
-//        }
-//
-//        @Override
-//        public Component getTableCellRendererComponent(JTable table, Object value,
-//                boolean isSelected, boolean hasFocus, int row, int column) {
-//            if (isSelected) {
-//                setForeground(table.getSelectionForeground());
-//                setBackground(table.getSelectionBackground());
-//            } else {
-//                if ((row & (1)) == 0) {
-//                    this.setBackground(DEFAULT_EVEN_COLOR);
-//                } else {
-//                    this.setBackground(DEFAULT_ODD_COLOR);
-//                }
-//                setForeground(table.getForeground());
-//            }
-//            setSelected((value != null && ((Boolean) value).booleanValue()));
-//            return this;
-//        }
-//    }
         
     private class PatientListTableRenderer extends StripeTableCellRenderer {
 
@@ -899,11 +859,8 @@ public class PatientScheduleImpl extends AbstractMainComponent {
                
             if (pm != null && bStateColumn) {            
                 setHorizontalAlignment(JLabel.CENTER);
-                if (value != null && ((Boolean)value).booleanValue()) {
-//minagawa^ Icon Server                    
-                    //setIcon(SCHEDULE_ICON);
-                    setIcon(ClientContext.getImageIconArias("icon_star_small"));
-//minagawa$                    
+                if (value != null && ((Boolean)value)) {
+                    setIcon(ClientContext.getImageIconArias("icon_star_small"));          
                 }
                 else {
                     setIcon(null);

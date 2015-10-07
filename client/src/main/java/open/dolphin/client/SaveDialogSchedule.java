@@ -4,7 +4,6 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -19,8 +18,8 @@ import open.dolphin.project.Project;
  */
 public final class SaveDialogSchedule extends AbstractSaveDialog {
     
-    private static final String CHK_TITLE_SEND_WHEN_SCHEDULE = "診療行為を送信する";
-    private static final String TOOLTIP_DEPENDS_ON_CHECK = "診療行為の送信はチェックボックスに従います。";
+    private final String CHK_TITLE_SEND_WHEN_SCHEDULE;
+    private final String TOOLTIP_DEPENDS_ON_CHECK;
     
 //s.oh^ 2013/12/12 予定カルテのオーダー対応
     // LabTest 送信
@@ -28,10 +27,15 @@ public final class SaveDialogSchedule extends AbstractSaveDialog {
 //s.oh$
 
     public SaveDialogSchedule() {
+        super();
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(SaveDialogSchedule.class);
+        CHK_TITLE_SEND_WHEN_SCHEDULE = bundle.getString("chkBoxTitle.sendClaim");
+        TOOLTIP_DEPENDS_ON_CHECK = bundle.getString("toolTipText.chkBox");
     }
     
     /**
      * コンポーネントにSaveParamsの値を設定する。
+     * @param params
      */
     @Override
     public void setValue(SaveParamsM params) {
@@ -55,9 +59,10 @@ public final class SaveDialogSchedule extends AbstractSaveDialog {
         // Titleを表示する
 //masuda^ 修正元のタイトルもコンボボックスに入れる   
         String[] titles = new String[]{params.getOldTitle(), params.getTitle()};
-//masuda$        
+//masuda$  
+        String progress = titles[0];
         for (String str : titles) {
-            if (str != null && (!str.equals("") && (!str.equals("経過記録")))) {
+            if (str != null && (!str.equals("") && (!str.equals(progress)))) {
                 titleCombo.insertItemAt(str, 0);
             }
         }
@@ -110,6 +115,11 @@ public final class SaveDialogSchedule extends AbstractSaveDialog {
      * GUIコンポーネントを初期化する。
      */
     private JPanel createComponent() {
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(SaveDialogSchedule.class);
+        String labelTextDocTitle = bundle.getString("labelText.docTitle");
+        String labelTextDeptName = bundle.getString("labelText.deptName");
+        String labelTextPrintCount = bundle.getString("labelText.printCount");
+        String chkBoxTextLabTest = bundle.getString("chkBoxTitle.labTest");
                 
         // content
         JPanel content = new JPanel();
@@ -121,7 +131,7 @@ public final class SaveDialogSchedule extends AbstractSaveDialog {
         titleCombo.setPreferredSize(new Dimension(220, titleCombo.getPreferredSize().height));
         titleCombo.setMaximumSize(titleCombo.getPreferredSize());
         titleCombo.setEditable(true);
-        p.add(new JLabel("タイトル:"));
+        p.add(new JLabel(labelTextDocTitle));
         p.add(titleCombo);
         content.add(p);
         
@@ -149,7 +159,7 @@ public final class SaveDialogSchedule extends AbstractSaveDialog {
         // 診療科、印刷部数を表示するラベルとパネルを生成する
         JPanel p1 = new JPanel(new FlowLayout(FlowLayout.LEFT));
         departmentLabel = new JLabel();
-        p1.add(new JLabel("診療科:"));
+        p1.add(new JLabel(labelTextDeptName));
         p1.add(departmentLabel);
         
         p1.add(Box.createRigidArea(new Dimension(11, 0)));
@@ -157,7 +167,7 @@ public final class SaveDialogSchedule extends AbstractSaveDialog {
         // Print
         printCombo = new JComboBox(PRINT_COUNT);
         printCombo.setSelectedIndex(1);
-        p1.add(new JLabel("印刷部数:"));
+        p1.add(new JLabel(labelTextPrintCount));
         p1.add(printCombo);
         
         content.add(p1);
@@ -180,7 +190,7 @@ public final class SaveDialogSchedule extends AbstractSaveDialog {
         //---------------------------
         // 検体検査オーダー送信ありなし
         //---------------------------
-        sendLabtest = new JCheckBox("検体検査オーダー");
+        sendLabtest = new JCheckBox(chkBoxTextLabTest);
         if (Project.getBoolean(Project.SEND_LABTEST)) {
             JPanel p6 = new JPanel(new FlowLayout(FlowLayout.LEFT));
             p6.add(sendLabtest);
@@ -191,27 +201,19 @@ public final class SaveDialogSchedule extends AbstractSaveDialog {
         // Cancel Button
         String buttonText =  (String)UIManager.get("OptionPane.cancelButtonText");
         cancelButton = new JButton(buttonText);
-        cancelButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                value = null;
-                close();
-            }
+        cancelButton.addActionListener((ActionEvent e) -> {
+            value = null;
+            close();
         });
         
         // 仮保存 button
         tmpButton = new JButton(TMP_SAVE);
         tmpButton.setToolTipText(TOOLTIP_DEPENDS_ON_CHECK);
-        tmpButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // 戻り値のSaveparamsを生成する
-                value = viewToModel();
-                if (value != null) {
-                    close();
-                }
+        tmpButton.addActionListener((ActionEvent e) -> {
+            // 戻り値のSaveparamsを生成する
+            value = viewToModel();
+            if (value != null) {
+                close();
             }
         });
         tmpButton.setEnabled(false);
@@ -268,7 +270,7 @@ public final class SaveDialogSchedule extends AbstractSaveDialog {
                 model.setAllowPatientRef(false);                        // MML->送信しない
                 model.setAllowClinicRef(false);                         // MML->送信しない
                 model.setSendMML(false);
-                titleCand = "仮保存";
+                titleCand = ClientContext.getMyBundle(SaveDialogSchedule.class).getString("title.candidate.temporalSave");
                 break;
         }
         

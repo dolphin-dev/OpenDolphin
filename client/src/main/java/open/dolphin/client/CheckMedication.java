@@ -11,7 +11,6 @@ import open.dolphin.delegater.OrcaDelegater;
 import open.dolphin.delegater.OrcaDelegaterFactory;
 import open.dolphin.helper.DBTask;
 import open.dolphin.infomodel.*;
-import open.dolphin.util.Log;
 
 /**
  * KarteEditorで保存したとき呼ばれる
@@ -24,20 +23,17 @@ import open.dolphin.util.Log;
 public class CheckMedication {
     
     protected static final String MEDICATION_CHECK_RESULT = "medicationCheckResult";
-    // 2013/04/22
-//minagawa^ 定例打ち合わせ    
+      
     private static final String yakuzaiClassCode = "2";    // 薬剤のclaim class code
     private static final int searchPeriod = 3;
     private HashMap<String, String[]> rirekiItems;      // カルテに記録されている薬剤
-    private long karteId;
-//minagawa$    
+    private long karteId;   
     
     private HashMap<String, String> drugCodeNameMap;
     private List<ModuleModel> moduleList;
-//    private List<BundleMed> medList;         // 内服薬
     private List<BundleDolphin> bundleList;  // 注射も含む
     
-    private PropertyChangeSupport boundSupport;
+    private final PropertyChangeSupport boundSupport;
     private boolean result;
     
     public CheckMedication() {
@@ -58,10 +54,8 @@ public class CheckMedication {
     }
  
     public void checkStart(Chart context, List<ModuleModel> stamps) {
-        // 2013/04/22
-//minagawa^ 定例打ち合わせ        
-        karteId = context.getKarte().getId();
-//minagawa$        
+        
+        karteId = context.getKarte().getId();    
         moduleList = stamps;
         makeDrugList();
         int len = drugCodeNameMap.size();
@@ -75,31 +69,23 @@ public class CheckMedication {
 
             @Override
             protected List<DrugInteractionModel> doInBackground() throws Exception {
-
-                // 2013/04/22                
-//minagawa^ 定例打ち合わせ　過去３ヶ月分の処方を取得する
+                
                 Collection<String> codes = drugCodeNameMap.keySet();
                 collectMedicine();
-//s.oh^ 2013/09/13 併用禁忌チェック修正
-                //Collection<String> pastCodes = (rirekiItems!=null && !rirekiItems.isEmpty())
-                //        ? rirekiItems.keySet()
-                //        : codes;
+                
                 Collection<String> pastCodes = new ArrayList();
-                List<String> keys = new ArrayList<String>(codes);
+                List<String> keys = new ArrayList<>(codes);
                 for(int i = 0; i < keys.size(); i++) {
                     pastCodes.add(keys.get(i));
                 }
                 if(rirekiItems != null && !rirekiItems.isEmpty()) {
-                    keys = new ArrayList<String>(rirekiItems.keySet());
+                    keys = new ArrayList<>(rirekiItems.keySet());
                     for(int i = 0; i < keys.size(); i++) {
                         pastCodes.add(keys.get(i));
                     }
                 }
-//s.oh$
                 OrcaDelegater odl = OrcaDelegaterFactory.create();
-                //List<DrugInteractionModel> list = odl.checkInteraction(codes, codes);
-                List<DrugInteractionModel> list = odl.checkInteraction(codes, pastCodes);
-//minagawa$                
+                List<DrugInteractionModel> list = odl.checkInteraction(codes, pastCodes);         
                 return list;
             }
             
@@ -107,29 +93,24 @@ public class CheckMedication {
             protected void succeeded(List<DrugInteractionModel> list) {
                 
                 if (list!=null && !list.isEmpty()){
+                    java.util.ResourceBundle bundle = ClientContext.getMyBundle(CheckMedication.class);
                     StringBuilder sb = new StringBuilder();
                     for (DrugInteractionModel model : list){
                         StringBuilder tmp = new StringBuilder();
-                        tmp.append("<併用禁忌> ");
+                        tmp.append(bundle.getString("ContraindicationsForCoadministration"));
                         tmp.append(drugCodeNameMap.get(model.getSrycd1()));
-                        tmp.append(" と ");
-                        // 2013/04/22
-//minagawa^ 定期打ち合わせ                        
-                        //tmp.append(drugCodeNameMap.get(model.getSrycd2()));
+                        tmp.append(bundle.getString("text.and "));
+                        
                         if (rirekiItems!=null && !rirekiItems.isEmpty()) {
-//s.oh^ 2013/09/13 併用禁忌チェック修正
-                            //tmp.append(rirekiItems.get(model.getSrycd2()));
                             String[] str = rirekiItems.get(model.getSrycd2());
                             if(str != null && str.length > 0) {
                                 tmp.append(str[0]);
                             } else {
                                 tmp.append(drugCodeNameMap.get(model.getSrycd2()));
                             }
-//s.oh$
                         } else {
                             tmp.append(drugCodeNameMap.get(model.getSrycd2()));
-                        }
-//minagawa$                        
+                        }         
                         tmp.append("\n");
                         tmp.append(model.getSskijo());
                         tmp.append(" ");
@@ -139,20 +120,16 @@ public class CheckMedication {
                     }
                     String msg = sb.toString();
                     Toolkit.getDefaultToolkit().beep();
-                    //String[] options = {"取消", "無視"};
-                    String[] options = {GUIFactory.getCancelButtonText(), "無視"};
-                    int val = JOptionPane.showOptionDialog(context.getFrame(), msg, ClientContext.getFrameTitle("薬剤併用警告"),
+                    String[] options = {GUIFactory.getCancelButtonText(), bundle.getString("option.ignore")};
+                    int val = JOptionPane.showOptionDialog(context.getFrame(), msg, ClientContext.getFrameTitle(bundle.getString("title.optionPane.Coadministration")),
                             JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[0]);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle("薬剤併用警告"), msg);
                     
                     switch (val) {
                         case 0:
-                            Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "取消");
                             setResult(true);
                             break;
                             
                         case 1:
-                            Log.outputOperLogDlg(null, Log.LOG_LEVEL_0, "無視");
                             setResult(false);
                             break;
                     }
@@ -172,9 +149,8 @@ public class CheckMedication {
 
     private void makeDrugList() {
         
-        drugCodeNameMap = new HashMap<String, String>();
-        bundleList = new ArrayList<BundleDolphin>();
-//        medList = new ArrayList<BundleMed>();
+        drugCodeNameMap = new HashMap<>();
+        bundleList = new ArrayList<>();
         
         for (ModuleModel stamp : moduleList) {
             String entity = stamp.getModuleInfoBean().getEntity();
@@ -190,16 +166,9 @@ public class CheckMedication {
                     }
                 }
             }
-//            if (IInfoModel.ENTITY_MED_ORDER.equals(entity)) {
-//                //System.err.println(stamp.getModel());
-//                BundleMed bundle = (BundleMed) stamp.getModel();
-//                medList.add(bundle);
-//            }
         }
     }
-
-        // 2013/04/22    
-//minagawa^ 定例打ち合わせ masuda先生コードをコピー   
+  
     private void collectMedicine() {
 
         rirekiItems = new HashMap();
@@ -236,7 +205,6 @@ public class CheckMedication {
             }
         }
     }
-//minagawa$    
 
     private String formatMsg(String str) {
         final int width = 40;       // 桁数

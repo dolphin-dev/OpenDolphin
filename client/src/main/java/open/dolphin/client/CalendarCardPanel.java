@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -22,22 +23,15 @@ public class CalendarCardPanel extends JPanel  {
     
     private final JPanel cardPanel = new JPanel();
     private final CardLayout cardLayout = new CardLayout();
-//minagawa^ Icon Server    
-    //private ImageIcon backIcon = ClientContext.getImageIcon("pback_16.png");
-    //private ImageIcon stopIcon = ClientContext.getImageIcon("splay_16.gif");
-    //private ImageIcon forwardIcon = ClientContext.getImageIcon("play_16.gif");
     private final ImageIcon backIcon = ClientContext.getImageIconArias("icon_play_back");
     private final ImageIcon stopIcon = ClientContext.getImageIconArias("icon_stop_play");
-    private final ImageIcon forwardIcon = ClientContext.getImageIconArias("icon_play");
-//minagawa$    
+    private final ImageIcon forwardIcon = ClientContext.getImageIconArias("icon_play");  
     private final JButton backBtn = new JButton(backIcon);
     private final JButton stopBtn = new JButton(stopIcon);
     private final JButton forwardBtn = new JButton(forwardIcon);
     private int current;
     private int[] range;
-//minagawa^ 予定カルテ    (予定カルテ対応)
-    private SimpleDate[] acceptRange;
-//minagawa$    
+    private SimpleDate[] acceptRange;   
     private final HashMap<String, LiteCalendarPanel> calendars = new HashMap<>(12,1.0f);
     private final HashMap colorTable;
     private ArrayList markList;
@@ -101,10 +95,6 @@ public class CalendarCardPanel extends JPanel  {
         titleLable.setFont(titleFont);
         titleLable.setForeground(titleFore);
         titleLable.setBackground(titleBack);
-        //titleLable.setOpaque(true);
-        //Dimension s = titleLable.getPreferredSize();
-        //titleLable.setMaximumSize(s);
-        //titleLable.setMinimumSize(s);
         
         JPanel cmdPanel = createCommnadPanel();
         updateTitle(lc, titleLable);
@@ -123,17 +113,24 @@ public class CalendarCardPanel extends JPanel  {
     }
     
     private void updateTitle(LiteCalendarPanel lc, JLabel label) {
-        StringBuilder buf = new StringBuilder();
-        buf.append(lc.getYear());
-        buf.append(ClientContext.getString("calendar.title.year"));
-        buf.append(" ");
-        String m = String.valueOf(lc.getMonth() + 1);
-        if (m.length()==1) {
-            buf.append("0");
-        }
-        buf.append(m);
-        buf.append(ClientContext.getString("calendar.title.month"));
-        label.setText(buf.toString());
+//minagawa^ I18N        
+//        StringBuilder buf = new StringBuilder();
+//        buf.append(lc.getYear());
+//        buf.append(ClientContext.getString("calendar.title.year"));
+//        buf.append(" ");
+//        String m = String.valueOf(lc.getMonth() + 1);
+//        if (m.length()==1) {
+//            buf.append("0");
+//        }
+//        buf.append(m);
+//        buf.append(ClientContext.getString("calendar.title.month"));
+//        label.setText(buf.toString());
+        GregorianCalendar gc = new GregorianCalendar(lc.getYear(), lc.getMonth(), 1);
+        String fmt = ClientContext.getString("calendar.title.yearMonth");
+        SimpleDateFormat sdf = new SimpleDateFormat(fmt);
+        String dateString = sdf.format(gc.getTime());
+        label.setText(dateString);
+//minagawa$        
     }
     
     @Override
@@ -159,14 +156,12 @@ public class CalendarCardPanel extends JPanel  {
         controlNavigation();
     }
     
-//minagawa^ 予定カルテ    (予定カルテ対応)
     public void setAcceptRange(SimpleDate[] range) {
        this.acceptRange = range;
        String key = String.valueOf(current);
        LiteCalendarPanel lc = (LiteCalendarPanel)calendars.get(key);
        lc.setAcceptRange(this.acceptRange);
-    }
-//minagawa$    
+    }   
     
     public void setMarkList(ArrayList newMark) {
         
@@ -210,9 +205,7 @@ public class CalendarCardPanel extends JPanel  {
         LiteCalendarPanel lc = (LiteCalendarPanel)calendars.get(key);
         if (lc == null) {
             lc = new LiteCalendarPanel(current, false);
-//minagawa^ 予定カルテ            (予定カルテ対応)
-            lc.setAcceptRange(this.acceptRange);
-//minagawa$            
+            lc.setAcceptRange(this.acceptRange);         
             lc.addPropertyChangeListener(LiteCalendarPanel.SELECTED_DATE_PROP, calendarListener);
             lc.setEventColorTable(colorTable);
             lc.getTableModel().setMarkDates(markList);
@@ -226,7 +219,6 @@ public class CalendarCardPanel extends JPanel  {
     }
     
     private JPanel createCommnadPanel() {
-        //JPanel cmd = new JPanel(new FlowLayout(FlowLayout.CENTER,2,0));
         JPanel cmd = new JPanel();
         cmd.setLayout(new BoxLayout(cmd, BoxLayout.X_AXIS));
         backBtn.setMargin(new Insets(0,0,0,0));

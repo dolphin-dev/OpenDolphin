@@ -14,7 +14,7 @@ public final class PatientTransferable implements Transferable {
 
     public static final DataFlavor patientFlavor = new DataFlavor(open.dolphin.infomodel.PatientModel.class, "PatientModel");
     public static final DataFlavor[] flavors = {patientFlavor};
-    private PatientModel patientModel;
+    private final PatientModel patientModel;
 
     public PatientTransferable(PatientModel patientModel) {
         this.patientModel = patientModel;
@@ -27,7 +27,7 @@ public final class PatientTransferable implements Transferable {
 
     @Override
     public boolean isDataFlavorSupported(DataFlavor flavor) {
-        return flavor.equals(patientFlavor) ? true : false;
+        return flavor.equals(patientFlavor);
     }
 
     @Override

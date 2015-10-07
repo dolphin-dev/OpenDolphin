@@ -13,7 +13,7 @@
   </filter>
   <filter-mapping>
     <filter-name>LogFilter</filter-name>
-    <url-pattern>/openSource/*</url-pattern>
+    <url-pattern>/resources/*</url-pattern>
   </filter-mapping>
   
     <context-param>
@@ -29,16 +29,26 @@
                 open.dolphin.rest.SystemResource,
                 open.dolphin.rest.UserResource,
                 open.dolphin.rest.ScheduleResource,
+                open.dolphin.rest.MmlResource,
                 open.dolphin.rest.ChartEventResource,
                 open.dolphin.rest.PVTResource2,
                 open.dolphin.rest.ServerInfoResource,
-                open.orca.rest.OrcaResource
+                open.orca.rest.OrcaResource,
+                open.dolphin.touch.JsonTouchResource,
+                open.dolphin.touch.DolphinResource,
+                open.dolphin.touch.DemoResource,
+                open.dolphin.touch.EHTResource,
+                open.dolphin.adm10.rest.JsonTouchResource,
+                open.dolphin.adm20.rest.JsonTouchResource,
+                open.dolphin.adm20.rest.EHTResource,
+                open.dolphin.adm20.rest.AdmissionResource,
+                open.dolphin.adm20.rest.PHRResource
         </param-value>
     </context-param>
     
     <context-param>
         <param-name>resteasy.servlet.mapping.prefix</param-name>
-        <param-value>/openSource</param-value>
+        <param-value>/resources</param-value>
     </context-param>
 
     <listener>
@@ -55,7 +65,7 @@
 
     <servlet-mapping>
         <servlet-name>resteasy-servlet</servlet-name>
-        <url-pattern>/openSource/*</url-pattern>
+        <url-pattern>/resources/*</url-pattern>
     </servlet-mapping>
   
   <!-- session-config>

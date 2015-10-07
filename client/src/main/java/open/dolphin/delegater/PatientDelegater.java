@@ -9,7 +9,6 @@ import open.dolphin.infomodel.PVTHealthInsuranceModel;
 import open.dolphin.infomodel.PatientList;
 import open.dolphin.infomodel.PatientModel;
 import open.dolphin.util.BeanUtils;
-import open.dolphin.util.Log;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -25,9 +24,7 @@ public final class  PatientDelegater extends BusinessDelegater {
     private static final String ID_RESOURCE = "/patient/id/";
     private static final String DIGIT_RESOURCE = "/patient/digit/";
     private static final String PVT_DATE_RESOURCE = "/patient/pvt/";
-//minagawa^ 仮保存カルテ取得対応
     private static final String TMP_KARTE_RESOURCE = "/patient/documents/status";
-//minagawa$
 //s.oh^ 2014/07/22 一括カルテPDF出力
     private static final String ALL_PATIENTS_RESOURCE = "/patient/all";
 //s.oh$
@@ -126,7 +123,6 @@ public final class  PatientDelegater extends BusinessDelegater {
         return  Integer.parseInt(entityStr);
     }
     
-//minagawa^ 仮保存カルテ取得対応
     public List getTmpKarte() throws Exception {
      
         // PATH
@@ -147,7 +143,6 @@ public final class  PatientDelegater extends BusinessDelegater {
             return null;
         }
     }
-//minagawa$
 
     /**
      * バイナリの健康保険データをオブジェクトにデコードする。
@@ -165,7 +160,6 @@ public final class  PatientDelegater extends BusinessDelegater {
                     PVTHealthInsuranceModel hModel = (PVTHealthInsuranceModel)BeanUtils.xmlDecode(model.getBeanBytes());
                     patient.addPvtHealthInsurance(hModel);
                 } catch (Exception e) {
-                    Log.outputFuncLog(Log.LOG_LEVEL_0,"E",e.toString());
                     e.printStackTrace(System.err);
                 }
             }

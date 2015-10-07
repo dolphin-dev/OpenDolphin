@@ -32,31 +32,35 @@ public class LoginPanel extends javax.swing.JPanel {
     private void initComponents() {
 
         jLabel1 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
+        userIdLabel = new javax.swing.JLabel();
+        passwordLabel = new javax.swing.JLabel();
         userIdFld = new javax.swing.JTextField();
         jPanel1 = new javax.swing.JPanel();
-        settingBtn = new javax.swing.JButton();
         cancelBtn = new javax.swing.JButton();
+        settingBtn = new javax.swing.JButton();
         loginBtn = new javax.swing.JButton();
         progressBar = new javax.swing.JProgressBar();
         passwordFld = new javax.swing.JPasswordField();
 
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/resources/images/splash.jpg"))); // NOI18N
 
-        jLabel3.setText("ユーザーID:");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/impl/login/resources/LoginPanel"); // NOI18N
+        userIdLabel.setText(bundle.getString("userIdLabel.text")); // NOI18N
 
-        jLabel4.setText("パスワード:");
+        passwordLabel.setText(bundle.getString("passwordLabel.text")); // NOI18N
 
+        jPanel1.setMinimumSize(new java.awt.Dimension(258, 29));
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 2, 0));
 
-        settingBtn.setText("設 定");
-        jPanel1.add(settingBtn);
-
-        cancelBtn.setText("キャンセル");
+        cancelBtn.setText(bundle.getString("cancelBtn.text")); // NOI18N
+        cancelBtn.setToolTipText(""); // NOI18N
         jPanel1.add(cancelBtn);
 
-        loginBtn.setText("ログイン");
+        settingBtn.setText(bundle.getString("settingBtn.text")); // NOI18N
+        settingBtn.setToolTipText(""); // NOI18N
+        jPanel1.add(settingBtn);
+
+        loginBtn.setText(bundle.getString("loginBtn.text")); // NOI18N
         jPanel1.add(loginBtn);
 
         progressBar.setPreferredSize(new java.awt.Dimension(146, 10));
@@ -68,20 +72,20 @@ public class LoginPanel extends javax.swing.JPanel {
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
                 .addContainerGap()
-                .add(jLabel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 370, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
+                .add(jLabel1)
+                .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                    .add(jPanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                     .add(layout.createSequentialGroup()
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(org.jdesktop.layout.GroupLayout.TRAILING, jLabel3)
-                            .add(org.jdesktop.layout.GroupLayout.TRAILING, jLabel4))
+                            .add(org.jdesktop.layout.GroupLayout.TRAILING, userIdLabel)
+                            .add(org.jdesktop.layout.GroupLayout.TRAILING, passwordLabel))
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-                            .add(progressBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
-                            .add(userIdFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE)
-                            .add(passwordFld, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 152, Short.MAX_VALUE))))
-                .addContainerGap())
+                            .add(progressBar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .add(userIdFld)
+                            .add(passwordFld)))
+                    .add(jPanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         layout.linkSize(new java.awt.Component[] {passwordFld, progressBar, userIdFld}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
@@ -93,15 +97,15 @@ public class LoginPanel extends javax.swing.JPanel {
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
                     .add(layout.createSequentialGroup()
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                            .add(jLabel3)
+                            .add(userIdLabel)
                             .add(userIdFld, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                         .add(18, 18, 18)
                         .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                            .add(jLabel4)
+                            .add(passwordLabel)
                             .add(passwordFld, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                         .add(18, 18, 18)
                         .add(progressBar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .add(43, 43, 43)
+                        .add(53, 53, 53)
                         .add(jPanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
                     .add(jLabel1))
                 .addContainerGap())
@@ -112,14 +116,14 @@ public class LoginPanel extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelBtn;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JButton loginBtn;
     private javax.swing.JPasswordField passwordFld;
+    private javax.swing.JLabel passwordLabel;
     private javax.swing.JProgressBar progressBar;
     private javax.swing.JButton settingBtn;
     private javax.swing.JTextField userIdFld;
+    private javax.swing.JLabel userIdLabel;
     // End of variables declaration//GEN-END:variables
 
     public javax.swing.JButton getCancelBtn() {

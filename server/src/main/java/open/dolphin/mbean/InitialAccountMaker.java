@@ -43,46 +43,108 @@ public class InitialAccountMaker {
     private static final String ADMIN_SIR_NAME = "オープン";
     private static final String ADMIN_GIVEN_NAME = "ドルフィン";
 
-    private static final boolean DEVELOPMENT = false;
-    private static final String UPDATE_MEMO     = "Initial user registered.";
-    private static final String NO_UPDATE_MEMO  = "User account exists.";
+//    private static final boolean DEVELOPMENT = true;
+//    private static final String UPDATE_MEMO     = "Initial user registered.";
+//    private static final String NO_UPDATE_MEMO  = "User account exists.";
     
     @PersistenceContext
     private EntityManager em;
     
+//minagawa^ 2013/08/29
+    //@Resource(mappedName="java:jboss/datasources/OrcaDS")
+    //private DataSource ds;
+//minagawa$
+//s.oh^ 2014/07/08 クラウド0対応
     @Resource(mappedName="java:jboss/datasources/PostgresDS")
     private DataSource ds;
+//s.oh$
     
     @PostConstruct
-    public void init() {      
-        start();      
+    public void init() {
+//minagawa^ WildFly        
+//        start();
+//minagawa$        
+//s.oh^ 2014/07/08 クラウド0対応
         createIndexes();
+//s.oh$
     }
     
     private void start() {
-        boolean updated = false;
+//        boolean updated = false;
+//        
+//        long userCount = (Long) em.createQuery("select count(*) from UserModel").getSingleResult();
+//        long facilityCount = (Long) em.createQuery("select count(*) from FacilityModel").getSingleResult();
+//        
+//        // ユーザーも施設情報もない場合のみ初期ユーザーと施設情報を登録する
+//        if (userCount == 0 && facilityCount == 0) {
+//            addFacilityAdmin();
+//            if (DEVELOPMENT) {
+//                addDemoPatient();
+//            }
+//            updated = true;
+//        }
+//        
+//        if (updated) {
+//            Logger.getLogger("open.dolphin").info(UPDATE_MEMO);
+//        } else {
+//            Logger.getLogger("open.dolphin").info(NO_UPDATE_MEMO);
+//        }
         
-        long userCount = (Long) em.createQuery("select count(*) from UserModel").getSingleResult();
-        long facilityCount = (Long) em.createQuery("select count(*) from FacilityModel").getSingleResult();
-        
-        // ユーザーも施設情報もない場合のみ初期ユーザーと施設情報を登録する
-        if (userCount == 0 && facilityCount == 0) {
-            addFacilityAdmin();
-            if (DEVELOPMENT) {
-                addDemoPatient();
-            }
-            updated = true;
-        }
-        
-        if (updated) {
-            Logger.getLogger("open.dolphin").info(UPDATE_MEMO);
-        } else {
-            Logger.getLogger("open.dolphin").info(NO_UPDATE_MEMO);
-        }
+//minagawa^ WildFly         
+//        Properties config = new Properties();
+//        
+//        // コンフィグファイルをチェックする
+//        StringBuilder sb = new StringBuilder();
+//        sb.append(System.getProperty("jboss.home.dir"));
+//        sb.append(File.separator);
+//        sb.append("custom.properties");
+//        File f = new File(sb.toString());
+//        
+//        try {
+//            // 読み込む
+//            FileInputStream fin = new FileInputStream(f);
+//            InputStreamReader r = new InputStreamReader(fin, "JISAutoDetect");
+//            config.load(r);
+//            r.close();
+//            
+//            String conn = config.getProperty("claim.conn");
+//            String addr = config.getProperty("claim.host");
+//            if (conn!=null && conn.equals("server") && addr!=null) {
+////minagawa^ 2013/08/29
+//                //Connection con = ds.getConnection();
+//                Connection con = ORCAConnection.getInstance().getConnection();
+////minagawa$
+//                con.close();
+//            }
+//        } catch (Exception e) {
+//        }
+//minagawa$        
     }  
     
 //s.oh^ 2014/07/08 クラウド0対応
    private void createIndexes() {
+       
+//       String[] names = {"pvt_idx3", "d_karte_idx", "d_document_idx", "d_diagnosis_idx", "d_patient_memo_idx",
+//       "d_letter_module_idx", "d_observation_idx", "d_module_idx", "d_image_idx","d_attachment_idx","d_nlabo_module_idx","d_nlabo_item_idx",
+//       "patient_idx1", "pvt_idx1", "pub_tree_idx1"};
+     
+//        String[] sqls = {
+//           "create index pvt_idx3 on d_patient_visit(patient_id)",
+//           "create index d_karte_idx on d_karte(patient_id)",
+//           "create index d_document_idx on d_document(karte_id)",
+//           "create index d_diagnosis_idx on d_diagnosis(karte_id)",
+//           "create index d_patient_memo_idx on d_patient_memo(karte_id)",
+//           "create index d_letter_module_idx on d_letter_module(karte_id)",
+//           "create index d_observation_idx on d_observation(karte_id)",
+//           "create index d_module_idx on d_module(doc_id)",
+//           "create index d_image_idx on d_image(doc_id)",
+//           "create index d_attachment_idx on d_attachment(doc_id)",
+//           "create index d_nlabo_module_idx on d_nlabo_module(patientid)",
+//           "create index d_nlabo_item_idx on d_nlabo_item(labomodule_id)",
+//           "create index patient_idx1 on d_patient(facilityId, patientid)",
+//           "create index pvt_idx1 on d_patient_visit(facilityid, pvtdate)",
+//           "create index pub_tree_idx1 on d_published_tree(publishtype)"
+//       };       
        
 //minagawa^ d_patient に (facikityid,patientid) の unique index 名前=fid_pid_idx を作成する
 // unique 制約のない 旧indexは削除する        

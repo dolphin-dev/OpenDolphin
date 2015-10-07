@@ -62,18 +62,19 @@ public class PatientSearchView extends javax.swing.JPanel {
         ));
         jScrollPane1.setViewportView(table);
 
-        keywordFld.setToolTipText("患者氏名、電話番号、ID等の一部、右クリックで来院日を入力します。");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/impl/psearch/resources/PatientSearchView"); // NOI18N
+        keywordFld.setToolTipText(bundle.getString("keywordFld.tooTipText")); // NOI18N
 
-        jLabel1.setText("デフォルトソート: ");
+        jLabel1.setText(bundle.getString("jLabel1.text")); // NOI18N
 
-        autoIme.setText("自動IME");
+        autoIme.setText(bundle.getString("autoIme.text")); // NOI18N
 
         countLbl.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        countLbl.setText("0 件");
+        countLbl.setText(bundle.getString("countLbl.text")); // NOI18N
 
-        sortItem.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "患者ID", "カ ナ" }));
+        sortItem.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Patient ID", "Name in Kana" }));
 
-        tmpKarteButton.setText("仮保存カルテ");
+        tmpKarteButton.setText(bundle.getString("tmpKarteButton.text")); // NOI18N
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);
@@ -89,7 +90,7 @@ public class PatientSearchView extends javax.swing.JPanel {
                         .add(sortItem, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(autoIme)
-                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 132, Short.MAX_VALUE)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED, 189, Short.MAX_VALUE)
                         .add(jLabel2)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                         .add(keywordFld, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 188, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)

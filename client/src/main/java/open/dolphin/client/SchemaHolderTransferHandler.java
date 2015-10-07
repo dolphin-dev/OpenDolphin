@@ -16,8 +16,8 @@ import open.dolphin.infomodel.SchemaModel;
  */
 public class SchemaHolderTransferHandler extends TransferHandler implements IKarteTransferHandler {
 
-    private KartePane soaPane;
-    private SchemaHolder schemaHolder;
+    private final KartePane soaPane;
+    private final SchemaHolder schemaHolder;
 
     public SchemaHolderTransferHandler(KartePane soaPane, SchemaHolder sh) {
         this.soaPane = soaPane;
@@ -57,10 +57,6 @@ public class SchemaHolderTransferHandler extends TransferHandler implements IKar
     }
 
     @Override
-//minagawa^ Paste problem 2013/04/14 不具合修正(スタンプが消える)
-//    public boolean canImport(JComponent c, DataFlavor[] flavors) {
-//        return false;
-//    }
     public boolean canImport(TransferHandler.TransferSupport support) {
         return false;
     }

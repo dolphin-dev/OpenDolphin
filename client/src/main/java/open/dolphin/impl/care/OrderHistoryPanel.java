@@ -21,6 +21,9 @@ import open.dolphin.table.ListTableModel;
 import open.dolphin.table.StripeTableCellRenderer;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.apache.velocity.exception.MethodInvocationException;
+import org.apache.velocity.exception.ParseErrorException;
+import org.apache.velocity.exception.ResourceNotFoundException;
 
 /**
  * オーダ履歴を表示するパネルクラス。 表示するオーダと抽出期間は PropertyChange で通知される。
@@ -44,7 +47,8 @@ public final class OrderHistoryPanel extends JPanel implements PropertyChangeLis
         
         super(new BorderLayout(5, 0));
         
-        String[] columnNames = ClientContext.getStringArray("orderhistory.table.columnNames");
+        String columnLine = ClientContext.getMyBundle(OrderHistoryPanel.class).getString("columnNames");
+        String[] columnNames = columnLine.split(",");
         int startNumRows = 0;
         
         // オーダの履歴(確定日|スタンプ名)を表示する TableModel
@@ -82,7 +86,6 @@ public final class OrderHistoryPanel extends JPanel implements PropertyChangeLis
         };
         
         table = new JTable(tModel);
-        //table.setDefaultRenderer(Object.class, new OddEvenRowRenderer());
         StripeTableCellRenderer rederer = new StripeTableCellRenderer();
         rederer.setTable(table);
         rederer.setDefaultRenderer();
@@ -110,7 +113,8 @@ public final class OrderHistoryPanel extends JPanel implements PropertyChangeLis
         // Copy 機能を実装する
         //-----------------------------------------------
         KeyStroke copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-        final AbstractAction copyAction = new AbstractAction("コピー") {
+        String actionText = ClientContext.getMyBundle(OrderHistoryPanel.class).getString("actionText.copy");
+        final AbstractAction copyAction = new AbstractAction(actionText) {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
@@ -165,7 +169,8 @@ public final class OrderHistoryPanel extends JPanel implements PropertyChangeLis
                         return;
                     }
                     JPopupMenu pop = new JPopupMenu();
-                    JMenuItem item2 = new JMenuItem("コピー");
+                    String menuText = ClientContext.getMyBundle(OrderHistoryPanel.class).getString("actionText.copy");
+                    JMenuItem item2 = new JMenuItem(menuText);
                     pop.add(item2);
                     item2.addActionListener(new ActionListener() {
                         @Override
@@ -193,9 +198,6 @@ public final class OrderHistoryPanel extends JPanel implements PropertyChangeLis
                 mabeShowPopup(e);
             }
         });
-        // contents.setEditable(false);
-        // contents.setLineWrap(true);
-        // contents.setMargin(new Insets(3,3,3,3));
         JScrollPane cs = new JScrollPane(contents,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -220,10 +222,6 @@ public final class OrderHistoryPanel extends JPanel implements PropertyChangeLis
         pid = val;
     }
     
-    //public void setParent(CareMapDocument val) {
-    //parent = val;
-    //}
-    
     public void setModuleList(List allModules) {
         
         tModel.clear();
@@ -233,7 +231,7 @@ public final class OrderHistoryPanel extends JPanel implements PropertyChangeLis
         }
         
         int size = allModules.size();
-        List<ModuleModel> list = new ArrayList<ModuleModel>();
+        List<ModuleModel> list = new ArrayList<>();
         
         for (int i = 0; i < size; i++) {
             List<ModuleModel> l = (List<ModuleModel>) allModules.get(i);
@@ -249,6 +247,7 @@ public final class OrderHistoryPanel extends JPanel implements PropertyChangeLis
     
     /**
      * カレンダーの日が選択されたときに通知を受け、テーブルで日付が一致するオーダの行を選択する。
+     * @param e
      */
     @Override
     public void propertyChange(PropertyChangeEvent e) {
@@ -314,7 +313,6 @@ public final class OrderHistoryPanel extends JPanel implements PropertyChangeLis
             
             // このスタンプのテンプレートファイルを得る
             String templateFile = stamp.getModel().getClass().getName() + ".vm";
-            // debug(templateFile);
             
             // Merge する
             StringWriter sw = new StringWriter();
@@ -329,7 +327,7 @@ public final class OrderHistoryPanel extends JPanel implements PropertyChangeLis
             reader.close();
             contents.setText(sw.toString());
             
-        } catch (Exception e) {
+        } catch (ParseErrorException | MethodInvocationException | ResourceNotFoundException | IOException e) {
             System.out.println("Execption while setting the stamp text: "
                     + e.toString());
             e.printStackTrace(System.err);

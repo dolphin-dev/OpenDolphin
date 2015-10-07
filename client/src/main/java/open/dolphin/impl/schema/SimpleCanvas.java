@@ -6,13 +6,18 @@
 
 package open.dolphin.impl.schema;
 
+import open.dolphin.client.ClientContext;
+
 /**
  *
  * @author  kazm
  */
 public class SimpleCanvas extends javax.swing.JDialog {
     
-    /** Creates new form Baka */
+    /** Creates new form Baka
+     * @param parent
+     * @param title
+     * @param modal */
     public SimpleCanvas(java.awt.Frame parent, String title, boolean modal) {
         super(parent, title, modal);
         initComponents();
@@ -50,68 +55,97 @@ public class SimpleCanvas extends javax.swing.JDialog {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(SimpleCanvas.class);
+        
         lineBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/LineOff.gif"))); // NOI18N
-        lineBtn.setToolTipText("直線を描きます。");
+        lineBtn.setToolTipText(bundle.getString("toolTipText.line"));
         lineBtn.setMargin(new java.awt.Insets(4, 4, 3, 3));
 
         rectBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/RectOff.gif"))); // NOI18N
-        rectBtn.setToolTipText("四角形を描きます。");
+        rectBtn.setToolTipText(bundle.getString("tooltipText.squre"));
         rectBtn.setMargin(new java.awt.Insets(4, 4, 3, 3));
 
         ovalBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/OvalOff.gif"))); // NOI18N
-        ovalBtn.setToolTipText("楕円を描きます。");
+        ovalBtn.setToolTipText(bundle.getString("toolTipText.oval"));
         ovalBtn.setMargin(new java.awt.Insets(4, 4, 3, 3));
 
         polyBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/PolyOff.gif"))); // NOI18N
-        polyBtn.setToolTipText("閉じたパスを描きます。");
+        polyBtn.setToolTipText(bundle.getString("toolTipText.closedPath"));
         polyBtn.setMargin(new java.awt.Insets(4, 4, 3, 3));
 
         rectFillBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/FillRectOff.gif"))); // NOI18N
-        rectFillBtn.setToolTipText("塗りつぶしの四角形を描きます。");
+        rectFillBtn.setToolTipText(bundle.getString("toolTipText.filledSqure"));
         rectFillBtn.setMargin(new java.awt.Insets(4, 4, 3, 3));
 
         ovalFillBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/FillOvalOff.gif"))); // NOI18N
-        ovalFillBtn.setToolTipText("塗りつぶしの楕円を描きます。");
+        ovalFillBtn.setToolTipText(bundle.getString("toolTipText.filledOval"));
         ovalFillBtn.setMargin(new java.awt.Insets(4, 4, 3, 3));
 
         polyFillBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/FillPolyOff.gif"))); // NOI18N
-        polyFillBtn.setToolTipText("塗りつぶしのポリゴンを描きます。");
+        polyFillBtn.setToolTipText(bundle.getString("tooltipText.filledPolygon"));
         polyFillBtn.setMargin(new java.awt.Insets(4, 4, 3, 3));
 
         textBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/TextOff.gif"))); // NOI18N
-        textBtn.setToolTipText("テキストを入力します。");
+        textBtn.setToolTipText(bundle.getString("toolTipText.textInput"));
         textBtn.setMargin(new java.awt.Insets(4, 4, 3, 3));
 
-        lineWidthCombo.setToolTipText("描画線の太さを選びます。");
+        lineWidthCombo.setToolTipText(bundle.getString("toolTipText.selectLineWidth"));
 
-        colorBtn.setToolTipText("塗りつぶしの色を選択します");
+        colorBtn.setToolTipText(bundle.getString("toolTipText.selectFillColor"));
         colorBtn.setMaximumSize(new java.awt.Dimension(32, 29));
         colorBtn.setMinimumSize(new java.awt.Dimension(32, 29));
         colorBtn.setPreferredSize(new java.awt.Dimension(32, 29));
 
         undoBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/undo_24.gif"))); // NOI18N
-        undoBtn.setToolTipText("やり直しをします。");
+        undoBtn.setToolTipText(bundle.getString("toolTipText.redo"));
 
         clearBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/remov_24.gif"))); // NOI18N
-        clearBtn.setToolTipText("クリアします。");
+        clearBtn.setToolTipText(bundle.getString("toolTipText.clear"));
 
         canvasPanel.setBackground(new java.awt.Color(255, 255, 255));
 
-        jLabel1.setText("タイトル:");
+        jLabel1.setText(bundle.getString("label.title"));
 
-        jLabel2.setText("用途:");
+        jLabel2.setText(bundle.getString("label.use"));
 
-        roleCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "検体検査", "内視鏡検査", "単純レントゲン写真", "上部消化管造影検査", "バリウム注腸検査", "CTスキャン注腸検査", "MRI", "R画像検査", "血管造影", "その他の放射線学的検査", "エコー", "心電図", "脳波", "筋電図", "心電図", "肺機能検査", "その他の生理学的検査", "処方箋", "熱型表", "理学的所見（図など）", "麻酔経過表", "病理検査（画像など）", "手術記録", "参考文献", "参考図", "処置（指示、記録など）", "上記に含まれないもの" }));
+        roleCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] {
+            bundle.getString("labTest"), 
+            bundle.getString("endoScopy"), 
+            bundle.getString("xRay"), 
+            bundle.getString("upperGi"), 
+            bundle.getString("baEnema"), 
+            bundle.getString("ctScan"), 
+            bundle.getString("mri"), 
+            bundle.getString("riInVivo"), 
+            bundle.getString("angioGraphy"), 
+            bundle.getString("otherRadiology"), 
+            bundle.getString("echo"), 
+            bundle.getString("ecg"), 
+            bundle.getString("eeg"), 
+            bundle.getString("emg"), 
+            bundle.getString("pcg"), 
+            bundle.getString("pulmonaryFunction"), 
+            bundle.getString("otherPhysiologicalTest"), 
+            bundle.getString("prescription"), 
+            bundle.getString("vitalSign"), 
+            bundle.getString("physicalExam"), 
+            bundle.getString("anesthesiaCourse"), 
+            bundle.getString("pathology"), 
+            bundle.getString("surgicalFigure"), 
+            bundle.getString("referencePaper"), 
+            bundle.getString("referenceFigure"), 
+            bundle.getString("treatment"), 
+            bundle.getString("other") }));
 
-        okBtn.setText("カルテに展開");
+        okBtn.setText(bundle.getString("toolTipText.insertIntoKarte"));
 
-        cancelBtn.setText("取消し");
+        cancelBtn.setText(bundle.getString("toolTipText.undo"));
 
         selectBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/move_24.gif"))); // NOI18N
-        selectBtn.setToolTipText("図形を選択し移動します。");
+        selectBtn.setToolTipText(bundle.getString("toolTipText.move"));
 
         openPathBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/impl/schema/resources/PolyLineOff.gif"))); // NOI18N
-        openPathBtn.setToolTipText("開いたパスを描きます。");
+        openPathBtn.setToolTipText(bundle.getString("toolTipeText.openedPath"));
         openPathBtn.setMargin(new java.awt.Insets(4, 4, 3, 3));
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());

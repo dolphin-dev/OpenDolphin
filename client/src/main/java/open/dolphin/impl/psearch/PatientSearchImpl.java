@@ -9,10 +9,9 @@ import java.awt.event.*;
 import java.beans.EventHandler;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.event.*;
 import open.dolphin.client.*;
@@ -35,7 +34,6 @@ import open.dolphin.table.ListTableModel;
 import open.dolphin.table.ListTableSorter;
 import open.dolphin.table.StripeTableCellRenderer;
 import open.dolphin.util.AgeCalculater;
-import open.dolphin.util.Log;
 import open.dolphin.util.StringTool;
 
 /**
@@ -48,20 +46,23 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
 
     private int number = 10000;
     
-    private static final String NAME = "患者検索";
-    
 //s.oh^ 2014/08/19 施設患者一括表示機能
-    private static final String[] COLUMN_NAMES 
-            = {"ID", "氏名", "カナ", "性別", "生年月日", "受診日", "状態"};
+//    private static final String[] COLUMN_NAMES 
+//            = {"ID", "氏名", "カナ", "性別", "生年月日", "受診日", "状態"};
+//    
+//    private final String[] PROPERTY_NAMES 
+//            = {"patientId", "fullName", "kanaName", "genderDesc", "ageBirthday", "pvtDateTrimTime", "isOpened"};
+//    
+//    private static final Class[] COLUMN_CLASSES = {
+//        String.class, String.class, String.class, String.class, String.class, 
+//        String.class, String.class};
+//    
+//    private final int[] COLUMN_WIDTH = {50, 100, 120, 30, 100, 80, 20};
+    private final String[] COLUMN_NAMES;
+    private final String[] PROPERTY_NAMES;
+    private final Class[] COLUMN_CLASSES;
+    private final int[] COLUMN_WIDTH;
     
-    private final String[] PROPERTY_NAMES 
-            = {"patientId", "fullName", "kanaName", "genderDesc", "ageBirthday", "pvtDateTrimTime", "isOpened"};
-    
-    private static final Class[] COLUMN_CLASSES = {
-        String.class, String.class, String.class, String.class, String.class, 
-        String.class, String.class};
-    
-    private final int[] COLUMN_WIDTH = {50, 100, 120, 30, 100, 80, 20};
 //    private static final String[] COLUMN_NAMES 
 //            = {"ID", "氏名", "カナ", "性別", "生年月日", "受診日", "診療内容", "状態"};
 //    
@@ -79,11 +80,9 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
    
     // カラム仕様名
     private static final String COLUMN_SPEC_NAME = "patientSearchTable.withoutAddress.column.spec";
-    
-//minagawa^ lsctest    
+        
     // 状態カラムの識別名
     private static final String COLUMN_IDENTIFIER_STATE = "stateColumn";
-//minagawa$
     
     // カラム仕様ヘルパー
     private ColumnSpecHelper columnHelper;
@@ -104,11 +103,7 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
     private KeyBlocker keyBlocker;
     private int sortItem;
 
-    // カラム仕様リスト
-    //private List<ColumnSpec> columnSpecs;
-
     private int ageColumn;
-    //private int pvtDateColumn;
     private int stateColumn; // 追加
 
     private ListTableModel tableModel;
@@ -117,13 +112,23 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
     private AbstractAction copyAction;
     
 //masuda^
-    private String clientUUID;
-    private ChartEventHandler cel;
+    private final String clientUUID;
+    private final ChartEventHandler cel;
 //masuda$    
 
     /** Creates new PatientSearch */
     public PatientSearchImpl() {
-        setName(NAME);
+        
+        // Resource Injection
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(PatientSearchImpl.class);
+        setName(bundle.getString("title.document"));
+        
+        // Tableカラムspec
+        COLUMN_NAMES = bundle.getString("columnNames.table").split(",");
+        PROPERTY_NAMES = bundle.getString("propertyNames.table").split(",");
+        COLUMN_CLASSES = new Class[]{String.class, String.class, String.class, String.class, String.class, String.class, String.class};
+        COLUMN_WIDTH = new int[]{50, 100, 120, 30, 100, 80, 20};
+         
         cel = ChartEventHandler.getInstance();
         clientUUID = cel.getClientUUID();
         cel.addPropertyChangeListener(PatientSearchImpl.this);
@@ -159,7 +164,8 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
                 view.getKeywordFld().setText(text);
                 find(view.getKeywordFld().getText());
             }else{
-                view.getKeywordFld().setText("設定なし");
+                String msg = ClientContext.getMyBundle(PatientSearchImpl.class).getString("textField.keyword.text"); // ?
+                view.getKeywordFld().setText(msg);
             }
             view.getSortItem().setEnabled(false);
             view.getKeywordFld().setEnabled(false);
@@ -291,7 +297,8 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
                 int selected = view.getTable().getSelectedRow();
 
                 if (row == selected && obj != null) {
-                    contextMenu.add(new JMenuItem(new ReflectAction("カルテを開く", PatientSearchImpl.this, "openKarte")));
+                    String menuText = ClientContext.getMyBundle(PatientSearchImpl.class).getString("menuText.open");
+                    contextMenu.add(new JMenuItem(new ReflectAction(menuText, PatientSearchImpl.this, "openKarte")));
                     contextMenu.addSeparator();
 //s.oh^ 2014/08/19 ID権限
                     //contextMenu.add(new JMenuItem(copyAction));
@@ -299,13 +306,14 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
                     //contextMenu.addSeparator();
                     if(!Project.isOtherCare()) {
                         contextMenu.add(new JMenuItem(copyAction));
-                        contextMenu.add(new JMenuItem(new ReflectAction("受付登録", PatientSearchImpl.this, "addAsPvt")));
+                        menuText = ClientContext.getMyBundle(PatientSearchImpl.class).getString("menuText.addPvt");
+                        contextMenu.add(new JMenuItem(new ReflectAction(menuText, PatientSearchImpl.this, "addAsPvt")));
                         contextMenu.addSeparator();
                     }
 //s.oh$
                 }
-
-                JCheckBoxMenuItem item = new JCheckBoxMenuItem("年齢表示");
+                String menuText = ClientContext.getMyBundle(PatientSearchImpl.class).getString("menuText.showAge");
+                JCheckBoxMenuItem item = new JCheckBoxMenuItem(menuText);
                 contextMenu.add(item);
                 item.setSelected(ageDisplay);
                 item.addActionListener((ActionListener) EventHandler.create(ActionListener.class, PatientSearchImpl.this, "switchAgeDisplay"));
@@ -381,21 +389,22 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
         sorter.setTableHeader(view.getTable().getTableHeader());
 //masuda$
         // カラム幅更新
-        columnHelper.updateColumnWidth();
-//minagawa^ lsctest        
-        view.getTable().getColumnModel().getColumn(stateColumn).setIdentifier(COLUMN_IDENTIFIER_STATE);
-//minagawa$        
+        columnHelper.updateColumnWidth();        
+        view.getTable().getColumnModel().getColumn(stateColumn).setIdentifier(COLUMN_IDENTIFIER_STATE);       
         
 //masuda^        
         // レンダラを設定する
-        //view.getTable().setDefaultRenderer(Object.class, new OddEvenRowRenderer());
         // 連ドラ、梅ちゃん先生
         PatientListTableRenderer renderer = new PatientListTableRenderer();
         renderer.setTable(view.getTable());
         renderer.setDefaultRenderer();
 //masuda$  
         
-        // ソートアイテム
+        // ソートアイテム add in18
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(PatientSearchImpl.class);
+        String[] items = bundle.getString("sort.items").split(",");
+        DefaultComboBoxModel cm = new DefaultComboBoxModel(items);
+        view.getSortItem().setModel(cm);
         sortItem = Project.getInt("sortItem", 0);
 //s.oh^ 2014/08/13 コントロールサイズ調整
         String nimbus = "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
@@ -500,7 +509,8 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
         // Copy 機能を実装する
         //-----------------------------------------------
         KeyStroke copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-        copyAction = new AbstractAction("コピー") {
+        String actionText = ClientContext.getMyBundle(PatientSearchImpl.class).getString("actionText.copy");
+        copyAction = new AbstractAction(actionText) {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
@@ -626,7 +636,6 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
 
     /**
      * カルテを開く。
-     * @param value 対象患者
      */
     public void openKarte() {
 
@@ -664,7 +673,8 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
 
     // EVT から
     private void doStartProgress() {
-        view.getCountLbl().setText(" 件");
+        String labelText = ClientContext.getMyBundle(PatientSearchImpl.class).getString("labelText.record.blank");
+        view.getCountLbl().setText(labelText);
         getContext().getProgressBar().setIndeterminate(true);
         getContext().getGlassPane().block();
         keyBlocker.block();
@@ -746,8 +756,6 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
      * @param text キーワード
      */
     private void find(String text) {
-        
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "患者検索", text);
         
         // 全角スペースをkill
         text = text.replaceAll("　", " ");
@@ -856,10 +864,8 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
 //minagawa$
                     
                     tableModel.setDataProvider(list);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "患者数：", String.valueOf(list.size()));
                 } else {
                     tableModel.clear();
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "患者数：", "0");
                 }
                 updateStatusLabel();
             }
@@ -962,7 +968,6 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
                     jamri = sid.getJamri();
                 } catch (Exception ex) {
                     jamri = Project.getString(Project.JMARI_CODE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, ex.toString());
                 }
             }else{
                 jamri = Project.getString(Project.JMARI_CODE);
@@ -1005,8 +1010,10 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
             worker.execute();
         }
         Window parent = SwingUtilities.getWindowAncestor(getUI());
-        JOptionPane.showMessageDialog(parent, "一括受付しました。", "一括受付", JOptionPane.WARNING_MESSAGE);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "一括受付しました。");
+        String msg = ClientContext.getMyBundle(PatientSearchImpl.class).getString("message.addAll.pvt");
+        String title = ClientContext.getMyBundle(PatientSearchImpl.class).getString("title.addAll.pvt");
+        title = ClientContext.getFrameTitle(title);
+        JOptionPane.showMessageDialog(parent, msg, title, JOptionPane.WARNING_MESSAGE);
     }
 //s.oh$
     
@@ -1015,7 +1022,6 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
         boolean sorted = true;
         for (int i=0; i < COLUMN_NAMES.length; i++) {
             if (sorter.getSortingStatus(i)==0) {
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "ソート済み", String.valueOf(i));
                 sorted = false;
                 break;
             }
@@ -1025,7 +1031,6 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
 
             switch (sortItem) {
                 case 0:
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "患者IDでソート");
                     Comparator c = new Comparator<PatientModel>() {
 
                         @Override
@@ -1036,7 +1041,6 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
                     Collections.sort(list, c);
                     break;
                 case 1:
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "患者カナでソート");
                   Comparator c2 = new Comparator<PatientModel>() {
 
                     @Override
@@ -1151,8 +1155,11 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
     // ステータスラベルに検索件数を表示
     private void updateStatusLabel() {
         int count = tableModel.getObjectCount();
-        String msg = String.valueOf(count) + "件";
+        //String msg = String.valueOf(count) + "件";
         //this.getContext().getStatusLabel().setText(msg);
+        String fmt = ClientContext.getMyBundle(PatientSearchImpl.class).getString("messageFormat.numRecords");
+        MessageFormat msf = new MessageFormat(fmt);
+        String msg = msf.format(new Object[]{count});
         view.getCountLbl().setText(msg);
     }
 
@@ -1164,7 +1171,7 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
         /** ポップアップメニュー */
         private JPopupMenu popup;
         /** ターゲットのテキストフィールド */
-        private JTextField tf;
+        private final JTextField tf;
 
         public PopupListener(JTextField tf) {
             this.tf = tf;
@@ -1223,10 +1230,7 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
         long ptPk = evt.getPtPk();
         List<PatientModel> list = tableModel.getDataProvider();
         
-//minagawa^        
-        //ChartEventModel.EVENT eventType = evt.getEventType();
-        int eventType =  evt.getEventType();
-//minagawa$        
+        int eventType =  evt.getEventType();        
         
         switch (eventType) {
             case ChartEventModel.PVT_STATE:
@@ -1270,62 +1274,9 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
         }
     }
     
-//    public class PatientListTableRenderer extends OddEvenRowRenderer {
-//
-//        public PatientListTableRenderer() {
-//            super();
-//        }
-//
-//        @Override
-//        public Component getTableCellRendererComponent(JTable table,
-//                Object value,
-//                boolean isSelected,
-//                boolean isFocused,
-//                int row, int col) {
-//
-//            super.getTableCellRendererComponent(table, value, isSelected, isFocused, row, col);
-//            
-//            //PatientModel pm = (PatientModel)tableModel.getObject(row);
-//            PatientModel pm = (PatientModel) sorter.getObject(row);
-//            
-//            if (isSelected) {
-//                setBackground(table.getSelectionBackground());
-//                setForeground(table.getSelectionForeground());
-//
-//            } else {
-//
-//                setForeground(table.getForeground());
-//
-//                if ((row & (1)) == 0) {
-//                    setBackground(getEvenColor());
-//                } else {
-//                    setBackground(getOddColor());
-//                }
-//            }    
-//            
-//            if (pm != null && col == stateColumn) {
-//                setHorizontalAlignment(JLabel.CENTER);
-//                if (pm.isOpened()) {
-//                    if (clientUUID.equals(pm.getOwnerUUID())) {
-//                        setIcon(WatingListImpl.OPEN_ICON);
-//                    } else {
-//                        setIcon(WatingListImpl.NETWORK_ICON);
-//                    }
-//                } else {
-//                    setIcon(null);
-//                }
-//                setText("");
-//            } else {
-//                setHorizontalAlignment(JLabel.LEFT);
-//                setIcon(null);
-//                setText(value == null ? "" : value.toString());
-//            }
-//
-//            return this;
-//        }
-//    }
-    
-        
+    /**
+     * 患者テーブル用レンダラ
+     */
     private class PatientListTableRenderer extends StripeTableCellRenderer {
 
         public PatientListTableRenderer() {
@@ -1342,13 +1293,12 @@ public class PatientSearchImpl extends AbstractMainComponent implements Property
             super.getTableCellRendererComponent(table, value, isSelected, isFocused, row, col);
             
             PatientModel pm = (PatientModel) sorter.getObject(row);
-//minagawa^ lsctest            
+            
             boolean bStateColumn = (view.getTable().getColumnModel().getColumn(col).getIdentifier()!=null &&
                                     view.getTable().getColumnModel().getColumn(col).getIdentifier().equals(COLUMN_IDENTIFIER_STATE));
-            
-            //if (pm != null && col == stateColumn) {     
+                
             if (pm != null && bStateColumn) {
-//minagawa$                
+                
                 setHorizontalAlignment(JLabel.CENTER);
                 if (pm.isOpened()) {
                     if (clientUUID.equals(pm.getOwnerUUID())) {

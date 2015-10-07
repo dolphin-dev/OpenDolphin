@@ -14,8 +14,6 @@ import open.dolphin.impl.labrcv.NLaboImportSummary;
 import open.dolphin.infomodel.*;
 import open.dolphin.util.AgeCalculater;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 /**
  * FALCO オーダリングシステム及び検査結果取り込みクラス。
@@ -28,11 +26,8 @@ public class HL7Falco implements LabResultParser {
     private static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd";
     //private static final String DATE_FORMAT_8 = "yyyyMMdd";
     private Boolean DEBUG;
-    private Logger logger;
 
     public HL7Falco() {
-        logger = ClientContext.getLaboTestLogger();
-        DEBUG = (logger.getLevel() == Level.DEBUG);
     }
 
     /**
@@ -48,15 +43,13 @@ public class HL7Falco implements LabResultParser {
         HL7GetParam hl = new HL7GetParam();
         list = hl.HL7GetLine(path);
 
-        if (DEBUG) {
-            logger.debug(list.size());
-            logger.debug("結果");
-        }
+        java.util.logging.Logger.getLogger(this.getClass().getName()).info(String.valueOf(list.size()));
+        java.util.logging.Logger.getLogger(this.getClass().getName()).warning("結果");
 
         String currentKey = null;
         NLaboModule curModule = null;
-        List<NLaboModule> allModules = new ArrayList<NLaboModule>();
-        List<NLaboImportSummary> retList = new ArrayList<NLaboImportSummary>();
+        List<NLaboModule> allModules = new ArrayList<>();
+        List<NLaboImportSummary> retList = new ArrayList<>();
 
         SimpleDateFormat defaultDF = new SimpleDateFormat(SIMPLE_DATE_FORMAT);
         SimpleDateFormat df8 = new SimpleDateFormat(DATE_FORMAT_8);

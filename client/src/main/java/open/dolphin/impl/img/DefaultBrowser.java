@@ -5,6 +5,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Properties;
@@ -15,7 +16,6 @@ import open.dolphin.client.ClientContext;
 import open.dolphin.client.GUIConst;
 import open.dolphin.client.ImageEntry;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  *
@@ -23,18 +23,18 @@ import open.dolphin.util.Log;
  */
 public class DefaultBrowser extends AbstractBrowser {
 
-    private static final String TITLE = "PDF・画像";
     private static final String SETTING_FILE_NAME = "image-browser.properties";
 
     private ImageTableRenderer imageRenderer;
-    private int cellWidth = MAX_IMAGE_SIZE + CELL_WIDTH_MARGIN;
-    private int cellHeight = MAX_IMAGE_SIZE + CELL_HEIGHT_MARGIN;
+    private final int cellWidth = MAX_IMAGE_SIZE + CELL_WIDTH_MARGIN;
+    private final int cellHeight = MAX_IMAGE_SIZE + CELL_HEIGHT_MARGIN;
 
     private DefaultBrowserView view;
   
     public DefaultBrowser() {
-        
-        setTitle(TITLE);
+        // Resource Injection
+        String title = ClientContext.getMyBundle(DefaultBrowser.class).getString("title.imageBrowser.document");
+        setTitle(title);
         
         properties = getProperties();
 
@@ -59,13 +59,11 @@ public class DefaultBrowser extends AbstractBrowser {
         imageBase = valueIsNotNullNorEmpty(value) ? value : null;
         
         String path = (imageBase != null) ? imageBase + File.separator + SETTING_FILE_NAME : SETTING_FILE_NAME;
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "設定の読込：", path);
         Enumeration e = properties.propertyNames();
         while (e.hasMoreElements()) {
             String key = (String)e.nextElement();
             String val = properties.getProperty(key);
             if(val == null) val = "";
-            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, key, val);
         }
     }
       
@@ -78,7 +76,8 @@ public class DefaultBrowser extends AbstractBrowser {
         }
 
         if (valueIsNullOrEmpty(getImageBase())) {
-            view.getDirLbl().setText("画像ディレクトリが指定されていません。");
+            String mesg = ClientContext.getMyBundle(DefaultBrowser.class).getString("warning.imageDirectory.specify");
+            view.getDirLbl().setText(mesg);
             return null;
         }
 
@@ -91,17 +90,6 @@ public class DefaultBrowser extends AbstractBrowser {
 
         sb.append(pid);
         String loc = sb.toString();
-        //if (loc.length() > 33) {
-        //    sb = new StringBuilder();
-        //    sb.append(loc.substring(0, 15));
-        //    sb.append("...");
-        //    int pos = loc.length() - 15;
-        //    sb.append(loc.substring(pos));
-        //    view.getDirLbl().setText(sb.toString());
-        //
-        //} else {
-        //    view.getDirLbl().setText(loc);
-        //}
         nowLocation = loc;
         view.getDirLbl().setText(createLocationText(nowLocation));
 
@@ -126,17 +114,16 @@ public class DefaultBrowser extends AbstractBrowser {
 
         ActionMap ret = new ActionMap();
 
-        //String text = resource.getString("refresh.Action.text");
- //minagawa^ Icon Server       
-        //ImageIcon icon = ClientContext.getImageIcon("ref_16.gif");
+        //Removed minagawa comments
         ImageIcon icon = ClientContext.getImageIconArias("icon_refresh_small");
- //minagawa$       
-        AbstractAction refresh = new AbstractAction("更新",icon) {
+        String actionText = ClientContext.getMyBundle(DefaultBrowser.class).getString("actionText.update");
+        AbstractAction refresh = new AbstractAction(actionText,icon) {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
 //s.oh^ 2014/05/07 PDF・画像タブの改善
-                if(isScanning(getContext().getFrame(), "更新できません。")) return;
+                String message = ClientContext.getMyBundle(DefaultBrowser.class).getString("warning.cannotUpdate");
+                if(isScanning(getContext().getFrame(), message)) return;
 //s.oh$
                 scan(getImgLocation());
                 nowLocation = getImgLocation();
@@ -145,17 +132,15 @@ public class DefaultBrowser extends AbstractBrowser {
         };
         ret.put("refresh", refresh);
 
-        //text = resource.getString("doSetting.Action.text");
-//minagawa^ Icon Server        
-        //icon = ClientContext.getImageIcon("confg_16.gif");
-        icon = ClientContext.getImageIconArias("icon_setting_small");
-//minagawa$        
-        AbstractAction doSetting = new AbstractAction("設定",icon) {
+        icon = ClientContext.getImageIconArias("icon_setting_small");    
+        actionText = ClientContext.getMyBundle(DefaultBrowser.class).getString("actionText.setting");
+        AbstractAction doSetting = new AbstractAction(actionText,icon) {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
 //s.oh^ 2014/05/07 PDF・画像タブの改善
-                if(isScanning(getContext().getFrame(), "設定を変更できません。")) return;
+                String message = ClientContext.getMyBundle(DefaultBrowser.class).getString("warning.cannotChangeSettings");
+                if(isScanning(getContext().getFrame(), message)) return;
 //s.oh$
 
                 // 現在のパラメータを保存し、Setting dialog を開始する
@@ -173,13 +158,11 @@ public class DefaultBrowser extends AbstractBrowser {
 
                 // 結果は properties にセットされて返ってくるので save する
                 Project.storeProperties(properties, SETTING_FILE_NAME);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "設定の保存：", oldBase + File.separator + SETTING_FILE_NAME);
                 Enumeration e = properties.propertyNames();
                 while (e.hasMoreElements()) {
                     String key = (String)e.nextElement();
                     String val = properties.getProperty(key);
                     if(val == null) val = "";
-                    Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, key, val);
                 }
 
                 // 新たに設定された値を読む
@@ -231,10 +214,12 @@ public class DefaultBrowser extends AbstractBrowser {
         
 //s.oh^ 2014/05/07 PDF・画像タブの改善
         icon = ClientContext.getImageIconArias("icon_delete");
-        AbstractAction delete = new AbstractAction("削除", icon) {
+        actionText = ClientContext.getMyBundle(DefaultBrowser.class).getString("actionText.delete");
+        AbstractAction delete = new AbstractAction(actionText, icon) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                if(isScanning(getContext().getFrame(), "ファイル/フォルダを削除できません。")) return;
+                String message = ClientContext.getMyBundle(DefaultBrowser.class).getString("warning.cannotDelete");
+                if(isScanning(getContext().getFrame(), message)) return;
                 int row = table.getSelectedRow();
                 int col = table.getSelectedColumn();
                 if(row < 0 || col < 0) return;
@@ -248,15 +233,20 @@ public class DefaultBrowser extends AbstractBrowser {
                 //}else{
                 //    options = new Object[]{yes, no};
                 //}
-                String msg = "「" + entry.getPath() + "」を削除しますか？";
-                //int select = JOptionPane.showOptionDialog(getContext().getFrame(), msg, "削除", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, no);
-                int option = JOptionPane.showConfirmDialog(getContext().getFrame(), msg, "削除", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+//                String msg = "「" + entry.getPath() + "」を削除しますか？";
+//                //int select = JOptionPane.showOptionDialog(getContext().getFrame(), msg, "削除", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, no);
+//                int option = JOptionPane.showConfirmDialog(getContext().getFrame(), msg, "削除", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+                String fmt = ClientContext.getMyBundle(DefaultBrowser.class).getString("messageFormat.delete");
+                MessageFormat msf = new MessageFormat(fmt);
+                String msg = msf.format(new String[]{entry.getPath()});
+                String title = ClientContext.getMyBundle(DefaultBrowser.class).getString("DialogTitle.delete");
+                int option = JOptionPane.showConfirmDialog(getContext().getFrame(), msg, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
                 if(option == JOptionPane.OK_OPTION) {
                     delete(new File(entry.getPath()));
                     if(tableModel != null && tableModel.getImageList() != null) {
                         tableModel.getImageList().remove(entry);
                     }
-                    ArrayList<ImageEntry> imageList = new ArrayList<ImageEntry>();
+                    ArrayList<ImageEntry> imageList = new ArrayList<>();
                     for(Object obj : tableModel.getImageList()) {
                         imageList.add(((ImageEntry)obj).copy());
                     }
@@ -267,19 +257,22 @@ public class DefaultBrowser extends AbstractBrowser {
         };
         ret.put("delete", delete);
         
-        AbstractAction rename = new AbstractAction("名前の変更") {
+        actionText = ClientContext.getMyBundle(DefaultBrowser.class).getString("actionText.changeName");
+        AbstractAction rename = new AbstractAction(actionText) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                if(isScanning(getContext().getFrame(), "名前の変更はできません。")) return;
+                String message = ClientContext.getMyBundle(DefaultBrowser.class).getString("warning.cannnotChangeName");
+                if(isScanning(getContext().getFrame(), message)) return;
                 int row = table.getSelectedRow();
                 int col = table.getSelectedColumn();
                 if(row < 0 || col < 0) return;
                 ImageEntry entry = getEntryAt(row, col);
                 if(entry == null) return;
-                String newName = JOptionPane.showInputDialog(getContext().getFrame(), "名前を入力してください。", entry.getFileName());
+                message = ClientContext.getMyBundle(DefaultBrowser.class).getString("message.inputName");
+                String newName = JOptionPane.showInputDialog(getContext().getFrame(), message, entry.getFileName());
                 ImageEntry newEntry = rename(newName, entry);
                 if(newEntry != null) {
-                    ArrayList<ImageEntry> imageList = new ArrayList<ImageEntry>();
+                    ArrayList<ImageEntry> imageList = new ArrayList<>();
                     for(Object obj : tableModel.getImageList()) {
                         if(((ImageEntry)obj).getFileName().equals(entry.getFileName())) {
                             imageList.add(newEntry);
@@ -293,12 +286,16 @@ public class DefaultBrowser extends AbstractBrowser {
         };
         ret.put("rename", rename);
         
-        AbstractAction newdir = new AbstractAction("新規") {
+        actionText = ClientContext.getMyBundle(DefaultBrowser.class).getString("actionText.new");
+        AbstractAction newdir = new AbstractAction(actionText) {
             @Override
             public void actionPerformed(ActionEvent ae) {
-                if(isScanning(getContext().getFrame(), "フォルダを作成できません。")) return;
+                String message = ClientContext.getMyBundle(DefaultBrowser.class).getString("warning.cannotCreateFolder");
+                if(isScanning(getContext().getFrame(), message)) return;
 //s.oh^ 2014/07/29 PDF・画像タブの改善
-                String name = JOptionPane.showInputDialog(getContext().getFrame(), "フォルダ名を入力してください。", checkDirName(nowLocation, "新規フォルダ"));
+                message = ClientContext.getMyBundle(DefaultBrowser.class).getString("message.inputFolderName");
+                String newFolderText = ClientContext.getMyBundle(DefaultBrowser.class).getString("title.optionPane.newFolder");
+                String name = JOptionPane.showInputDialog(getContext().getFrame(), message, checkDirName(nowLocation, newFolderText));
 //s.oh$
                 newdir(name);
             }
@@ -307,7 +304,8 @@ public class DefaultBrowser extends AbstractBrowser {
 //s.oh$
         
 //s.oh^ 2014/05/30 PDF・画像タブの改善
-        AbstractAction backdir = new AbstractAction("戻る") {
+        actionText = ClientContext.getMyBundle(DefaultBrowser.class).getString("actionText.return");
+        AbstractAction backdir = new AbstractAction(actionText) {
             @Override
             public void actionPerformed(ActionEvent ae) {
                 backdir();
@@ -325,14 +323,12 @@ public class DefaultBrowser extends AbstractBrowser {
             return;
         }
         if(file.isFile()) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, file.getPath());
             file.delete();
         }else if(file.isDirectory()) {
             File[] files = file.listFiles();
             for(int i = 0; i < files.length; i++) {
                 delete(files[i]);
             }
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, file.getPath());
             file.delete();
         }
     }
@@ -341,17 +337,18 @@ public class DefaultBrowser extends AbstractBrowser {
         if(name != null && name.length() >= 0 && entry != null) {
             File newFile = new File(nowLocation, name);
             if(newFile.exists()) {
-                String name2 = JOptionPane.showInputDialog(getContext().getFrame(), "同じ名前が既に存在します。別の名前を入力してください。", name);
+                String sameName = ClientContext.getMyBundle(DefaultBrowser.class).getString("warning.sameName");
+                String name2 = JOptionPane.showInputDialog(getContext().getFrame(), sameName, name);
                 return rename(name2, entry);
             }else if(name.startsWith("__")) {
-                String name2 = JOptionPane.showInputDialog(getContext().getFrame(), "__から始まる名前を使用できません。別の名前を入力してください。", name);
+                String startWith_ = ClientContext.getMyBundle(DefaultBrowser.class).getString("warning.startsWithUnderScore");
+                String name2 = JOptionPane.showInputDialog(getContext().getFrame(), startWith_, name);
                 return rename(name2, entry);
             }else{
                 ImageEntry newEntry = entry.copy();
                 try {
                     entry.setUrl(newFile.toURI().toURL().toString());
                 } catch (MalformedURLException ex) {
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "ImageEntryのURL作成失敗", ex.getMessage());
                 }
                 newEntry.setFileName(name);
                 newEntry.setPath(newFile.getPath());
@@ -375,13 +372,13 @@ public class DefaultBrowser extends AbstractBrowser {
             if(files == null) return;
             for(File file : files) {
                 if(file.getName().equals(name)) {
-                    String name2 = JOptionPane.showInputDialog(getContext().getFrame(), "同じ名前が既に存在します。別の名前を入力してください。", name);
+                    String sameName = ClientContext.getMyBundle(DefaultBrowser.class).getString("warning.sameName");
+                    String name2 = JOptionPane.showInputDialog(getContext().getFrame(), sameName, name);
                     newdir(name2);
                     return;
                 }
             }
             name = nowLocation + File.separator + name;
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, name);
             File folder = new File(name);
             folder.mkdir();
             
@@ -389,14 +386,13 @@ public class DefaultBrowser extends AbstractBrowser {
             try {
                 entry.setUrl(folder.toURI().toURL().toString());
             } catch (MalformedURLException ex) {
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "ImageEntryのURL作成失敗", ex.getMessage());
             }
             entry.setPath(folder.getPath());
             entry.setFileName(folder.getName());
             entry.setLastModified(folder.lastModified());
             entry.setImageIcon(ClientContext.getImageIconArias("icon_foldr"));
             entry.setDirectrory(true);
-            ArrayList<ImageEntry> imageList = new ArrayList<ImageEntry>();
+            ArrayList<ImageEntry> imageList = new ArrayList<>();
             imageList.add(entry);
             if(tableModel.getImageList() != null) {
                 for(Object obj : tableModel.getImageList()) {
@@ -421,8 +417,8 @@ public class DefaultBrowser extends AbstractBrowser {
     @Override
     protected void initComponents() {
 
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
-        final ActionMap map = getActionMap(resource);
+        //ResourceBundle resource = ClientContext.getBundle(this.getClass());
+        final ActionMap map = getActionMap(null);
 
         // TableModel
         int columnCount = columnCount();
@@ -513,17 +509,20 @@ public class DefaultBrowser extends AbstractBrowser {
                 }
 
                 JPopupMenu contextMenu = new JPopupMenu();
-                JMenuItem micp = new JMenuItem("コピー");
+                String menuText = ClientContext.getMyBundle(DefaultBrowser.class).getString("menuText.copy");
+                JMenuItem micp = new JMenuItem(menuText);
                 Action copy = getContext().getChartMediator().getAction(GUIConst.ACTION_COPY);
                 micp.setAction(copy);
                 contextMenu.add(micp);
                 
 //s.oh^ 2014/05/07 PDF・画像タブの改善
-                JMenuItem midel = new JMenuItem("削除");
+                menuText = ClientContext.getMyBundle(DefaultBrowser.class).getString("menuText.delete");
+                JMenuItem midel = new JMenuItem(menuText);
                 midel.setAction(map.get("delete"));
                 contextMenu.add(midel);
                 
-                JMenuItem mirename = new JMenuItem("名前の変更");
+                menuText = ClientContext.getMyBundle(DefaultBrowser.class).getString("menuText.changeName");
+                JMenuItem mirename = new JMenuItem(menuText);
                 mirename.setAction(map.get("rename"));
                 contextMenu.add(mirename);
 //s.oh$
@@ -533,9 +532,11 @@ public class DefaultBrowser extends AbstractBrowser {
         });
         
         view.getSettingBtn().setAction(map.get("doSetting"));
-        view.getSettingBtn().setToolTipText("画像ディレクトリ等の設定を行います。");
+        String toolTipText = ClientContext.getMyBundle(DefaultBrowser.class).getString("tooTiptext.settingImageDir");
+        view.getSettingBtn().setToolTipText(toolTipText);
         view.getRefreshBtn().setAction(map.get("refresh"));
-        view.getRefreshBtn().setToolTipText("表示を更新します。");
+        toolTipText = ClientContext.getMyBundle(DefaultBrowser.class).getString("toolTipText.updateDisplay");
+        view.getRefreshBtn().setToolTipText(toolTipText);
         boolean canRefresh = true;
         canRefresh = canRefresh && (valueIsNotNullNorEmpty(properties.getProperty(PROP_BASE_DIR)));
         view.getRefreshBtn().setEnabled(canRefresh);
@@ -550,8 +551,9 @@ public class DefaultBrowser extends AbstractBrowser {
 
 //minagawa^ Icon Server        
         view.getDirLbl().setIcon(ClientContext.getImageIconArias("icon_info_small"));
-//minagawa$        
-        view.getDirLbl().setToolTipText("画像・PDFディレクトリの場所を表示してます。");
+//minagawa$  
+        toolTipText = ClientContext.getMyBundle(DefaultBrowser.class).getString("toolTiptext.showImageDir");
+        view.getDirLbl().setToolTipText(toolTipText);
         setUI(view);
     }
 }

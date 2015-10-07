@@ -15,11 +15,11 @@ import open.dolphin.client.ClientContext;
  */
 public class FCRSetting {
 
-    private AbstractBrowser context;
-    private Component parent;
+    private final AbstractBrowser context;
+    private final Component parent;
     private FCRConfigView view;
     private JDialog dialog;
-    private Properties properties;
+    private final Properties properties;
    
     public FCRSetting(AbstractBrowser context, Component parent) {
         this.context = context;
@@ -130,7 +130,7 @@ public class FCRSetting {
         orderRgp.add(view.getDescRadio());
 
         // Inject Actions
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
+        ResourceBundle resource = ClientContext.getMyBundle(FCRSetting.class);
         ActionMap map = getAction(resource);
 
         view.getBaseDirBtn().setAction(map.get("setBaseDirectory"));

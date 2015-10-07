@@ -1,0 +1,7 @@
+open.dolphin.project.ConnectionPropertySheet #
+open.dolphin.project.ClaimPropertySheet     #
+open.dolphin.project.KartePropertySheet
+open.dolphin.project.StampPropertySheet
+open.dolphin.project.LetterPropertySheet
+open.dolphin.project.CodeHelperPropertySheet
+open.dolphin.project.RelayPropertySheet

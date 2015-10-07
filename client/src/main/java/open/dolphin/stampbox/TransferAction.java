@@ -12,9 +12,9 @@ import javax.swing.TransferHandler;
  */
 public class TransferAction implements ActionListener {
     
-    private JComponent comp;
-    private TransferHandler handler;
-    private Transferable tr;
+    private final JComponent comp;
+    private final TransferHandler handler;
+    private final Transferable tr;
     
     public TransferAction(JComponent comp, TransferHandler handler, Transferable tr) {
         this.comp = comp;

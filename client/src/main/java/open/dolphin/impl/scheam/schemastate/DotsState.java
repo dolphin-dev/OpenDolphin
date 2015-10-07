@@ -124,7 +124,7 @@ public class DotsState extends AbstractState {
         java.util.Random rnd = new java.util.Random();
 
         // 作った点の座標を保持する
-        ArrayList<Point> point = new ArrayList<Point>();
+        ArrayList<Point> point = new ArrayList<>();
 
         int maxDistance = Math.min(r.width, r.height);
         // int dotsNumber = r.width * r.height * density/10000;

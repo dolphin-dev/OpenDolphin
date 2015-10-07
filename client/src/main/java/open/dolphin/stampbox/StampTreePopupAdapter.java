@@ -11,6 +11,7 @@ import java.io.IOException;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
+import open.dolphin.client.ClientContext;
 import open.dolphin.client.LocalStampTreeNodeTransferable;
 import open.dolphin.client.OrderList;
 import open.dolphin.client.OrderListTransferable;
@@ -27,10 +28,14 @@ import open.dolphin.infomodel.ModuleModel;
  */
 public class StampTreePopupAdapter extends MouseAdapter {
     
-    private static final String[] POP_MENUS = {"新規フォルダ","名称変更","-","削 除"};
-    private static final String[] POP_METHODS = {"createNewFolder","renameNode","-","deleteNode"};
+    private final String[] POP_MENUS;
+    private final String[] POP_METHODS;
     
     public StampTreePopupAdapter() {
+        super();
+        String line = ClientContext.getMyBundle(StampTreePopupAdapter.class).getString("items.popMenu");
+        POP_MENUS = line.split(",");
+        POP_METHODS = new String[]{"createNewFolder","renameNode","-","deleteNode"};
     }
     
     @Override
@@ -88,8 +93,9 @@ public class StampTreePopupAdapter extends MouseAdapter {
     
     private JPopupMenu createPopuoMenu(final JTree tree, boolean canCopy, boolean canPaste) {
         
-        
-        AbstractAction copy = new AbstractAction("コピー") {
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampTreePopupAdapter.class);
+        String actionText = bundle.getString("actionText.copy");
+        AbstractAction copy = new AbstractAction(actionText) {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
@@ -103,7 +109,8 @@ public class StampTreePopupAdapter extends MouseAdapter {
         };
         copy.setEnabled(canCopy);
         
-        AbstractAction paste = new AbstractAction("ペースト") {
+        actionText = bundle.getString("actionText.paste");
+        AbstractAction paste = new AbstractAction(actionText) {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
@@ -197,9 +204,7 @@ public class StampTreePopupAdapter extends MouseAdapter {
             
             return match;
             
-        } catch (UnsupportedFlavorException ex) {
-            ex.printStackTrace(System.err);
-        } catch (IOException ex) {
+        } catch (UnsupportedFlavorException | IOException ex) {
             ex.printStackTrace(System.err);
         }
         
@@ -231,9 +236,7 @@ public class StampTreePopupAdapter extends MouseAdapter {
             } else {
                 return false;
             }
-        } catch (UnsupportedFlavorException ex) {
-            ex.printStackTrace(System.err);
-        } catch (IOException ex) {
+        } catch (UnsupportedFlavorException | IOException ex) {
             ex.printStackTrace(System.err);
         }
         return false;

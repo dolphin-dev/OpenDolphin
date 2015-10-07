@@ -58,9 +58,9 @@ import org.jdom.input.SAXBuilder;
  * @author S.Oh@Life Sciences Computing Corporation.
  */
 public class KartePDFImpl {
-    private DocumentModel model;
+    private final DocumentModel model;
     private ArrayList<ModuleModel> stamps;
-    private KartePDFMaker2 pdfMarker;   // PDF Marker
+    private final KartePDFMaker2 pdfMarker;   // PDF Marker
 
     private static final String COMPONENT_ELEMENT_NAME = "component";
     private static final String STAMP_HOLDER = "stampHolder";
@@ -96,10 +96,13 @@ public class KartePDFImpl {
     /**
      * コンストラクタ
      * @param valPath フォルダパス
-     * @param valPathID タイトル
+     * @param valDocID
+     * @param valPatID
+     * @param valPatName
+     * @param valTitle
      * @param valDate 保存時刻
-     * @param valSOA SOA
-     * @param valPlan Plan
+     * @param model
+     * @param docNo
      */
     public KartePDFImpl(String valPath, String valDocID, String valPatID, String valPatName, String valTitle, Date valDate, DocumentModel model, String docNo) {
         // SOA
@@ -115,7 +118,7 @@ public class KartePDFImpl {
      */
     public void createKarteSOAToPDF() {
         Collection<ModuleModel> modules = model.getModules();
-        stamps = new ArrayList<ModuleModel>();
+        stamps = new ArrayList<>();
         String soaSpec = null;
         String pSpec = null;
         for (ModuleModel bean : modules) {
@@ -365,7 +368,7 @@ public class KartePDFImpl {
                 int idx = Integer.parseInt(number);
                 AttachmentModel attachment = (model.getAttachment() != null && model.getAttachment().size() > idx) ? model.getAttachment(idx) : null;
                 if(attachment != null) {
-                    startContent(null, null, null, null, null, "添付：" + attachment.getTitle() + "(" + attachment.getContentType() + ")");
+                    startContent(null, null, null, null, null, java.text.MessageFormat.format(ClientContext.getMyBundle(KartePDFImpl.class).getString("messageFormat.attachment"), new Object[] {attachment.getTitle(), attachment.getContentType()}));
                 }
             }
         } catch (Exception e) {
@@ -440,9 +443,7 @@ public class KartePDFImpl {
                     Doc doc = new SimpleDoc(data, flavor, docAttributes);
                     // 印刷
                     job.print(doc, pras);
-                }catch (IOException e) {
-                    e.printStackTrace();
-                }catch (PrintException e) {
+                }catch (IOException | PrintException e) {
                     e.printStackTrace();
                 }
                 try{

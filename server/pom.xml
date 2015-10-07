@@ -82,6 +82,21 @@
             <artifactId>postgresql</artifactId>
             <version>9.2-1002.jdbc4</version>
         </dependency>
+         <dependency>
+            <groupId>com.plivo</groupId>
+            <artifactId>plivo-java</artifactId>
+            <version>3.0.6</version>
+        </dependency>
+        <!-- dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.5</version>
+        </dependency -->
     </dependencies>
     <version>2.7.0</version>
     <build>

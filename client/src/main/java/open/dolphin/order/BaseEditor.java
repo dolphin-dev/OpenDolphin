@@ -3,24 +3,20 @@ package open.dolphin.order;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.concurrent.ExecutionException;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 import javax.swing.text.JTextComponent;
 import open.dolphin.client.AutoKanjiListener;
-import open.dolphin.client.AutoRomanListener;
 import open.dolphin.client.ClientContext;
 import open.dolphin.delegater.OrcaDelegater;
 import open.dolphin.delegater.OrcaDelegaterFactory;
@@ -37,17 +33,16 @@ import open.dolphin.util.ZenkakuUtils;
  */
 public final class BaseEditor extends AbstractStampEditor {
     
-    private static final String[] COLUMN_NAMES = {"コード", "診療内容", "数 量", "単 位"};
-    private static final String[] METHOD_NAMES = {"getCode", "getName", "getNumber", "getUnit"};
-    private static final int[] COLUMN_WIDTH = {50, 200, 10, 10};
-    private static final int NUMBER_COLUMN = 2;
+    private String[] COLUMN_NAMES;
+    private String[] METHOD_NAMES;
+    private int[] COLUMN_WIDTH;
+    private int NUMBER_COLUMN;
 
-    private static final String[] SR_COLUMN_NAMES = {"種別", "コード", "名 称", "単位", "点数", "診区", "病診", "入外", "社老"};
-    private static final String[] SR_METHOD_NAMES = {
-        "getSlot", "getSrycd", "getName", "getTaniname", "getTen","getSrysyukbn", "getHospsrykbn", "getNyugaitekkbn", "getRoutekkbn"};
-    private static final int[] SR_COLUMN_WIDTH = {10, 50, 200, 10, 10, 10, 5, 5, 5};
-    private static final int SR_NUM_ROWS = 0;
-
+    private String[] SR_COLUMN_NAMES;
+    private String[] SR_METHOD_NAMES;
+    private int[] SR_COLUMN_WIDTH;
+    private int SR_NUM_ROWS;
+    
     private IBaseView view;
 
     private ListTableModel<MasterItem> tableModel;
@@ -96,7 +91,7 @@ public final class BaseEditor extends AbstractStampEditor {
         if (!text.equals("")) {
             moduleInfo.setStampName(text);
         } else {
-            moduleInfo.setStampName(DEFAULT_STAMP_NAME);
+            moduleInfo.setStampName(getDefaultStampName());
         }
 
         // BundleDolphin を生成する
@@ -151,7 +146,8 @@ public final class BaseEditor extends AbstractStampEditor {
             bundle.setClassCodeSystem(getClassCodeId());
 
             // 上記テーブルで定義されている診療行為の名称
-            bundle.setClassName(MMLTable.getClaimClassCodeName(c007));
+            java.util.ResourceBundle resBundle = ClientContext.getClaimBundle();
+            bundle.setClassName(resBundle.getString(c007));
         }
 
         // バンドル数
@@ -188,11 +184,10 @@ public final class BaseEditor extends AbstractStampEditor {
         boolean serialized = target.getModuleInfoBean().isSerialized();
 
         // スタンプ名がエディタから発行の場合はデフォルトの名称にする
-        // 歴史的なごり
-        if (!serialized && stampName.startsWith(FROM_EDITOR_STAMP_NAME)) {
-            stampName = DEFAULT_STAMP_NAME;
+        if (!serialized && stampName.startsWith(getStampNameFromEditor())) {
+            stampName = getDefaultStampName();
         } else if (stampName.equals("")) {
-            stampName = DEFAULT_STAMP_NAME;
+            stampName = getDefaultStampName();
         }
         view.getStampNameField().setText(stampName);
 
@@ -238,10 +233,10 @@ public final class BaseEditor extends AbstractStampEditor {
     @Override
     protected void checkValidation() {
 
-        setIsEmpty = tableModel.getObjectCount() == 0 ? true : false;
+        setIsEmpty = tableModel.getObjectCount() == 0;
 
         if (setIsEmpty) {
-            view.getStampNameField().setText(DEFAULT_STAMP_NAME);
+            view.getStampNameField().setText(getDefaultStampName());
         }
 
         setIsValid = true;
@@ -276,10 +271,7 @@ public final class BaseEditor extends AbstractStampEditor {
 
         // ButtonControl
         view.getClearBtn().setEnabled(!setIsEmpty);
-//minagawa^ LSC Test
-        //view.getOkCntBtn().setEnabled(setIsValid && getFromStampEditor());
-        view.getOkCntBtn().setEnabled(setIsValid && getFromStampEditor() && !modifyFromStampHolder);
-//minagawa$        
+        view.getOkCntBtn().setEnabled(setIsValid && getFromStampEditor() && !modifyFromStampHolder);      
         view.getOkBtn().setEnabled(setIsValid && getFromStampEditor());
 
         view.getTechChk().setSelected((techCnt > 0));
@@ -299,8 +291,11 @@ public final class BaseEditor extends AbstractStampEditor {
             return;
         }
 
+        ResourceBundle clb = ClientContext.getClaimBundle();
+        
         // 診療区分の受け入れ試験
-        if (test.equals(ClaimConst.SLOT_SYUGI)) {
+        //if (test.equals(clb.getString(ClaimConst.SLOT_SYUGI))) {
+        if (test.equals(clb.getString("SLOT_SYUGI"))) {    
             String shinku = tm.getSrysyukbn();
             if (shinkuPattern==null || (!shinkuPattern.matcher(shinku).find())) {
                 Toolkit.getDefaultToolkit().beep();
@@ -314,7 +309,7 @@ public final class BaseEditor extends AbstractStampEditor {
         // 手技の場合にスタンプ名を設定する
         if (item.getClassCode() == ClaimConst.SYUGI) {
             String stName = view.getStampNameField().getText().trim();
-            if (stName.equals("") || stName.equals(DEFAULT_STAMP_NAME)) {
+            if (stName.equals("") || stName.equals(getDefaultStampName())) {
                 view.getStampNameField().setText(item.getName());
             }
         }
@@ -329,12 +324,10 @@ public final class BaseEditor extends AbstractStampEditor {
     @Override
     protected void search(final String text, boolean hitRet) {
 
-        System.err.println("search did enter: " + text);
         boolean pass = true;
         pass = pass && ipOk();
 
         final int searchType = getSearchType(text, hitRet);
-        System.err.println("search dtype: " + searchType);
 
         pass = pass && (searchType!=TT_INVALID);
 
@@ -349,8 +342,7 @@ public final class BaseEditor extends AbstractStampEditor {
 
             @Override
             protected List<TensuMaster> doInBackground() throws Exception {
-                //SqlMasterDao dao = (SqlMasterDao) SqlDaoFactory.create("dao.master");
-                //OrcaRestDelegater dao = new OrcaRestDelegater();
+                
                 OrcaDelegater dao = OrcaDelegaterFactory.create();
                 
                 String d = new SimpleDateFormat("yyyyMMdd").format(new Date());
@@ -364,13 +356,8 @@ public final class BaseEditor extends AbstractStampEditor {
 
                     case TT_TENSU_SEARCH:
                         String ten = text.substring(3);
-                        System.err.println("点数=" + ten);
                         ten = ZenkakuUtils.toHalfNumber(ten);
                         result = dao.getTensuMasterByTen(ten, d);
-                        break;
-
-                    case TT_85_SEARCH:
-                        result = dao.getTensuMasterByCode("0085", d);
                         break;
 
                     case TT_CODE_SEARCH:
@@ -392,13 +379,10 @@ public final class BaseEditor extends AbstractStampEditor {
                         sb.append("^");
                         sb.append(shin.substring(1));
                         String str = sb.toString();
-                        result = dao.getTensuMasterByShinku(sb.toString(), d);
+                        result = dao.getTensuMasterByShinku(str, d);
                         break;
                 }
-
-//                if (!dao.isNoError()) {
-//                    throw new Exception(dao.getErrorMessage());
-//                }
+                
                 return result;
             }
 
@@ -426,20 +410,48 @@ public final class BaseEditor extends AbstractStampEditor {
     @Override
     protected void clear() {
         tableModel.clear();
-        view.getStampNameField().setText(DEFAULT_STAMP_NAME);
+        view.getStampNameField().setText(getDefaultStampName());
         checkValidation();
     }
 
-    @Override
-    protected void initComponents() {
+    private final void initComponents() {
+        
+        // Resource Injection
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(BaseEditor.class);
+        
+        // セットテーブルカラム名
+        String line = bundle.getString("columnNames.bundleTable");
+        COLUMN_NAMES = line.split(",");
+        
+        // セットテーブルMethod名
+        line = bundle.getString("methods.bundleTable");
+        METHOD_NAMES = line.split(",");
+        
+        // カラム幅
+        COLUMN_WIDTH = new int[]{50, 200, 10, 10};
+        
+        // 数量カラム
+        NUMBER_COLUMN = 2;
+        
+        // マスターテーブルカラム名
+        line = bundle.getString("columnNames.materTable");
+        SR_COLUMN_NAMES = line.split(",");
+        
+        // マスターテーブルMethod名
+        line = bundle.getString("methods.masterTable");
+        SR_METHOD_NAMES = line.split(",");
+        
+        // カラム幅
+        SR_COLUMN_WIDTH = new int[]{10, 50, 200, 10, 10, 10, 5, 5, 5};
+        
+        // 数量カラム
+        SR_NUM_ROWS = 0;
 
         // View
         view = editorButtonTypeIsIcon() ? new BaseView() : new BaseViewText();
 
         // Info Label
-//minagawa^ Icon Server
-        view.getInfoLabel().setIcon(ClientContext.getImageIconArias("icon_info_small"));
-//minagawa$        
+        view.getInfoLabel().setIcon(ClientContext.getImageIconArias("icon_info_small"));     
         view.getInfoLabel().setText(this.getInfo());
 
         //------------------------------------------
@@ -453,7 +465,7 @@ public final class BaseEditor extends AbstractStampEditor {
                 // 元町皮膚科
                 if (col == 1) {
                     String code = (String) this.getValueAt(row, 0);
-                    return AbstractStampEditor.isNameEditableComment(code);
+                    return isNameEditableComment(code);
                 }
                 // 数量
                 if (col == NUMBER_COLUMN) {
@@ -462,17 +474,12 @@ public final class BaseEditor extends AbstractStampEditor {
                         return false;
                     }
                     // 名称（診療内容を変更できるコメントは数量編集不可）
-                    else if (AbstractStampEditor.isNameEditableComment(code)) {
+                    else if (isNameEditableComment(code)) {
                         return false;
                     }
-                    else if (AbstractStampEditor.is82Comment(code)) {
-                        return false;
-                    }
-                    else {
-                        return true;
-                    }
+                    else return !is82Comment(code);
                 }
-                return col == NUMBER_COLUMN ? true : false;
+                return col == NUMBER_COLUMN;
             }
 
             // NUMBER_COLUMN に値を設定する
@@ -491,7 +498,7 @@ public final class BaseEditor extends AbstractStampEditor {
                 }
 
                 // コメント編集 元町皮膚科
-                if (col == 1 && AbstractStampEditor.isNameEditableComment(mItem.getCode())) {
+                if (col == 1 && isNameEditableComment(mItem.getCode())) {
                     mItem.setName(value);
                     return;
                 }
@@ -502,8 +509,8 @@ public final class BaseEditor extends AbstractStampEditor {
                 if (value == null || value.equals("")) {
 
                     boolean test = (code==ClaimConst.SYUGI ||
-                                    code==ClaimConst.OTHER ||
-                                    code==ClaimConst.BUI) ? true : false;
+                            code==ClaimConst.OTHER ||
+                            code==ClaimConst.BUI);
                     if (test) {
                         mItem.setNumber(null);
                         mItem.setUnit(null);
@@ -529,16 +536,13 @@ public final class BaseEditor extends AbstractStampEditor {
         setTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // 選択モード
         setTable.setRowSelectionAllowed(true);
         ListSelectionModel m = setTable.getSelectionModel();
-        m.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (e.getValueIsAdjusting() == false) {
-                    int row = view.getSetTable().getSelectedRow();
-                    if (tableModel.getObject(row)!= null) {
-                        view.getDeleteBtn().setEnabled(true);
-                    } else {
-                        view.getDeleteBtn().setEnabled(false);
-                    }
+        m.addListSelectionListener((ListSelectionEvent e) -> {
+            if (e.getValueIsAdjusting() == false) {
+                int row = view.getSetTable().getSelectedRow();
+                if (tableModel.getObject(row)!= null) {
+                    view.getDeleteBtn().setEnabled(true);
+                } else {
+                    view.getDeleteBtn().setEnabled(false);
                 }
             }
         });
@@ -715,7 +719,8 @@ public final class BaseEditor extends AbstractStampEditor {
                         // 病診
                         if (ret!=null) {
                             int index = Integer.parseInt((String) ret);
-                            ret = HOSPITAL_CLINIC_FLAGS[index];
+                            String[] hospFlag = (String[])ClientContext.getClaimBundle().getObject("HOSPITAL_CLINIC_FLAGS");
+                            ret = hospFlag[index];
                         }
                         break;
 
@@ -723,7 +728,8 @@ public final class BaseEditor extends AbstractStampEditor {
                         // 入外
                         if (ret!=null) {
                             int index = Integer.parseInt((String) ret);
-                            ret = IN_OUT_FLAGS[index];
+                            String[] inOutFlag = (String[])ClientContext.getClaimBundle().getObject("IN_OUT_FLAGS");
+                            ret = inOutFlag[index];
                         }
                         break;
 
@@ -731,7 +737,8 @@ public final class BaseEditor extends AbstractStampEditor {
                         // 社老
                         if (ret!=null) {
                             int index = Integer.parseInt((String) ret);
-                            ret = OLD_FLAGS[index];
+                            String[] oldFlag = (String[])ClientContext.getClaimBundle().getObject("OLD_FLAGS");
+                            ret = oldFlag[index];
                         }
                         break;
                 }
@@ -744,17 +751,13 @@ public final class BaseEditor extends AbstractStampEditor {
         searchResultTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         searchResultTable.setRowSelectionAllowed(true);
         ListSelectionModel lm = searchResultTable.getSelectionModel();
-        lm.addListSelectionListener(new ListSelectionListener() {
-
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (e.getValueIsAdjusting() == false) {
-                    int row = view.getSearchResultTable().getSelectedRow();
-                    TensuMaster o = searchResultModel.getObject(row);
-                    if (o != null) {
-                        addSelectedTensu(o);
-                        searchTextField.requestFocus();
-                    }
+        lm.addListSelectionListener((ListSelectionEvent e) -> {
+            if (e.getValueIsAdjusting() == false) {
+                int row = view.getSearchResultTable().getSelectedRow();
+                TensuMaster o = searchResultModel.getObject(row);
+                if (o != null) {
+                    addSelectedTensu(o);
+                    searchTextField.requestFocus();
                 }
             }
         });
@@ -768,7 +771,6 @@ public final class BaseEditor extends AbstractStampEditor {
         if (Project.getBoolean("masterItemColoring", true)) {
             searchResultTable.setDefaultRenderer(Object.class, new TensuItemRenderer(passPattern, shinkuPattern));
         } else {
-            //searchResultTable.setDefaultRenderer(Object.class, new OddEvenRowRenderer());
             StripeTableCellRenderer str = new StripeTableCellRenderer();
             str.setTable(searchResultTable);
             str.setDefaultRenderer();
@@ -784,12 +786,9 @@ public final class BaseEditor extends AbstractStampEditor {
                 //if (view.getRtBtn().isSelected()) {
                 //    search(view.getSearchTextField().getText().trim(), false);
                 //}
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (view.getRtBtn().isSelected()) {
-                            search(view.getSearchTextField().getText().trim(), false);
-                        }
+                SwingUtilities.invokeLater(() -> {
+                    if (view.getRtBtn().isSelected()) {
+                        search(view.getSearchTextField().getText().trim(), false);
                     }
                 });
 //s.oh$
@@ -801,12 +800,9 @@ public final class BaseEditor extends AbstractStampEditor {
                 //if (view.getRtBtn().isSelected()) {
                 //    search(view.getSearchTextField().getText().trim(), false);
                 //}
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (view.getRtBtn().isSelected()) {
-                            search(view.getSearchTextField().getText().trim(), false);
-                        }
+                SwingUtilities.invokeLater(() -> {
+                    if (view.getRtBtn().isSelected()) {
+                        search(view.getSearchTextField().getText().trim(), false);
                     }
                 });
 //s.oh$
@@ -818,12 +814,9 @@ public final class BaseEditor extends AbstractStampEditor {
                 //if (view.getRtBtn().isSelected()) {
                 //    search(view.getSearchTextField().getText().trim(), false);
                 //}
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (view.getRtBtn().isSelected()) {
-                            search(view.getSearchTextField().getText().trim(), false);
-                        }
+                SwingUtilities.invokeLater(() -> {
+                    if (view.getRtBtn().isSelected()) {
+                        search(view.getSearchTextField().getText().trim(), false);
                     }
                 });
 //s.oh$
@@ -831,11 +824,8 @@ public final class BaseEditor extends AbstractStampEditor {
         };
         searchTextField = view.getSearchTextField();
         searchTextField.getDocument().addDocumentListener(dl);
-        searchTextField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                search(view.getSearchTextField().getText().trim(), true);
-            }
+        searchTextField.addActionListener((ActionEvent e) -> {
+            search(view.getSearchTextField().getText().trim(), true);
         });
         searchTextField.addFocusListener(AutoKanjiListener.getInstance());
         // マスター検索ができない場合を追加
@@ -844,23 +834,15 @@ public final class BaseEditor extends AbstractStampEditor {
         // Real Time Search
         boolean rt = Project.getBoolean("masterSearch.realTime", true);
         view.getRtBtn().setSelected(rt);
-        view.getRtBtn().addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-                Project.setBoolean("masterSearch.realTime", view.getRtBtn().isSelected());
-            }
+        view.getRtBtn().addActionListener((ActionEvent arg0) -> {
+            Project.setBoolean("masterSearch.realTime", view.getRtBtn().isSelected());
         });
 
         // 部分一致
         boolean pmatch = Project.getBoolean("masterSearch.partialMatch", false);
         view.getPartialChk().setSelected(pmatch);
-        view.getPartialChk().addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-                Project.setBoolean("masterSearch.partialMatch", view.getPartialChk().isSelected());
-            }
+        view.getPartialChk().addActionListener((ActionEvent arg0) -> {
+            Project.setBoolean("masterSearch.partialMatch", view.getPartialChk().isSelected());
         });
 
         // 件数フィールド
@@ -870,80 +852,62 @@ public final class BaseEditor extends AbstractStampEditor {
         view.getStampNameField().addFocusListener(AutoKanjiListener.getInstance());
 
         // OK & 連続ボタン
-//minagawa^ Icon Server
         if(editorButtonTypeIsIcon()) {
             view.getOkCntBtn().setIcon(ClientContext.getImageIconArias("icon_gear_small"));
         }
 ////s.oh^ 2014/10/22 Icon表示
 //        view.getSearchLabel().setIcon(ClientContext.getImageIconArias("icon_search_small"));
-////s.oh$
-//minagawa$        
+////s.oh$      
         view.getOkCntBtn().setEnabled(false);
-        view.getOkCntBtn().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                boundSupport.firePropertyChange(VALUE_PROP, null, getValue());
-                clear();
-            }
+        view.getOkCntBtn().addActionListener((ActionEvent e) -> {
+            boundSupport.firePropertyChange(VALUE_PROP, null, getValue());
+            clear();
         });
 
         // OK ボタン
         view.getOkBtn().setEnabled(false);
-//minagawa^ Icon Server
         if(editorButtonTypeIsIcon()) {
             view.getOkBtn().setIcon(ClientContext.getImageIconArias("icon_accept_small"));
-        }
-//minagawa$          
-        view.getOkBtn().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                boundSupport.firePropertyChange(VALUE_PROP, null, getValue());
-                dispose();
-                boundSupport.firePropertyChange(EDIT_END_PROP, false, true);
-            }
+        }       
+        view.getOkBtn().addActionListener((ActionEvent e) -> {
+            boundSupport.firePropertyChange(VALUE_PROP, null, getValue());
+            dispose();
+            boundSupport.firePropertyChange(EDIT_END_PROP, false, true);
         });
 
         // 削除ボタン
         view.getDeleteBtn().setEnabled(false);
-//minagawa^ Icon Server
         if(editorButtonTypeIsIcon()) {
             view.getDeleteBtn().setIcon(ClientContext.getImageIconArias("icon_delete_small"));
-        }
-//minagawa$        
-        view.getDeleteBtn().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int row = view.getSetTable().getSelectedRow();
-                if (tableModel.getObject(row) != null) {
-                    tableModel.deleteAt(row);
-                    checkValidation();
-                }
+        }      
+        view.getDeleteBtn().addActionListener((ActionEvent e) -> {
+            int row = view.getSetTable().getSelectedRow();
+            if (tableModel.getObject(row) != null) {
+                tableModel.deleteAt(row);
+                checkValidation();
             }
         });
 
         // クリアボタン
-//minagawa^ Icon Server
         if(editorButtonTypeIsIcon()) {
             view.getClearBtn().setIcon(ClientContext.getImageIconArias("icon_clear_small"));
-        }
-//minagawa$        
+        }       
         view.getClearBtn().setEnabled(false);
-        view.getClearBtn().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                clear();
-            }
+        view.getClearBtn().addActionListener((ActionEvent e) -> {
+            clear();
         });
     }
 
-    public BaseEditor() {
-    }
-
+//    public BaseEditor() {
+//        initComponents();
+//    }
+    
     public BaseEditor(String entity) {
-        super(entity, true);
+        this(entity, true);
     }
 
     public BaseEditor(String entity, boolean mode) {
         super(entity, mode);
+        initComponents();
     }
 }

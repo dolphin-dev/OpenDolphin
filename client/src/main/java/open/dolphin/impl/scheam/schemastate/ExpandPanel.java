@@ -47,7 +47,8 @@ public class ExpandPanel extends javax.swing.JPanel {
 
         setName("Form"); // NOI18N
 
-        jLabel1.setText("拡大・縮小率");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/impl/scheam/schemastate/resources/ExpandPanel"); // NOI18N
+        jLabel1.setText(bundle.getString("magReductionLabel.text")); // NOI18N
         jLabel1.setName("jLabel1"); // NOI18N
 
         expandSdr.setName("expandSdr"); // NOI18N
@@ -74,9 +75,9 @@ public class ExpandPanel extends javax.swing.JPanel {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 29, Short.MAX_VALUE)
+            .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                .addComponent(textField, javax.swing.GroupLayout.DEFAULT_SIZE, 29, Short.MAX_VALUE)
+                .addComponent(textField)
                 .addComponent(jLabel2))
             .addComponent(expandSdr, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );

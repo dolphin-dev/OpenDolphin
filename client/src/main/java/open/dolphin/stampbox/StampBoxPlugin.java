@@ -2,7 +2,6 @@ package open.dolphin.stampbox;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -19,7 +18,6 @@ import open.dolphin.helper.WindowSupport;
 import open.dolphin.infomodel.*;
 import open.dolphin.order.EditorSetPanel;
 import open.dolphin.project.Project;
-import org.apache.log4j.Level;
 
 /**
  * StampBox クラス。
@@ -28,7 +26,7 @@ import org.apache.log4j.Level;
  */
 public class StampBoxPlugin extends AbstractMainTool {
     
-    private static final String NAME = "スタンプ箱";
+//    private static final String NAME = "スタンプ箱";
     
     // frameのデフォルトの大きさ及びタイトル
     private final int DEFAULT_WIDTH     = 320;
@@ -93,14 +91,19 @@ public class StampBoxPlugin extends AbstractMainTool {
     private List<IStampTreeModel> stampTreeModels;
     
     // Logger
-    private boolean DEBUG;
+    private static final boolean DEBUG=false;
+    private static final java.util.logging.Logger logger;
+    static {
+        logger = java.util.logging.Logger.getLogger(StampBoxPlugin.class.getName());
+        logger.setLevel(DEBUG ? java.util.logging.Level.FINE : java.util.logging.Level.INFO);
+    }
     
     /**
      * Creates new StampBoxPlugin
      */
     public StampBoxPlugin() {
+        String NAME = ClientContext.getMyBundle(StampBoxPlugin.class).getString("title.window");
         setName(NAME);
-        DEBUG = (ClientContext.getBootLogger().getLevel()==Level.DEBUG);
     }
     
     /**
@@ -182,23 +185,21 @@ public class StampBoxPlugin extends AbstractMainTool {
     public void start() {
         
         if (stampTreeModels == null) {
-            ClientContext.getBootLogger().fatal("StampTreeModel is null");
+            logger.severe("StampTreeModel is null");
             throw new RuntimeException("Fatal error: StampTreeModel is null at start.");
         }
         
         // StampBoxのJFrameを生成する
         String title = ClientContext.getFrameTitle(getName());
-        Rectangle setBounds = new Rectangle(0, 0, 1000, 690);
+        Rectangle placeBounds = new Rectangle(0, 0, 1024, 768);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int defaultX = (screenSize.width - setBounds.width) / 2;
-        int defaultY = (screenSize.height - setBounds.height) / 2;
-        int defaultWidth = setBounds.width;
-        int defaultHeight = setBounds.height;
-        setBounds = new Rectangle(defaultX, defaultY, defaultWidth, defaultHeight);
-        int x = (defaultX + defaultWidth) - DEFAULT_WIDTH;
-        int y = defaultY;
+
+        int x = (screenSize.width - placeBounds.width) / 2; // left edge
+        x = x + placeBounds.width - DEFAULT_WIDTH;
+        int y = (screenSize.height - DEFAULT_HEIGHT) / 2;
         int width = DEFAULT_WIDTH;
         int height = DEFAULT_HEIGHT;
+        
 //s.oh^ 2014/08/26 スタンプ箱の表示
         //frame = new JFrame(title);
         WindowSupport ws = WindowSupport.create(title);
@@ -224,22 +225,24 @@ public class StampBoxPlugin extends AbstractMainTool {
         parentBox = new JTabbedPane();
         parentBox.setTabPlacement(JTabbedPane.BOTTOM);
         
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampBoxPlugin.class);
+        
         // 読み込んだStampTreeをTabbedPaneに格納し、さらにそれをparentBoxに追加する
         for (IStampTreeModel model : stampTreeModels) {
             
             if (model != null) {
 
-                if (true) {
-                    ClientContext.getBootLogger().debug("id = " + model.getId());
-                    ClientContext.getBootLogger().debug("name = " + model.getName());
-                    ClientContext.getBootLogger().debug("publishType = " + model.getPublishType());
-                    ClientContext.getBootLogger().debug("category = " + model.getCategory());
-                    ClientContext.getBootLogger().debug("partyName = " + model.getPartyName());
-                    ClientContext.getBootLogger().debug("url = " + model.getUrl());
-                    ClientContext.getBootLogger().debug("description = " + model.getDescription());
-                    ClientContext.getBootLogger().debug("publishedDate = " + model.getPublishedDate());
-                    ClientContext.getBootLogger().debug("lastUpdated = " + model.getLastUpdated());
-                    ClientContext.getBootLogger().debug("userId = " + model.getUserModel());
+                if (DEBUG) {
+                    logger.log(java.util.logging.Level.FINE, "id = {0}", model.getId());
+                    logger.log(java.util.logging.Level.FINE, "name = {0}", model.getName());
+                    logger.log(java.util.logging.Level.FINE, "publishType = {0}", model.getPublishType());
+                    logger.log(java.util.logging.Level.FINE, "category = {0}", model.getCategory());
+                    logger.log(java.util.logging.Level.FINE, "partyName = {0}", model.getPartyName());
+                    logger.log(java.util.logging.Level.FINE, "url = {0}", model.getUrl());
+                    logger.log(java.util.logging.Level.FINE, "description = {0}", model.getDescription());
+                    logger.log(java.util.logging.Level.FINE, "publishedDate = {0}", model.getPublishedDate());
+                    logger.log(java.util.logging.Level.FINE, "lastUpdated = {0}", model.getLastUpdated());
+                    logger.log(java.util.logging.Level.FINE, "userId = {0}", model.getUserModel());
                 }
                 
                 // ユーザ個人用StampTreeの場合
@@ -255,7 +258,7 @@ public class StampBoxPlugin extends AbstractMainTool {
                     userBox.buildStampBox();
                     
                     // ParentBox に追加する
-                    parentBox.addTab(ClientContext.getString("stampTree.personal.box.name"), userBox);
+                    parentBox.addTab(bundle.getString("stampTree.personal.box.name"), userBox);
                     
                 } else if (model instanceof PublishedTreeModel) {
                     // インポートしているTreeの場合
@@ -282,65 +285,46 @@ public class StampBoxPlugin extends AbstractMainTool {
         userBox.addChangeListener(new TabChangeListener());
         
         // スタンプメーカを起動するためのボタンを生成する
-//minagawa^ Icon Server         
-        //toolBtn = new JToggleButton(ClientContext.getImageIcon("tools_24.gif"));
         toolBtn = new JToggleButton(ClientContext.getImageIconArias("icon_stamp_maker"));
-//minagawa$        
-        toolBtn.setToolTipText("スタンプメーカを起動します");
-        toolBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!editing) {
-                    startStampMake();
-                    editing = true;
-                } else {
-                    stopStampMake();
-                    editing = false;
-                }
+        String toolTipText = bundle.getString("toolTipText.launchStampMaker");
+        toolBtn.setToolTipText(toolTipText);
+        toolBtn.addActionListener((ActionEvent e) -> {
+            if (!editing) {
+                startStampMake();
+                editing = true;
+            } else {
+                stopStampMake();
+                editing = false;
             }
         });
         
         // スタンプ公開ボタンを生成する
-//minagawa^ Icon Server        
-        //publishBtn = new JButton(ClientContext.getImageIcon("exp_24.gif"));
-        publishBtn = new JButton(ClientContext.getImageIconArias("icon_stamp_publish"));
-//minagawa$        
-        publishBtn.setToolTipText("スタンプの公開を管理をします");
-        //publishBtn.addActionListener(new ReflectActionListener(this, "publishStamp"));
-        publishBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int modifiers = e.getModifiers();
-                if ((modifiers & MouseEvent.SHIFT_MASK) != 0) {
-                    // Shift Click で export
-                    UserStampBoxExportImporter ei = new UserStampBoxExportImporter(StampBoxPlugin.this);
-                    ei.exportUserStampBox();
-                } else {
-                    publishStamp();
-                }
+        publishBtn = new JButton(ClientContext.getImageIconArias("icon_stamp_publish"));      
+        toolTipText = bundle.getString("toolTipText.managePublishStamp");
+        publishBtn.setToolTipText(toolTipText);
+        publishBtn.addActionListener((ActionEvent e) -> {
+            int modifiers = e.getModifiers();
+            if ((modifiers & MouseEvent.SHIFT_MASK) != 0) {
+                // Shift Click で export
+                UserStampBoxExportImporter ei = new UserStampBoxExportImporter(StampBoxPlugin.this);
+                ei.exportUserStampBox();
+            } else {
+                publishStamp();
             }
         });
         
-        // インポートボタンを生成する
-//minagawa^ Icon Server        
-        //importBtn = new JButton(ClientContext.getImageIcon("impt_24.gif"));
+        // インポートボタンを生成する       
         importBtn = new JButton(ClientContext.getImageIconArias("icon_stamp_import"));
-//minagawa$        
-        importBtn.setToolTipText("スタンプのインポートを管理をします");
-        //importBtn.addActionListener(new ReflectActionListener(this, "importStamp"));
-        importBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int modifiers = e.getModifiers();
-                if ((modifiers & MouseEvent.SHIFT_MASK) != 0) {
-                    // Shift Click で import
-                    UserStampBoxExportImporter ei = new UserStampBoxExportImporter(StampBoxPlugin.this);
-                    ei.importUserStampBox();
-                } else {
-                    importStamp();
-                }
+        toolTipText = bundle.getString("toolTipText.manageImportStamp");
+        importBtn.setToolTipText(toolTipText);
+        importBtn.addActionListener((ActionEvent e) -> {
+            int modifiers = e.getModifiers();
+            if ((modifiers & MouseEvent.SHIFT_MASK) != 0) {
+                // Shift Click で import
+                UserStampBoxExportImporter ei = new UserStampBoxExportImporter(StampBoxPlugin.this);
+                ei.importUserStampBox();
+            } else {
+                importStamp();
             }
         });
         
@@ -381,7 +365,8 @@ public class StampBoxPlugin extends AbstractMainTool {
         index = ( index >= 0 && index <= (userBox.getTabCount() -1) ) ? index : 0;
         
         // ORCA タブが選択されていて ORCA に接続がない場合を避ける
-        index = index == IInfoModel.TAB_INDEX_ORCA ? 0 : index;
+        int test = (int)java.util.ResourceBundle.getBundle("open.dolphin.stampbox.StampBoxResource").getObject("TAB_INDEX_ORCA");
+        index = index == test ? 0 : index;
         userBox.setSelectedIndex(index);
         
         // ボタンをコントロールする
@@ -473,12 +458,8 @@ public class StampBoxPlugin extends AbstractMainTool {
             return;
         }
 
-        Runnable awt = new Runnable() {
-
-            @Override
-            public void run() {
-                createAndShowEditorSet();
-            }
+        Runnable awt = () -> {
+            createAndShowEditorSet();
         };
 
         SwingUtilities.invokeLater(awt);
@@ -512,9 +493,9 @@ public class StampBoxPlugin extends AbstractMainTool {
         // 全 Tree に edirorSet を treeSelectionListener として登録する
         //----------------------------------------------------------
         List<StampTree> allTrees = userBox.getAllTrees();
-        for (StampTree st : allTrees) {
+        allTrees.stream().forEach((st) -> {
             st.addTreeSelectionListener(editors);
-        }
+        });
 
         // Editorへ編集値を受けとるためのリスナを登録する
         editorValueListener = new EditorValueListener();
@@ -536,11 +517,11 @@ public class StampBoxPlugin extends AbstractMainTool {
         String name = this.getClass().getName();
         int locX = Project.getInt(name + ".stampmMaker.x", 0);
         int locY = Project.getInt(name + ".stampmMaker.y", 0);
-        int width = Project.getInt(name + ".stampmMaker.width", 0);
-        int height = Project.getInt(name + ".stampmMaker.height", 0);
+        //int width = Project.getInt(name + ".stampmMaker.width", 0);
+        //int height = Project.getInt(name + ".stampmMaker.height", 0);
 
-        width=0;
-        height=0;
+        int width=0;
+        int height=0;
 
         if (width == 0 || height == 0) {
             // センタリングする
@@ -558,7 +539,8 @@ public class StampBoxPlugin extends AbstractMainTool {
             editors.getCurrentEditor().getSearchTextField().requestFocusInWindow();
         }
         editing = true;
-        toolBtn.setToolTipText("スタンプメーカを終了します");
+        String toolTipText = ClientContext.getMyBundle(StampBoxPlugin.class).getString("toolTipText.quitStampMaker");
+        toolBtn.setToolTipText(toolTipText);
         publishBtn.setEnabled(false);
         importBtn.setEnabled(false);
     }
@@ -570,12 +552,8 @@ public class StampBoxPlugin extends AbstractMainTool {
             return;
         }
 
-        Runnable awt = new Runnable() {
-
-            @Override
-            public void run() {
-                disposeEditorSet();
-            }
+        Runnable awt = () -> {
+            disposeEditorSet();
         };
 
         SwingUtilities.invokeLater(awt);
@@ -597,9 +575,9 @@ public class StampBoxPlugin extends AbstractMainTool {
         editors.close();
         editors.removePropertyChangeListener(EditorSetPanel.EDITOR_VALUE_PROP, editorValueListener);
         List<StampTree> allTrees = userBox.getAllTrees();
-        for (StampTree st : allTrees) {
+        allTrees.stream().forEach((st) -> {
             st.removeTreeSelectionListener(editors);
-        }
+        });
         
         content.removeAll();
         content.add(stampBoxPanel, BorderLayout.CENTER);
@@ -611,7 +589,8 @@ public class StampBoxPlugin extends AbstractMainTool {
         frame.setLocation(stampBoxLoc);
         frame.setSize(new Dimension(stampBoxWidth, stampBoxHeight));
         editing = false;
-        toolBtn.setToolTipText("スタンプメーカを起動します");
+        String toolTipText = ClientContext.getMyBundle(StampBoxPlugin.class).getString("toolTipText.launchStampMaker");
+        toolBtn.setToolTipText(toolTipText);
         publishBtn.setEnabled(true);
         importBtn.setEnabled(true);
         
@@ -688,9 +667,9 @@ public class StampBoxPlugin extends AbstractMainTool {
         
         // インポートリストに追加する
         if (importedTreeList == null) {
-            importedTreeList = new ArrayList<Long>(5);
+            importedTreeList = new ArrayList<>(5);
         }
-        importedTreeList.add(new Long(importTree.getId()));
+        importedTreeList.add(importTree.getId());
     }
     
     /**
@@ -702,7 +681,7 @@ public class StampBoxPlugin extends AbstractMainTool {
         if (importedTreeList != null) {
             for (int i = 0; i < importedTreeList.size(); i++) {
                 Long id = importedTreeList.get(i);
-                if (id.longValue() == removeId) {
+                if (id == removeId) {
                     parentBox.removeTabAt(i+IMPORT_TREE_OFFSET);
                     importedTreeList.remove(i);
                     break;
@@ -750,7 +729,7 @@ public class StampBoxPlugin extends AbstractMainTool {
             if (tree.getTreeInfo().getEntity().equals(IInfoModel.ENTITY_ORCA)) {
                 list.remove(tree);
                 if (DEBUG) {
-                    ClientContext.getBootLogger().debug("ORCAセットを除きました");
+                    logger.fine("Remove the ORCA set");
                 }
                 break;
             }
@@ -793,8 +772,9 @@ public class StampBoxPlugin extends AbstractMainTool {
     
     /**
      * 引数のカテゴリに対応するTreeを返す。
-     * @param category Treeのカテゴリ
-     * @return カテゴリにマッチするStampTree
+     * @param entity
+     * @return 
+     * @par  * @return カテゴリにマッチするStampTree
      */
     public StampTree getStampTree(String entity) {
         return getCurrentBox().getStampTree(entity);
@@ -827,7 +807,7 @@ public class StampBoxPlugin extends AbstractMainTool {
     public List<StampTree> getAllAllPTrees() {
         
         int cnt = parentBox.getTabCount();
-        ArrayList<StampTree> ret = new ArrayList<StampTree>();
+        ArrayList<StampTree> ret = new ArrayList<>();
         
         for (int i = 0; i < cnt; i++) {
             AbstractStampBox stb = (AbstractStampBox) parentBox.getComponentAt(i);

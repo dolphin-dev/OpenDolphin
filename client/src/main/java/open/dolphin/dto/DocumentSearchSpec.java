@@ -5,7 +5,6 @@ import java.util.Date;
 /**
  * DocumentSearchSpec
  * 
- * 
  * @author Minagawa,Kazushi
  */
 public class DocumentSearchSpec extends DolphinDTO {

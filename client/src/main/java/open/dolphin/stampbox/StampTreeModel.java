@@ -14,6 +14,7 @@ public class StampTreeModel extends DefaultTreeModel {
 
     /**
      * デフォルトコンストラクタ
+     * @param node
      */
     public StampTreeModel(TreeNode node) {
         super(node);
@@ -21,6 +22,8 @@ public class StampTreeModel extends DefaultTreeModel {
 
     /**
      * ノード名の変更をインターセプトして処理する
+     * @param path
+     * @param newValue
      */
     @Override
     public void valueForPathChanged(TreePath path, Object newValue) {

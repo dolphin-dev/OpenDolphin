@@ -52,22 +52,23 @@ public class NLabTestImportView extends javax.swing.JPanel {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        table.setToolTipText("検査結果をこのテーブルに Drag & Drop することもできます。"); // NOI18N
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/impl/labrcv/resources/NLabTestImportView"); // NOI18N
+        table.setToolTipText(bundle.getString("table.tooTipText")); // NOI18N
         jScrollPane1.setViewportView(table);
 
         countLbl.setFont(new java.awt.Font("Lucida Grande", 0, 12)); // NOI18N
-        countLbl.setText("0件"); // NOI18N
+        countLbl.setText(bundle.getString("countLbl.text")); // NOI18N
 
-        fileBtn.setText("検査結果ファイル選択"); // NOI18N
-        fileBtn.setToolTipText("ラボから送られてきた検査結果ファイルを選択します。"); // NOI18N
+        fileBtn.setText(bundle.getString("fileBtn.text")); // NOI18N
+        fileBtn.setToolTipText(bundle.getString("fileBtn.toolTipText")); // NOI18N
 
         jLabel1.setText("->"); // NOI18N
 
-        addBtn.setText("登録"); // NOI18N
-        addBtn.setToolTipText("テーブルに表示されている検査結果をデータベースへ登録します。"); // NOI18N
+        addBtn.setText(bundle.getString("addBtn.text")); // NOI18N
+        addBtn.setToolTipText(bundle.getString("addBtn.toolTipText")); // NOI18N
 
-        clearBtn.setText("クリア"); // NOI18N
-        clearBtn.setToolTipText("登録後はクリアしてください。"); // NOI18N
+        clearBtn.setText(bundle.getString("clearBtn.text")); // NOI18N
+        clearBtn.setToolTipText(bundle.getString("clearBtn.tooTipText")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -82,7 +83,7 @@ public class NLabTestImportView extends javax.swing.JPanel {
                 .addComponent(addBtn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(clearBtn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 96, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 176, Short.MAX_VALUE)
                 .addComponent(countLbl, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(23, 23, 23))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()

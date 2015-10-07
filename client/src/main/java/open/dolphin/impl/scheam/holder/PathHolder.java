@@ -68,6 +68,7 @@ public class PathHolder implements DrawingHolder {
         this.ac = ac;
     }
     
+    @Override
     public boolean contains(Point p) {
         PathIterator iter = path.getPathIterator(null);
         double[] coords = new double[6];
@@ -89,6 +90,7 @@ public class PathHolder implements DrawingHolder {
         return false;
     }
     
+    @Override
     public void draw(Graphics2D g2d) {
                 
         g2d.setComposite(ac);
@@ -98,16 +100,19 @@ public class PathHolder implements DrawingHolder {
         g2d.draw(path);
     }
     
+    @Override
     public void translate(double x, double y) {
         AffineTransform trans = AffineTransform.getTranslateInstance(x, y);
         path.transform(trans);
     }
     
+    @Override
     public void rotate(double theta) {
         AffineTransform rotate = AffineTransform.getRotateInstance(theta);
         path.transform(rotate);
     }
 
+    @Override
     public void expand(double sx, double sy) {
         // stroke の拡大
         BasicStroke s = (BasicStroke) stroke;

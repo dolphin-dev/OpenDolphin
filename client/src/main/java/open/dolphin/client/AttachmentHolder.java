@@ -20,7 +20,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.text.Position;
 import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.infomodel.AttachmentModel;
-import open.dolphin.util.Log;
 
 /**
  * AttachmentModelをkartePaneに表示するホルダークラス。
@@ -29,8 +28,8 @@ import open.dolphin.util.Log;
  */
 public class AttachmentHolder extends AbstractComponentHolder implements ComponentHolder {
     
-    private AttachmentModel attachment;
-    private KartePane kartePane;
+    private final AttachmentModel attachment;
+    private final KartePane kartePane;
     private Position start;
     private Position end;
     private boolean selected;
@@ -70,12 +69,6 @@ public class AttachmentHolder extends AbstractComponentHolder implements Compone
             // Contentを表示する
             byte[] data = attachment.getBytes();
             ByteBuffer buf = ByteBuffer.wrap(data);
-            
-            //File out = new File(ClientContext.getTempDirectory(), attachment.getUri());
-            
-            String name = attachment.getFileName();
-            int index = name.indexOf(attachment.getExtension());
-            name = name.substring(0, index);
             File tmpDir = new File(ClientContext.getTempDirectory());
 //s.oh^ jdk7
             //File out = File.createTempFile(name, "."+attachment.getExtension(), tmpDir);
@@ -85,9 +78,9 @@ public class AttachmentHolder extends AbstractComponentHolder implements Compone
             out.deleteOnExit();
             
             outputFile = new FileOutputStream(out);
-            FileChannel outChannel = outputFile.getChannel();
-            outChannel.write(buf);
-            outChannel.close();
+            try (FileChannel outChannel = outputFile.getChannel()) {
+                outChannel.write(buf);
+            }
             
             // 表示
             URI uri = out.toURI();
@@ -109,11 +102,13 @@ public class AttachmentHolder extends AbstractComponentHolder implements Compone
             popup.add(mediator.getAction(GUIConst.ACTION_PASTE));
             popup.addSeparator();
             
+            java.util.ResourceBundle bundle = ClientContext.getMyBundle(AttachmentHolder.class);
+            
             // タイトル編集
-            AbstractAction titleAction = new AbstractAction("タイトル編集") {
+            String actionText = bundle.getString("actionText.reviseTitle");
+            AbstractAction titleAction = new AbstractAction(actionText) {
                 @Override
                 public void actionPerformed(ActionEvent ae) {
-                    Log.outputOperLogDlg(kartePane.getParent(), Log.LOG_LEVEL_0, "タイトル編集");
                     changeTitle();
                 }
             };
@@ -122,10 +117,10 @@ public class AttachmentHolder extends AbstractComponentHolder implements Compone
             popup.addSeparator();
             
             // 表示
-            AbstractAction action = new AbstractAction("開く") {
+            actionText = bundle.getString("actionText.open");
+            AbstractAction action = new AbstractAction(actionText) {
                 @Override
                 public void actionPerformed(ActionEvent ae) {
-                    Log.outputOperLogDlg(kartePane.getParent(), Log.LOG_LEVEL_0, "開く");
                     edit();
                 }
             };
@@ -135,7 +130,8 @@ public class AttachmentHolder extends AbstractComponentHolder implements Compone
     }
     
     private void changeTitle() {
-        String title = JOptionPane.showInputDialog(this, "タイトル", attachment.getTitle());
+        String input = ClientContext.getMyBundle(AttachmentHolder.class).getString("inputText.title");
+        String title = JOptionPane.showInputDialog(this, input, attachment.getTitle());
         if (!title.trim().equals("")) {
             attachment.setTitle(title);
             this.setText(constractText(attachment));
@@ -165,7 +161,7 @@ public class AttachmentHolder extends AbstractComponentHolder implements Compone
         this.selected = b;
         if (old != this.selected) {
             if (this.selected) {
-                this.setBorder(BorderFactory.createLineBorder(SELECTED_BORDER));
+                this.setBorder(BorderFactory.createLineBorder(GUIConst.STAMP_HOLDER_SELECTED_BORDER));
             } else {
                 this.setBorder(BorderFactory.createLineBorder(kartePane.getTextPane().getBackground()));
             }

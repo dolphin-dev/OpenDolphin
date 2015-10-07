@@ -5,6 +5,7 @@ import com.lowagie.text.Phrase;
 import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfPCell;
 import java.util.Date;
+import open.dolphin.client.ClientContext;
 import open.dolphin.infomodel.LetterModule;
 import open.dolphin.infomodel.ModelUtils;
 
@@ -18,8 +19,8 @@ public abstract class AbstractLetterPDFMaker {
     protected static final String HEISEI_MIN_W3 = "HeiseiMin-W3";
     protected static final String UNIJIS_UCS2_HW_H = "UniJIS-UCS2-HW-H";
     
-    protected static final String ERROR_IO = "ファイル IO エラー";
-    protected static final String ERROR_PDF = "PDF 生成エラー";
+    protected static final String ERROR_IO = java.util.ResourceBundle.getBundle("open/dolphin/letter/resources/AbstractLetterPDFMaker").getString("errorText.fileIO");
+    protected static final String ERROR_PDF = java.util.ResourceBundle.getBundle("open/dolphin/letter/resources/AbstractLetterPDFMaker").getString("errorText.createPDF");
 
     protected static final int TOP_MARGIN = 50;  //75;
     protected static final int LEFT_MARGIN = 50;    //75;
@@ -50,12 +51,12 @@ public abstract class AbstractLetterPDFMaker {
     
         
     protected String getDateString(Date d) {
-        return ModelUtils.getDateAsFormatString(d, "yyyy年M月d日");
+        return ModelUtils.getDateAsFormatString(d, ClientContext.getMyBundle(AbstractLetterPDFMaker.class).getString("dateFormat.simple"));
     }
 
     protected String getDateString(String date) {
         Date d = ModelUtils.getDateAsObject(date);
-        return ModelUtils.getDateAsFormatString(d, "yyyy年M月d日");
+        return ModelUtils.getDateAsFormatString(d, ClientContext.getMyBundle(AbstractLetterPDFMaker.class).getString("dateFormat.simple"));
     }
     
     protected PdfPCell createNoBorderCell(String text) {

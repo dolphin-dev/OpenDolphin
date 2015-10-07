@@ -70,7 +70,7 @@ public final class FalcoSender implements IKarteSender {
             return;
         }
 
-        sendList = new ArrayList<BundleDolphin>();
+        sendList = new ArrayList<>();
         for (ModuleModel module : modules) {
 //s.oh^ 2014/10/07 検体検査オーダー条件変更
             //ModuleInfoBean info = module.getModuleInfoBean();

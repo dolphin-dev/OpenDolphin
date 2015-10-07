@@ -17,10 +17,12 @@ import javax.swing.text.Position;
 import open.dolphin.infomodel.*;
 import open.dolphin.order.StampEditor;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 import open.dolphin.util.ZenkakuUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.apache.velocity.exception.MethodInvocationException;
+import org.apache.velocity.exception.ParseErrorException;
+import org.apache.velocity.exception.ResourceNotFoundException;
 
 /**
  * KartePane に Component　として挿入されるスタンプを保持スルクラス。
@@ -45,13 +47,13 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
     
     private ModuleModel stamp;
     private StampRenderingHints hints;
-    private KartePane kartePane;
+    private final KartePane kartePane;
     private Position start;
     private Position end;
     private boolean selected;
     
-    private Color foreGround = FOREGROUND;
-    private Color background = BACKGROUND;
+    private final Color foreGround = FOREGROUND;
+    private final Color background = BACKGROUND;
     
 ////s.oh^ 2014/09/30 スタンプの色変更
 //    private static final Color STAMP_1 = new Color(255, 255, 153);
@@ -64,16 +66,15 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
 //    private static final Color STAMP_8 = new Color(255, 204, 153);
 ////s.oh$
     
-    /** Creates new StampHolder2 */
+    /** Creates new StampHolder2
+     * @param kartePane
+     * @param stamp */
     public StampHolder(KartePane kartePane, ModuleModel stamp) {
         super();
         this.kartePane = kartePane;
-//minagawa^ LSC Test        
-        //setHints(new StampRenderingHints());
         StampRenderingHints h = new StampRenderingHints();
         h.setShowStampName(Project.getBoolean("karte.show.stampName"));
-        setHints(h);
-//minagawa$        
+        setHints(h);      
         setForeground(foreGround);
         setBackground(background);
 //masuda^        
@@ -118,6 +119,7 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
     
     /**
      * Popupメニューを表示する。
+     * @param e
      */
     @Override
     public void mabeShowPopup(MouseEvent e) {
@@ -132,7 +134,9 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
 //s.oh$
             
             // copyAsText
-            AbstractAction copyAsTextAction = new AbstractAction("テキストとしてコピー") {
+            java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampHolder.class);
+            String actionText = bundle.getString("actionText.copyAsText");
+            AbstractAction copyAsTextAction = new AbstractAction(actionText) {
                 @Override
                 public void actionPerformed(ActionEvent ae) {
                     IInfoModel im = stamp.getModel();
@@ -148,7 +152,8 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
 //s.oh^ 2014/01/27 スタンプのテキストコピー機能拡張
             if(Project.getBoolean("stamp.text.copy.patid")) {
                 // copyAsTextAndPatID
-                AbstractAction copyAsTextAndOtherAction = new AbstractAction("テキストとしてコピー(患者ID含む)") {
+                actionText = bundle.getString("actionText.copyAsTextWithPatientId");
+                AbstractAction copyAsTextAndOtherAction = new AbstractAction(actionText) {
                     @Override
                     public void actionPerformed(ActionEvent ae) {
                         IInfoModel im = stamp.getModel();
@@ -171,11 +176,12 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
             popup.add(mediator.getAction(GUIConst.ACTION_PASTE));
             
             // 編集可の時のみ
+            actionText = bundle.getString("actionText.edit");
             if (kartePane.getTextPane().isEditable()) {
                 popup.addSeparator();
 
                 // 右クリックで編集
-                AbstractAction editAction = new AbstractAction("編集") {
+                AbstractAction editAction = new AbstractAction(actionText) {
                     @Override
                     public void actionPerformed(ActionEvent ae) {
                         edit();
@@ -189,7 +195,8 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
     }
     
     /**
-     * このスタンプホルダのKartePaneを返す。
+     * このスタンプホルダの
+     * @return KartePaneを返す。
      */
     @Override
     public KartePane getKartePane() {
@@ -198,6 +205,7 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
     
     /**
      * スタンプホルダのコンテントタイプを返す。
+     * @return 
      */
     @Override
     public int getContentType() {
@@ -225,6 +233,7 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
     
     /**
      * Itemを追加しtextを再描画する
+     * @param items
      */
     public void addItems(ClaimItem[] items) {
         if (stamp!=null && items!=null) {
@@ -286,6 +295,7 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
     
     /**
      * エディタで編集した値を受け取り内容を表示する。
+     * @param e
      */
     @Override
     public void propertyChange(PropertyChangeEvent e) {
@@ -356,6 +366,8 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
     
     /**
      * TextPane内での開始と終了ポジションを保存する。
+     * @param start
+     * @param end
      */
     @Override
     public void setEntry(Position start, Position end) {
@@ -365,6 +377,7 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
     
     /**
      * 開始ポジションを返す。
+     * @return 
      */
     @Override
     public int getStartPos() {
@@ -373,6 +386,7 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
     
     /**
      * 終了ポジションを返す。
+     * @return 
      */
     @Override
     public int getEndPos() {
@@ -388,14 +402,6 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
             return;
         }
         
-//        String clsName = getStamp().getModel().getClass().getName();
-//        System.err.println(clsName);
-//        if (clsName.equals("open.dolphin.infomodel.ProgressCourse")) {
-//            ProgressCourse pc = (ProgressCourse)getStamp().getModel();
-//            System.err.println(pc.getFreeText());
-//            return;
-//        }
-        
         try {
             IInfoModel model = getStamp().getModel();
             VelocityContext context = ClientContext.getVelocityContext();
@@ -404,7 +410,7 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
             context.put(KEY_STAMP_NAME, getStamp().getModuleInfoBean().getStampName());
             
 //s.oh^ 2014/02/03 撮影分割数対応
-            Map<String, String> items = new HashMap<String, String>();
+            Map<String, String> items = new HashMap<>();
             if(((BundleDolphin)model).getClaimItem() != null) {
                 for(ClaimItem item : ((BundleDolphin)model).getClaimItem()) {
                     if(item.getCode().startsWith("7") && item.getNumber().indexOf("-") > 0) {
@@ -428,12 +434,13 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
             
             // Merge する
             StringWriter sw = new StringWriter();
-            BufferedWriter bw = new BufferedWriter(sw);
-            InputStream instream = ClientContext.getTemplateAsStream(templateFile);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(instream, KEY_ENCODING));
-            Velocity.evaluate(context, bw, KEY_STAMP_HOLDER, reader);
-            bw.flush();
-            bw.close();
+            BufferedReader reader;
+            try (BufferedWriter bw = new BufferedWriter(sw)) {
+                InputStream instream = ClientContext.getTemplateAsStream(templateFile);
+                reader = new BufferedReader(new InputStreamReader(instream, KEY_ENCODING));
+                Velocity.evaluate(context, bw, KEY_STAMP_HOLDER, reader);
+                bw.flush();
+            }
             reader.close();
             
             // 全角数字とスペースを直す
@@ -456,9 +463,8 @@ public final class StampHolder extends AbstractComponentHolder implements Compon
             }
 //s.oh$
             
-        } catch (Exception e) {
+        } catch (ParseErrorException | MethodInvocationException | ResourceNotFoundException | IOException e) {
             //e.printStackTrace(System.err);
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, e.toString());
         }
     }
 }

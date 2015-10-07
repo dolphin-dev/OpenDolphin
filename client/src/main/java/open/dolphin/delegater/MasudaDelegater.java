@@ -15,8 +15,6 @@ public class MasudaDelegater extends BusinessDelegater {
     
     //private static final String RES_BASE = "masuda";
     private static final String RES_BASE = "/karte";
-
-    private static final boolean debug = false;
     private static final MasudaDelegater instance;
 
     static {
@@ -712,11 +710,4 @@ public class MasudaDelegater extends BusinessDelegater {
 //        
 //        return list;
 //    }
-    
-    @Override
-    protected void debug(int status, String entity) {
-        if (debug || DEBUG) {
-            super.debug(status, entity);
-        }
-    }
 }

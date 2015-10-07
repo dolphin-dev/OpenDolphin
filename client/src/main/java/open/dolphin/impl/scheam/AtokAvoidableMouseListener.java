@@ -12,24 +12,27 @@ import java.awt.event.MouseMotionListener;
  */
 public class AtokAvoidableMouseListener implements MouseListener, MouseMotionListener {
     
-    private StateMgr stateMgr;
+    private final StateMgr stateMgr;
     private boolean pressed = false;
 
     public AtokAvoidableMouseListener(StateMgr stateMgr) {
         this.stateMgr = stateMgr;
     }
 
+    @Override
     public void mouseClicked(MouseEvent e) {
         stateMgr.setMouseEvent(e);
         stateMgr.mouseClicked(e);
     }
     
+    @Override
     public void mousePressed(MouseEvent e) {
         pressed = true;
         stateMgr.setMouseEvent(e);
         stateMgr.mouseDown(e.getPoint());
     }
     
+    @Override
     public void mouseReleased(MouseEvent e) {
         // mousePressed されないで released された
         if (!pressed) {
@@ -41,10 +44,13 @@ public class AtokAvoidableMouseListener implements MouseListener, MouseMotionLis
         stateMgr.mouseUp(e.getPoint());
     }
     
+    @Override
     public void mouseEntered(MouseEvent e) {}
 
+    @Override
     public void mouseExited(MouseEvent e) {}
 
+    @Override
     public void mouseDragged(MouseEvent e) {
         // mousePressed されないで drag された
         if (!pressed) {
@@ -53,5 +59,6 @@ public class AtokAvoidableMouseListener implements MouseListener, MouseMotionLis
         stateMgr.mouseDragged(e.getPoint());
     }
     
+    @Override
     public void mouseMoved(MouseEvent e) {}
 }

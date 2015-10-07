@@ -24,7 +24,7 @@ public class ExtendedStampTreeDirector {
     private final int TT_STAMP_TREE = 3;
     private final int TT_STAMP_BOX  = 4;
 
-    private ExtendedStampTreeBuilder builder;
+    private final ExtendedStampTreeBuilder builder;
 
     // Creates new ExtendedStampTreeDirector
     public ExtendedStampTreeDirector(ExtendedStampTreeBuilder builder) {

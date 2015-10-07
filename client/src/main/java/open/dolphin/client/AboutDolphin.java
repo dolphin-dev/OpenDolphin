@@ -5,12 +5,11 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.project.Project;
-import open.dolphin.table.OddEvenRowRenderer;
+import open.dolphin.table.StripeTableCellRenderer;
 
 /**
  *
@@ -18,27 +17,33 @@ import open.dolphin.table.OddEvenRowRenderer;
  */
 public final class AboutDolphin  {
     
-    private UserModel user;
-    private String[] copyrights;
+    private final UserModel user;
+    private final String[] copyrights;
     private JDialog dialog;
+    private final String[] rowItems;
+    private final String textRunning;
+    private final String textUnderStop;
     
     public AboutDolphin() {
         this.user = Project.getUserModel();
-        String line = ClientContext.getString("copyrightString");
-        copyrights = line.split(",");
+        copyrights = ClientContext.getString("copyrightString").split(",");
+        
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(AboutDolphin.class);
+        rowItems = bundle.getString("rowItems.table").split(",");
+        
+        textRunning = bundle.getString("text.running");
+        textUnderStop = bundle.getString("text.underStop");
     }
     
     public void start() {
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                createAndShowGUI();
-            }
+        SwingUtilities.invokeLater(() -> {
+            createAndShowGUI();
         });
     }
     
     private void createAndShowGUI() {
+        
+        final java.util.ResourceBundle bundle = ClientContext.getMyBundle(AboutDolphin.class);
         
         AbstractTableModel model = new AbstractTableModel() {
 
@@ -61,146 +66,149 @@ public final class AboutDolphin  {
                 switch (row) {
                     
                     case 0:
-                        ret = col==0 ? "製品名" : ClientContext.getString("productString");
+                        ret = col==0 ? rowItems[0] : ClientContext.getString("productString");
                         break;
                     
                     case 1:
-                        ret = col==0 ? "バージョン" : ClientContext.getVersion();
+                        ret = col==0 ? rowItems[1] : ClientContext.getVersion();
                         break;
                         
                     case 2:
-                        ret = col==0 ? "ライセンス" : ClientContext.getString("softwareLicense");
+                        ret = col==0 ? rowItems[2] : ClientContext.getString("softwareLicense");
                         break;     
                         
                     case 3:
-                        ret = col==0 ? "著作権" : copyrights[0];
+                        ret = col==0 ? rowItems[3] : copyrights[0];
                         break;
                         
                     case 4:
-                        ret = col==0 ? "" : copyrights[1];
+                        ret = col==0 ? rowItems[4] : copyrights[1];
                         break;
                         
                     case 5:
-                        ret = col==0 ? "テクノロジー" : ClientContext.getString("technologies.used");
+                        ret = col==0 ? rowItems[5] : ClientContext.getString("technologies.used");
                         break;
                         
                     case 6:
-                        ret = col==0 ? "ソースコード使用謝辞" : "元町皮ふ科（札幌） 増田内科（和歌山市） 新宿ヒロクリニック";
+                        ret = col==0 ? rowItems[6] : bundle.getString("names.contributers");
                         break;    
                         
                     case 7:
-                        ret = col==0 ? "サポートURL" : ClientContext.getString("url.support");
+                        ret = col==0 ? rowItems[7] : ClientContext.getString("url.support");
                         break;     
                         
                     case 8:
-                        ret = col==0 ? "医療機関ID" : user.getFacilityModel().getFacilityId();
+                        ret = col==0 ? rowItems[8] : user.getFacilityModel().getFacilityId();
                         break;
                         
                     case 9:
-                        ret = col==0 ? "ログインユーザー" : Project.getUserId();
+                        ret = col==0 ? rowItems[9] : Project.getUserId();
                         break;
                         
                     case 10:
-                        ret = col==0 ? "氏　名" : user.getCommonName();
+                        ret = col==0 ? rowItems[10] : user.getCommonName();
                         break; 
                         
                    case 11:
-                        ret = col==0 ? "医療資格" : user.getLicenseModel().getLicenseDesc();
+                        ret = col==0 ? rowItems[11] : user.getLicenseModel().getLicenseDesc();
                         break; 
                        
                    case 12:
-                        ret = col==0 ? "麻薬施用者免許番号" : user.getUseDrugId();
+                        ret = col==0 ? rowItems[12] : user.getUseDrugId();
                         break;     
                         
                     case 13:
                         if (col==0) {
-                            ret = "電子カルテサーバー";
+                            ret = rowItems[13];
                         } else {
-                            if (ClientContext.is5mTest()) {
-                                ret = "test.open.dolphin.pro";
-                            } else if (ClientContext.isOpenDolphin()) {
-                                ret = "cloud.open.dolphin";
-                            } else if (ClientContext.isDolphinPro()) {
-                                String val = Project.getBaseURI();
-                                int index = val.lastIndexOf("/open");
-                                ret = val.substring(0, index);
-                            } else {
-                                ret = "";
-                            }
+//                            if (ClientContext.is5mTest()) {
+//                                ret = "test.open.dolphin.pro";
+//                            } else if (ClientContext.isOpenDolphin()) {
+//                                ret = "cloud.open.dolphin";
+//                            } else if (ClientContext.isDolphinPro()) {
+//                                String val = Project.getBaseURI();
+//                                int index = val.lastIndexOf("/open");
+//                                ret = val.substring(0, index);
+//                            } else {
+//                                ret = "";
+//                            }
+                           ret = Project.getServer();
                         }
                         break;
                         
                     case 14:
                         if (col==0) {
-                            ret = "MML出力";
+                            ret = rowItems[14];
                             
                         } else {
                             if (Project.getBoolean(GUIConst.SEND_MML_IS_RUNNING)) {
                                 StringBuilder sb = new StringBuilder();
-                                sb.append("起動中 ").append(Project.getString(Project.SEND_MML_DIRECTORY));
+                                sb.append(textRunning).append(" ").append(Project.getString(Project.SEND_MML_DIRECTORY));
                                 ret = sb.toString();
                             } else {
-                                ret = "停止中";
+                                ret = textUnderStop;
                             }
                         }
                         break;
                         
                    case 15:
                         if (col==0) {
-                            ret = "カルテPDF出力";
+                            ret = rowItems[15];
                             
                         } else {
                             if (Project.getBoolean(Project.KARTE_PDF_SEND_AT_SAVE)) {
                                 StringBuilder sb = new StringBuilder();
-                                sb.append("起動中 ").append(Project.getString(Project.KARTE_PDF_SEND_DIRECTORY));
+                                sb.append(textRunning).append(" ").append(Project.getString(Project.KARTE_PDF_SEND_DIRECTORY));
                                 ret = sb.toString();
                             } else {
-                                ret = "停止中";
+                                ret = textUnderStop;
                             }
                         }
                         break;     
                         
                     case 16:
                         if (col==0) {
-                            ret = "受付リレー";
+                            ret = rowItems[16];
                             
                         } else {
                             if (Project.getBoolean(GUIConst.PVT_RELAY_IS_RUNNING)) {
                                 StringBuilder sb = new StringBuilder();
-                                sb.append("起動中 ").append(Project.getString(Project.PVT_RELAY_DIRECTORY));
+                                sb.append(textRunning).append(" ").append(Project.getString(Project.PVT_RELAY_DIRECTORY));
                                 sb.append(" ").append(Project.getString(Project.PVT_RELAY_ENCODING));
                                 ret = sb.toString();
                             } else {
-                                ret = "停止中";
+                                ret = textUnderStop;
                             }
                         }
                         break;
                         
                     case 17:
                         if (col==0) {
-                            ret = "ORCAとの接続";
+                            ret = rowItems[17];
                         } else {
-                            ret = Project.claimSenderIsClient() ? "クライアント" : "サーバー";
+                            String clientText = bundle.getString("text.client");
+                            String serverText = bundle.getString("text.server");
+                            ret = Project.claimSenderIsClient() ? clientText : serverText;
                         }
                         break;
 
                     case 18:
-                        ret = col==0 ? "保険医療機関コード" : Project.getBasicInfo();
+                        ret = col==0 ? rowItems[18] : Project.getBasicInfo();
                         break;      
                         
                    case 19:
-                        ret = col==0 ? "JMARI コード" : Project.getString(Project.JMARI_CODE);
+                        ret = col==0 ? rowItems[19] : Project.getString(Project.JMARI_CODE);
                         break;
                        
                    case 20:
-                        ret = col==0 ? "ORCA ユーザーID" : user.getOrcaId();
+                        ret = col==0 ? rowItems[20] : user.getOrcaId();
                         break;    
                        
                   // 以降はClient-ORCA接続の時     
                         
                    case 21:
                         if (col==0) {
-                            ret = "ORCA サーバ";
+                            ret = rowItems[21];
                         }
                         else {
                             String test = Project.getString(Project.CLAIM_ADDRESS);
@@ -210,16 +218,16 @@ public final class AboutDolphin  {
                           
                    case 22:
                         if (col==0) {
-                            ret = "CLAIM 送信";
+                            ret = rowItems[22];
                         }
                         else {
-                            ret = Project.getBoolean(GUIConst.SEND_CLAIM_IS_RUNNING) ? "起動中" : "停止中";
+                            ret = Project.getBoolean(GUIConst.SEND_CLAIM_IS_RUNNING) ? textRunning : textUnderStop;
                         }
                         break;
                        
                    case 23:
                         if (col==0) {
-                            ret = "送信ポート";
+                            ret = rowItems[23];
                         } else {
                             ret = Project.getString(Project.CLAIM_PORT);
                         }
@@ -227,16 +235,16 @@ public final class AboutDolphin  {
                        
                    case 24:
                         if (col==0) {
-                            ret = "受付受信";
+                            ret = rowItems[24];
                         }
                         else {
-                            ret = (Project.getBoolean(GUIConst.PVT_SERVER_IS_RUNNING)) ? "起動中" : "停止中";
+                            ret = (Project.getBoolean(GUIConst.PVT_SERVER_IS_RUNNING)) ? textRunning : textUnderStop;
                         }
                         break;
                        
                     case 25:
                         if (col==0) {
-                            ret = "受付バインドアドレス";
+                            ret = rowItems[25];
                         } else {
                             String test = Project.getString(Project.CLAIM_BIND_ADDRESS);
                             ret = test!=null ? test : null;
@@ -244,7 +252,7 @@ public final class AboutDolphin  {
                         break;
                         
                    case 26:
-                        ret = col==0 ? "受付ポート" : "5002";
+                        ret = col==0 ? rowItems[26] : "5002";
                         break;    
                 }
                 
@@ -256,29 +264,32 @@ public final class AboutDolphin  {
         table.setRowSelectionAllowed(false);
         table.setCellSelectionEnabled(false);
         table.setFocusable(false);
-        table.setIntercellSpacing(new Dimension(5,5));
-        table.setRowHeight(ClientContext.getMoreHigherRowHeight());
+        //table.setIntercellSpacing(new Dimension(5,5));
+        //table.setRowHeight(ClientContext.getMoreHigherRowHeight());
         
-        OddEvenRowRenderer c0r = new OddEvenRowRenderer();
+        StripeTableCellRenderer c0r = new StripeTableCellRenderer();
         c0r.setHorizontalAlignment(SwingConstants.RIGHT);
-        OddEvenRowRenderer c1r = new OddEvenRowRenderer();
+        c0r.setTable(table);
+        StripeTableCellRenderer c1r = new StripeTableCellRenderer();
         c1r.setHorizontalAlignment(SwingConstants.LEFT);
+        c1r.setTable(table);
 
         table.getColumnModel().getColumn(0).setCellRenderer(c0r);
         table.getColumnModel().getColumn(1).setCellRenderer(c1r);
         table.getColumnModel().getColumn(0).setPreferredWidth(150);
         table.getColumnModel().getColumn(1).setPreferredWidth(450);
         
+        // StripeTableCellRendererの場合はsetTable以降で行う
+        table.setIntercellSpacing(new Dimension(7,7));
+        table.setRowHeight(ClientContext.getMoreHigherRowHeight());
+        
         table.setBorder(BorderFactory.createEtchedBorder());
         
-        JButton done = new JButton("閉じる");
-        done.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                dialog.setVisible(false);
-                dialog.dispose();
-            }
+        String actionText = bundle.getString("actionText.close");
+        JButton done = new JButton(actionText);
+        done.addActionListener((ActionEvent ae) -> {
+            dialog.setVisible(false);
+            dialog.dispose();
         });
         
         JPanel btnPanel = new JPanel();

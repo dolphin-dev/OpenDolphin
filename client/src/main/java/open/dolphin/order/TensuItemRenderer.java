@@ -21,8 +21,8 @@ public final class TensuItemRenderer extends JLabel implements TableCellRenderer
     private static final Color MATERIAL_COLOR = new Color(153,204,255);
     private static final Color OTHER_COLOR = new Color(255,255,255);
 
-    private Pattern passPattern;
-    private Pattern shinkuPattern;
+    private final Pattern passPattern;
+    private final Pattern shinkuPattern;
     
     public TensuItemRenderer(Pattern passPattern, Pattern shinkuPattern) {
         setOpaque(true);

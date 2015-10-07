@@ -2,7 +2,6 @@ package open.dolphin.system;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -12,7 +11,6 @@ import java.io.InputStreamReader;
 import java.util.concurrent.ExecutionException;
 import javax.swing.*;
 import open.dolphin.client.ClientContext;
-import open.dolphin.util.Log;
 
 /**
  * OIDRequester
@@ -23,19 +21,16 @@ import open.dolphin.util.Log;
 public class OIDGetter extends JPanel {
     
     public static final String NEXT_OID_PROP = "nextOidProp";
-    private static final String PROGRESS_NOTE = "通信テストをしています...";
-    private static final String SUCCESS_NOTE = "通信に成功しました。次項ボタンをクリックし次に進むことができます。";
-    private static final String TASK_TITLE = "通信テスト";
     
     private String helloReply;
-    private PropertyChangeSupport boundSupport = new PropertyChangeSupport(this);
+    private final PropertyChangeSupport boundSupport = new PropertyChangeSupport(this);
     private OidTask task;
     private PropertyChangeListener pl;
     
     private JProgressBar bar;
     private JDialog progressDialog;
     
-    private JButton comTest = new JButton(TASK_TITLE);
+    private JButton comTest;
     
     public OIDGetter() {
         initialize();
@@ -78,7 +73,10 @@ public class OIDGetter extends JPanel {
             JScrollPane scroller = new JScrollPane(infoArea,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             
             JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            btnPanel.add(new JLabel("次のボタンをクリックし、通信できるかどうか確認してください。"));
+            
+            java.util.ResourceBundle bundle = ClientContext.getMyBundle(OIDGetter.class);
+            btnPanel.add(new JLabel(bundle.getString("labelText.comTest")));
+            comTest = new JButton(bundle.getString("actionText.comTest"));
             btnPanel.add(comTest);
             
             this.setLayout(new BorderLayout());
@@ -91,26 +89,20 @@ public class OIDGetter extends JPanel {
     }
     
     private void connect() {
-        comTest.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                doTest();
-            }
+        comTest.addActionListener((ActionEvent e) -> {
+            doTest();
         });
     }
     
     private void doTest() {
         
         task = new OidTask();
-        pl = new PropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                if ("state".equals(evt.getPropertyName())) {
-                    if (SwingWorker.StateValue.DONE==evt.getNewValue()) {
-                        stopProgress();
-                    } else if (SwingWorker.StateValue.STARTED==evt.getNewValue()) {
-                        startProgress();
-                    }
+        pl = (PropertyChangeEvent evt) -> {
+            if ("state".equals(evt.getPropertyName())) {
+                if (SwingWorker.StateValue.DONE==evt.getNewValue()) {
+                    stopProgress();
+                } else if (SwingWorker.StateValue.STARTED==evt.getNewValue()) {
+                    startProgress();
                 }
             }
         };
@@ -121,13 +113,12 @@ public class OIDGetter extends JPanel {
     
     private void startProgress() {
         bar = new JProgressBar(0, 100);
-        Object[] message = new Object[]{PROGRESS_NOTE, bar};
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(OIDGetter.class);
+        String note = bundle.getString("note.progress.comTesting");
+        Object[] message = new Object[]{note, bar};
         JButton cancel = new JButton((String)UIManager.get("OptionPane.cancelButtonText"));
-        cancel.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                task.cancel(true);
-            }
+        cancel.addActionListener((ActionEvent ae) -> {
+            task.cancel(true);
         });
         JOptionPane pane = new JOptionPane(
                 message, 
@@ -136,7 +127,8 @@ public class OIDGetter extends JPanel {
                 null,
                 new Object[]{cancel});
         
-        String title = ClientContext.getFrameTitle(TASK_TITLE);
+        String title = ClientContext.getFrameTitle(bundle.getString("title.optionPane"));
+        title = ClientContext.getFrameTitle(title);
         Component c = SwingUtilities.getWindowAncestor(this);
         progressDialog = pane.createDialog(c, title);
         progressDialog.setModal(false);
@@ -176,18 +168,20 @@ public class OIDGetter extends JPanel {
         
         protected void succeeded(String result) {
             Window myParent = SwingUtilities.getWindowAncestor(OIDGetter.this);
-            String title = ClientContext.getFrameTitle(TASK_TITLE);
-            JOptionPane.showMessageDialog(myParent, SUCCESS_NOTE, title, JOptionPane.INFORMATION_MESSAGE);
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, title, SUCCESS_NOTE);
+            java.util.ResourceBundle bundle = ClientContext.getMyBundle(OIDGetter.class);
+            String title = bundle.getString("title.optionPane");
+            title = ClientContext.getFrameTitle(title);
+            String msg = bundle.getString("instraction.proceedNextStep");
+            JOptionPane.showMessageDialog(myParent, msg, title, JOptionPane.INFORMATION_MESSAGE);
             setHelloReply(result);
         }
         
         protected void failed(Throwable cause) {
             String errMsg = cause.getMessage();
             Window myParent = SwingUtilities.getWindowAncestor(OIDGetter.this);
-            String title = ClientContext.getFrameTitle(TASK_TITLE);
+            String title = ClientContext.getMyBundle(OIDGetter.class).getString("title.optionPane");
+            title = ClientContext.getFrameTitle(title);
             JOptionPane.showMessageDialog(myParent, errMsg, title, JOptionPane.WARNING_MESSAGE);
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, errMsg);
             setHelloReply(null);
         }
     }

@@ -2,6 +2,8 @@ package open.dolphin.order;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
 import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.TransferHandler;
@@ -16,7 +18,7 @@ import open.dolphin.table.ListTableModel;
  */
 public final class MasterItemTransferHandler extends TransferHandler {
     
-    private DataFlavor masterItemFlavor = MasterItemTransferable.masterItemFlavor;
+    private final DataFlavor masterItemFlavor = MasterItemTransferable.masterItemFlavor;
     
     private JTable sourceTable;
     private MasterItem dragItem;
@@ -51,7 +53,7 @@ public final class MasterItemTransferHandler extends TransferHandler {
                 MasterItem dropItem = (MasterItem) t.getTransferData(masterItemFlavor);
                 JTable dropTable = (JTable) support.getComponent();
                 ListTableModel<MasterItem> tableModel = (ListTableModel<MasterItem>) dropTable.getModel();
-                shouldRemove = dropTable == sourceTable ? true : false;
+                shouldRemove = dropTable == sourceTable;
 
                 if (toIndex<tableModel.getObjectCount()) {
                     tableModel.addObject(toIndex, dropItem);
@@ -61,7 +63,7 @@ public final class MasterItemTransferHandler extends TransferHandler {
 
                 return true;
             }
-        } catch (Exception ioe) {
+        } catch (UnsupportedFlavorException | IOException ioe) {
             ioe.printStackTrace(System.err);
         }
         
@@ -80,8 +82,6 @@ public final class MasterItemTransferHandler extends TransferHandler {
 
     @Override
     public boolean canImport(TransferHandler.TransferSupport support) {
-        return (support.isDrop() && support.isDataFlavorSupported(masterItemFlavor))
-                ? true
-                : false;
+        return (support.isDrop() && support.isDataFlavorSupported(masterItemFlavor));
     }
 }

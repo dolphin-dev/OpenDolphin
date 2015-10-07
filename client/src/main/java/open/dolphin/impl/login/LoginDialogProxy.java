@@ -57,11 +57,7 @@ public class LoginDialogProxy implements ILoginDialog {
     private Object create(String clsName) {
         try {
             return Class.forName(clsName).newInstance();
-        } catch (InstantiationException ex) {
-            ex.printStackTrace(System.err);
-        } catch (IllegalAccessException ex) {
-            ex.printStackTrace(System.err);
-        } catch (ClassNotFoundException ex) {
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
             ex.printStackTrace(System.err);
         }
         return null;

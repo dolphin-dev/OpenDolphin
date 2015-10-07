@@ -1,7 +1,6 @@
 package open.dolphin.impl.scheam;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Level;
@@ -30,13 +29,7 @@ public class DrawTest {
         if (QUAQUA) {
             try {
                 UIManager.setLookAndFeel("ch.randelshofer.quaqua.QuaquaLookAndFeel");
-            } catch (ClassNotFoundException ex) {
-                Logger.getLogger(DrawTest.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InstantiationException ex) {
-                Logger.getLogger(DrawTest.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IllegalAccessException ex) {
-                Logger.getLogger(DrawTest.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (UnsupportedLookAndFeelException ex) {
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ex) {
                 Logger.getLogger(DrawTest.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -66,11 +59,9 @@ public class DrawTest {
         schema.setFileName("Test");
         ref.setHref("Test");
 
-        editor.addPropertyChangeListener(new PropertyChangeListener(){
-            public void propertyChange(PropertyChangeEvent evt) {
+        editor.addPropertyChangeListener((PropertyChangeEvent evt) -> {
 //                System.out.println("oldValue = " + evt.getOldValue());
 //                System.out.println("newValue = " + evt.getNewValue());
-            }
         });
 
         editor.setSchema(schema);

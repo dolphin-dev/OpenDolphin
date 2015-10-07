@@ -19,10 +19,8 @@ public class PopupCalendarListener extends MouseAdapter implements PropertyChang
 
     private static final int[] defaultRange = {-12, 0};
     private JPopupMenu popup;
-    private int[] range;
-//minagawa^ 予定カルテ    
-    private SimpleDate[] acceptRange;
-//minagawa$    
+    private int[] range;   
+    private SimpleDate[] acceptRange;   
     protected JTextField tf;
     
     public PopupCalendarListener(JTextField tf) {
@@ -34,15 +32,13 @@ public class PopupCalendarListener extends MouseAdapter implements PropertyChang
         this.range = range;
         tf.addMouseListener(PopupCalendarListener.this);
     }
-    
-//minagawa^ 予定カルテ    
+        
     public PopupCalendarListener(JTextField tf, int[] range, SimpleDate[] acceptRange) {
         this.tf = tf;
         this.range = range;
         this.acceptRange = acceptRange;
         tf.addMouseListener(PopupCalendarListener.this);
-    }
-//minagawa$    
+    }   
     
     public void setValue(SimpleDate sd) {
         tf.setText(SimpleDate.simpleDateToMmldate(sd));
@@ -64,10 +60,8 @@ public class PopupCalendarListener extends MouseAdapter implements PropertyChang
             popup = new JPopupMenu();
             CalendarCardPanel cc = new CalendarCardPanel(ClientContext.getEventColorTable());
             cc.addPropertyChangeListener(CalendarCardPanel.PICKED_DATE, this);
-            cc.setCalendarRange(range);
-//minagawa^ 予定カルテ            
-            cc.setAcceptRange(acceptRange);
-//minagawa$            
+            cc.setCalendarRange(range);            
+            cc.setAcceptRange(acceptRange);            
             popup.insert(cc, 0);
             popup.show(e.getComponent(), e.getX(), e.getY());
         }

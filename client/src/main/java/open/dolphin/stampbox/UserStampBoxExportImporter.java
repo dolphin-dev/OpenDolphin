@@ -4,14 +4,15 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import javax.swing.*;
 import open.dolphin.client.BlockGlass;
+import open.dolphin.client.ClientContext;
 import open.dolphin.helper.InfiniteProgressBar;
 import open.dolphin.infomodel.IInfoModel;
-import open.dolphin.util.Log;
 
 /**
  * StampBox の特別メニュー
@@ -20,8 +21,8 @@ import open.dolphin.util.Log;
  */
 public class UserStampBoxExportImporter {
 
-    private StampBoxPlugin context;
-    private AbstractStampBox stampBox;
+    private final StampBoxPlugin context;
+    private final AbstractStampBox stampBox;
     private InfiniteProgressBar progressBar;
 
     public UserStampBoxExportImporter(StampBoxPlugin ctx) {
@@ -46,9 +47,12 @@ public class UserStampBoxExportImporter {
 //masuda^   blockGlassを入れたりSwingWorkerを入れたり・・・
 
 //masuda    エクスポートデータ作成より前にファイル選択させる
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(UserStampBoxExportImporter.class);
+        
+        String title = bundle.getString("title.fileChooser.exportStamp");
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
-        fileChooser.setDialogTitle("スタンプエクスポート");
+        fileChooser.setDialogTitle(title);
         File current = fileChooser.getCurrentDirectory();
         fileChooser.setSelectedFile(new File(current.getPath(), "DolphinStamp.xml"));
         int selected = fileChooser.showSaveDialog(context.getFrame());
@@ -68,7 +72,7 @@ public class UserStampBoxExportImporter {
                         //BlockGlass blockGlass = getBlockGlass();
                         //blockGlass.setText("スタンプ箱をエクスポート中です。");
                         //blockGlass.block();
-                        ArrayList<StampTree> publishList = new ArrayList<StampTree>(IInfoModel.STAMP_ENTITIES.length);
+                        ArrayList<StampTree> publishList = new ArrayList<>(IInfoModel.STAMP_ENTITIES.length);
                         publishList.addAll(stampBox.getAllTrees());
                         String ret = director.build(publishList);
                         return ret;
@@ -76,7 +80,7 @@ public class UserStampBoxExportImporter {
 
                     @Override
                     protected void done() {
-                        String xml = null;
+                        String xml;
 //minagawa^ mac jdk7                        
 //                        FileOutputStream fos = null;
 //                        OutputStreamWriter writer = null;
@@ -91,9 +95,7 @@ public class UserStampBoxExportImporter {
 //                            writer.flush();
 //minagawa$                            
                             Path destpath = file.toPath();
-                            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "保存先", file.getPath());
                             Files.write(destpath, xml.getBytes("UTF-8"));
-                            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, xml);
                             
                         } catch (InterruptedException | ExecutionException ex) {
                             processException(ex);
@@ -125,7 +127,8 @@ public class UserStampBoxExportImporter {
 //minagawa^ 念のため doInbackground の外に出す               
                 BlockGlass blockGlass = getBlockGlass();
                 blockGlass.block();
-                progressBar = new InfiniteProgressBar("StampBoxExport", "スタンプ箱をエクスポート中です...", stampBox);
+                String note = bundle.getString("note.progress.exportingStampBox");
+                progressBar = new InfiniteProgressBar("StampBoxExport", note, stampBox);
                 progressBar.start();
 //minagawa$
                 worker.execute();
@@ -140,10 +143,13 @@ public class UserStampBoxExportImporter {
      * @return 上書きOKが指示されたらtrue
      */
     private boolean overwriteConfirmed(File file){
-        String title = "上書き確認";
-        String message = "既存のファイル " + file.toString() + "\n"
-                        +"を上書きしようとしています。続けますか？";
-
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(UserStampBoxExportImporter.class);
+        String title = bundle.getString("title.optionPane.override");
+//        String message = "既存のファイル " + file.toString() + "\n"
+//                        +"を上書きしようとしています。続けますか？";
+        String fmt = bundle.getString("messageFormat.overriding.existingFile");
+        String message = new MessageFormat(fmt).format(new String[]{file.toString()});
+        
         int confirm = JOptionPane.showConfirmDialog(
         //int confirm = MyJSheet.showConfirmDialog(
             context.getFrame(), message, title,
@@ -162,10 +168,13 @@ public class UserStampBoxExportImporter {
      * modified minagawa. doInBackgroundから component へのアクセスを外す。
      */
     public void importUserStampBox() {
+        
+        final java.util.ResourceBundle bundle = ClientContext.getMyBundle(UserStampBoxExportImporter.class);
 
+        String title = bundle.getString("title.fileChooser.importStamp");
         final JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
-        fileChooser.setDialogTitle("スタンプインポート");
+        fileChooser.setDialogTitle(title);
         File current = fileChooser.getCurrentDirectory();
         //fileChooser.setSelectedFile(new File(current.getPath(), "DolphinStamp.xml"));
         //int selected = fileChooser.showSaveDialog(context.getFrame());
@@ -236,20 +245,22 @@ public class UserStampBoxExportImporter {
                     progressBar = null;
                     
                     if(imported) {
-                        JOptionPane.showMessageDialog(context.getFrame(), "スタンプのインポートが完了しました、アプリを再起動してください。", "スタンプインポート", JOptionPane.INFORMATION_MESSAGE);
-                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "スタンプのインポートが完了しました、アプリを再起動してください。");
+                        String msg = bundle.getString("message.importDone");
+                        String title = bundle.getString("title.optionPane.import");
+                        title = ClientContext.getFrameTitle(title);
+                        JOptionPane.showMessageDialog(context.getFrame(), msg, title, JOptionPane.INFORMATION_MESSAGE);
                     }
                 }
 
                 private void processException(Exception ex) {
                     System.out.println("StampBoxPluginExtraMenu.java: " + ex);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "StampBoxPluginExtraMenu.java: " + ex.getMessage());
                 }
             };
             
             BlockGlass blockGlass = getBlockGlass();
             blockGlass.block();
-            progressBar = new InfiniteProgressBar("StampBoxImport", "スタンプ箱をインポート中です...", stampBox);
+            String note = bundle.getString("note.progress.importing");
+            progressBar = new InfiniteProgressBar("StampBoxImport", note, stampBox);
             progressBar.start();
             
             worker.execute();

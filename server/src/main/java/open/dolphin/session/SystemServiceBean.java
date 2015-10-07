@@ -43,7 +43,7 @@ public class SystemServiceBean {
     //private static final String BASE_OID = "1.3.6.1.4.1.9414.3.";               // 3.xx
     //private static final String DEMO_FACILITY_ID = "1.3.6.1.4.1.9414.2.1";
 
-    private static final String BASE_OID = "1.3.6.1.4.1.9414.71.";
+    private static final String BASE_OID = "1.3.6.1.4.1.9414.72.";
     private static final String DEMO_FACILITY_ID = "1.3.6.1.4.1.9414.70.1";  //70.1
 
     private static final String QUERY_NEXT_FID = "select nextval('facility_num') as n";
@@ -56,6 +56,7 @@ public class SystemServiceBean {
     private static final String ID_PREFIX = "D_";
     private static final String QUERY_PATIENT_BY_FID = "from PatientModel p where p.facilityId=:fid order by p.patientId";
     private static final String QUERY_HEALTH_INSURANCE_BY_PATIENT_PK = "from HealthInsuranceModel h where h.patient.id=:pk";
+    private static final String TREE_SOURCE = "1.3.6.1.4.1.9414.70.1:admin";    ////"1.3.6.1.4.1.9414.70.1:lsc_admin"
 
     @PersistenceContext
     private EntityManager em;
@@ -74,13 +75,13 @@ public class SystemServiceBean {
      *
      * @param user 施設管理者
      */
-    public void addFacilityAdmin(UserModel user) {
+    public AccountSummary addFacilityAdmin(UserModel user) {
 
         // シーケンサから次の施設番号を得る
         java.math.BigInteger nextId = (java.math.BigInteger)em.createNativeQuery(QUERY_NEXT_FID).getSingleResult();
         Long nextFnum = new Long(nextId.longValue());
 
-        // 施設OIDを生成する
+        // 施設OIDを生成する  base.next
         StringBuilder sb = new StringBuilder();
         sb.append(BASE_OID).append(String.valueOf(nextFnum));
         String fid = sb.toString();
@@ -100,11 +101,11 @@ public class SystemServiceBean {
             // 当たり前
         }
 
-        // 永続化する
+        // Persist the Facility
         // このメソッドで facility が管理された状態になる
         em.persist(facility);
 
-        // fid:uid
+        // userId=fid:uid
         sb = new StringBuilder();
         sb.append(fid);
         sb.append(IInfoModel.COMPOSITE_KEY_MAKER);
@@ -120,7 +121,7 @@ public class SystemServiceBean {
             }
         }
 
-        // 永続化する
+        // Persist the User
         // Role には User から CascadeType.ALL が設定されている
         em.persist(user);
 
@@ -138,7 +139,7 @@ public class SystemServiceBean {
             PatientModel demoPatient = (PatientModel) iter.next();
             PatientModel copyPatient = new PatientModel();
             copyPatient.setFacilityId(fid);
-            copyPatient.setPatientId(ID_PREFIX + demoPatient.getPatientId());
+            copyPatient.setPatientId(ID_PREFIX + demoPatient.getPatientId()); // D_0001 ec
             copyPatient.setFamilyName(demoPatient.getFamilyName());
             copyPatient.setGivenName(demoPatient.getGivenName());
             copyPatient.setFullName(demoPatient.getFullName());
@@ -180,7 +181,7 @@ public class SystemServiceBean {
             // admin の StampTreeModel を取得する
             UserModel admin = (UserModel)
                 em.createQuery("from UserModel u where u.userId=:uid")
-                  .setParameter("uid", "1.3.6.1.4.1.9414.70.1:lsc_admin")
+                  .setParameter("uid", TREE_SOURCE)
                   .getSingleResult();
             List<StampTreeModel> list = (List<StampTreeModel>)
                 em.createQuery("from StampTreeModel s where s.user.id=:userPK")
@@ -229,45 +230,6 @@ public class SystemServiceBean {
             e.printStackTrace(System.err);
         }
         
-//s.oh^ 2014/02/21 Claim送信方法の変更
-        //// MailでOIDを通知するためMessageDrivenBeanに渡す
-        //Connection conn = null;
-        //try {
-        //    conn = connectionFactory.createConnection();
-        //    Session session = conn.createSession(false, QueueSession.AUTO_ACKNOWLEDGE);
-        //
-        //    AccountSummary account = new AccountSummary();
-        //    account.setMemberType(ASP_TESTER);
-        //    account.setFacilityAddress(user.getFacilityModel().getAddress());
-        //    account.setFacilityId(user.getFacilityModel().getFacilityId());
-        //    account.setFacilityName(user.getFacilityModel().getFacilityName());
-        //    account.setFacilityTelephone(user.getFacilityModel().getTelephone());
-        //    account.setFacilityZipCode(user.getFacilityModel().getZipCode());
-        //    account.setUserEmail(user.getEmail());
-        //    account.setUserName(user.getCommonName());
-        //    account.setUserId(user.idAsLocal());
-        //
-        //    ObjectMessage msg = session.createObjectMessage(account);
-        //    MessageProducer producer = session.createProducer(queue);
-        //    producer.send(msg);
-        //    
-        //} catch (Exception e) {
-        //    e.printStackTrace(System.err);
-        //    throw new RuntimeException(e.getMessage());
-        //
-        //} 
-        //finally {
-        //    if(conn != null)
-        //    {
-        //        try
-        //        {
-        //        conn.close();
-        //        }
-        //        catch (JMSException e)
-        //        { 
-        //        }
-        //    }
-        //}
         AccountSummary account = new AccountSummary();
         account.setMemberType(ASP_TESTER);
         account.setFacilityAddress(user.getFacilityModel().getAddress());
@@ -278,14 +240,8 @@ public class SystemServiceBean {
         account.setUserEmail(user.getEmail());
         account.setUserName(user.getCommonName());
         account.setUserId(user.idAsLocal());
-        OidSender sender = new OidSender();
-        try {
-            sender.send(account);
-        } catch (Exception ex) {
-            ex.printStackTrace(System.err);
-            Logger.getLogger("open.dolphin").warning("AccountSummary send error : " + ex.getMessage());
-        }
-//s.oh$
+        
+        return account;
     }
     
 //s.oh^ 2014/07/08 クラウド0対応

@@ -64,68 +64,69 @@ public class LetterView extends Panel2 {
         confirmed = new javax.swing.JTextField();
         atesakiLbl = new javax.swing.JLabel();
 
-        jLabel1.setText("診療情報提供書（フォーム）"); // NOI18N
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/letter/resources/LetterView"); // NOI18N
+        jLabel1.setText(bundle.getString("titleOfRefferalLetter.text")); // NOI18N
 
-        jLabel2.setText("紹介先医療機関名:"); // NOI18N
+        jLabel2.setText(bundle.getString("refferalMedicalInstitusionLabel.text")); // NOI18N
 
-        jLabel3.setText("紹介先診療科:"); // NOI18N
+        jLabel3.setText(bundle.getString("refferalDeptLabel.text")); // NOI18N
 
-        jLabel4.setText("紹介先先生:"); // NOI18N
+        jLabel4.setText(bundle.getString("refferalDoctor.text")); // NOI18N
 
-        consultantDoctor.setToolTipText("設定の紹介状等で、敬称を選択できます"); // NOI18N
+        consultantDoctor.setToolTipText(bundle.getString("consultantDoctor.text")); // NOI18N
 
-        jLabel5.setText("患者氏名:"); // NOI18N
+        jLabel5.setText(bundle.getString("patientNameLabel.text")); // NOI18N
 
         patientName.setEditable(false);
 
-        jLabel6.setText("性別:"); // NOI18N
+        jLabel6.setText(bundle.getString("patientGenderLabel.text")); // NOI18N
 
         patientGender.setEditable(false);
 
-        jLabel7.setText("生年月日:"); // NOI18N
+        jLabel7.setText(bundle.getString("patientBirthDateLabel.text")); // NOI18N
 
         patientBirthday.setEditable(false);
 
-        jLabel8.setText("年齢:"); // NOI18N
+        jLabel8.setText(bundle.getString("patientAgeLabel.text")); // NOI18N
 
         patientAge.setEditable(false);
 
-        jLabel9.setText("傷病名:"); // NOI18N
+        jLabel9.setText(bundle.getString("diceaseLabel.text")); // NOI18N
 
-        jLabel10.setText("紹介目的:"); // NOI18N
+        jLabel10.setText(bundle.getString("purposeLabel.text")); // NOI18N
 
-        jLabel11.setText("既往歴/家族歴:"); // NOI18N
+        jLabel11.setText(bundle.getString("pastAndFamilyHistoryLabel.text")); // NOI18N
 
-        jLabel12.setText("症状経過:"); // NOI18N
+        jLabel12.setText(bundle.getString("presentIllnessLabel.text")); // NOI18N
 
         clinicalCourse.setColumns(20);
         clinicalCourse.setLineWrap(true);
         clinicalCourse.setRows(5);
         jScrollPane2.setViewportView(clinicalCourse);
 
-        jLabel13.setText("検査結果:"); // NOI18N
+        jLabel13.setText(bundle.getString("testResultLabel.text")); // NOI18N
 
-        jLabel14.setText("治療経過:"); // NOI18N
+        jLabel14.setText(bundle.getString("progreeNoteLabel.text")); // NOI18N
 
-        jLabel15.setText("現在の処方:"); // NOI18N
+        jLabel15.setText(bundle.getString("presentMedicationLabel.text")); // NOI18N
 
         medication.setColumns(20);
         medication.setLineWrap(true);
         medication.setRows(5);
         jScrollPane3.setViewportView(medication);
 
-        jLabel16.setText("備考:"); // NOI18N
+        jLabel16.setText(bundle.getString("remarksLabel.text")); // NOI18N
 
         pastFamily.setColumns(20);
         pastFamily.setLineWrap(true);
         pastFamily.setRows(5);
         jScrollPane1.setViewportView(pastFamily);
 
-        jLabel19.setText("年月日:"); // NOI18N
+        jLabel19.setText(bundle.getString("dateOfLetterLabel.text")); // NOI18N
 
         confirmed.setEditable(false);
 
-        atesakiLbl.setText("先生　御机下"); // NOI18N
+        atesakiLbl.setText(bundle.getString("titleOfDoctorLabel.text")); // NOI18N
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);

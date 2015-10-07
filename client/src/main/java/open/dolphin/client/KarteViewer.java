@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.event.MouseListener;
 import java.awt.print.PageFormat;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import javax.swing.BorderFactory;
@@ -28,30 +29,23 @@ import open.dolphin.project.Project;
  */
 public class KarteViewer extends AbstractChartDocument implements Comparable {
     
-    // タイムスタンプの foreground カラー 
-    private static final Color TIMESTAMP_FORE = new Color(0,51,153);
-    
     // タイムスタンプのフォントサイズ 
     private static final int TIMESTAMP_FONT_SIZE = 14;
     
     // タイムスタンプフォント
     private static final Font TIMESTAMP_FONT = new Font("Dialog", Font.PLAIN, TIMESTAMP_FONT_SIZE);
 //s.oh^ 不具合修正
-    private static final Font TIMESTAMP_MSFONT = new Font("MS UI Gothic", Font.PLAIN, TIMESTAMP_FONT_SIZE);
+    private static final Font TIMESTAMP_MSFONT = new Font(java.util.ResourceBundle.getBundle("open/dolphin/client/resources/KarteViewer").getString("MS UI GOTHIC"), Font.PLAIN, TIMESTAMP_FONT_SIZE);
 //s.oh$
     
     // タイムスタンプパネル FlowLayout のマージン 
     private static final int TIMESTAMP_SPACING = 7;
-    
-    // 仮保存中のドキュメントを表す文字 
-    protected static final String UNDER_TMP_SAVE = " - 仮保存中";
     
     // 選択されている時のボーダ色、1.3の赤
     private static final Color SELECTED_COLOR = Color.GRAY;//Color.ORANGE;//new Color(255, 0, 153);
     
     // 選択された状態のボーダ
     private static final Border SELECTED_BORDER = BorderFactory.createLineBorder(SELECTED_COLOR);
-    //private static final Border SELECTED_BORDER = BorderFactory.createLineBorder((Color)UIManager.get("Table.selectionBackground"));
     
     // 選択されていない時のボーダ色
     private static final Color NOT_SELECTED_COLOR = new Color(0, 0, 0, 0);  // 透明
@@ -77,9 +71,6 @@ public class KarteViewer extends AbstractChartDocument implements Comparable {
     
     // 2号カルテパネル
     protected Panel2 panel2;
-    
-    // タイムスタンプの foreground カラー
-    protected Color timeStampFore = TIMESTAMP_FORE;
     
     // タイムスタンプのフォント 
 //s.oh^ 不具合修正
@@ -184,15 +175,15 @@ public class KarteViewer extends AbstractChartDocument implements Comparable {
     private void printPDF() {
         StringBuilder sb = new StringBuilder();
         sb.append(ClientContext.getTempDirectory());
-        KartePaneDumper_2 dumper = null;
-        KartePaneDumper_2 pdumper = null;
+        KartePaneDumper_2 dumper;
+        KartePaneDumper_2 pdumper;
         dumper = new KartePaneDumper_2();
         pdumper = new KartePaneDumper_2();
         KarteStyledDocument doc = (KarteStyledDocument)soaPane.getTextPane().getDocument();
         dumper.dump(doc);
         KarteStyledDocument pdoc = (KarteStyledDocument)pPane.getTextPane().getDocument();
         pdumper.dump(pdoc);
-        if(dumper != null && pdumper != null) {
+        //if(dumper != null && pdumper != null) {
 //s.oh^ 2013/06/14 自費の場合、印刷時に文言を付加する
             //KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
             //                                      getContext().getPatient().getPatientId(), getContext().getPatient().getFullName(),
@@ -200,8 +191,11 @@ public class KarteViewer extends AbstractChartDocument implements Comparable {
             //                                      new Date(), dumper, pdumper);
             StringBuilder sbTitle = new StringBuilder();
             sbTitle.append(timeStampLabel.getText());
-            if(getModel().getDocInfoModel().getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
-                sbTitle.append("（自費）");
+            String prefix = ClientContext.getClaimBundle().getString("INSURANCE_SELF_PREFIX");
+            if(getModel().getDocInfoModel().getHealthInsurance().startsWith(prefix)) {
+                //sbTitle.append("（自費）");
+                String selfInsurance = ClientContext.getMyBundle(KarteViewer.class).getString("text.selfInsurance");
+                sbTitle.append(selfInsurance);
             }
             KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
                                                   getContext().getPatient().getPatientId(), getContext().getPatient().getFullName(),
@@ -212,7 +206,7 @@ public class KarteViewer extends AbstractChartDocument implements Comparable {
             ArrayList<String> paths = new ArrayList<>(0);
             paths.add(path);
             KartePDFImpl2.printPDF(paths);
-        }
+        //}
     }
 //s.oh$
     
@@ -237,10 +231,10 @@ public class KarteViewer extends AbstractChartDocument implements Comparable {
         super.enter();
         
         // ReadOnly 属性
-        boolean canEdit = getContext().isReadOnly() ? false : true;
+        boolean canEdit = !getContext().isReadOnly();
         
         // 仮保存かどうか
-        boolean tmp = model.getDocInfoModel().getStatus().equals(IInfoModel.STATUS_TMP) ? true : false;
+        boolean tmp = model.getDocInfoModel().getStatus().equals(IInfoModel.STATUS_TMP);
         
         // 新規カルテ作成が可能な条件
 //s.oh^ 2014/10/24 新規カルテメニューの制御
@@ -269,7 +263,7 @@ public class KarteViewer extends AbstractChartDocument implements Comparable {
         // TimeStampLabel を生成する
         timeStampLabel = kp1.getTimeStampLabel();
         timeStampLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        timeStampLabel.setForeground(timeStampFore);
+        timeStampLabel.setForeground(GUIConst.KARTE_TIME_STAMP_FORE_COLOR);
         timeStampLabel.setFont(timeStampFont);
         
         // SOA Pane を生成する
@@ -297,23 +291,20 @@ public class KarteViewer extends AbstractChartDocument implements Comparable {
         // Model を表示する
         if (this.getModel() != null) {
             
+            String dateFmt = ClientContext.getBundle().getString("KARTE_DATE_FORMAT");
+            
             // 確定日を分かりやすい表現に変える
             String timeStamp = ModelUtils.getDateAsFormatString(
                     model.getDocInfoModel().getFirstConfirmDate(),
-                    IInfoModel.KARTE_DATE_FORMAT);
+                    dateFmt);
             
             if (model.getDocInfoModel().getStatus().equals(IInfoModel.STATUS_TMP)) {
-                StringBuilder sb = new StringBuilder();
-                sb.append(timeStamp);
-                sb.append(UNDER_TMP_SAVE);
-                timeStamp = sb.toString();
+                String underTemp = ClientContext.getMyBundle(KarteViewer.class).getString("messageFormat.temporarySave");
+                MessageFormat msf = new MessageFormat(underTemp);
+                timeStamp = msf.format(new Object[]{timeStamp});
+                
                 KartePanel1 kp2 = (KartePanel1)panel2;
                 kp2.getTimeStampPanel().setOpaque(true);
-                // (予定カルテ対応)
-                //kp2.getTimeStampPanel().setBackground(GUIConst.TEMP_SAVE_KARTE_COLOR);
-                //timeStampLabel.setOpaque(true);
-                //timeStampLabel.setBackground(GUIConst.TEMP_SAVE_KARTE_COLOR);
-                //timeStampLabel.setForeground(Color.WHITE);
                 kp2.getTimeStampPanel().setBackground(GUIConst.TEMP_SAVE_KARTE_BK_COLOR);
                 timeStampLabel.setOpaque(true);
                 timeStampLabel.setBackground(GUIConst.TEMP_SAVE_KARTE_BK_COLOR);
@@ -368,14 +359,8 @@ public class KarteViewer extends AbstractChartDocument implements Comparable {
         this.selected = selected;
         if (selected) {
             getUI().setBorder(SELECTED_BORDER);
-//            KartePanel2M p = (KartePanel2M)panel2;
-//            p.getTimeStampPanel().setBackground(Color.YELLOW);
-//            timeStampLabel.setBackground(Color.YELLOW);
         } else {
             getUI().setBorder(NOT_SELECTED_BORDER);
-//            KartePanel2M p = (KartePanel2M)panel2;
-//            p.getTimeStampPanel().setBackground(defaultPanelBackground);
-//            timeStampLabel.setBackground(defaultPanelBackground);
         }
     }
     
@@ -398,33 +383,19 @@ public class KarteViewer extends AbstractChartDocument implements Comparable {
     
     @Override
     public boolean equals(Object other) {
-//minagawa^ Single-Karteと2号Karteの比較も可能にする       
-//        if (other != null && other.getClass() == this.getClass()) {
-//            DocInfoModel otheInfo = ((KarteViewer) other).getModel()
-//            .getDocInfoModel();
-//            return getModel().getDocInfoModel().equals(otheInfo);
-//        }
         if (other != null && other instanceof KarteViewer) {
             DocInfoModel otheInfo = ((KarteViewer)other).getModel().getDocInfoModel();
             return getModel().getDocInfoModel().equals(otheInfo);
         }
-        return false;
-//minagawa$        
+        return false;    
     }
     
     @Override
     public int compareTo(Object other) {
-//minagawa^ Single-Karteと2号Karteの比較も可能にする          
-//        if (other != null && other.getClass() == this.getClass()) {
-//            DocInfoModel otheInfo = ((KarteViewer) other).getModel()
-//            .getDocInfoModel();
-//            return getModel().getDocInfoModel().compareTo(otheInfo);
-//        }
         if (other != null && other instanceof KarteViewer) {
             DocInfoModel otheInfo = ((KarteViewer) other).getModel().getDocInfoModel();
             return getModel().getDocInfoModel().compareTo(otheInfo);
         }        
-        return -1;
-//minagawa$        
+        return -1;      
     }
 }

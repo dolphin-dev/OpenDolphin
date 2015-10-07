@@ -15,10 +15,11 @@ public class PatientVisitInspector {
 
     private String pvtEvent; // PVT
     
-    private ChartImpl context;
+    private final ChartImpl context;
 
     /**
      * PatientVisitInspector を生成する。
+     * @param context
      */
     public PatientVisitInspector(ChartImpl context) {
         this.context = context;
@@ -38,7 +39,7 @@ public class PatientVisitInspector {
      * GUIコンポーネントを初期化する。
      */
     private void initComponent() {
-        pvtEvent = ClientContext.getString("eventCode.pvt"); // PVT
+        pvtEvent = "PVT"; // PVT
         calendarCardPanel = new CalendarCardPanel(ClientContext.getEventColorTable());
         calendarCardPanel.setCalendarRange(new int[]{-12, 0});
     }
@@ -46,12 +47,11 @@ public class PatientVisitInspector {
     private void update() {
 
         // 来院歴を取り出す
-        //List<String> latestVisit = (List<String>) context.getKarte().getEntryCollection("visit");
         List<String> latestVisit = context.getKarte().getPatientVisits();
 
         // 来院歴
         if (latestVisit != null && latestVisit.size() > 0) {
-            ArrayList<SimpleDate> simpleDates = new ArrayList<SimpleDate>(latestVisit.size());
+            ArrayList<SimpleDate> simpleDates = new ArrayList<>(latestVisit.size());
             for (String pvtDate : latestVisit) {
                 SimpleDate sd = SimpleDate.mmlDateToSimpleDate(pvtDate);
                 sd.setEventCode(pvtEvent);

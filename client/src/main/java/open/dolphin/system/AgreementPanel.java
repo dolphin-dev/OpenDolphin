@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import open.dolphin.client.ClientContext;
 
 /**
  * AgreementPanel
@@ -25,10 +26,8 @@ public final class AgreementPanel extends JPanel {
     // モデル
     private AgreementModel model;
     // 束縛サポート
-    private PropertyChangeSupport boundSupport = new PropertyChangeSupport(this);
+    private final PropertyChangeSupport boundSupport = new PropertyChangeSupport(this);
     // GUI コンポーネント
-    private static final String AGREE_TEXT = "同意する";
-    private static final String DISAGREE_TEXT = "同意しない";
     private JTextArea agreeArea;
     private JRadioButton agreeBtn;
     private JRadioButton disagreeBtn;
@@ -81,8 +80,9 @@ public final class AgreementPanel extends JPanel {
         agreeArea.setLineWrap(true);
         agreeArea.setMargin(new Insets(10, 10, 10, 10));
 
-        agreeBtn = new JRadioButton(AGREE_TEXT);
-        disagreeBtn = new JRadioButton(DISAGREE_TEXT);
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(AgreementPanel.class);
+        agreeBtn = new JRadioButton(bundle.getString("actionText.agree"));
+        disagreeBtn = new JRadioButton(bundle.getString("actionText.disagree"));
         ButtonGroup bg = new ButtonGroup();
         bg.add(agreeBtn);
         bg.add(disagreeBtn);
@@ -99,12 +99,8 @@ public final class AgreementPanel extends JPanel {
     }
 
     private void connect() {
-        ActionListener agreeListener = new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                setAgree(agreeBtn.isSelected());
-            }
+        ActionListener agreeListener = (ActionEvent e) -> {
+            setAgree(agreeBtn.isSelected());
         };
         agreeBtn.addActionListener(agreeListener);
         disagreeBtn.addActionListener(agreeListener);

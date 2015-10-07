@@ -16,7 +16,6 @@ import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModuleModel;
 import open.dolphin.infomodel.ProgressCourse;
-import open.dolphin.util.Log;
 import org.jdom.Document;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
@@ -78,19 +77,17 @@ public class KarteRenderer_2 {
     
     private static final String PROGRESS_COURSE_NAME = "kartePane";
     
-    //private static final String[] REPLACES = new String[] { "<", ">", "&", "'" ,"\""};
     private static final String[] REPLACES = new String[] { "&", "<", ">", "'" ,"\""};
     
-    //private static final String[] MATCHES = new String[] { "&lt;", "&gt;", "&amp;", "&apos;", "&quot;" };
     private static final String[] MATCHES = new String[] { "&amp;", "&lt;", "&gt;", "&apos;", "&quot;" };
     
     private static final String NAME_STAMP_HOLDER = "name=\"stampHolder\"";
     
     private DocumentModel model;
     
-    private KartePane soaPane;
+    private final KartePane soaPane;
     
-    private KartePane pPane;
+    private final KartePane pPane;
     
     private KartePane thePane;
     
@@ -105,7 +102,9 @@ public class KarteRenderer_2 {
     private boolean DEBUG;
     
     
-    /** Creates a new instance of TextPaneRestoreBuilder */
+    /** Creates a new instance of TextPaneRestoreBuilder
+     * @param soaPane
+     * @param pPane */
     public KarteRenderer_2(KartePane soaPane, KartePane pPane) {
         this.soaPane = soaPane;
         this.pPane = pPane;
@@ -120,16 +119,15 @@ public class KarteRenderer_2 {
         this.model = model;
         
         Collection<ModuleModel> modules = model.getModules();
-//minagawa^ 予定カルテ        (予定カルテ対応)
+        
         if (modules==null || modules.isEmpty()) {
             return;
-        }
-//minagawa$        
+        }       
         
         // SOA と P のモジュールをわける
         // また夫々の Pane の spec を取得する
-        soaModules = new ArrayList<ModuleModel>();
-        pModules = new ArrayList<ModuleModel>();
+        soaModules = new ArrayList<>();
+        pModules = new ArrayList<>();
         String soaSpec = null;
         String pSpec = null;
         
@@ -164,9 +162,9 @@ public class KarteRenderer_2 {
             }
             //--------------------------------------------------------
         }
-//minagawa^       
+        
         Collections.sort(pModules);
-//minagawa$        
+        
         if (soaSpec != null && pSpec != null) {
             
             int index = soaSpec.indexOf(NAME_STAMP_HOLDER);
@@ -230,12 +228,8 @@ public class KarteRenderer_2 {
         // indicates a well-formedness error
         catch (JDOMException e) {
             //e.printStackTrace(System.err);
-            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_OTHER, xml);
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, e.getMessage());
         } catch (IOException e) {
             //e.printStackTrace(System.err);
-            Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_OTHER, xml);
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, e.getMessage());
         }
     }
     
@@ -438,19 +432,17 @@ public class KarteRenderer_2 {
         
         // bold 属性を設定する
         if (bold != null) {
-            StyleConstants.setBold(atts, Boolean.valueOf(bold).booleanValue());
+            StyleConstants.setBold(atts, Boolean.valueOf(bold));
         }
         
         // italic 属性を設定する
         if (italic != null) {
-            StyleConstants.setItalic(atts, Boolean.valueOf(italic)
-            .booleanValue());
+            StyleConstants.setItalic(atts, Boolean.valueOf(italic));
         }
         
         // underline 属性を設定する
         if (underline != null) {
-            StyleConstants.setUnderline(atts, Boolean.valueOf(underline)
-            .booleanValue());
+            StyleConstants.setUnderline(atts, Boolean.valueOf(underline));
         }
         
         // テキストを挿入する
@@ -508,7 +500,7 @@ public class KarteRenderer_2 {
     
     private void debug(String msg) {
         if (DEBUG) {
-            ClientContext.getBootLogger().debug(msg);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).info(msg);
         }
     }
 }

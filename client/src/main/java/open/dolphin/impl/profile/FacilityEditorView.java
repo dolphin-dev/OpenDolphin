@@ -51,29 +51,30 @@ public class FacilityEditorView extends javax.swing.JPanel {
         jLabel12 = new javax.swing.JLabel();
         urlField = new javax.swing.JTextField();
 
-        jLabel1.setText("医療機関コード:");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/impl/profile/resources/FacilityEditorView"); // NOI18N
+        jLabel1.setText(bundle.getString("facilityIdLabel.text")); // NOI18N
 
-        jLabel2.setText("医療機関名称:");
+        jLabel2.setText(bundle.getString("hospitalNameLabel.text")); // NOI18N
 
-        jLabel3.setText("郵便番号:");
+        jLabel3.setText(bundle.getString("zipCodeLabel.text")); // NOI18N
 
-        jLabel4.setText("-");
+        jLabel4.setText("-"); // NOI18N
 
-        jLabel5.setText("住　所:");
+        jLabel5.setText(bundle.getString("addressLabel.text")); // NOI18N
 
-        jLabel6.setText("電話番号:");
+        jLabel6.setText(bundle.getString("telephoneNumberLabel.text")); // NOI18N
 
-        jLabel7.setText("-");
+        jLabel7.setText("-"); // NOI18N
 
-        jLabel8.setText("-");
+        jLabel8.setText("-"); // NOI18N
 
-        jLabel9.setText("FAX番号:");
+        jLabel9.setText(bundle.getString("faxNumberLabel.text")); // NOI18N
 
-        jLabel10.setText("-");
+        jLabel10.setText("-"); // NOI18N
 
-        jLabel11.setText("-");
+        jLabel11.setText("-"); // NOI18N
 
-        jLabel12.setText("URL:");
+        jLabel12.setText(bundle.getString("urlLabel.text")); // NOI18N
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);

@@ -44,9 +44,9 @@ public class FCRBrowserView extends javax.swing.JPanel {
 
         dirLbl.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/resources/images/about_16.gif"))); // NOI18N
 
-        refreshBtn.setText("更新");
+        refreshBtn.setText("更新"); // NOI18N
 
-        settingBtn.setText("設定");
+        settingBtn.setText("設定"); // NOI18N
 
         table.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -61,16 +61,16 @@ public class FCRBrowserView extends javax.swing.JPanel {
         ));
         jScrollPane1.setViewportView(table);
 
-        fcrListBtn.setLabel("List");
+        fcrListBtn.setText("List"); // NOI18N
 
-        fcrImageBtn.setLabel("Image");
+        fcrImageBtn.setText("Image"); // NOI18N
 
-        fcrTodayBtn.setLabel("Today");
+        fcrTodayBtn.setText("Today"); // NOI18N
 
-        newdirBtn.setText("新規");
+        newdirBtn.setText("新規"); // NOI18N
         newdirBtn.setToolTipText("ディレクトリの新規作成");
 
-        backdirBtn.setText("上へ");
+        backdirBtn.setText("上へ"); // NOI18N
         backdirBtn.setToolTipText("ディレクトリの新規作成");
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
@@ -125,11 +125,11 @@ public class FCRBrowserView extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton backdirBtn;
     private javax.swing.JLabel dirLbl;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JButton newdirBtn;
     private javax.swing.JButton fcrImageBtn;
     private javax.swing.JButton fcrListBtn;
     private javax.swing.JButton fcrTodayBtn;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JButton newdirBtn;
     private javax.swing.JButton refreshBtn;
     private javax.swing.JButton settingBtn;
     private javax.swing.JTable table;

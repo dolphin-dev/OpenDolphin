@@ -1,8 +1,5 @@
 package open.dolphin.stampbox;
 
-import open.dolphin.stampbox.StampTreeNode;
-import open.dolphin.stampbox.StampTree;
-import open.dolphin.stampbox.DefaultStampTreeXmlBuilder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -16,10 +13,11 @@ import javax.swing.tree.DefaultMutableTreeNode;
  */
 public class StampTreeXmlDirector {
     
-    private DefaultStampTreeXmlBuilder builder;
+    private final DefaultStampTreeXmlBuilder builder;
     
     /** 
      * Creates new StampTreeXmlDirector 
+     * @param builder
      */
     public StampTreeXmlDirector(DefaultStampTreeXmlBuilder builder) {
         

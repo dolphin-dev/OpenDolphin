@@ -7,7 +7,7 @@ import open.dolphin.infomodel.PatientModel;
  *
  * @author kazushi Minagawa, Digital Globe, Inc.
  */
-public class NLaboImportSummary {
+public final class NLaboImportSummary {
 
     private String laboCode;
 

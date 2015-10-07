@@ -26,13 +26,11 @@ import open.dolphin.client.ClientContext;
 import open.dolphin.client.GUIConst;
 import open.dolphin.client.ImageEntry;
 import open.dolphin.impl.server.PVTKanaToAscii;
-import open.dolphin.impl.server.PVTReceptionLink;
 import open.dolphin.infomodel.DocInfoModel;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.infomodel.PatientModel;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  * 他プロセス連携
@@ -111,13 +109,13 @@ public class DefaultBrowserEx extends AbstractBrowser {
     private static final String DEFAULT_CSV_ENCODING = "Shift_JIS";
 
     private ImageTableRenderer imageRenderer;
-    private int cellWidth = MAX_IMAGE_SIZE + CELL_WIDTH_MARGIN;
-    private int cellHeight = MAX_IMAGE_SIZE + CELL_HEIGHT_MARGIN;
+    private final int cellWidth = MAX_IMAGE_SIZE + CELL_WIDTH_MARGIN;
+    private final int cellHeight = MAX_IMAGE_SIZE + CELL_HEIGHT_MARGIN;
 
     private DefaultBrowserViewEx view;
-    private String otherProcess1;
-    private String otherProcess2;
-    private String otherProcess3;
+    private final String otherProcess1;
+    private final String otherProcess2;
+    private final String otherProcess3;
   
     public DefaultBrowserEx() {
         
@@ -420,14 +418,12 @@ public class DefaultBrowserEx extends AbstractBrowser {
             return;
         }
         if(file.isFile()) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, file.getPath());
             file.delete();
         }else if(file.isDirectory()) {
             File[] files = file.listFiles();
             for(int i = 0; i < files.length; i++) {
                 delete(files[i]);
             }
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, file.getPath());
             file.delete();
         }
     }
@@ -446,7 +442,6 @@ public class DefaultBrowserEx extends AbstractBrowser {
                 try {
                     entry.setUrl(newFile.toURI().toURL().toString());
                 } catch (MalformedURLException ex) {
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "ImageEntryのURL作成失敗", ex.getMessage());
                 }
                 newEntry.setFileName(name);
                 newEntry.setPath(newFile.getPath());
@@ -476,7 +471,6 @@ public class DefaultBrowserEx extends AbstractBrowser {
                 }
             }
             name = nowLocation + File.separator + name;
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, name);
             File folder = new File(name);
             folder.mkdir();
             
@@ -484,7 +478,6 @@ public class DefaultBrowserEx extends AbstractBrowser {
             try {
                 entry.setUrl(folder.toURI().toURL().toString());
             } catch (MalformedURLException ex) {
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "ImageEntryのURL作成失敗", ex.getMessage());
             }
             entry.setPath(folder.getPath());
             entry.setFileName(folder.getName());
@@ -1273,7 +1266,6 @@ public class DefaultBrowserEx extends AbstractBrowser {
                tmp = URLEncoder.encode(patientModel.getKanaName(), urlencode);
                format = format.replaceAll(KEY_PATIENT_ZENKAKUKANA, tmp.replace("+", "%20"));
            } catch (UnsupportedEncodingException ex) {
-               Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ex.toString(), format, urlencode);
            }
         }else{
             format = format.replaceAll(KEY_PATIENT_KANJI, patientModel.getFullName());
@@ -1357,7 +1349,7 @@ public class DefaultBrowserEx extends AbstractBrowser {
     @Override
     protected void initComponents() {
 
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
+        ResourceBundle resource = ClientContext.getMyBundle(DefaultBrowserEx.class);
         final ActionMap map = getActionMap(resource);
 
         // TableModel

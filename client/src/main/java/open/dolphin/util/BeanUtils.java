@@ -49,25 +49,25 @@ public class BeanUtils {
     
     public static byte[] getXMLBytes(Object bean)  {
         ByteArrayOutputStream bo = new ByteArrayOutputStream();
-        XMLEncoder e = new XMLEncoder(new BufferedOutputStream(bo));
-        e.writeObject(bean);
-        e.close();
+        try (XMLEncoder e = new XMLEncoder(new BufferedOutputStream(bo))) {
+            e.writeObject(bean);
+        }
         return bo.toByteArray();
     }
     
     public static byte[] xmlEncode(Object bean)  {
         ByteArrayOutputStream bo = new ByteArrayOutputStream();
-        XMLEncoder e = new XMLEncoder(new BufferedOutputStream(bo));
-
         //masuda^   java.sql.Dateとjava.sql.TimestampがxmlEncodeで失敗する
-        DatePersistenceDelegate dpd = new DatePersistenceDelegate();
-        e.setPersistenceDelegate(java.sql.Date.class, dpd);
-        TimestampPersistenceDelegate tpd = new TimestampPersistenceDelegate();
-        e.setPersistenceDelegate(java.sql.Timestamp.class, tpd);
-        //masuda$
+        try (XMLEncoder e = new XMLEncoder(new BufferedOutputStream(bo))) {
+            //masuda^   java.sql.Dateとjava.sql.TimestampがxmlEncodeで失敗する
+            DatePersistenceDelegate dpd = new DatePersistenceDelegate();
+            e.setPersistenceDelegate(java.sql.Date.class, dpd);
+            TimestampPersistenceDelegate tpd = new TimestampPersistenceDelegate();
+            e.setPersistenceDelegate(java.sql.Timestamp.class, tpd);
+            //masuda$
 
-        e.writeObject(bean);
-        e.close();
+            e.writeObject(bean);
+        }
         return bo.toByteArray();
     }
     
@@ -85,7 +85,7 @@ public class BeanUtils {
        @Override
        protected Expression instantiate(Object oldInstance, Encoder out) {
            java.sql.Date date = (java.sql.Date) oldInstance;
-           long time = Long.valueOf(date.getTime());
+           long time = date.getTime();
            return new Expression(date, date.getClass(), "new", new Object[]{time});
        }
    }
@@ -95,7 +95,7 @@ public class BeanUtils {
        @Override
        protected Expression instantiate(Object oldInstance, Encoder out) {
            java.sql.Timestamp date = (java.sql.Timestamp) oldInstance;
-           long time = Long.valueOf(date.getTime());
+           long time = date.getTime();
            return new Expression(date, date.getClass(), "new", new Object[]{time});
        }
    }

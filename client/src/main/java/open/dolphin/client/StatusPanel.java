@@ -2,6 +2,7 @@ package open.dolphin.client;
 
 import java.awt.*;
 import java.beans.PropertyChangeEvent;
+import java.text.MessageFormat;
 import javax.swing.*;
 
 /**
@@ -26,6 +27,7 @@ public class StatusPanel extends JPanel implements IStatusPanel {
     
     /**
      * Creates a new instance of StatusPanel
+     * @param useTime
      */
     public StatusPanel(boolean useTime) {
         
@@ -50,7 +52,8 @@ public class StatusPanel extends JPanel implements IStatusPanel {
         rightLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
         if (useTime) {
-            timelabel = new JLabel("経過時間: 00 秒");
+            String elapsedTime = ClientContext.getMyBundle(StatusPanel.class).getString("info.elapsedTime.00");
+            timelabel = new JLabel(elapsedTime);
             timelabel.setFont(font);
             timelabel.setHorizontalAlignment(SwingConstants.CENTER);
         }
@@ -118,11 +121,9 @@ public class StatusPanel extends JPanel implements IStatusPanel {
     @Override
     public void setTimeInfo(long time) {
         if (useTime) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("経過時間: ");
-            sb.append(time);
-            sb.append(" 秒");
-            timelabel.setText(sb.toString());
+            String elapsedTime = ClientContext.getMyBundle(StatusPanel.class).getString("info.elapsedTime");
+            MessageFormat msf = new MessageFormat(elapsedTime);
+            timelabel.setText(msf.format(new Object[]{time}));
         }
     }
     

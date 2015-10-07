@@ -12,7 +12,8 @@ public class CalendarEvent extends java.util.EventObject {
     private SimpleCalendarPanel c1;
     private SimpleCalendarPanel c2;
     
-    /** Creates a new instance of CalendarEvent */
+    /** Creates a new instance of CalendarEvent
+     * @param source */
     public CalendarEvent(Object source) {
         super(source);
     }

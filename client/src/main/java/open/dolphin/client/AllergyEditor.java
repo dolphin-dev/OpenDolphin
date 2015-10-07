@@ -11,7 +11,6 @@ import javax.swing.event.DocumentListener;
 import open.dolphin.infomodel.AllergyModel;
 import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.SimpleDate;
-import open.dolphin.util.Log;
 
 /**
  * アレルギデータを編集するエディタクラス。
@@ -20,11 +19,11 @@ import open.dolphin.util.Log;
  */
 public class AllergyEditor {
     
-    private AllergyInspector inspector;
+    private final AllergyInspector inspector;
     private AllergyEditorView view;
     private JDialog dialog;
-    private JButton addBtn;
-    private JButton clearBtn;
+    private final JButton addBtn;
+    private final JButton clearBtn;
     private boolean ok;
     
     private void checkBtn() {
@@ -58,8 +57,8 @@ public class AllergyEditor {
         if(dateStr != null) {
             String[] tmp = dateStr.split("-");
             if(dateStr.length() != 10 || tmp.length != 3) {
-                JOptionPane.showMessageDialog(null, "同定日が正しく入力されていません。（例：2000-01-31）", ClientContext.getString("productString"), JOptionPane.INFORMATION_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, "同定日が正しく入力されていません。（例：2000-01-31）");
+                String warning = ClientContext.getMyBundle(AllergyEditor.class).getString("warning.identifiedDate");
+                JOptionPane.showMessageDialog(null, warning, ClientContext.getString("productString"), JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
             model.setIdentifiedDate(dateStr);
@@ -72,13 +71,12 @@ public class AllergyEditor {
     private void clear() {
         view.getFactorFld().setText("");
         view.getMemoFld().setText("");
-        //view.getIdentifiedFld().setText("");
     }
     
     class PopupListener extends MouseAdapter implements PropertyChangeListener {
 
         private JPopupMenu popup;
-        private JTextField tf;
+        private final JTextField tf;
 
         // private LiteCalendarPanel calendar;
         public PopupListener(JTextField tf) {
@@ -133,11 +131,8 @@ public class AllergyEditor {
             public void insertUpdate(DocumentEvent e) {
 //s.oh^ 不具合修正
                 //checkBtn();
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        checkBtn();
-                    }
+                SwingUtilities.invokeLater(() -> {
+                    checkBtn();
                 });
 //s.oh$
             }
@@ -146,11 +141,8 @@ public class AllergyEditor {
             public void removeUpdate(DocumentEvent e) {
 //s.oh^ 不具合修正
                 //checkBtn();
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        checkBtn();
-                    }
+                SwingUtilities.invokeLater(() -> {
+                    checkBtn();
                 });
 //s.oh$
             }
@@ -159,11 +151,8 @@ public class AllergyEditor {
             public void changedUpdate(DocumentEvent e) {
 //s.oh^ 不具合修正
                 //checkBtn();
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        checkBtn();
-                    }
+                SwingUtilities.invokeLater(() -> {
+                    checkBtn();
                 });
 //s.oh$
             }
@@ -174,31 +163,22 @@ public class AllergyEditor {
 
             @Override
             public void insertUpdate(DocumentEvent e) {
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        checkBtn();
-                    }
+                SwingUtilities.invokeLater(() -> {
+                    checkBtn();
                 });
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        checkBtn();
-                    }
+                SwingUtilities.invokeLater(() -> {
+                    checkBtn();
                 });
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        checkBtn();
-                    }
+                SwingUtilities.invokeLater(() -> {
+                    checkBtn();
                 });
             }
         });
@@ -213,33 +193,32 @@ public class AllergyEditor {
         PopupListener pl = new PopupListener(view.getIdentifiedFld());
         view.getIdentifiedFld().addFocusListener(AutoRomanListener.getInstance());
         
-        addBtn = new JButton("追加");
-        addBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                add();
-                dialog.setVisible(false);
-            }
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(AllergyEditor.class);
+        
+        String addText = bundle.getString("actionText.add");
+        addBtn = new JButton(addText);
+        addBtn.addActionListener((ActionEvent e) -> {
+            add();
+            dialog.setVisible(false);
         });
         addBtn.setEnabled(false);
         
-        clearBtn = new JButton("クリア");
-        clearBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                clear();
-            }
+        String clearText = bundle.getString("actionText.clear");
+        clearBtn = new JButton(clearText);
+        clearBtn.addActionListener((ActionEvent e) -> {
+            clear();
         });
         clearBtn.setEnabled(false);
                 
         Object[] options = new Object[]{addBtn,clearBtn};
         
+        String title = bundle.getString("title.optionPane.addAllergy");
         JOptionPane pane = new JOptionPane(view,
                                            JOptionPane.PLAIN_MESSAGE,
                                            JOptionPane.DEFAULT_OPTION,
                                            null,
                                            options, addBtn);
-        dialog = pane.createDialog(inspector.getContext().getFrame(), ClientContext.getFrameTitle("アレルギー登録"));
+        dialog = pane.createDialog(inspector.getContext().getFrame(), ClientContext.getFrameTitle(title));
         dialog.addWindowListener(new WindowAdapter() {
             @Override
             public void windowOpened(WindowEvent e) {

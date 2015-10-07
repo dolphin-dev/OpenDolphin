@@ -13,8 +13,8 @@ import open.dolphin.client.ImageEntry;
  */
 public class ImageTableModel extends AbstractTableModel {
     
-    private String[] columnNames;
-    private int columnCount;
+    private final String[] columnNames;
+    private final int columnCount;
     private List imageList;
     
     public ImageTableModel(String[] columnNames, int columnCount) {
@@ -70,7 +70,7 @@ public class ImageTableModel extends AbstractTableModel {
     }
     
     private boolean isValidIndex(int index) {
-        return (imageList == null || index < 0 || index >= imageList.size()) ? false : true;
+        return (imageList != null && index >= 0 && index < imageList.size());
     }
     
     public void clear() {

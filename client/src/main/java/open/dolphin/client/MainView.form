@@ -58,7 +58,7 @@
           <Font name="Lucida Grande" size="10" style="0"/>
         </Property>
         <Property name="horizontalAlignment" type="int" value="0"/>
-        <Property name="text" type="java.lang.String" value="&#x30ed;&#x30b0;&#x30a4;&#x30f3; &#x7686;&#x5ddd;&#x548c;&#x53f2; 2010&#x5e74;10-23-(&#x91d1;) 12:28" noResource="true"/>
+        <Property name="text" type="java.lang.String" value="Logged In K.Minagawa 2010&#x5e74;10-23-(Fri) 12:28" noResource="true"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JSeparator" name="jSeparator1">

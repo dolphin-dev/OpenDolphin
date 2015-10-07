@@ -16,25 +16,18 @@ import open.dolphin.infomodel.SimpleDate;
  */
 public class CalendarTableModel extends AbstractTableModel {
     
-    private static final String[] COLUMN_NAMES = {
-        "日", "月", "火", "水", "木", "金", "土"
-    };
-    private String[] columnNames = COLUMN_NAMES;
+    private String[] columnNames;
     private Object[][] data;
     private Collection markDates;
-    private int year;
-    private int month;
-    private int startDay;
+    private final int year;
+    private final int month;
+    private final int startDay;
     private int firstCell;
     private int lastCell;
-    private int numCols = columnNames.length;
-    private int numRows;
-    private int numDaysOfMonth;
-    
-    //private GregorianCalendar firstDate;
-    //private GregorianCalendar lastDate;
-    private GregorianCalendar startDate;
-    
+    private final int numCols;
+    private final int numRows;
+    private final int numDaysOfMonth;
+    private final GregorianCalendar startDate;
     
     /**
      * CalendarTableModel を生成する。
@@ -43,12 +36,15 @@ public class CalendarTableModel extends AbstractTableModel {
      */
     public CalendarTableModel(int year, int month) {
         
+        String weekDayLine = ClientContext.getMyBundle(CalendarTableModel.class).getString("weekDayLine");
+        columnNames = weekDayLine.split(",");
+        numCols = columnNames.length;
+        
         this.year = year;
         this.month = month;
         
         // 作成する月の最初の日  yyyyMM1
         GregorianCalendar gc = new GregorianCalendar(year, month, 1);
-        //firstDate = (GregorianCalendar) gc.clone();
         
         // 最初の日は週の何日目か
         // 1=SUN 6=SAT
@@ -185,7 +181,7 @@ public class CalendarTableModel extends AbstractTableModel {
     
     public boolean isOutOfMonth(int row, int col) {
         int cellNumber = row*numCols + col;
-        return ( (cellNumber < firstCell) || (cellNumber > lastCell) ) ? true : false;
+        return ( (cellNumber < firstCell) || (cellNumber > lastCell) );
     }
     
     public SimpleDate getFirstDate() {

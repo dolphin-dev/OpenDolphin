@@ -9,10 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.ResourceBundle;
 import javax.swing.ImageIcon;
 import open.dolphin.infomodel.DepartmentModel;
-import open.dolphin.infomodel.DiagnosisCategoryModel;
-import open.dolphin.infomodel.DiagnosisOutcomeModel;
 import open.dolphin.infomodel.LicenseModel;
-import org.apache.log4j.Logger;
 import org.apache.velocity.VelocityContext;
 
 /**
@@ -34,45 +31,9 @@ public class ClientContext {
     public static LinkedHashMap<String, String> getToolProviders() {
         return stub.getToolProviders();
     }
-
-//    public static URLClassLoader getPluginClassLoader() {
-//        return stub.getPluginClassLoader();
-//    }
     
     public static VelocityContext getVelocityContext() {
         return stub.getVelocityContext();
-    }
-
-    public static ResourceBundle getBundle(Class cls) {
-        return stub.getBundle(cls);
-    }
-        
-    public static Logger getBootLogger() {
-        return stub.getBootLogger();
-    }
-    
-    public static Logger getPart11Logger() {
-        return stub.getPart11Logger();
-    }
-    
-    public static Logger getClaimLogger() {
-        return stub.getClaimLogger();
-    }
-    
-    public static Logger getMmlLogger() {
-        return stub.getMmlLogger();
-    }
-    
-    public static Logger getPvtLogger() {
-        return stub.getPvtLogger();
-    }
-    
-    public static Logger getDelegaterLogger() {
-        return stub.getDelegaterLogger();
-    }
-    
-    public static Logger getLaboTestLogger() {
-        return stub.getLaboTestLogger();
     }
     
     public static boolean isMac() {
@@ -86,26 +47,34 @@ public class ClientContext {
     public static boolean isLinux() {
         return stub.isLinux();
     }
+    
+    public static boolean isJaJp() {
+        return stub.isJaJp();
+    }
 
     public static boolean isOpenDolphin() {
         return stub.isOpenDolphin();
     }
-
-    public static boolean isDolphinPro() {
-        return stub.isDolphinPro();
+    
+    public static boolean isAsp() {
+        return stub.isAsp();
     }
     
-    public static boolean is5mTest() {
-        return stub.is5mTest();
+    public static boolean isI18N() {
+        return stub.isI18N();
     }
-
- //minagawa^ Self Cert Test
-    public static boolean isSelfCertTest() {
-        return stub.isSelfCertTest();
-    }
-//minagawa$    
     
-    //////////////////////////////////////////////////////////
+    public static ResourceBundle getBundle() {
+        return stub.getBundle();
+    }
+    
+    public static ResourceBundle getClaimBundle() {
+        return stub.getClaimBundle();
+    }
+    
+    public static ResourceBundle getMyBundle(Class cls) {
+        return stub.getMyBundle(cls);
+    }
     
     public static String getVersion() {
         return stub.getVersion();
@@ -114,10 +83,6 @@ public class ClientContext {
     public static String getBaseDirectory() {
         return stub.getBaseDirectory();
     }
-    
-//    public static String getPluginsDirectory() {
-//        return stub.getPluginsDirectory();
-//    }
     
     public static String getSettingDirectory() {
         return stub.getSettingDirectory();
@@ -153,6 +118,10 @@ public class ClientContext {
 
     public static InputStream getResourceAsStream(String name) {
         return stub.getResourceAsStream(name);
+    }
+    
+    public static InputStream getPluginResourceAsStream(String name) {
+        return stub.getPluginResourceAsStream(name);
     }
 
     public static InputStream getTemplateAsStream(String name) {
@@ -231,14 +200,6 @@ public class ClientContext {
         return stub.getDepartmentModel();
     }
     
-    public static DiagnosisOutcomeModel[] getDiagnosisOutcomeModel() {
-        return stub.getDiagnosisOutcomeModel();
-    }
-    
-    public static DiagnosisCategoryModel[] getDiagnosisCategoryModel() {
-        return stub.getDiagnosisCategoryModel();
-    }
-
     public static int getHigherRowHeight() {
         return stub.getHigherRowHeight();
     }
@@ -247,9 +208,7 @@ public class ClientContext {
         return stub.getMoreHigherRowHeight();
     }
     
-//minagawa^ Icon Server
     public static ImageIcon getImageIconArias(String name) {
         return stub.getImageIconArias(name);
-    }
-//minagawa$    
+    }   
 }

@@ -36,6 +36,7 @@ import open.dolphin.infomodel.IInfoModel;
 import open.dolphin.infomodel.ModelUtils;
 import open.dolphin.infomodel.PVTPublicInsuranceItemModel;
 import open.dolphin.infomodel.PriscriptionModel;
+import open.dolphin.project.Project;
 
 /**
  * 処方せんPDFを生成するクラス
@@ -1314,7 +1315,8 @@ public final class PrescriptionPDFMaker {
             byte[] pdfbytes = byteo.toByteArray();
             
             // 評価でない場合は Fileへ書き込んでリターン
-            if (!ClientContext.is5mTest()) {
+            //if (!ClientContext.is5mTest()) {
+            if (!Project.isTester()) {    
                 FileOutputStream fout = new FileOutputStream(pathToPDF);
                 FileChannel channel = fout.getChannel();
                 ByteBuffer bytebuff = ByteBuffer.wrap(pdfbytes);

@@ -10,8 +10,8 @@ import open.dolphin.client.ClientContext;
  */
 public class InfiniteProgressBar {
     
-    private InfiniteProgrressBarView view;
-    private JDialog dialog;
+    private final InfiniteProgrressBarView view;
+    private final JDialog dialog;
     
     public InfiniteProgressBar(String title, String msg, Component cmp) {
         view = new InfiniteProgrressBarView();

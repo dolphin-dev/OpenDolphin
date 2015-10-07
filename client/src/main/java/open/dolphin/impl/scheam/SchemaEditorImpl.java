@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import open.dolphin.client.ClientContext;
 import open.dolphin.client.SchemaEditor;
 import open.dolphin.impl.scheam.holder.DrawingHolder;
 import open.dolphin.impl.scheam.schemahelper.SchemaUtils;
@@ -32,7 +32,7 @@ import open.dolphin.infomodel.SchemaModel;
  */
 public class SchemaEditorImpl implements SchemaEditor {
 
-    public static final String TITLE = "シェーマエディタ";
+    public static final String TITLE = java.util.ResourceBundle.getBundle("open/dolphin/impl/scheam/resources/SchemaEditorImpl").getString("title.schemaEditor");
 
     // ここに絵を描く（JComponent の子で paintComponent を Override している）
     private SchemaCanvas canvas;
@@ -53,13 +53,13 @@ public class SchemaEditorImpl implements SchemaEditor {
     private boolean editable;
         
     //ボタン
-    private JButton[] cPaletteBtn = new JButton[12];
+    private final JButton[] cPaletteBtn = new JButton[12];
     private JButton cancelBtn;
     private JButton clearBtn;
     private JButton colorBtn;
     private JToggleButton eraserBtn;
     private JToggleButton lineBtn;
-    private JToggleButton[] lineWidthBtn = new JToggleButton[4];
+    private final JToggleButton[] lineWidthBtn = new JToggleButton[4];
     private static final float[] lineWidthValue = { 1.5f, 2.5f, 3.5f, 4.5f }; // なぜか 3.0f でアンチエリアスがかからない
     private JButton okBtn;
     private JToggleButton ovalBtn;
@@ -87,8 +87,8 @@ public class SchemaEditorImpl implements SchemaEditor {
     private JToggleButton netMediumBtn;
     private JToggleButton netDenseBtn;
 
-    private ButtonGroup toolBg = new ButtonGroup();
-    private ButtonGroup lineWidthBg = new ButtonGroup();
+    private final ButtonGroup toolBg = new ButtonGroup();
+    private final ButtonGroup lineWidthBg = new ButtonGroup();
 
     // アルファ値
     private JSlider alphaSlider;
@@ -195,6 +195,7 @@ public class SchemaEditorImpl implements SchemaEditor {
      * このリスナは KartePane の propertyChanged を呼び出す
      * @param l
      */
+    @Override
     public void addPropertyChangeListener(PropertyChangeListener l) {
         if (boundSupport == null) {
             boundSupport = new PropertyChangeSupport(this);
@@ -202,6 +203,7 @@ public class SchemaEditorImpl implements SchemaEditor {
         boundSupport.addPropertyChangeListener(l);
     }
     
+    @Override
     public void removePropertyChangeListener(PropertyChangeListener l) {
         if (boundSupport == null) {
             boundSupport = new PropertyChangeSupport(this);
@@ -211,7 +213,7 @@ public class SchemaEditorImpl implements SchemaEditor {
     
     private void initComponents(boolean editable) {
         properties = new SchemaEditorProperties();
-        drawingList = new ArrayList<DrawingHolder>(5);
+        drawingList = new ArrayList<>(5);
         undoMgr = new UndoMgr(this);
 
         // SchemaCanvas の設定
@@ -312,12 +314,10 @@ public class SchemaEditorImpl implements SchemaEditor {
         alphaSlider = toolView.getAlphaSlider();
         alphaField = toolView.getAlphaField();
         alphaField.setEditable(false);
-        alphaSlider.addChangeListener(new ChangeListener(){
-            public void stateChanged(ChangeEvent e) {
-                float val = (float)alphaSlider.getValue() / 100;
-                properties.setAlpha(val);
-                alphaField.setText(String.format("%.2f", val));
-            }
+        alphaSlider.addChangeListener((ChangeEvent e) -> {
+            float val = (float)alphaSlider.getValue() / 100;
+            properties.setAlpha(val);
+            alphaField.setText(String.format("%.2f", val));
         });
         toolView.getAlphaLabel().addMouseListener(new MouseAdapter(){
             @Override
@@ -331,13 +331,11 @@ public class SchemaEditorImpl implements SchemaEditor {
         // Line Width スライダー
         widthSlider = toolView.getWidthSlider();
         widthField = toolView.getWidthField();
-        widthSlider.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent e) {
-                float val = (float)widthSlider.getValue() / 10;
-                properties.setLineWidth(val);
-                
-                setLineWidthGUI();
-            }
+        widthSlider.addChangeListener((ChangeEvent e) -> {
+            float val = (float)widthSlider.getValue() / 10;
+            properties.setLineWidth(val);
+            
+            setLineWidthGUI();
         });
 
         // ショートカット登録
@@ -400,45 +398,35 @@ public class SchemaEditorImpl implements SchemaEditor {
         // 線の太さにアクションを設定
         for (int i=0; i<lineWidthValue.length; i++) {
             final int final_i = i;
-            lineWidthBtn[i].addActionListener(new ActionListener(){
-                public void actionPerformed(ActionEvent e) {
-                    float lw = lineWidthValue[final_i];
-                    if ((e.getModifiers() & InputEvent.SHIFT_MASK) != 0) lw *= 2;
-                    properties.setLineWidth(lw);
-                    widthSlider.setValue((int)(lw*10));
-                    widthField.setText(String.format("%.2f", lw));
-                }
+            lineWidthBtn[i].addActionListener((ActionEvent e) -> {
+                float lw = lineWidthValue[final_i];
+                if ((e.getModifiers() & InputEvent.SHIFT_MASK) != 0) lw *= 2;
+                properties.setLineWidth(lw);
+                widthSlider.setValue((int)(lw*10));
+                widthField.setText(String.format("%.2f", lw));
             });
         }
         // カラーパレットボタンにアクションを設定
         for (int i=0; i<12; i++) {
             final int final_i = i;
-            cPaletteBtn[i].addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    Color c = cPaletteBtn[final_i].getForeground();
-                    properties.setFillColor(c);
-                    colorBtn.setIcon(ShapeIconMaker.createRectFillIcon(c, SchemaEditorProperties.SHAPEICON_SIZE));
-                }
+            cPaletteBtn[i].addActionListener((ActionEvent e) -> {
+                Color c = cPaletteBtn[final_i].getForeground();
+                properties.setFillColor(c);
+                colorBtn.setIcon(ShapeIconMaker.createRectFillIcon(c, SchemaEditorProperties.SHAPEICON_SIZE));
             });
         }
         // 選択された色を表示するボタン　押すと colorChooser が起動
-        colorBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                chooseColor();
-            }
+        colorBtn.addActionListener((ActionEvent e) -> {
+            chooseColor();
         });
         okBtn.setEnabled(editable);
-        okBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                close();
-                firePropertyChange(createImage());
-            }
+        okBtn.addActionListener((ActionEvent e) -> {
+            close();
+            firePropertyChange(createImage());
         });
-        cancelBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                close();
-                firePropertyChange(null);
-            }
+        cancelBtn.addActionListener((ActionEvent e) -> {
+            close();
+            firePropertyChange(null);
         });
 
         titleFld = canvasView.getTitleFld();
@@ -522,7 +510,7 @@ public class SchemaEditorImpl implements SchemaEditor {
      * カラー表示しているボタンを押したら ColorChooser を出す
      */
     private void chooseColor() {
-        Color newColor = JColorChooser.showDialog(canvasView, "塗りつぶしカラー選択", properties.getFillColor());
+        Color newColor = JColorChooser.showDialog(canvasView, ClientContext.getMyBundle(SchemaEditorImpl.class).getString("title.colorChooser"), properties.getFillColor());
         if (newColor != null) {
             properties.setFillColor(newColor);
             ImageIcon icon = ShapeIconMaker.createRectFillIcon(properties.getFillColor(), SchemaEditorProperties.SHAPEICON_SIZE);
@@ -532,7 +520,7 @@ public class SchemaEditorImpl implements SchemaEditor {
 
     /**
      * baseImage が変わった場合，SchemaCanvas を描画し直す
-     * @param srcImage
+     * @param baseImage
      */
     public void recomputeViewBounds(BufferedImage baseImage) {
         properties.recomputeViewBounds(canvasView, toolView, baseImage);

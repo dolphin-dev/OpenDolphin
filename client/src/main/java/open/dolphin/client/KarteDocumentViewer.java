@@ -7,6 +7,7 @@ import java.awt.EventQueue;
 import java.awt.Rectangle;
 import java.awt.event.*;
 import java.io.File;
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -26,7 +27,6 @@ import open.dolphin.infomodel.PVTHealthInsuranceModel;
 import open.dolphin.letter.KartePDFImpl2;
 import open.dolphin.letter.KartePDFMaker;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  * DocumentViewer
@@ -38,10 +38,6 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
 
     // Busy プロパティ名
     public static final String BUSY_PROP = "busyProp";
-
-    // 更新を表す文字
-    private static final String TITLE_UPDATE = "更新";
-    private static final String TITLE = "参 照";
     
 //s.oh^ 2013/03/28 入力行が一行の場合に文字が全部表示されない。
     private static final int KARTE_OFFSET_HEIGHT = 50;
@@ -84,7 +80,8 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
      */
     public KarteDocumentViewer() {
         super();
-        setTitle(TITLE);
+        String title = ClientContext.getMyBundle(KarteDocumentViewer.class).getString("title.document");
+        setTitle(title);
     }
 
     /**
@@ -97,7 +94,7 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
 
     @Override
     public void start() {
-        karteList = new ArrayList<KarteViewer>(1);
+        karteList = new ArrayList<>(1);
         connect();
         stateMgr = new StateMgr();
         enter();
@@ -106,9 +103,9 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
     @Override
     public void stop() {
         if (karteList != null) {
-            for (KarteViewer karte : karteList) {
+            karteList.stream().forEach((karte) -> {
                 karte.stop();
-            }
+            });
             karteList.clear();
         }
     }
@@ -215,6 +212,7 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
      * KarteViewerを生成し表示する。
      *
      * @param selectedHistories 文書履歴テーブルで選択された文書情報 DocInfo 配列
+     * @param scroller
      */
     @Override
     public void showDocuments(DocInfoModel[] selectedHistories, final JScrollPane scroller) {
@@ -224,9 +222,9 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
         }
 
         // 現在のリストと比較し、新たに追加されたもの、削除されたものに分ける
-        ArrayList<DocInfoModel> added = new ArrayList<DocInfoModel>(1); // 追加されたもの
+        ArrayList<DocInfoModel> added = new ArrayList<>(1); // 追加されたもの
         if (removed == null) {
-            removed = new ArrayList<KarteViewer>(1); // 選択が解除されているもの
+            removed = new ArrayList<>(1); // 選択が解除されているもの
         } else {
             removed.clear();
         }
@@ -263,21 +261,21 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
 
         // 解除されたものがあればそれをリストから取り除く
         if (removed != null && removed.size() > 0) {
-            for (KarteViewer karte : removed) {
+            removed.stream().forEach((karte) -> {
                 karteList.remove(karte);
-            }
+            });
         }
         
 //s.oh^ 2013/06/13 カルテ履歴が複数の場合、カルテ削除メニューを無効
         if(karteList != null && karteList.size() > 0) {
-            boolean canEdit = isReadOnly() ? false : true;
-            boolean singleSelected = (karteList.size() == 1) ? true : false;
+            boolean canEdit = !isReadOnly();
+            boolean singleSelected = (karteList.size() == 1);
             getContext().enabledAction(GUIConst.ACTION_DELETE, (!showModified && canEdit && singleSelected));
         }
 //s.oh$
 
         // 追加されたものがない場合
-        if (added == null || added.isEmpty()) {
+        if (added.isEmpty()) {
 
             boolean vsc = Project.getBoolean(Project.KARTE_SCROLL_DIRECTION, true);
 
@@ -293,9 +291,9 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
                 scrollerPanel.setLayout(new BoxLayout(scrollerPanel, BoxLayout.X_AXIS));
             }
 
-            for (KarteViewer view : karteList) {
+            karteList.stream().forEach((view) -> {
                 scrollerPanel.add(view.getUI());
-            }
+            });
 
             scroller.setViewportView(scrollerPanel);
 
@@ -316,10 +314,10 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
         }
 
         // 取得する文書のID(PK)をリストを生成する
-        List<Long> docId = new ArrayList<Long>(added.size());
-        for (DocInfoModel bean : added) {
-            docId.add(new Long(bean.getDocPk()));
-        }
+        List<Long> docId = new ArrayList<>(added.size());
+        added.stream().forEach((bean) -> {
+            docId.add(bean.getDocPk());
+        });
 
         // データベースから取得する
         DocumentDelegater ddl = new DocumentDelegater();
@@ -445,7 +443,6 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
             scrollerPanel.setLayout(new BoxLayout(scrollerPanel, BoxLayout.X_AXIS));
         }
 
-//minagawa^ add space
         int index = 0;
         for (KarteViewer view : karteList) {
             
@@ -455,11 +452,6 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
                 view.getUI().setAlignmentY(Component.TOP_ALIGNMENT);
             }
             
-//            if (index!=0 && vsc) {
-//                scrollerPanel.add(Box.createVerticalStrut(10));
-//            } else if (index!=0 && !vsc) {
-//                scrollerPanel.add(Box.createHorizontalStrut(10));   
-//            }
             scrollerPanel.add(view.getUI());
 //s.oh^ 2013/01/29 複数カルテの表示(区切り線)
             if(Project.getBoolean(Project.KARTE_SCROLL_DIRECTION, false)) {
@@ -469,8 +461,7 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
             }
 //s.oh$
             index++;
-        }
-//minagawa$        
+        }       
         
         scroller.setViewportView(scrollerPanel);
 
@@ -491,42 +482,37 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
 
     private void showKarteListV() {
 
-        Runnable awt = new Runnable() {
-
-            @Override
-            public void run() {
-
-                if (karteList.size() > 1) {
-                    int totalHeight = 0;
-                    for (KarteViewer view : karteList) {
-                        int w = view.panel2.getPreferredSize().width;
+        Runnable awt = () -> {
+            if (karteList.size() > 1) {
+                int totalHeight = 0;
+                for (KarteViewer view : karteList) {
+                    int w = view.panel2.getPreferredSize().width;
 //minagawa^ Kuroiwa specific                        
 //s.oh^ 2013/03/28 入力行が一行の場合に文字が全部表示されない。
-                        //int h = view.getActualHeight() + 30;
+                    //int h = view.getActualHeight() + 30;
 //s.oh^ 2014/06/02 複数カルテ表示時に全部表示されない
-                        //int h = view.getActualHeight() + KARTE_OFFSET_HEIGHT;
-                        int offset = (view.getModel().getModules() != null) ? view.getModel().getModules().size() * 20 : 0;
-                        int h = view.getActualHeight() + KARTE_OFFSET_HEIGHT + offset;
+                    //int h = view.getActualHeight() + KARTE_OFFSET_HEIGHT;
+                    int offset = (view.getModel().getModules() != null) ? view.getModel().getModules().size() * 20 : 0;
+                    int h = view.getActualHeight() + KARTE_OFFSET_HEIGHT + offset;
 //s.oh$
 //s.oh$
-                        //int h = view.getActualHeight() + KARTE_OFFSET_HEIGHT; -<kuroiwa specific
-//minagawa$                        
-                        totalHeight += h;
-                        view.panel2.setPreferredSize(new Dimension(w, h));
-                    }
-                    int spWidth = scrollerPanel.getPreferredSize().width;
-                    scrollerPanel.setPreferredSize(new Dimension(spWidth, totalHeight));
+                    //int h = view.getActualHeight() + KARTE_OFFSET_HEIGHT; -<kuroiwa specific
+//minagawa$
+                    totalHeight += h;
+                    view.panel2.setPreferredSize(new Dimension(w, h));
                 }
-
-                scrollerPanel.scrollRectToVisible(new Rectangle(0, 0, scrollerPanel.getWidth(), 100));
-                //scrollerPanel.setVisible(true);
-                getContext().showDocument(0);
-                if (removed != null) {
-                    for (KarteViewer karte : removed) {
-                        karte.stop();
-                    }
-                    removed.clear();
-                }
+                int spWidth = scrollerPanel.getPreferredSize().width;
+                scrollerPanel.setPreferredSize(new Dimension(spWidth, totalHeight));
+            }
+            
+            scrollerPanel.scrollRectToVisible(new Rectangle(0, 0, scrollerPanel.getWidth(), 100));
+            //scrollerPanel.setVisible(true);
+            getContext().showDocument(0);
+            if (removed != null) {
+                removed.stream().forEach((karte) -> {
+                    karte.stop();
+                });
+                removed.clear();
             }
         };
         EventQueue.invokeLater(awt);
@@ -534,31 +520,26 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
 
     private void showKarteListH() {
 
-        Runnable awt = new Runnable() {
-
-            @Override
-            public void run() {
-
-                if (karteList.size() > 1) {
-                    int maxHeight = 0;
-                    for (KarteViewer view : karteList) {
-                        int w = view.panel2.getPreferredSize().width;
-                        int h = view.getActualHeight() + 20;
-                        maxHeight = maxHeight >= h ? maxHeight : h;
-                        view.panel2.setPreferredSize(new Dimension(w, h));
-                    }
-                    int spWidth = scrollerPanel.getPreferredSize().width;
-                    scrollerPanel.setPreferredSize(new Dimension(spWidth, maxHeight));
+        Runnable awt = () -> {
+            if (karteList.size() > 1) {
+                int maxHeight = 0;
+                for (KarteViewer view : karteList) {
+                    int w = view.panel2.getPreferredSize().width;
+                    int h = view.getActualHeight() + 20;
+                    maxHeight = maxHeight >= h ? maxHeight : h;
+                    view.panel2.setPreferredSize(new Dimension(w, h));
                 }
-
-                scrollerPanel.scrollRectToVisible(new Rectangle(0, 0, scrollerPanel.getWidth(), 100));
-                getContext().showDocument(0);
-                if (removed != null) {
-                    for (KarteViewer karte : removed) {
-                        karte.stop();
-                    }
-                    removed.clear();
-                }
+                int spWidth = scrollerPanel.getPreferredSize().width;
+                scrollerPanel.setPreferredSize(new Dimension(spWidth, maxHeight));
+            }
+            
+            scrollerPanel.scrollRectToVisible(new Rectangle(0, 0, scrollerPanel.getWidth(), 100));
+            getContext().showDocument(0);
+            if (removed != null) {
+                removed.stream().forEach((karte) -> {
+                    karte.stop();
+                });
+                removed.clear();
             }
         };
         EventQueue.invokeLater(awt);
@@ -612,14 +593,6 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
      */
     public void sendClaim() {
 
-//minagawa^ 予定カルテ(予定カルテ対応)
-        //// claim を送るのはカルテだけ
-        //String docType = getBaseKarte().getModel().getDocInfoModel().getDocType();
-        //if (!IInfoModel.DOCTYPE_KARTE.equals(docType)) {
-        //    return;
-        //}
-        //
-        //final DocumentModel model = getContext().getKarteModelToEdit(getBaseKarte().getModel());
         boolean send = isKarte() && hasModule() && hasSendModule();
         if (!send) {
             return;
@@ -629,8 +602,7 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
         final DocumentModel model = getBaseKarte().getModel().claimClone();
         if (model==null) {
             return;
-        }
-//minagawa$         
+        }        
         model.setKarteBean(getContext().getKarte());
         model.setUserModel(Project.getUserModel());
         model.getDocInfoModel().setConfirmDate(new Date());
@@ -663,7 +635,7 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
 
                     OrcaRestDelegater ord = new OrcaRestDelegater();
                     int cnt = ord.sendDocument(model);
-                    return new Integer(cnt);
+                    return cnt;
                 }
 
                 @Override
@@ -702,21 +674,28 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
             Calendar c2 = Calendar.getInstance();
             c2.setTime(getBaseKarte().getModel().getStarted());
             if(c1.get(Calendar.YEAR) != c2.get(Calendar.YEAR) || c1.get(Calendar.MONTH) != c2.get(Calendar.MONTH) || c1.get(Calendar.DATE) != c2.get(Calendar.DATE)) {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日");
-                StringBuilder msg = new StringBuilder();
-                msg.append(sdf.format(c2.getTime()));
-                msg.append("に作成したカルテを修正しますか？");
-                String[] btn = new String[]{"はい", GUIFactory.getCancelButtonText()};
+                
+                java.util.ResourceBundle bundle = ClientContext.getMyBundle(KarteDocumentViewer.class);
+                String cDateFmt = bundle.getString("dateFormat.started.modifyKarte");
+                String question = bundle.getString("messageFormat.modifyKarte");
+                String optionModify = bundle.getString("optionText.modifyKarte");
+                String title = bundle.getString("title.optionPane.modifyKarte");
+                
+                SimpleDateFormat sdf = new SimpleDateFormat(cDateFmt);
+                MessageFormat msft = new MessageFormat(question);
+                
+                String msg = msft.format(new Object[]{sdf.format(c2.getTime())});
+                String[] btn = new String[]{optionModify, GUIFactory.getCancelButtonText()};
+                
                 int option = JOptionPane.showOptionDialog(
                         getContext().getFrame(),
-                        msg.toString(),
-                        "カルテ修正",
+                        msg,
+                        ClientContext.getFrameTitle(title),
                         JOptionPane.DEFAULT_OPTION,
                         JOptionPane.QUESTION_MESSAGE,
                         null,
                         btn,
                         btn[1]);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, "カルテ修正", msg.toString());
                 if(option != 0) {
                     return;
                 }
@@ -760,17 +739,11 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
             editor.setContext(chart);
             editor.initialize();
             editor.start();
-            chart.addChartDocument(editor, TITLE_UPDATE);
+            String updateStr = ClientContext.getMyBundle(KarteDocumentViewer.class).getString("tabTitle.update");
+            chart.addChartDocument(editor, updateStr);
         }
     }
 
-//    @Override
-//    public void print() {
-//        KarteViewer view = getSelectedKarte();
-//        if (view != null) {
-//            view.print();
-//        }
-//    }
 //masuda^
     @Override
     public void print() {
@@ -779,73 +752,120 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
         if (view==null) {
             return;
         }
-
-        JCheckBox cb = new JCheckBox("PDFは昇順に印刷");
-        //cb.setSelected(ascending);
+//        JCheckBox cb = new JCheckBox("PDFは昇順に印刷");
+//        //cb.setSelected(ascending);
+//        cb.setSelected(true);
+//        Object[] msg = new Object[2];
+////s.oh^ 2013/02/07 印刷対応
+//        //msg[0] = "PDFファイルを作成しますか？";
+//        //msg[1] = cb;
+//        //int option = JOptionPane.showOptionDialog(
+//        //        getContext().getFrame(),
+//        //        msg,
+//        //        ClientContext.getFrameTitle("カルテ印刷"),
+//        //        JOptionPane.DEFAULT_OPTION,
+//        //        JOptionPane.INFORMATION_MESSAGE,
+//        //        null,
+//        //        new String[]{"PDF作成", "イメージ印刷", GUIFactory.getCancelButtonText()},
+//        //        "PDF作成");
+//        //
+//        //if (option == 0) {
+//        //    makePDF(cb.isSelected());
+//        //} else if (option == 1) {
+//        //    printKarte();
+//        //}
+//        msg[0] = "印刷しますか？";
+//        String[] btn = null;
+//        if(Project.getBoolean(Project.KARTE_PDF_SEND_AT_SAVE)) {
+//            btn = new String[]{"PDF作成", "イメージ印刷", GUIFactory.getCancelButtonText()};
+//        }else{
+//            btn = new String[]{"イメージ印刷", GUIFactory.getCancelButtonText()};
+//        }
+//        int option = JOptionPane.showOptionDialog(
+//                getContext().getFrame(),
+//                msg,
+//                ClientContext.getFrameTitle("カルテ印刷"),
+//                JOptionPane.DEFAULT_OPTION,
+//                JOptionPane.INFORMATION_MESSAGE,
+//                null,
+//                btn,
+//                "PDF作成");
+//        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle("カルテ印刷"), msg[0].toString(), String.valueOf(cb.isSelected()));
+//
+//        if(Project.getBoolean(Project.KARTE_PDF_SEND_AT_SAVE)) {
+//            if (option == 0) {
+//                Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "PDF作成");
+//                makePDF(false);
+//            } else if (option == 1) {
+//                if(Project.getBoolean(Project.KARTE_PRINT_PDF)) {
+//                    Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "PDF作成");
+//                    printPDF();
+//                }else{
+//                    Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "イメージ印刷");
+//                    printKarte();
+//                }
+//            } else {
+//                Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "取消し");
+//            }
+//        }else{
+//            if (option == 0) {
+//                if(Project.getBoolean(Project.KARTE_PRINT_PDF)) {
+//                    Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "PDF作成");
+//                    printPDF();
+//                }else{
+//                    Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "イメージ印刷");
+//                    printKarte();
+//                }
+//            } else {
+//                Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "取消し");
+//            }
+//        }
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(KarteDocumentViewer.class);
+        String checkBoxText = bundle.getString("checkBoxText.pdfOrder");
+        String questionPrint = bundle.getString("question.print");
+        String optionCreatePDF = bundle.getString("optionText.createPDF");
+        String optionImagePrint = bundle.getString("optionText.imagePrint");
+        String title = bundle.getString("title.optionPane.print");
+        
+        JCheckBox cb = new JCheckBox(checkBoxText);
         cb.setSelected(true);
         Object[] msg = new Object[2];
-//s.oh^ 2013/02/07 印刷対応
-        //msg[0] = "PDFファイルを作成しますか？";
-        //msg[1] = cb;
-        //int option = JOptionPane.showOptionDialog(
-        //        getContext().getFrame(),
-        //        msg,
-        //        ClientContext.getFrameTitle("カルテ印刷"),
-        //        JOptionPane.DEFAULT_OPTION,
-        //        JOptionPane.INFORMATION_MESSAGE,
-        //        null,
-        //        new String[]{"PDF作成", "イメージ印刷", GUIFactory.getCancelButtonText()},
-        //        "PDF作成");
-        //
-        //if (option == 0) {
-        //    makePDF(cb.isSelected());
-        //} else if (option == 1) {
-        //    printKarte();
-        //}
-        msg[0] = "印刷しますか？";
-        String[] btn = null;
+        
+        msg[0] = questionPrint;
+        String[] btn;
         if(Project.getBoolean(Project.KARTE_PDF_SEND_AT_SAVE)) {
-            btn = new String[]{"PDF作成", "イメージ印刷", GUIFactory.getCancelButtonText()};
+            btn = new String[]{optionCreatePDF, optionImagePrint, GUIFactory.getCancelButtonText()};
         }else{
-            btn = new String[]{"イメージ印刷", GUIFactory.getCancelButtonText()};
+            btn = new String[]{optionImagePrint, GUIFactory.getCancelButtonText()};
         }
         int option = JOptionPane.showOptionDialog(
                 getContext().getFrame(),
                 msg,
-                ClientContext.getFrameTitle("カルテ印刷"),
+                ClientContext.getFrameTitle(title),
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.INFORMATION_MESSAGE,
                 null,
                 btn,
-                "PDF作成");
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle("カルテ印刷"), msg[0].toString(), String.valueOf(cb.isSelected()));
-
+                optionCreatePDF);
+        
         if(Project.getBoolean(Project.KARTE_PDF_SEND_AT_SAVE)) {
             if (option == 0) {
-                Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "PDF作成");
                 makePDF(false);
             } else if (option == 1) {
                 if(Project.getBoolean(Project.KARTE_PRINT_PDF)) {
-                    Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "PDF作成");
                     printPDF();
                 }else{
-                    Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "イメージ印刷");
                     printKarte();
                 }
             } else {
-                Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "取消し");
             }
         }else{
             if (option == 0) {
                 if(Project.getBoolean(Project.KARTE_PRINT_PDF)) {
-                    Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "PDF作成");
                     printPDF();
                 }else{
-                    Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "イメージ印刷");
                     printKarte();
                 }
-            } else {
-                Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, "取消し");
             }
         }
     }
@@ -857,7 +877,7 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
 //        for (KarteViewer viewer : karteList) {
 //            docList.add(viewer.getModel());
 //        }
-        List<DocumentModel> docList = new ArrayList<DocumentModel>();
+        List<DocumentModel> docList = new ArrayList<>();
         docList.add(getSelectedKarte().getModel());
 
         KartePDFMaker maker = new KartePDFMaker();
@@ -908,6 +928,9 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
         KartePaneDumper_2 pdumper = null;
         ArrayList<String> paths = new ArrayList<>(0);
 //s.oh^ 2014/03/19 カルテの選択印刷
+        
+        java.util.ResourceBundle clBundle = ClientContext.getClaimBundle();
+        
         if(Project.getBoolean(Project.KARTE_PRINT_MULTI) && !Project.getBoolean(Project.KARTE_PRINT_SHOWPDF)) {
             int id = 0;
             for(KarteViewer view : karteList) {
@@ -924,8 +947,11 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
                 if(karte != null && dumper != null && pdumper != null) {
                     StringBuilder sbTitle = new StringBuilder();
                     sbTitle.append(karte.getTimeStampLabel().getText());
-                    if(getSelectedKarte().getModel().getDocInfoModel().getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
-                        sbTitle.append("（自費）");
+                    
+                    if(getSelectedKarte().getModel().getDocInfoModel().getHealthInsurance().startsWith(clBundle.getString("INSURANCE_SELF_PREFIX"))) {
+                        //sbTitle.append("（自費）");
+                        String selfInsurance = ClientContext.getMyBundle(KarteDocumentViewer.class).getString("text.selfInsurance");
+                        sbTitle.append(selfInsurance);
                     }
                     KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
                                                           karte.getContext().getPatient().getPatientId(), karte.getContext().getPatient().getFullName(),
@@ -956,8 +982,10 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
                 //                                      new Date(), dumper, pdumper);
                 StringBuilder sbTitle = new StringBuilder();
                 sbTitle.append(karte.getTimeStampLabel().getText());
-                if(getSelectedKarte().getModel().getDocInfoModel().getHealthInsurance().startsWith(IInfoModel.INSURANCE_SELF_PREFIX)) {
-                    sbTitle.append("（自費）");
+                if(getSelectedKarte().getModel().getDocInfoModel().getHealthInsurance().startsWith(clBundle.getString("INSURANCE_SELF_PREFIX"))) {
+                    //sbTitle.append("（自費）");
+                    String selfInsurance = ClientContext.getMyBundle(KarteDocumentViewer.class).getString("text.selfInsurance");
+                    sbTitle.append(selfInsurance);
                 }
                 KartePDFImpl2 pdf = new KartePDFImpl2(sb.toString(), null,
                                                       karte.getContext().getPatient().getPatientId(), karte.getContext().getPatient().getFullName(),
@@ -1056,29 +1084,96 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
         if (delete == null) {
             return;
         }
-        
+//        // Dialog を表示し理由を求める
+////s.oh^ 2013/08/13
+//        //String message = "このドキュメントを削除しますか ?   ";
+//        String karteTitle = (delete.getTimeStampLabel() != null) ? delete.getTimeStampLabel().getText() : "カルテ";
+//        //String message = "このドキュメントを削除しますか ?   \n" + karteTitle;
+//        String message = new MessageFormat("このドキュメントを削除しますか ? \n{0}").format(new Object[]{karteTitle});
+////s.oh$
+//        final JCheckBox box1 = new JCheckBox("作成ミス");
+//        final JCheckBox box2 = new JCheckBox("診察キャンセル");
+//        final JCheckBox box3 = new JCheckBox("その他");
+//        box1.setSelected(true);
+//
+//        ActionListener al = new ActionListener() {
+//
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                if (box1.isSelected() || box2.isSelected()) {
+//                } else if (!box3.isSelected()) {
+//                    box3.setSelected(true);
+//                }
+//            }
+//        };
+//
+//        box1.addActionListener(al);
+//        box2.addActionListener(al);
+//        box3.addActionListener(al);
+//
+//        Object[] msg = new Object[5];
+//        msg[0] = message;
+//        msg[1] = box1;
+//        msg[2] = box2;
+//        msg[3] = box3;
+//        msg[4] = new JLabel(" ");
+//        String deleteText = "削除する";
+////minagawa^ mac jdk7        
+//        //String cancelText = (String) UIManager.get("OptionPane.cancelButtonText");
+//        String cancelText = GUIFactory.getCancelButtonText();
+////minagawa$
+//        int option = JOptionPane.showOptionDialog(
+//                this.getUI(),
+//                msg,
+//                ClientContext.getFrameTitle("ドキュメント削除"),
+//                JOptionPane.DEFAULT_OPTION,
+//                JOptionPane.WARNING_MESSAGE,
+//                null,
+//                new String[]{deleteText, cancelText},
+//                cancelText);
+//        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle("ドキュメント削除"),
+//                          message, box1.getText(), String.valueOf(box1.isSelected()),
+//                          message, box2.getText(), String.valueOf(box2.isSelected()),
+//                          message, box3.getText(), String.valueOf(box3.isSelected()));
+//
+//        //System.out.println(option);
+//
+//        // キャンセルの場合はリターンする
+//        if (option != 0) {
+//            Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, cancelText);
+//            return;
+//        }
+//        Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, deleteText);
+//        //
+//        // 削除する status = 'D'
+//        //
+//        long deletePk = delete.getModel().getId();
+//        DocumentDelegater ddl = new DocumentDelegater();
+//        DeleteTask task = new DeleteTask(getContext(), deletePk, ddl);
+//        task.execute();
         // Dialog を表示し理由を求める
-//s.oh^ 2013/08/13
-        //String message = "このドキュメントを削除しますか ?   ";
-        String karteTitle = (delete.getTimeStampLabel() != null) ? delete.getTimeStampLabel().getText() : "カルテ";
-        String message = "このドキュメントを削除しますか ?   \n" + karteTitle;
-//s.oh$
-        final JCheckBox box1 = new JCheckBox("作成ミス");
-        final JCheckBox box2 = new JCheckBox("診察キャンセル");
-        final JCheckBox box3 = new JCheckBox("その他");
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(KarteDocumentViewer.class);
+        String titleKarte = bundle.getString("title.karte");
+        String deleteQuestion = bundle.getString("messageFormat.deleteKarte");
+        String reasonMiss = bundle.getString("reasonText.miss");
+        String reasonCancel = bundle.getString("reasonText.cancel");
+        String reasonOther = bundle.getString("reasonText.other");
+        String optionDelete = bundle.getString("optionText.delete");
+        String title = bundle.getString("title.optionPane.deleteKarte");
+        
+        String karteTitle = (delete.getTimeStampLabel() != null) ? delete.getTimeStampLabel().getText() : titleKarte;
+        String message = new MessageFormat(deleteQuestion).format(new Object[]{karteTitle});
+        
+        final JCheckBox box1 = new JCheckBox(reasonMiss);
+        final JCheckBox box2 = new JCheckBox(reasonCancel);
+        final JCheckBox box3 = new JCheckBox(reasonOther);
         box1.setSelected(true);
-
-        ActionListener al = new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (box1.isSelected() || box2.isSelected()) {
-                } else if (!box3.isSelected()) {
-                    box3.setSelected(true);
-                }
+        ActionListener al = (ActionEvent e) -> {
+            if (box1.isSelected() || box2.isSelected()) {
+            } else if (!box3.isSelected()) {
+                box3.setSelected(true);
             }
         };
-
         box1.addActionListener(al);
         box2.addActionListener(al);
         box3.addActionListener(al);
@@ -1089,40 +1184,28 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
         msg[2] = box2;
         msg[3] = box3;
         msg[4] = new JLabel(" ");
-        String deleteText = "削除する";
-//minagawa^ mac jdk7        
-        //String cancelText = (String) UIManager.get("OptionPane.cancelButtonText");
-        String cancelText = GUIFactory.getCancelButtonText();
-//minagawa$
+        
         int option = JOptionPane.showOptionDialog(
                 this.getUI(),
                 msg,
-                ClientContext.getFrameTitle("ドキュメント削除"),
+                ClientContext.getFrameTitle(title),
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.WARNING_MESSAGE,
                 null,
-                new String[]{deleteText, cancelText},
-                cancelText);
-        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_OTHER, ClientContext.getFrameTitle("ドキュメント削除"),
-                          message, box1.getText(), String.valueOf(box1.isSelected()),
-                          message, box2.getText(), String.valueOf(box2.isSelected()),
-                          message, box3.getText(), String.valueOf(box3.isSelected()));
-
-        //System.out.println(option);
+                new String[]{optionDelete, GUIFactory.getCancelButtonText()},
+                GUIFactory.getCancelButtonText());
 
         // キャンセルの場合はリターンする
         if (option != 0) {
-            Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, cancelText);
             return;
         }
-        Log.outputOperLogDlg(getContext(), Log.LOG_LEVEL_0, deleteText);
         //
         // 削除する status = 'D'
         //
         long deletePk = delete.getModel().getId();
         DocumentDelegater ddl = new DocumentDelegater();
         DeleteTask task = new DeleteTask(getContext(), deletePk, ddl);
-        task.execute();
+        task.execute();       
     }
     
     /**
@@ -1130,16 +1213,11 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
      * 新宿ヒロクリニックのポーティング
      */   
     public void createPrescription() {
-//minagawa^ 予定カルテ        (予定カルテ対応)
-//        String docType = getBaseKarte().getModel().getDocInfoModel().getDocType();
-//        if (!IInfoModel.DOCTYPE_KARTE.equals(docType)) {
-//            return;
-//        }
+        
         boolean ok = isKarte() && hasModule() && hasPrescription();
         if (!ok) {
             return;
-        }
-//minagawa$        
+        }       
         DocumentModel model = getBaseKarte().getModel();
         PrescriptionMaker maker = new PrescriptionMaker();
         maker.setChart(getContext());
@@ -1152,10 +1230,10 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
      */
     class KarteTask extends DBTask<List<DocumentModel>, Void> {
 
-        private DocumentDelegater ddl;
-        private List<Long> docId;
-        private List<DocInfoModel> docInfos;
-        private JScrollPane scroller;
+        private final DocumentDelegater ddl;
+        private final List<Long> docId;
+        private final List<DocInfoModel> docInfos;
+        private final JScrollPane scroller;
 
         public KarteTask(Chart ctx, List<Long> docId, List<DocInfoModel> docInfos, DocumentDelegater ddl, JScrollPane scroller) {
             super(ctx);
@@ -1167,15 +1245,15 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
 
         @Override
         protected List<DocumentModel> doInBackground() throws Exception {
-            ClientContext.getBootLogger().debug("カルテタスク doInBackground");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).fine("カルテタスク doInBackground");
             List<DocumentModel> result = ddl.getDocuments(docId);
-            ClientContext.getBootLogger().debug("doInBackground noErr, return result");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).fine("doInBackground noErr, return result");
             return result;
         }
 
         @Override
         protected void succeeded(List<DocumentModel> list) {
-            ClientContext.getBootLogger().debug("KarteTask succeeded");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).fine("KarteTask succeeded");
             if (list != null) {
                 addKarteViewer(list, docInfos, scroller);
             }
@@ -1187,8 +1265,8 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
      */
     class DeleteTask extends DBTask<Boolean, Void> {
 
-        private DocumentDelegater ddl;
-        private long docPk;
+        private final DocumentDelegater ddl;
+        private final long docPk;
 
         public DeleteTask(Chart ctx, long docPk, DocumentDelegater ddl) {
             super(ctx);
@@ -1198,14 +1276,14 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
 
         @Override
         protected Boolean doInBackground() throws Exception {
-            ClientContext.getBootLogger().debug("DeleteTask started");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).fine("DeleteTask started");
             ddl.deleteDocument(docPk);
             return true;
         }
 
         @Override
         protected void succeeded(Boolean result) {
-            ClientContext.getBootLogger().debug("DeleteTask succeeded");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).fine("DeleteTask succeeded");
             Chart chart = (KarteDocumentViewer.this).getContext();
             chart.getDocumentHistory().getDocumentHistory();
         }
@@ -1232,7 +1310,7 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
 
         @Override
         public void enter() {
-            boolean canEdit = isReadOnly() ? false : true;
+            boolean canEdit = !isReadOnly();
             getContext().enabledAction(GUIConst.ACTION_NEW_KARTE, canEdit);         // 新規カルテ
             getContext().enabledAction(GUIConst.ACTION_NEW_DOCUMENT, canEdit);      // 新規文書
             getContext().enabledAction(GUIConst.ACTION_MODIFY_KARTE, false);        // 修正
@@ -1261,16 +1339,9 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
             //-----------------------------------------
             // 新規カルテが可能なケース 仮保存でないことを追加
             //-----------------------------------------
-            boolean canEdit = isReadOnly() ? false : true;
+            boolean canEdit = !isReadOnly();
             
             KarteViewer base = getBaseKarte();
-            // (予定カルテ対応)
-            // boolean karteIs2 = false;
-            //
-            //if (base!=null) {
-            //    String docType = base.getModel().getDocInfoModel().getDocType();
-            //    karteIs2 = (IInfoModel.DOCTYPE_KARTE.equals(docType));
-            //}
             boolean hasSendModule = isKarte() && hasModule() && hasSendModule();
             
             boolean tmpKarte = false;
@@ -1309,7 +1380,7 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
             // delete^
 //s.oh^ 2013/06/13 カルテ履歴が複数の場合、カルテ削除メニューを無効
             //getContext().enabledAction(GUIConst.ACTION_DELETE, (!showModified && canEdit)); // 削除 履歴表示中
-            boolean singleSelected = (karteList.size() == 1) ? true : false;
+            boolean singleSelected = (karteList.size() == 1);
             getContext().enabledAction(GUIConst.ACTION_DELETE, (!showModified && canEdit && singleSelected));
 //s.oh$
 //s.oh^ 2014/08/19 ID権限
@@ -1327,19 +1398,12 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
             //-----------------------------------------
             boolean sendOk = getContext().isSendClaim();
             sendOk = sendOk && Project.canAccessToOrca();
-//minagawa^ 予定カルテ 仮保存も送信(予定カルテ対応)
-            //sendOk = sendOk && karteIs2;
-            //sendOk = sendOk && (!tmpKarte);
-            sendOk = sendOk && hasSendModule;
-//minagawa$            
+            sendOk = sendOk && hasSendModule;           
             getContext().enabledAction(GUIConst.ACTION_SEND_CLAIM, sendOk);       // CLAIM送信
             
             // 処方箋印刷
-//minagawa^ 予定カルテ 仮保存も処方せん印刷(予定カルテ対応)
-            //boolean createOk = karteIs2;
-            //createOk = createOk && (!tmpKarte);
             boolean createOk = isKarte() && hasModule() && hasPrescription();
-//minagawa$            
+            
             getContext().enabledAction(GUIConst.ACTION_CREATE_PRISCRIPTION, createOk); // 処方箋印刷
         }
     }
@@ -1349,8 +1413,8 @@ public class KarteDocumentViewer extends AbstractChartDocument implements Docume
      */
     protected final class StateMgr {
 
-        private BrowserState emptyState = new EmptyState();
-        private BrowserState cleanState = new ClaenState();
+        private final BrowserState emptyState = new EmptyState();
+        private final BrowserState cleanState = new ClaenState();
         private BrowserState currentState;
 
         public StateMgr() {

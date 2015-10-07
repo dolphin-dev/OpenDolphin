@@ -37,8 +37,8 @@ public class UniteaBrowser extends AbstractBrowser {
     private static final String SETTING_FILE_NAME = "unitea.properties";
 
     private int imageSize = MAX_IMAGE_SIZE;
-    private int cellWidth = MAX_IMAGE_SIZE + CELL_WIDTH_MARGIN;
-    private int cellHeight = MAX_IMAGE_SIZE + CELL_HEIGHT_MARGIN;
+    private final int cellWidth = MAX_IMAGE_SIZE + CELL_WIDTH_MARGIN;
+    private final int cellHeight = MAX_IMAGE_SIZE + CELL_HEIGHT_MARGIN;
 
     private ImageTableRenderer imageRenderer;
     private JScrollPane jScrollPane1;
@@ -118,9 +118,9 @@ public class UniteaBrowser extends AbstractBrowser {
             try {
                 desktop.browse(new URI(url));
             } catch (URISyntaxException ex) {
-                ClientContext.getBootLogger().warn(ex);
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
             } catch (IOException ex) {
-                ClientContext.getBootLogger().warn(ex);
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
             }
         }
     }
@@ -227,7 +227,7 @@ public class UniteaBrowser extends AbstractBrowser {
     @Override
     protected void initComponents() {
         
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
+        ResourceBundle resource = ClientContext.getMyBundle(UniteaBrowser.class);
         ActionMap map = getActionMap(resource);
 
         int columnCount = columnCount();

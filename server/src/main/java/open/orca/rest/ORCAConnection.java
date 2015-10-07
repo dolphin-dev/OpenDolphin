@@ -5,7 +5,11 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Properties;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 
 /**
  * 2013/08/29
@@ -14,6 +18,9 @@ import java.util.Properties;
 public class ORCAConnection {
     
     private static final ORCAConnection instane = new ORCAConnection();
+    
+    //@Resource(mappedName="java:jboss/datasources/ORCADS")
+    //private DataSource ds;
     
     private String jdbcURL;
     private String user;
@@ -59,12 +66,15 @@ public class ORCAConnection {
     public Connection getConnection() {
         
         try {
-            Connection conn = DriverManager.getConnection(jdbcURL, user, password);
-//minagawa^            
-            conn.setReadOnly(true);
-//minagawa$            
-            return conn;
-        } catch (Exception e) {
+            if (jdbcURL!=null && user!=null && password!=null) {
+                Connection conn = DriverManager.getConnection(jdbcURL, user, password);         
+                conn.setReadOnly(true);           
+                return conn;
+            } else {
+                DataSource ds = (DataSource)InitialContext.doLookup("java:jboss/datasources/ORCADS");
+                return ds.getConnection();
+            }
+        } catch (SQLException | NamingException e) {
             e.printStackTrace(System.err);
         }
         return null;

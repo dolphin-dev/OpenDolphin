@@ -28,18 +28,19 @@ public class AccountMakerView extends javax.swing.JPanel {
 
         accountMakeBtn = new javax.swing.JButton();
 
-        setBorder(javax.swing.BorderFactory.createTitledBorder("オンラインテスト"));
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/project/resources/AccountMakerView"); // NOI18N
+        setBorder(javax.swing.BorderFactory.createTitledBorder(bundle.getString("jPanel.borderTitle"))); // NOI18N
 
-        accountMakeBtn.setText("評価用アカウント作成...");
+        accountMakeBtn.setText(bundle.getString("accountMakeBtn.text")); // NOI18N
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(86, Short.MAX_VALUE)
+                .addContainerGap(92, Short.MAX_VALUE)
                 .add(accountMakeBtn)
-                .addContainerGap(86, Short.MAX_VALUE))
+                .addContainerGap(93, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)

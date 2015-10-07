@@ -1,7 +1,8 @@
 package open.dolphin.dao;
 
+import java.text.MessageFormat;
 import open.dolphin.client.ClientContext;
-import org.apache.log4j.Logger;
+
 
 /**
  * DaoBean
@@ -24,13 +25,10 @@ public class DaoBean {
     protected int errorCode;
     protected String errorMessage;
     
-    protected Logger logger;
-    
     /**
      * Creates a new instance of DaoBean
      */
     public DaoBean() {
-        logger = ClientContext.getBootLogger();
     }
     
     public final String getHost() {
@@ -66,7 +64,7 @@ public class DaoBean {
     }
     
     public final boolean isNoError() {
-        return errorCode == TT_NO_ERROR ? true : false;
+        return errorCode == TT_NO_ERROR;
     }
     
     public int getErrorCode() {
@@ -92,52 +90,45 @@ public class DaoBean {
      */
     protected void processError(Exception e) {
         
-        logger.warn(e);
+        java.util.logging.Logger.getLogger(this.getClass().getName()).warning(e.getMessage());
         
         StringBuilder sb  = new StringBuilder();
         
         if (e instanceof org.postgresql.util.PSQLException) {
             setErrorCode(TT_CONNECTION_ERROR);
-            sb.append("サーバに接続できません。ネットワーク環境をお確かめください。");
-            sb.append("\n");
-            sb.append(appenExceptionInfo(e));
-            setErrorMessage(sb.toString());
+            String fmt = ClientContext.getMyBundle(DaoBean.class).getString("messageFormat.cannnotConnect");
+            String errMsg = new MessageFormat(fmt).format(new String[]{appenExceptionInfo(e)});
+            setErrorMessage(errMsg);
             
         } else if (e instanceof java.sql.SQLException) {
             setErrorCode(TT_DATABASE_ERROR);
-            sb.append("データベースアクセスエラー");
-            sb.append("\n");
-            sb.append(appenExceptionInfo(e));
-            setErrorMessage(sb.toString());
+            String fmt = ClientContext.getMyBundle(DaoBean.class).getString("messageFormat.dbAccessError");
+            String errMsg = new MessageFormat(fmt).format(new String[]{appenExceptionInfo(e)});
+            setErrorMessage(errMsg);
         } else {
             setErrorCode(TT_UNKNOWN_ERROR);
-            sb.append("アプリケーションエラー");
-            sb.append("\n");
-            sb.append(appenExceptionInfo(e));
-            setErrorMessage(sb.toString());
+            String fmt = ClientContext.getMyBundle(DaoBean.class).getString("messageFormat.appError");
+            String errMsg = new MessageFormat(fmt).format(new String[]{appenExceptionInfo(e)});
+            setErrorMessage(errMsg);
         }
     }
     
     /**
      * 例外の持つ情報を加える。
      * @param e 例外
+     * @return 
      */
     protected String appenExceptionInfo(Exception e) {
         
-        StringBuilder sb  = new StringBuilder();
-        sb.append("例外クラス: ");
-        sb.append(e.getClass().getName());
-        sb.append("\n");
-        if (e.getCause() != null && e.getCause().getMessage() != null) {
-            sb.append("原因: ");
-            sb.append(e.getCause().getMessage());
-            sb.append("\n");
-        }
-        if (e.getMessage() != null) {
-            sb.append("内容: ");
-            sb.append(e.getMessage());
-        }
+        String fmt = ClientContext.getMyBundle(DaoBean.class).getString("messageFormat.exception");
+        MessageFormat msf = new MessageFormat(fmt);
+        Object[] obj = new Object[3];
+        obj[0] = e.getClass().getName();
+        obj[1] =  (e.getCause() != null && e.getCause().getMessage() != null) 
+                ? e.getCause().getMessage()
+                : "";
+        obj[3] = e.getMessage();
         
-        return sb.toString();
+        return msf.format(obj);
     }
 }

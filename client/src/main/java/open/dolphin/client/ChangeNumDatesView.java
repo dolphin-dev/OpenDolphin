@@ -36,13 +36,14 @@ public class ChangeNumDatesView extends javax.swing.JPanel {
         numDatesFld = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
 
-        jLabel1.setText("処方日数を一括変更します。");
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/client/resources/ChangeNumDatesView"); // NOI18N
+        jLabel1.setText(bundle.getString("jLabel1.text")); // NOI18N
 
-        jLabel2.setText("新しい日数:");
+        jLabel2.setText(bundle.getString("jLabel2.text")); // NOI18N
 
         numDatesFld.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
 
-        jLabel3.setText("日");
+        jLabel3.setText(bundle.getString("jLabel3.text")); // NOI18N
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);

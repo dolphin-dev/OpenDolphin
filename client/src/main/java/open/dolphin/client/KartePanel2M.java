@@ -27,7 +27,7 @@ public class KartePanel2M extends Panel2 {
     private javax.swing.JTextPane pTextPane;
     private javax.swing.JTextPane soaTextPane;
     private javax.swing.JLabel timeStampLabel;
-    private int fontSize;
+    private final int fontSize;
 
     public KartePanel2M() {
         fontSize = Project.getInt("karte.font.size.default");
@@ -119,6 +119,7 @@ public class KartePanel2M extends Panel2 {
             super(elem);
         }
  
+        @Override
         public float getMinimumSpan(int axis) {
             switch (axis) {
                 case View.X_AXIS:

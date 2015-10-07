@@ -32,9 +32,9 @@
     </DimensionLayout>
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Component id="jLabel1" alignment="0" pref="29" max="32767" attributes="1"/>
+          <Component id="jLabel1" alignment="0" max="32767" attributes="1"/>
           <Group type="103" alignment="0" groupAlignment="3" attributes="0">
-              <Component id="textField" alignment="3" pref="29" max="32767" attributes="0"/>
+              <Component id="textField" alignment="3" max="32767" attributes="0"/>
               <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
           </Group>
           <Component id="expandSdr" alignment="0" max="32767" attributes="1"/>
@@ -44,7 +44,9 @@
   <SubComponents>
     <Component class="javax.swing.JLabel" name="jLabel1">
       <Properties>
-        <Property name="text" type="java.lang.String" value="&#x62e1;&#x5927;&#x30fb;&#x7e2e;&#x5c0f;&#x7387;"/>
+        <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
+          <ResourceString bundle="open/dolphin/impl/scheam/schemastate/resources/ExpandPanel.properties" key="magReductionLabel.text" replaceFormat="java.util.ResourceBundle.getBundle(&quot;{bundleNameSlashes}&quot;).getString(&quot;{key}&quot;)"/>
+        </Property>
         <Property name="name" type="java.lang.String" value="jLabel1" noResource="true"/>
       </Properties>
     </Component>
@@ -62,7 +64,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">
       <Properties>
-        <Property name="text" type="java.lang.String" value="%"/>
+        <Property name="text" type="java.lang.String" value="%" noResource="true"/>
         <Property name="name" type="java.lang.String" value="jLabel2" noResource="true"/>
       </Properties>
     </Component>

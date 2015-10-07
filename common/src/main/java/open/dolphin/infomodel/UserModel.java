@@ -64,6 +64,15 @@ public class UserModel extends InfoModel implements java.io.Serializable {
     // @001 2009/09/10 仕様追加：処方せん備考欄に麻薬施用者を表記する必要があるため、ユーザ登録の項目として麻薬施用者免許証番号を追加
     private String useDrugId;
 // ヒロクリニック$    
+    
+//minagawa^ ２段階認証
+    private String factor2Auth;
+    
+    private String mainMobile;
+    
+    private String subMobile;
+    
+//minagawa$    
 
     /**
      * UserModelオブジェクトを生成する。
@@ -167,7 +176,7 @@ public class UserModel extends InfoModel implements java.io.Serializable {
     public void addRole(RoleModel value) {
         
         if (roles == null) {
-            roles = new ArrayList<RoleModel>(1);
+            roles = new ArrayList<>(1);
         }
         roles.add(value);
     }
@@ -272,4 +281,46 @@ public class UserModel extends InfoModel implements java.io.Serializable {
         this.useDrugId = useDrugId;
     }
  // ヒロクリニック$   
+
+    /**
+     * @return the factor2Auth
+     */
+    public String getFactor2Auth() {
+        return factor2Auth;
+    }
+
+    /**
+     * @param factor2Auth the factor2Auth to set
+     */
+    public void setFactor2Auth(String factor2Auth) {
+        this.factor2Auth = factor2Auth;
+    }
+
+    /**
+     * @return the mainMobile
+     */
+    public String getMainMobile() {
+        return mainMobile;
+    }
+
+    /**
+     * @param mainMobile the mainMobile to set
+     */
+    public void setMainMobile(String mainMobile) {
+        this.mainMobile = mainMobile;
+    }
+
+    /**
+     * @return the subMobile
+     */
+    public String getSubMobile() {
+        return subMobile;
+    }
+
+    /**
+     * @param subMobile the subMobile to set
+     */
+    public void setSubMobile(String subMobile) {
+        this.subMobile = subMobile;
+    }
 }

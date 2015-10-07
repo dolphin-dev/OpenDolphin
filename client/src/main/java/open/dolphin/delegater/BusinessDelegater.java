@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.ClientResponseContext;
@@ -38,8 +38,6 @@ public class BusinessDelegater {
     protected static final String USER_NAME = "userName";
     protected static final String PASSWORD = "password";
     private static final String CLINET_UUID = "clientUUID";
-
-    protected boolean DEBUG = false;
     
     protected ResteasyWebTarget getWebTarget(String path, String userName, String password) {
         
@@ -289,16 +287,11 @@ public class BusinessDelegater {
     }
     
     protected void debug(int status, String entity) {
-        if (DEBUG) {
-            System.err.println("---------------------------------------");
-            System.err.println("status = " + status);
-            System.err.println(entity);
-        }
+        java.util.logging.Logger.getLogger(this.getClass().getName()).log(Level.FINE, "status = {0}", status);
+        java.util.logging.Logger.getLogger(this.getClass().getName()).fine(entity);
     }
     
     protected void debug(int status) {
-        if (DEBUG) {
-            System.err.println("HTTP status = " + status);
-        }
+        java.util.logging.Logger.getLogger(this.getClass().getName()).log(Level.FINE, "HTTP status = {0}", status);
     }
 }

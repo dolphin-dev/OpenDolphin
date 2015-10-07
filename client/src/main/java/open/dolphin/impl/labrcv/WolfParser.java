@@ -22,13 +22,16 @@ public class WolfParser implements LabResultParser {
 
     private String encoding = "SHIFT-JIS";
 
-    private boolean DEBUG=false;
+    private final boolean DEBUG=false;
 
     public WolfParser() {
     }
     
     /**
      * 入力ストリームの検査結果をパースする。
+     * @param labFile
+     * @return 
+     * @throws java.io.IOException
      */
     @Override
     public List<NLaboImportSummary> parse(Path labFile) throws IOException {
@@ -36,8 +39,8 @@ public class WolfParser implements LabResultParser {
         String line;
         String curKey = null;
         NLaboModule curModule = null;
-        List<NLaboModule> allModules = new ArrayList<NLaboModule>();
-        List<NLaboImportSummary> retList = new ArrayList<NLaboImportSummary>();
+        List<NLaboModule> allModules = new ArrayList<>();
+        List<NLaboImportSummary> retList = new ArrayList<>();
 
         SimpleDateFormat defaultDF = new SimpleDateFormat(DEFAULT_DATE_FORMAT);
         SimpleDateFormat df8 = new SimpleDateFormat(DATE_FORMAT_8);
@@ -94,7 +97,7 @@ public class WolfParser implements LabResultParser {
                 sampleDate = defaultDF.format(date);
 
             } catch (Exception e) {
-                ClientContext.getLaboTestLogger().warn(e);
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(e.getMessage());
                 throw new IOException(e.getMessage());
             }
 

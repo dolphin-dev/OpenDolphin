@@ -9,6 +9,7 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.GregorianCalendar;
@@ -25,9 +26,7 @@ import open.dolphin.infomodel.SimpleDate;
  */
 public final class LiteCalendarPanel extends JPanel implements PropertyChangeListener {
     
-    private static final long serialVersionUID = -3472737594106311587L;
-    
-    public static final String SELECTED_DATE_PROP = "selectedDateProp";
+   public static final String SELECTED_DATE_PROP = "selectedDateProp";
     public static final String MARK_LIST_PROP = "markListProp";
     
     // 表示のデフォルト設定
@@ -47,11 +46,7 @@ public final class LiteCalendarPanel extends JPanel implements PropertyChangeLis
     private Object selectedDate;
     private JLabel titleLabel;
     private SimpleDate today;
-//minagawa^ 予定カルテ    (予定カルテ対応)
-    // [0] start
-    // [1] end
-    private  SimpleDate[] acceptRange;
-//minagawa$    
+    private  SimpleDate[] acceptRange;    
     private HashMap eventColorTable;
     
     // 表示用の属性
@@ -140,13 +135,18 @@ public final class LiteCalendarPanel extends JPanel implements PropertyChangeLis
                 }
             }
         });
-
-        StringBuilder buf = new StringBuilder();
-        buf.append(year);
-        buf.append(ClientContext.getString("calendar.title.year"));
-        buf.append(month + 1);
-        buf.append(ClientContext.getString("calendar.title.month"));
-        setTitleLabel(new JLabel(buf.toString()));
+//minagawa^ I18N
+//        StringBuilder buf = new StringBuilder();
+//        buf.append(year);
+//        buf.append(ClientContext.getString("calendar.title.year"));
+//        buf.append(month + 1);
+//        buf.append(ClientContext.getString("calendar.title.month"));
+//        setTitleLabel(new JLabel(buf.toString()));
+        String fmt = ClientContext.getString("calendar.title.yearMonth");
+        SimpleDateFormat sdf = new SimpleDateFormat(fmt);
+        String dateString = sdf.format(gc.getTime());
+        setTitleLabel(new JLabel(dateString));
+//minagawa$        
         setTitleAlign(titleAlign);
         setTitleFont(titleFont);
         setTitleFore(titleFore);
@@ -202,6 +202,7 @@ public final class LiteCalendarPanel extends JPanel implements PropertyChangeLis
     
     /**
      * 選択された日を通知する。
+     * @param o
      */
     public void setSelectedDate(Object o) {
         Object old = selectedDate;
@@ -210,8 +211,6 @@ public final class LiteCalendarPanel extends JPanel implements PropertyChangeLis
             SimpleDate sd = new SimpleDate(getYear(), getMonth(), Integer.parseInt((String) selectedDate));
             selectedDate = sd;
         }
-//minagawa^ 予定カルテ 有効な日のみ通知する(予定カルテ対応)
-        //boundSupport.firePropertyChange(SELECTED_DATE_PROP, old, selectedDate);
         SimpleDate test = (SimpleDate)selectedDate;
         boolean notify = true;
         if (this.acceptRange!=null && this.acceptRange[0]!=null) {
@@ -224,8 +223,7 @@ public final class LiteCalendarPanel extends JPanel implements PropertyChangeLis
         }
         if (notify) {
             boundSupport.firePropertyChange(SELECTED_DATE_PROP, old, selectedDate);
-        }
-//minagawa$        
+        }      
     }
     
     public JTable getTable() {
@@ -336,8 +334,7 @@ public final class LiteCalendarPanel extends JPanel implements PropertyChangeLis
     }
     
     /**
-     * @param autoResize
-     *            The autoResize to set.
+     * @param mode
      */
     public void setAutoResizeMode(int mode) {
         this.autoResizeMode = mode;
@@ -504,11 +501,9 @@ public final class LiteCalendarPanel extends JPanel implements PropertyChangeLis
         this.today = today;
     }
     
-//minagawa^ 予定カルテ(予定カルテ対応)
     public void setAcceptRange(SimpleDate[] range) {
         this.acceptRange = range;
-    }
-//minagawa$    
+    }  
     
     /**
      * @param titleLabel
@@ -576,11 +571,9 @@ public final class LiteCalendarPanel extends JPanel implements PropertyChangeLis
                 }
                 
                 ((JLabel) compo).setText(day);
-//minagawa^ 予定カルテ                (予定カルテ対応)
                 if (!isAccept(row, col)) {
                     this.setForeground(Color.LIGHT_GRAY);
-                }
-//minagawa$                
+                }         
                 // 曜日によって ForeColor を変える
                 else if (col == 0) {
                     this.setForeground(getSundayFore());
@@ -605,7 +598,7 @@ public final class LiteCalendarPanel extends JPanel implements PropertyChangeLis
             return compo;
         }
     }
- //minagawa^ 予定カルテ   (予定カルテ対応)
+    
     private boolean isAccept(int row, int col) {
         
         // 制限がない場合はOK
@@ -632,6 +625,5 @@ public final class LiteCalendarPanel extends JPanel implements PropertyChangeLis
         }
         
         return ok;
-    }
-//minagawa$    
+    }   
 }

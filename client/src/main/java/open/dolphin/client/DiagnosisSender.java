@@ -8,8 +8,6 @@ import open.dolphin.message.DiseaseHelper;
 import open.dolphin.message.MessageBuilder;
 import open.dolphin.project.Project;
 import open.dolphin.util.GUIDGenerator;
-import open.dolphin.util.Log;
-import org.apache.log4j.Level;
 
 /**
  * Karte と Diagnosis の CLAIM を送る
@@ -26,13 +24,10 @@ public class DiagnosisSender implements IDiagnosisSender {
 
     // diagnosis では pvt が必要
     private PatientVisitModel pvt;
-
-    private boolean DEBUG;
     
     private boolean send;
 
     public DiagnosisSender() {
-        DEBUG = (ClientContext.getBootLogger().getLevel() == Level.DEBUG);
     }
 
     @Override
@@ -69,7 +64,7 @@ public class DiagnosisSender implements IDiagnosisSender {
 
     /**
      * 診断名の CLAIM 送信
-     * @param rd
+     * @param diagnoses
      */
     @Override
     public void send(List<RegisteredDiagnosisModel> diagnoses) {
@@ -86,14 +81,17 @@ public class DiagnosisSender implements IDiagnosisSender {
 //s.oh$
 
         // DocInfo & RD をカプセル化したアイテムを生成する
-        ArrayList<DiagnosisModuleItem> moduleItems = new ArrayList<DiagnosisModuleItem>();
+        ArrayList<DiagnosisModuleItem> moduleItems = new ArrayList<>();
+        
+        java.util.ResourceBundle mBundle = ClientContext.getBundle();
+        String defTitle = mBundle.getString("DEFAULT_DIAGNOSIS_TITLE");
 
         for (RegisteredDiagnosisModel rd : diagnoses) {
             
             DocInfoModel docInfo = new DocInfoModel();
             
             docInfo.setDocId(GUIDGenerator.generate(docInfo));
-            docInfo.setTitle(IInfoModel.DEFAULT_DIAGNOSIS_TITLE);
+            docInfo.setTitle(defTitle);
             docInfo.setPurpose(IInfoModel.PURPOSE_RECORD);
             docInfo.setFirstConfirmDate(ModelUtils.getDateTimeAsObject(rd.getConfirmDate()));
             docInfo.setConfirmDate(ModelUtils.getDateTimeAsObject(rd.getFirstConfirmDate()));
@@ -138,7 +136,8 @@ public class DiagnosisSender implements IDiagnosisSender {
         event.setPatientId(patient.getPatientId());
         event.setPatientName(patient.getFullName());
         event.setPatientSex(patient.getGender());
-        event.setTitle(IInfoModel.DEFAULT_DIAGNOSIS_TITLE);
+        
+        event.setTitle(defTitle);
         event.setClaimInstance(claimMessage);
         event.setConfirmDate(confirmDate);
 
@@ -146,16 +145,8 @@ public class DiagnosisSender implements IDiagnosisSender {
         //if (ClientContext.getClaimLogger() != null) {
         //    ClientContext.getClaimLogger().debug(event.getClaimInsutance());
         //}
-        Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, event.getClaimInsutance());
-
         if (claimListener != null) {
             claimListener.claimMessageEvent(event);
-        }
-    }
-
-    private void debug(String msg) {
-        if (DEBUG) {
-            ClientContext.getBootLogger().debug(msg);
         }
     }
 }

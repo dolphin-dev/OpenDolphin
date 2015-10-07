@@ -15,9 +15,7 @@ import open.dolphin.client.ClientContext;
 import open.dolphin.common.OrcaConnect;
 import open.dolphin.delegater.OrcaDelegater;
 import open.dolphin.infomodel.*;
-import open.dolphin.order.MMLTable;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 import open.dolphin.util.StringTool;
 
 /**
@@ -131,7 +129,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
         }
 
         StringBuilder sb = new StringBuilder();
-        List<DrugInteractionModel> ret = new ArrayList<DrugInteractionModel>();
+        List<DrugInteractionModel> ret = new ArrayList<>();
 
         // SQL文を作成
         sb.append("select drugcd, drugcd2, TI.syojyoucd, syojyou ");
@@ -173,7 +171,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
     public List<TensuMaster> getTensuMasterByShinku(String shinku, String now) throws Exception {
 
         // 結果を格納するリスト
-        ArrayList<TensuMaster> ret = new ArrayList<TensuMaster>();
+        ArrayList<TensuMaster> ret = new ArrayList<>();
 
         // SQL 文
         StringBuilder buf = new StringBuilder();
@@ -230,13 +228,13 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
     public List<TensuMaster> getTensuMasterByName(String name, String now, boolean partialMatch) throws Exception {
 
         // 結果を格納するリスト
-        ArrayList<TensuMaster> ret = new ArrayList<TensuMaster>();
+        ArrayList<TensuMaster> ret = new ArrayList<>();
 
         // 半角英数字を全角へ変換する
         name = StringTool.toZenkakuUpperLower(name);
 
         // SQL 文
-        boolean one = name.length()==1 ? true : false;
+        boolean one = name.length()==1;
         StringBuilder buf = new StringBuilder();
         if (one) {
             buf.append(QUERY_TENSU_BY_1_NAME);
@@ -303,7 +301,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
     public List<TensuMaster> getTensuMasterByCode(String regExp, String now) throws Exception {
 
         // 結果を格納するリスト
-        ArrayList<TensuMaster> ret = new ArrayList<TensuMaster>();
+        ArrayList<TensuMaster> ret = new ArrayList<>();
 
         // SQL 文
         StringBuilder buf = new StringBuilder();
@@ -365,7 +363,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
     public List<TensuMaster> getTensuMasterByTen(String ten, String now) throws Exception {
 
         // 結果を格納するリスト
-        ArrayList<TensuMaster> ret = new ArrayList<TensuMaster>();
+        ArrayList<TensuMaster> ret = new ArrayList<>();
 
         // SQL 文
         StringBuilder buf = new StringBuilder();
@@ -434,7 +432,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
     public List<DiseaseEntry> getDiseaseByName(String name, String now, boolean partialMatch) throws Exception {
 
         // 結果を格納するリスト
-        ArrayList<DiseaseEntry> ret = new ArrayList<DiseaseEntry>();
+        ArrayList<DiseaseEntry> ret = new ArrayList<>();
 
         // SQL 文
         StringBuilder buf = new StringBuilder();
@@ -574,7 +572,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
             con = getConnection();
             st = con.createStatement();
             ResultSet rs = st.executeQuery(sql);
-            collection = new ArrayList<OrcaInputCd>();
+            collection = new ArrayList<>();
             
             while (rs.next()) {
                 
@@ -706,7 +704,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
             sql2 = sb2.toString();
         }
         
-        ArrayList<ModuleModel> retSet = new ArrayList<ModuleModel>();
+        ArrayList<ModuleModel> retSet = new ArrayList<>();
         
         try {
             //
@@ -724,7 +722,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
             
             ResultSet rs = ps1.executeQuery();
             
-            ArrayList<OrcaInputSet> list = new ArrayList<OrcaInputSet>();
+            ArrayList<OrcaInputSet> list = new ArrayList<>();
                 
 //s.oh^ 2014/04/01 ORCAセット有効期限対応
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
@@ -764,13 +762,11 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
                 //list.add(inputSet);
                 String strst = rs.getString(4);
                 String stred = rs.getString(5);
-                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, inputSet.getInputCd(), String.valueOf(inputSet.getSuryo1()), String.valueOf(inputSet.getKaisu()), strst, stred);
                 int st = Integer.parseInt(strst);
                 int ed = Integer.parseInt(stred);
                 if(st <= today && today <= ed) {
                     list.add(inputSet);
                 }else{
-                    continue;
                 }
 //s.oh$
             }
@@ -1033,7 +1029,6 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
             ModuleInfoBean stampInfo = stamp.getModuleInfoBean();
             stampInfo.setStampName(stampName);
             stampInfo.setStampRole(IInfoModel.ROLE_P);  // ROLE_ORCA -> EOLE_P
-            //stampInfo.setStampMemo(code);
             BundleDolphin bundle;
                 
             if (code.startsWith(RP_KBN_START)) {
@@ -1042,8 +1037,8 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
                 stamp.setModel(bundle);
                 
                 String inOut = Project.getBoolean(Project.RP_OUT, true)
-                               ? ClaimConst.EXT_MEDICINE
-                               : ClaimConst.IN_MEDICINE;
+                               ? ClientContext.getClaimBundle().getString(ClaimConst.EXT_MEDICINE)
+                               : ClientContext.getClaimBundle().getString(ClaimConst.IN_MEDICINE);
                 bundle.setMemo(inOut);
                 
             } else {
@@ -1054,7 +1049,8 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
             
             bundle.setClassCode(code);
             bundle.setClassCodeSystem(ClaimConst.CLASS_CODE_ID);
-            bundle.setClassName(MMLTable.getClaimClassCodeName(code));
+            java.util.ResourceBundle resBundle = ClientContext.getClaimBundle();
+            bundle.setClassName(resBundle.getString(code));
             bundle.setBundleNumber(String.valueOf(DEFAULT_BUNDLE_NUMBER));
 
             String[] entityOrder = getEntityOrderName(code);
@@ -1073,42 +1069,36 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
             int number = Integer.parseInt(receiptCode);
             
             if (number >= 110 && number <= 125) {
-                return new String[]{IInfoModel.ENTITY_BASE_CHARGE_ORDER, "診断料"};
+                return new String[]{IInfoModel.ENTITY_BASE_CHARGE_ORDER, java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("entity.baseCharge")};
             
             } else if (number >= 130 && number <= 150) {
-                return new String[]{IInfoModel.ENTITY_INSTRACTION_CHARGE_ORDER, "指導・在宅"};
+                return new String[]{IInfoModel.ENTITY_INSTRACTION_CHARGE_ORDER, java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("entity.instractionHomeCare")};
                 
             } else if (number >= 200 && number <= 299) {
-                return new String[]{IInfoModel.ENTITY_MED_ORDER, "RP"};
+                return new String[]{IInfoModel.ENTITY_MED_ORDER, java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("entity.prescription")};
             
             } 
-//minagawa^ LSC 1.4 .344問題 2013/06/24
-//            else if (number >= 300 && number <= 352) {
-//                return new String[]{IInfoModel.ENTITY_INJECTION_ORDER, "注 射"};
-//            
-//            }
             else if (number >= 300 && number <= 399) {
-                return new String[]{IInfoModel.ENTITY_INJECTION_ORDER, "注 射"};
+                return new String[]{IInfoModel.ENTITY_INJECTION_ORDER, java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("entity.injection")};
             
-            }
-//minagawa$            
+            }         
             else if (number >= 400 && number <= 499) {
-                return new String[]{IInfoModel.ENTITY_TREATMENT, "処 置"};
+                return new String[]{IInfoModel.ENTITY_TREATMENT, java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("entity.treatment")};
             
             } else if (number >= 500 && number <= 599) {
-                return new String[]{IInfoModel.ENTITY_SURGERY_ORDER, "手術"};
+                return new String[]{IInfoModel.ENTITY_SURGERY_ORDER, java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("entity.surgery")};
             
             } else if (number >= 600 && number <= 699) {
-                return new String[]{IInfoModel.ENTITY_LABO_TEST, "検査"};
+                return new String[]{IInfoModel.ENTITY_LABO_TEST, java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("entity.labTest")};
             
             } else if (number >= 700 && number <= 799) {
-                return new String[]{IInfoModel.ENTITY_RADIOLOGY_ORDER, "放射線"};
+                return new String[]{IInfoModel.ENTITY_RADIOLOGY_ORDER, java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("entity.radilogy")};
             
             } else if (number >= 800 && number <= 899) {
-                return new String[]{IInfoModel.ENTITY_OTHER_ORDER, "その他"};
+                return new String[]{IInfoModel.ENTITY_OTHER_ORDER, java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("entity.other")};
                 
             } else {
-                return new String[]{IInfoModel.ENTITY_GENERAL_ORDER, "汎 用"};
+                return new String[]{IInfoModel.ENTITY_GENERAL_ORDER, java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("entity.general")};
             }
             
         } catch (Exception e) {
@@ -1130,7 +1120,11 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
         
     /**
      * ORCA に登録してある病名を検索する。
-     * @return RegisteredDiagnosisModelのリスト
+     * @param patientId
+     * @param from
+     * @param to
+     * @param ascend
+     * @return Regi
      */
     @Override
     public ArrayList<RegisteredDiagnosisModel> getOrcaDisease(String patientId, String from, String to, Boolean ascend) {
@@ -1145,7 +1139,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
         StringBuilder sb = new StringBuilder();
         sb.append("select ptid, ptnum from tbl_ptnum where hospnum=? and ptnum=?");
         sql = sb.toString();
-        ClientContext.getBootLogger().debug(sql);
+        java.util.logging.Logger.getLogger(this.getClass().getName()).fine(sql);
         
         try {
             con = getConnection();
@@ -1161,21 +1155,21 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
             closeStatement(pt);
             
         }  catch (Exception e) {
-            ClientContext.getBootLogger().warn(e.getMessage());
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(e.getMessage());
             processError(e);
             closeConnection(con);
             closeStatement(pt);
         }
         
         if (ptid == null) {
-            ClientContext.getBootLogger().warn("ptid=null");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning("ptid=null");
             return null;
         }
         
         sb = new StringBuilder();
         //sb.append("select sryymd,khnbyomeicd,utagaiflg,syubyoflg,tenkikbn,tenkiymd,byomei from tbl_ptbyomei where ");
         sb.append("select sryymd,khnbyomeicd,utagaiflg,syubyoflg,tenkikbn,tenkiymd,byomei,sryka from tbl_ptbyomei where "); // 診療科追加
-        if (ascend.booleanValue()) {
+        if (ascend) {
             if (hospNum > 0) {
                 sb.append("hospnum=? and ptid=? and sryymd >= ? and sryymd <= ? and dltflg!=? order by sryymd");
             } else {
@@ -1190,7 +1184,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
         }
 
         sql = sb.toString();
-        ClientContext.getBootLogger().debug(sql);
+        java.util.logging.Logger.getLogger(this.getClass().getName()).fine(sql);
         
         try {
             con = getConnection();
@@ -1208,7 +1202,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
                 pt.setString(4, "1");
             }
             ResultSet rs = pt.executeQuery();
-            collection = new ArrayList<RegisteredDiagnosisModel>();
+            collection = new ArrayList<>();
             
             while (rs.next()) {
                 
@@ -1252,7 +1246,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
             return collection;
             
         } catch (Exception e) {
-            ClientContext.getBootLogger().warn(e.getMessage());
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(e.getMessage());
             processError(e);
             closeConnection(con);
             closeStatement(pt);
@@ -1264,6 +1258,8 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
 
     /**
      * ORCA に登録してある直近の病名を検索する。
+     * @param patientId
+     * @param asc
      * @return RegisteredDiagnosisModelのリスト
      */
     @Override
@@ -1279,7 +1275,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
         StringBuilder sb = new StringBuilder();
         sb.append("select ptid, ptnum from tbl_ptnum where hospnum=? and ptnum=?");
         sql = sb.toString();
-        ClientContext.getBootLogger().debug(sql);
+        java.util.logging.Logger.getLogger(this.getClass().getName()).fine(sql);
 
         try {
             con = getConnection();
@@ -1295,14 +1291,14 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
             closeStatement(pt);
 
         }  catch (Exception e) {
-            ClientContext.getBootLogger().warn(e.getMessage());
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(e.getMessage());
             processError(e);
             closeConnection(con);
             closeStatement(pt);
         }
 
         if (ptid == null) {
-            ClientContext.getBootLogger().warn("ptid=null");
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning("ptid=null");
             return null;
         }
 
@@ -1325,7 +1321,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
         }
 
         sql = sb.toString();
-        ClientContext.getBootLogger().debug(sql);
+        java.util.logging.Logger.getLogger(this.getClass().getName()).fine(sql);
 
         try {
             con = getConnection();
@@ -1347,7 +1343,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
 //s.oh$
             }
             ResultSet rs = pt.executeQuery();
-            collection = new ArrayList<RegisteredDiagnosisModel>();
+            collection = new ArrayList<>();
 
             while (rs.next()) {
 
@@ -1391,7 +1387,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
             return collection;
 
         } catch (Exception e) {
-            ClientContext.getBootLogger().warn(e.getMessage());
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(e.getMessage());
             processError(e);
             closeConnection(con);
             closeStatement(pt);
@@ -1405,7 +1401,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
         if (test!=null) {
             if (test.equals("1")) {
                 rdm.setCategory("suspectedDiagnosis");
-                rdm.setCategoryDesc("疑い病名");
+                rdm.setCategoryDesc(java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("suspectedDiagnosis"));
                 rdm.setCategoryCodeSys("MML0015");
 
             } else if (test.equals("2")) {
@@ -1415,7 +1411,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
 
             } else if (test.equals("3")) {
                 rdm.setCategory("suspectedDiagnosis");
-                rdm.setCategoryDesc("疑い病名");
+                rdm.setCategoryDesc(java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("suspectedDiagnosis"));
                 rdm.setCategoryCodeSys("MML0015");
             }
         }
@@ -1424,7 +1420,7 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
     private void storeMainDiagnosis(RegisteredDiagnosisModel rdm, String test) {
         if (test!=null && test.equals("1")) {
             rdm.setCategory("mainDiagnosis");
-            rdm.setCategoryDesc("主病名");
+            rdm.setCategoryDesc(java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("mainDiagnosis"));
             rdm.setCategoryCodeSys("MML0012");
         }
     }
@@ -1434,22 +1430,22 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
         if (data != null) {
             if (data.equals("1")) {
                 rdm.setOutcome("fullyRecovered");
-                rdm.setOutcomeDesc("全治");
+                rdm.setOutcomeDesc(java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("outcome.fullyRecovered"));
                 rdm.setOutcomeCodeSys("MML0016");
 
             } else if (data.equals("2")) {
                 rdm.setOutcome("died");
-                rdm.setOutcomeDesc("死亡");
+                rdm.setOutcomeDesc(java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("outcome.died"));
                 rdm.setOutcomeCodeSys("MML0016");
 
             } else if (data.equals("3")) {
                 rdm.setOutcome("pause");
-                rdm.setOutcomeDesc("中止");
+                rdm.setOutcomeDesc(java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("outcome.pause"));
                 rdm.setOutcomeCodeSys("MML0016");
 
             } else if (data.equals("8")) {
                 rdm.setOutcome("transfer");
-                rdm.setOutcomeDesc("転医");
+                rdm.setOutcomeDesc(java.util.ResourceBundle.getBundle("open/dolphin/dao/resources/OrcaSqlDelegater").getString("outcome.transfer"));
                 rdm.setOutcomeCodeSys("MML0016");
             }
         }
@@ -1486,7 +1482,6 @@ public final class OrcaSqlDelegater extends SqlDaoBean implements OrcaDelegater 
                 OrcaConnect orcaApi = new OrcaConnect(ip, port, id, password, null);
                 SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
                 String ret = orcaApi.getDepartmentInfo(sf.format(new Date()));
-                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, ret);
                 ret = ret.replaceAll("\\<.*?>", ",");
                 String[] tmps = ret.split(",");
                 for(String tmp : tmps) {

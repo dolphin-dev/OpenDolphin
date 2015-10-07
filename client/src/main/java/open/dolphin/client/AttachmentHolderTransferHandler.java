@@ -16,8 +16,8 @@ import open.dolphin.infomodel.AttachmentModel;
  */
 public class AttachmentHolderTransferHandler extends TransferHandler implements IKarteTransferHandler {
 
-    private KartePane soaPane;
-    private AttachmentHolder attachmentHolder;
+    private final KartePane soaPane;
+    private final AttachmentHolder attachmentHolder;
 
     public AttachmentHolderTransferHandler(KartePane soaPane, AttachmentHolder attachmentHolder) {
         this.soaPane = soaPane;
@@ -55,14 +55,9 @@ public class AttachmentHolderTransferHandler extends TransferHandler implements 
     }
 
     @Override
-//minagawa^ Paste problem 2013/04/14 不具合修正(スタンプが消える)
-//    public boolean canImport(JComponent c, DataFlavor[] flavors) {
-//        return false;
-//    }
     public boolean canImport(TransferHandler.TransferSupport support) {
         return false;
-    }
-//minagawa$    
+    }   
 
     /**
      * スタンプをクリップボードへ転送する。

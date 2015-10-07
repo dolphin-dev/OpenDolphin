@@ -10,7 +10,7 @@ import java.awt.event.KeyListener;
  */
 public final class KeyBlocker implements KeyListener {
     
-    private Component target;
+    private final Component target;
     
     public KeyBlocker(Component target) {
         this.target = target;
@@ -29,13 +29,15 @@ public final class KeyBlocker implements KeyListener {
         e.consume();
     }
 
-    /** Handle the key-pressed event from the text field. */
+    /** Handle the key-pressed event from the text field.
+     * @param e */
     @Override
     public void keyPressed(KeyEvent e) {
         e.consume();
     }
 
-    /** Handle the key-released event from the text field. */
+    /** Handle the key-released event from the text field.
+     * @param e */
     @Override
     public void keyReleased(KeyEvent e) {
         e.consume();

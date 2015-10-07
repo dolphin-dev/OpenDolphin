@@ -12,17 +12,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import open.dolphin.client.AbstractChartDocument;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.GUIFactory;
 import open.dolphin.client.NameValuePair;
 import open.dolphin.delegater.LaboDelegater;
-import open.dolphin.helper.DBTask;
 import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
 import open.dolphin.table.ListTableModel;
-import open.dolphin.util.Log;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -40,21 +37,9 @@ import org.jfree.ui.Layer;
  */
 public class LaboTestPanel extends AbstractChartDocument {
 
-    private static final String TITLE = "ラボテスト";
     private static final int DEFAULT_DIVIDER_LOC = 210;
     private static final int DEFAULT_DIVIDER_WIDTH = 10;
-    private static final String COLUMN_HEADER_ITEM = "項 目";
-    //private static final String GRAPH_TITLE = "検査結果";
-    //private static final String X_AXIS_LABEL = "検体採取日";
-    //private static final String GRAPH_TITLE_LINUX = "Lab. Test";
-    //private static final String X_AXIS_LABEL_LINUX = "Sampled Date";
-    private static final int FONT_SIZE_WIN = 12;
-    private static final String FONT_MS_GOTHIC = "MSGothic";
-    //private static final int MAX_RESULT = 5;
-    //private static final String[] EXTRACTION_MENU = new String[]{"5回分", "0", "6~10回分", "5"};
     private static final int MAX_RESULT = 6;
-    // 全件表示修正^
-    //private static final String[] EXTRACTION_MENU = new String[]{"6回分", "0", "7~12回分", "6"};
     
     private static final int DIALOG_WIDTH = 1024;
     private static final int DIALOG_HEIGHT = 768;
@@ -80,9 +65,9 @@ public class LaboTestPanel extends AbstractChartDocument {
     
     private JButton printBtn;   // ***ラボテストの印刷***
     
-    private String pid;
-    private String pname;
-    private String pkana;
+    private final String pid;
+    private final String pname;
+    private final String pkana;
     
     private JDialog dialog;
     
@@ -90,7 +75,8 @@ public class LaboTestPanel extends AbstractChartDocument {
     private List<NLaboModule> modules;
     
     public LaboTestPanel(String pid, String pname, String pkana) {
-        setTitle(TITLE);
+        String title = ClientContext.getMyBundle(LaboTestPanel.class).getString("title.documnet");
+        setTitle(title);
         this.pid = pid;
         this.pname = pname;
         this.pkana = pkana;
@@ -126,7 +112,7 @@ public class LaboTestPanel extends AbstractChartDocument {
 
         // Table のカラムヘッダーを生成する
         String[] header = new String[getMaxResult() + 1];
-        header[0] = COLUMN_HEADER_ITEM;
+        header[0] = ClientContext.getMyBundle(LaboTestPanel.class).getString("name.firstColumn");
         for (int col = 1; col < header.length; col++) {
             header[col] = "";
         }
@@ -139,7 +125,7 @@ public class LaboTestPanel extends AbstractChartDocument {
 
         // 結果がゼロであれば返る
         if (modules == null || modules.isEmpty()) {
-            tableModel = new ListTableModel<LabTestRowObject>(header, 0);
+            tableModel = new ListTableModel<>(header, 0);
             table.setModel(tableModel);
             setColumnWidth();
             return;
@@ -154,7 +140,7 @@ public class LaboTestPanel extends AbstractChartDocument {
 //s.oh$
 
         // テスト項目全てに対応する rowObject を生成する
-        List<LabTestRowObject> dataProvider = new ArrayList<LabTestRowObject>();
+        List<LabTestRowObject> dataProvider = new ArrayList<>();
 
         int moduleIndex = 0;
 
@@ -240,7 +226,7 @@ public class LaboTestPanel extends AbstractChartDocument {
         Collections.sort(dataProvider);
 
         // Table Model
-        tableModel = new ListTableModel<LabTestRowObject>(header, 0);
+        tableModel = new ListTableModel<>(header, 0);
 
         // 検査結果テーブルを生成する
         table.setModel(tableModel);
@@ -283,17 +269,20 @@ public class LaboTestPanel extends AbstractChartDocument {
                     }
                     final NLaboModule toDelete = modules.get(index-1);
                     JPopupMenu popup = new JPopupMenu();
-                    popup.add(new AbstractAction("削 除") {
+                    String actionText = ClientContext.getMyBundle(LaboTestPanel.class).getString("actionText.delete");
+                    popup.add(new AbstractAction(actionText) {
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             String date = toDelete.getSampleDate().replaceAll(" 00:00", "");
-                            StringBuilder sb = new StringBuilder();
-                            sb.append(date).append(" の検査を削除しますか？").append("\n");
-                            sb.append("この操作は取り消せません。");
-                            String msg = sb.toString();
-                            String[] options = {GUIFactory.getCancelButtonText(),"削 除"};
+                            java.util.ResourceBundle bundle = ClientContext.getMyBundle(LaboTestPanel.class);
+                            String fmt = bundle.getString("messageFormat.delete");
+                            MessageFormat msf = new MessageFormat(fmt);
+                            String msg = msf.format(new Object[]{date});
+                            String optionDelete = bundle.getString("optionText.delete");
+                            String[] options = {GUIFactory.getCancelButtonText(),optionDelete};
+                            String title = bundle.getString("title.optionPane.delete");
                             int val = JOptionPane.showOptionDialog(
-                                getUI(), msg, ClientContext.getFrameTitle("検体検査削除"),
+                                getUI(), msg, ClientContext.getFrameTitle(title),
                                 JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
                             switch(val) {
                                 case 0:
@@ -311,14 +300,11 @@ public class LaboTestPanel extends AbstractChartDocument {
 //minagawa$    
         
 //s.oh^ 2014/04/02 ラボデータのグラフ表示
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                JPanel dummy = new JPanel();
-                graphPanel.removeAll();
-                graphPanel.add(dummy, BorderLayout.CENTER);
-                graphPanel.validate();
-            }
+        SwingUtilities.invokeLater(() -> {
+            JPanel dummy = new JPanel();
+            graphPanel.removeAll();
+            graphPanel.add(dummy, BorderLayout.CENTER);
+            graphPanel.validate();
         });
 //s.oh$
     }
@@ -370,11 +356,13 @@ public class LaboTestPanel extends AbstractChartDocument {
         
         table.getTableHeader().setReorderingAllowed(false);
 
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(LaboTestPanel.class);
         //-----------------------------------------------
         // Copy 機能を実装する
         //-----------------------------------------------
         KeyStroke copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
-        final AbstractAction copyAction = new AbstractAction("コピー") {
+        String actionText = bundle.getString("actionText.copy");
+        final AbstractAction copyAction = new AbstractAction(actionText) {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
@@ -382,7 +370,8 @@ public class LaboTestPanel extends AbstractChartDocument {
             }
         };
         
-        final AbstractAction copyLatestAction = new AbstractAction("直近の結果のみコピー") {
+        actionText = bundle.getString("actionText.copy.latest");
+        final AbstractAction copyLatestAction = new AbstractAction(actionText) {
 
             @Override
             public void actionPerformed(ActionEvent ae) {
@@ -434,13 +423,9 @@ public class LaboTestPanel extends AbstractChartDocument {
 
         // グラフ表示のリスナを登録する
         ListSelectionModel m = table.getSelectionModel();
-        m.addListSelectionListener(new ListSelectionListener() {
-
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (e.getValueIsAdjusting() == false) {
-                    createAndShowGraph(table.getSelectedRows());
-                }
+        m.addListSelectionListener((ListSelectionEvent e) -> {
+            if (e.getValueIsAdjusting() == false) {
+                createAndShowGraph(table.getSelectedRows());
             }
         });
 
@@ -483,12 +468,8 @@ public class LaboTestPanel extends AbstractChartDocument {
 //        searchLaboTest(firstResult);
         firstSearch();
         
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                createAndShowGUI();
-            }
+        SwingUtilities.invokeLater(() -> {
+            createAndShowGUI();
         });
     }
     
@@ -581,7 +562,7 @@ public class LaboTestPanel extends AbstractChartDocument {
         if(modules != null) {
             for(int i = 0; i < modules.size(); i++) {
                 NLaboModule module = modules.get(i);
-                List<NLaboItem> items = new ArrayList<NLaboItem>();
+                List<NLaboItem> items = new ArrayList<>();
                 for(int j = 0; j < module.getItems().size(); j++) {
                     NLaboItem item = module.getItems().get(j);
                     if(items.size() <= 0) {
@@ -699,7 +680,8 @@ public class LaboTestPanel extends AbstractChartDocument {
                 sb.append("~");
             }
             sb.append(String.valueOf(lastIndex+1));
-            sb.append("回分");
+            String str = ClientContext.getMyBundle(LaboTestPanel.class).getString("text.number");
+            sb.append(str);
             String name = sb.toString();
             String value = String.valueOf(firstIndex);
             NameValuePair item = new NameValuePair(name, value);
@@ -744,7 +726,8 @@ public class LaboTestPanel extends AbstractChartDocument {
             }
         } catch (Exception ex) {
             StringBuilder why = new StringBuilder();
-            why.append("データベースアクセスエラー");
+            String dbAccessErr = ClientContext.getMyBundle(LaboTestPanel.class).getString("error.dbAccess");
+            why.append(dbAccessErr);
             why.append("\n");
             Throwable cause = ex.getCause();
             if (cause != null) {
@@ -752,8 +735,8 @@ public class LaboTestPanel extends AbstractChartDocument {
             } else {
                 why.append(ex.getMessage());
             }
-            JOptionPane.showMessageDialog(null, why.toString(), ClientContext.getFrameTitle(TITLE), JOptionPane.WARNING_MESSAGE);
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(TITLE), why.toString(), (cause != null && cause.getMessage() != null) ? cause.getMessage() : ex.getMessage());
+            String title = ClientContext.getMyBundle(LaboTestPanel.class).getString("title.document");
+            JOptionPane.showMessageDialog(null, why.toString(), ClientContext.getFrameTitle(title), JOptionPane.WARNING_MESSAGE);
         }
     }
 //minagawa$    
@@ -869,7 +852,9 @@ public class LaboTestPanel extends AbstractChartDocument {
 //    }
 
     private Font getWinFont() {
-        return new Font(FONT_MS_GOTHIC, Font.PLAIN, FONT_SIZE_WIN);
+        String fontName = ClientContext.getMyBundle(LaboTestPanel.class).getString("chart.fontName");
+        String fontSize = ClientContext.getMyBundle(LaboTestPanel.class).getString("chart.fontSize");
+        return new Font(fontName, Font.PLAIN, Integer.parseInt(fontSize));
     }
     //====================================================================
 
@@ -893,7 +878,8 @@ public class LaboTestPanel extends AbstractChartDocument {
         p.add(Box.createHorizontalStrut(7));
 
         // 抽出期間コンボボックス
-        p.add(new JLabel("過去"));
+        String labelText = ClientContext.getMyBundle(LaboTestPanel.class).getString("labelText.past");
+        p.add(new JLabel(labelText));
         p.add(Box.createRigidArea(new Dimension(5, 0)));
         // 全件表示修正^
         //extractionCombo = new JComboBox(periodObject);
@@ -905,17 +891,13 @@ public class LaboTestPanel extends AbstractChartDocument {
             extractionCombo.setPreferredSize(new Dimension(130, 20));
         }
 //s.oh$
-        extractionCombo.addItemListener(new ItemListener() {
-
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                if (e.getStateChange() == ItemEvent.SELECTED) {
-                    // 全件表示修正^
-                    if (extractionCombo.getSelectedItem()!=null) {
-                        NameValuePair pair = (NameValuePair)extractionCombo.getSelectedItem();
-                        int firstResult = Integer.parseInt(pair.getValue());
-                        searchLaboTest(firstResult);
-                    }
+        extractionCombo.addItemListener((ItemEvent e) -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                // 全件表示修正^
+                if (extractionCombo.getSelectedItem()!=null) {
+                    NameValuePair pair = (NameValuePair)extractionCombo.getSelectedItem();
+                    int firstResult = Integer.parseInt(pair.getValue());
+                    searchLaboTest(firstResult);
                 }
             }
         });
@@ -925,19 +907,18 @@ public class LaboTestPanel extends AbstractChartDocument {
         // ***ラボテストの印刷***
         // comboPanelと同じグループのパネルに追加する
         comboPanel.add(Box.createRigidArea(new Dimension(10, 0)));
-        printBtn = new JButton("リスト印刷");
-        printBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                LaboTestPrint print = new LaboTestPrint();
-                if(table != null) {
-                    print.setTable(table);
-                    MessageFormat header = new MessageFormat(getContext().getPatient().getFullName() + " 様 カルテ");
-                    MessageFormat footer = new MessageFormat("ラボテスト: Page - {0}");
-                    String jobName = getContext().getContext().getPageFormat() + " by Dolphin";
-                    //print.printTable(null, 1, getContext().getPatient().getFullName());
-                    print.printTable(getContext().getContext().getPageFormat(), 1, jobName, header, footer);
-                }
+        String buttonText = ClientContext.getMyBundle(LaboTestPanel.class).getString("buttonText.printList");
+        printBtn = new JButton(buttonText);
+        printBtn.addActionListener((ActionEvent e) -> {
+            LaboTestPrint print = new LaboTestPrint();
+            if (table != null) {
+                print.setTable(table);
+                String title1 = ClientContext.getMyBundle(LaboTestPanel.class).getString("personTitle.karte");
+                MessageFormat header = new MessageFormat(getContext().getPatient().getFullName() + title1);
+                MessageFormat footer = new MessageFormat(ClientContext.getMyBundle(LaboTestPanel.class).getString("messageFormat.page"));
+                String jobName = getContext().getContext().getPageFormat() + " by Dolphin";
+                //print.printTable(null, 1, getContext().getPatient().getFullName());
+                print.printTable(getContext().getContext().getPageFormat(), 1, jobName, header, footer);
             }
         });
         //comboPanel.add(printBtn);
@@ -948,7 +929,8 @@ public class LaboTestPanel extends AbstractChartDocument {
         p.add(Box.createHorizontalGlue());
 
         // 件数フィールド
-        p.add(new JLabel("件数"));
+        labelText = ClientContext.getMyBundle(LaboTestPanel.class).getString("labelText.numRecords");
+        p.add(new JLabel(labelText));
         p.add(Box.createRigidArea(new Dimension(5, 0)));
         countField = new JTextField(2);
         countField.setEditable(false);

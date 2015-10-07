@@ -17,8 +17,16 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.inject.Named;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.MessageProducer;
+import javax.jms.ObjectMessage;
+//import javax.jms.QueueSession;
+import javax.jms.Session;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import open.dolphin.infomodel.AttachmentModel;
@@ -34,7 +42,7 @@ import open.dolphin.infomodel.ProgressCourse;
 import open.dolphin.infomodel.SchemaModel;
 import open.dolphin.infomodel.UserModel;
 import open.dolphin.msg.ClaimSender;
-import open.dolphin.rest.IOSHelper;
+import open.dolphin.touch.converter.IOSHelper;
 
 /**
  * (予定カルテ対応)

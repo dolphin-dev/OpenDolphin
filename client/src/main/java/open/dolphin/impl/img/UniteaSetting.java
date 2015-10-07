@@ -15,11 +15,11 @@ import open.dolphin.client.ClientContext;
  */
 public class UniteaSetting {
 
-    private AbstractBrowser context;
-    private Component parent;
+    private final AbstractBrowser context;
+    private final Component parent;
     private UniteaConfigView view;
     private JDialog dialog;
-    private Properties properties;
+    private final Properties properties;
    
     public UniteaSetting(AbstractBrowser context, Component parent) {
         this.context = context;
@@ -153,7 +153,7 @@ public class UniteaSetting {
         view.getClientFld().setEnabled(enabled);
         
         // Inject Actions
-        ResourceBundle resource = ClientContext.getBundle(this.getClass());
+        ResourceBundle resource = ClientContext.getMyBundle(UniteaSetting.class);
         ActionMap map = getAction(resource);
 
         // Actions

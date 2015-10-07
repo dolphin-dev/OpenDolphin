@@ -2,20 +2,19 @@ package open.dolphin.impl.labrcv;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import open.dolphin.client.*;
 import open.dolphin.delegater.LaboDelegater;
 import open.dolphin.impl.lbtest.LaboTestPanel;
@@ -27,7 +26,6 @@ import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.project.Project;
 import open.dolphin.table.ListTableModel;
 import open.dolphin.table.StripeTableCellRenderer;
-import open.dolphin.util.Log;
 
 /**
  * LabTestImporter
@@ -36,9 +34,10 @@ import open.dolphin.util.Log;
  */
 public class NLaboTestImporter extends AbstractMainComponent implements PropertyChangeListener {
     
-    private static final String NAME = "ラボレシーバ";
-    private static final String SUCCESS = "成功";
-    private static final String ERROR = "エラー";
+    private final String NAME;
+    private final String SUCCESS;
+    private final String ERROR;
+    
     private static final Color UNCONSTRAINED_COLOR = new Color(255,102,102);
     private static final String[] LAB_FILES = {"DAT","dat","DAT2","dat2","HL7","hl7", "TXT", "txt", "CSV", "csv"};
     
@@ -59,6 +58,10 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
     
     /** Creates new NLaboTestImporter */
     public NLaboTestImporter() {
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(NLaboTestImporter.class);
+        NAME = bundle.getString("title.labReceiver");
+        SUCCESS = bundle.getString("text.success");
+        ERROR = bundle.getString("text.error");
         setName(NAME);
         cel = ChartEventHandler.getInstance();
         clientUUID = cel.getClientUUID();
@@ -103,15 +106,16 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
         
         boolean showReceiptMessage = Project.getBoolean("showReceiptMessage", true);
         if (showReceiptMessage) {
-            JLabel msg1 = new JLabel("受付リストからオープンしないと診療データをレセコンに");
-            JLabel msg2 = new JLabel("送信することができません。続けますか?");
-            final JCheckBox cb = new JCheckBox("今後このメッセージを表示しない");
+            java.util.ResourceBundle bundle = ClientContext.getMyBundle(NLaboTestImporter.class);
+            String m1 = bundle.getString("message.openKarte.1");
+            String m2 = bundle.getString("message.openKarte.2");
+            String m3 = bundle.getString("message.openKarte.3");
+            JLabel msg1 = new JLabel(m1);
+            JLabel msg2 = new JLabel(m2);
+            final JCheckBox cb = new JCheckBox(m3);
             cb.setFont(new Font("Dialog", Font.PLAIN, 10));
-            cb.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    Project.setBoolean("showReceiptMessage", !cb.isSelected());
-                }
+            cb.addActionListener((ActionEvent e) -> {
+                Project.setBoolean("showReceiptMessage", !cb.isSelected());
             });
             JPanel p1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 3));
             p1.add(msg1);
@@ -172,12 +176,11 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
     
     /**
      * 検索結果件数を設定しステータスパネルへ表示する。
-     * @param cnt 件数
      */
     public void updateCount() {
         int count = getTableModel().getObjectCount();
         String text = String.valueOf(count);
-        text += "件";
+        text += ClientContext.getMyBundle(NLaboTestImporter.class).getString("labelText.numRecords");
         view.getCountLbl().setText(text);
     }
     
@@ -203,11 +206,7 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
             return false;
         }
         
-        if (isKarteOpened(patient)) {
-            return false;
-        }
-     
-        return true;
+        return !isKarteOpened(patient);
     }
     
     /**
@@ -233,36 +232,20 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
      * 検査結果ファイルを選択し、パースする。
      */
     private void selectAndParseLabFile() {
-//minagawa^ mac-jdk7 対応
-//        // 検査結果ファイルを選択する
-//        JFileChooser chooser = new JFileChooser();
-//        FileNameExtensionFilter filter = new FileNameExtensionFilter("Lab Result File", "DAT","dat","DAT2","dat2","HL7","hl7", "TXT", "txt", "CSV", "csv");
-//        chooser.setFileFilter(filter);
-//        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-//        int returnVal = chooser.showOpenDialog(getUI());
-//
-//        if (returnVal != JFileChooser.APPROVE_OPTION) {
-//            return;
-//        }
-//        
-//        // パースしてテーブルへ表示する
-//        // 登録ボタンをアクティブにする
-//        //final File labFile = new File(chooser.getSelectedFile().getPath());
-//        final Path path = Paths.get(chooser.getSelectedFile().getPath());
+
         Window parent = SwingUtilities.getWindowAncestor(getUI());
-        FileDialog fd = new FileDialog((Frame)parent, "検査結果ファイルを選択" , FileDialog.LOAD);
-        fd.setFilenameFilter(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                boolean match = false;
-                for (String ext : LAB_FILES) {
-                    if (name.endsWith(ext)) {
-                        match = true;
-                        break;
-                    }
+        String title = ClientContext.getMyBundle(NLaboTestImporter.class).getString("title.fileDialog");
+        title = ClientContext.getFrameTitle(title);
+        FileDialog fd = new FileDialog((Frame)parent, title , FileDialog.LOAD);
+        fd.setFilenameFilter((File dir, String name1) -> {
+            boolean match = false;
+            for (String ext : LAB_FILES) {
+                if (name1.endsWith(ext)) {
+                    match = true;
+                    break;
                 }
-                return match;
             }
+            return match;
         });
         fd.setMultipleMode(false);
         fd.setVisible(true);
@@ -277,12 +260,10 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
 
             @Override
             protected List<NLaboImportSummary> doInBackground() throws Exception {
-//minagawa^
-                //LabResultParser parse = LabParserFactory.getParser(labFile.getName());
-                //List<NLaboImportSummary> dataList = parse.parse(labFile);
+                
                 LabResultParser parse = LabParserFactory.getParser(path.getFileName().toString());
                 List<NLaboImportSummary> dataList = parse.parse(path);
-//minagawa$
+                
                 if (dataList!=null && dataList.size()>0) {
 
                     List<String> idList = new ArrayList<>(dataList.size());
@@ -317,18 +298,16 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
                     List<NLaboImportSummary> allModules = get();
                     getTableModel().setDataProvider(allModules);
 
-                } catch (Throwable e) {
+                } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace(System.err);
                     String why = e.getMessage();
                     Window parent = SwingUtilities.getWindowAncestor(getUI());
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("登録できないファイルがあります。").append("\n");
-                    sb.append("検査結果ファイルに誤りがある可能性があります。").append("\n");
-                    sb.append(why);
-                    String message = sb.toString();
-                    String title = "ラボレシーバ";
+                    java.util.ResourceBundle bundle = ClientContext.getMyBundle(NLaboTestImporter.class);
+                    String fmt = bundle.getString("messageFormat.cannotParseFile");
+                    MessageFormat msf = new MessageFormat(fmt);
+                    String message = msf.format(new Object[]{why});
+                    String title = bundle.getString("title.optionPane.labReceiver");
                     JOptionPane.showMessageDialog(parent, message, ClientContext.getFrameTitle(title), JOptionPane.WARNING_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), message);
                 }
             }
         };
@@ -368,19 +347,18 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
 
 //s.oh^ 2013/08/29
                     //PatientModel pm = laboDelegater.putNLaboModule(summary.getModule());
-                    PatientModel pm = null;
+                    PatientModel pm ;
                     try {
                         pm = laboDelegater.putNLaboModule(summary.getModule());
                     } catch (Exception ex) {
                         String why = ex.getMessage();
                         Window parent = SwingUtilities.getWindowAncestor(getUI());
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("登録できないファイルがあります").append("\n");
-                        sb.append("検査結果ファイルに誤りがある可能性があります。");
-                        String message = sb.toString();
-                        String title = "ラボレシーバ";
+                        java.util.ResourceBundle bundle = ClientContext.getMyBundle(NLaboTestImporter.class);
+                        String fmt = bundle.getString("messageFormat.cannotParseFile");
+                        MessageFormat msf = new MessageFormat(fmt);
+                        String message = msf.format(new Object[]{why});
+                        String title = bundle.getString("title.optionPane.labReceiver");
                         JOptionPane.showMessageDialog(parent, message, ClientContext.getFrameTitle(title), JOptionPane.WARNING_MESSAGE);
-                        Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), message, why);
                         pm = null;
                     }
 //s.oh$
@@ -394,11 +372,8 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
                     }
 
                     // Table 更新
-                    Runnable awt = new Runnable() {
-                        @Override
-                        public void run() {
-                            getTableModel().fireTableDataChanged();
-                        }
+                    Runnable awt = () -> {
+                        getTableModel().fireTableDataChanged();
                     };
                     EventQueue.invokeLater(awt);
                 }
@@ -431,48 +406,32 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
     private void connect() {
 
         // ファイル選択ボタン
-        view.getFileBtn().addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // ファイル選択
-                selectAndParseLabFile();
-            }
+        view.getFileBtn().addActionListener((ActionEvent e) -> {
+            // ファイル選択
+            selectAndParseLabFile();
         });
 
         // 登録ボタン
-        view.getAddBtn().addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // 検査結果登録
-                view.getAddBtn().setEnabled(false);
-                addLabtest();
-            }
+        view.getAddBtn().addActionListener((ActionEvent e) -> {
+            // 検査結果登録
+            view.getAddBtn().setEnabled(false);
+            addLabtest();
         });
         view.getAddBtn().setEnabled(false);
 
         // クリアボタン
-        view.getClearBtn().addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // 検査結果登録
-                getTableModel().setDataProvider(null);
-            }
+        view.getClearBtn().addActionListener((ActionEvent e) -> {
+            // 検査結果登録
+            getTableModel().setDataProvider(null);
         });
         view.getClearBtn().setEnabled(false);
         
         // 行選択
-        view.getTable().getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (e.getValueIsAdjusting() == false) {
-                    NLaboImportSummary lab = getTableModel().getObject(view.getTable().getSelectedRow());
-                    if (lab != null) {
-                        setSelectedLabo(lab);
-                    }
+        view.getTable().getSelectionModel().addListSelectionListener((ListSelectionEvent e) -> {
+            if (e.getValueIsAdjusting() == false) {
+                NLaboImportSummary lab = getTableModel().getObject(view.getTable().getSelectedRow());
+                if (lab != null) {
+                    setSelectedLabo(lab);
                 }
             }
         });
@@ -532,7 +491,7 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
                         }else if(obj instanceof NLaboImportSummary && ((NLaboImportSummary)obj).getResult().trim().equals(SUCCESS)){
                             //String pop1 = ClientContext.getString("watingList.popup.openKarte");
                             //contextMenu.add(new JMenuItem(new ReflectAction(pop1, NLaboTestImporter.this, "openKarte")));
-                            String pop1 = "ラボデータを表示";
+                            String pop1 = ClientContext.getMyBundle(NLaboTestImporter.class).getString("menuText.showLabData");
                             contextMenu.add(new JMenuItem(new ReflectAction(pop1, NLaboTestImporter.this, "openLaboTest")));
                         }
 //s.oh$
@@ -543,25 +502,21 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
         });
 
         // data 件数リスナ
-        getTableModel().addPropertyChangeListener(new PropertyChangeListener() {
-
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                List<NLaboImportSummary> list = (List<NLaboImportSummary>) evt.getNewValue();
-                boolean enabled = (list != null && list.size() > 0) ? true : false;
-                boolean clearOk = enabled;
-                if (enabled) {
-                    for (NLaboImportSummary sm : list) {
-                        if (sm.getKarteId()==null) {
-                            enabled = false;
-                            break;
-                        }
+        getTableModel().addPropertyChangeListener((PropertyChangeEvent evt) -> {
+            List<NLaboImportSummary> list = (List<NLaboImportSummary>) evt.getNewValue();
+            boolean enabled = (list != null && list.size() > 0);
+            boolean clearOk = enabled;
+            if (enabled) {
+                for (NLaboImportSummary sm : list) {
+                    if (sm.getKarteId()==null) {
+                        enabled = false;
+                        break;
                     }
                 }
-                view.getAddBtn().setEnabled(enabled);
-                view.getClearBtn().setEnabled(clearOk);
-                updateCount();
             }
+            view.getAddBtn().setEnabled(enabled);
+            view.getClearBtn().setEnabled(clearOk);
+            updateCount();
         });
     }
 
@@ -574,23 +529,21 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
         setUI(view);
 
 //s.oh^ 2013/09/20 ラボレシーバを表示
-        //String[] columnNames = new String[]{"ラボ", "患者ID", "カナ", "カルテ・カナ", "性別", "カルテ・性別", "検体採取日", "項目数", "登録", "状態"};
-        //String[] propNames = new String[]{"laboCode", "patientId", "patientName", "karteKanaName", "patientSex", "karteSex", "sampleDate", "numOfTestItems", "result", null};
-        //int[] columnWidth = new int[]{50, 120, 120, 120, 50, 70, 110, 50, 40,20};
-        String[] columnNames = new String[]{"ラボ", "患者ID", "カナ", "カルテ・カナ", "性別", "カルテ・性別", "検体採取日", "項目数", "登録"};
-        String[] propNames = new String[]{"laboCode", "patientId", "patientName", "karteKanaName", "patientSex", "karteSex", "sampleDate", "numOfTestItems", "result"};
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(NLaboTestImporter.class);
+        String line = bundle.getString("columnNames.table");
+        String[] columnNames = line.split(",");
+        line = bundle.getString("methodNames.table");
+        String[] propNames = line.split(",");
         int[] columnWidth = new int[]{50, 120, 120, 120, 50, 70, 110, 50, 40};
 //s.oh$
 
-        tableModel = new ListTableModel<NLaboImportSummary>(
+        tableModel = new ListTableModel<>(
                 columnNames, 0, propNames, null);
         view.getTable().setModel(tableModel);
         view.getTable().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         view.getTable().setTransferHandler(new NLaboTestFileTransferHandler(this));
         
-//minagawa^ lsctest カラム移動禁止
-        view.getTable().getTableHeader().setReorderingAllowed(false);
-//minagawa$        
+        view.getTable().getTableHeader().setReorderingAllowed(false);       
 
         // カラム幅を変更する
         for (int i = 0; i < columnWidth.length; i++) {
@@ -671,67 +624,10 @@ public class NLaboTestImporter extends AbstractMainComponent implements Property
             tableModel.fireTableRowsUpdated(sRow, sRow);
         }
     }
-
-//    protected class LabTestRenderer extends DefaultTableCellRenderer {
-//
-//        /** Creates new IconRenderer */
-//        public LabTestRenderer() {
-//            super();
-//        }
-//
-//        @Override
-//        public Component getTableCellRendererComponent(JTable table,
-//                Object value,
-//                boolean isSelected,
-//                boolean isFocused,
-//                int row, int col) {
-//
-//            NLaboImportSummary summary = (NLaboImportSummary) tableModel.getObject(row);
-//
-//            if (isSelected) {
-//                this.setBackground(table.getSelectionBackground());
-//                this.setForeground(table.getSelectionForeground());
-//
-//            } else {
-//                if (summary!=null && summary.getKarteId()==null) {
-//
-//                    this.setBackground(UNCONSTRAINED_COLOR);
-//                    
-//                } else {
-//
-//                    if ((row & (1)) == 0) {
-//                        this.setBackground(EVEN_COLOR);
-//                    } else {
-//                        this.setBackground(ODD_COLOR);
-//                    }
-//                }
-//
-//                this.setForeground(table.getForeground());
-//            }
-//            
-//            PatientModel pm = summary!=null ? summary.getPatient() : null;
-//            if (pm != null && col == stateColumn) {
-//                setHorizontalAlignment(JLabel.CENTER);
-//                if (pm.isOpened()) {
-//                    if (clientUUID.equals(pm.getOwnerUUID())) {
-//                        setIcon(WatingListImpl.OPEN_ICON);
-//                    } else {
-//                        setIcon(WatingListImpl.NETWORK_ICON);
-//                    }
-//                } else {
-//                    setIcon(null);
-//                }
-//                setText("");
-//            } else {
-//                setIcon(null);
-//                setText(value == null ? "" : value.toString());
-//            }
-//
-//            return this;
-//        }
-//    }
     
-       // ストライプテーブル
+    /**
+     * 検体検査レシーバテーブルのレンダラ
+     */
     private class LabTestRenderer extends StripeTableCellRenderer {
 
         @Override

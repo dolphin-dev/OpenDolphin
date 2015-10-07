@@ -48,7 +48,8 @@ public class AllergyView extends javax.swing.JPanel {
         add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
         memoFld.setEditable(false);
-        memoFld.setToolTipText("選択したアレルギーのメモが表示されます。"); // NOI18N
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/client/resources/AllergyView"); // NOI18N
+        memoFld.setToolTipText(bundle.getString("AllergyView.memoFld.toolTipText")); // NOI18N
         memoFld.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         memoFld.setName("memoFld"); // NOI18N
         add(memoFld, java.awt.BorderLayout.PAGE_END);

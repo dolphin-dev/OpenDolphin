@@ -2,7 +2,9 @@ package open.dolphin.impl.profile;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.ResourceBundle;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -18,8 +20,6 @@ import open.dolphin.helper.SimpleWorker;
 import open.dolphin.infomodel.*;
 import open.dolphin.project.Project;
 import open.dolphin.util.HashUtil;
-import open.dolphin.util.Log;
-import org.apache.log4j.Logger;
 
 /**
  * ChangePasswordPlugin
@@ -28,35 +28,11 @@ import org.apache.log4j.Logger;
  */
 public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfile {
     
-    private static final String TITLE = "プロフィール変更";
-    //private static int DEFAULT_WIDTH = 568;
-    //private static int DEFAULT_HEIGHT = 300;
-    private static final String PROGRESS_NOTE = "ユーザ情報を変更しています...";
-    private static final String UPDATE_BTN_TEXT = "変更";
-    private static final String CLOSE_BTN_TEXT = "閉じる";
-    private static final String USER_ID_TEXT = "ユーザID:";
-    private static final String PASSWORD_TEXT = "パスワード:";
-    private static final String ORCA_ID_TEXT = "ORCA ID:";
-    private static final String CONFIRM_TEXT = "確認:";
-    private static final String SIR_NAME_TEXT = "姓:";
-    private static final String GIVEN_NAME_TEXT = "名:";
-    private static final String EMAIL_TEXT = "電子メール:";
-    private static final String LISENCE_TEXT = "医療資格:";
-    private static final String DEPT_TEXT = "診療科:";
-//minagawa^ LSC Test    
-    private static final String PASSWORD_ASSIST_1 = "パスワード(半角英数字と記号 _+-.#$&@ で";
-    private static final String PASSWORD_ASSIST_2 = "文字以上";
-    private static final String PASSWORD_ASSIST_3 = ")変更しない場合は空白にしておきます。";
-//minagawa$    
-    private static final String SUCCESS_MESSAGE = "ユーザ情報を変更しました。";
     private static final String DUMMY_PASSWORD = "";
-
     private static final String ORCA_ID_PREFIX = "1";
     
     private JFrame frame;
     protected JButton okButton;
-    
-    private Logger logger;
 
     // timerTask 関連
     private SimpleWorker worker;
@@ -70,8 +46,9 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
      * Creates a new instance of AddUserService
      */
     public ChangePasswordImpl() {
-        setName(TITLE);
-        logger = ClientContext.getBootLogger();
+        super();
+        String title = ClientContext.getMyBundle(ChangePasswordImpl.class).getString("titel.window");
+        setName(title);
     }
     
     public void setFrame(JFrame frame) {
@@ -87,35 +64,27 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
         
         // Super Class で Frame を初期化する
 
-        Runnable awt = new Runnable() {
-
-            @Override
-            public void run() {
-                String title = ClientContext.getFrameTitle(getName());
-                setFrame(new JFrame(title));
-                getFrame().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-                getFrame().addWindowListener(new WindowAdapter() {
-                    @Override
-                    public void windowClosing(WindowEvent e) {
-                        stop();
-                    }
-                });
-        //        ComponentMemory cm = new ComponentMemory(getFrame(), new Point(0, 0),
-        //                new Dimension(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT)),
-        //                this);
-        //        cm.putCenter();
-
-                ChangePasswordPanel cp = new ChangePasswordPanel();
-                cp.get();
-                getFrame().getContentPane().add(cp, BorderLayout.CENTER);
-                getFrame().getRootPane().setDefaultButton(okButton);
-                getFrame().pack();
-                Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
-                int x = (size.width - getFrame().getPreferredSize().width) / 2;
-                int y = (size.height - getFrame().getPreferredSize().height) / 3;
-                getFrame().setLocation(x, y);
-                getFrame().setVisible(true);
-            }
+        Runnable awt = () -> {
+            String title = ClientContext.getFrameTitle(getName());
+            setFrame(new JFrame(title));
+            getFrame().setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+            getFrame().addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    stop();
+                }
+            });
+            
+            ChangePasswordPanel cp = new ChangePasswordPanel();
+            cp.get();
+            getFrame().getContentPane().add(cp, BorderLayout.CENTER);
+            getFrame().getRootPane().setDefaultButton(okButton);
+            getFrame().pack();
+            Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
+            int x = (size.width - getFrame().getPreferredSize().width) / 2;
+            int y = (size.height - getFrame().getPreferredSize().height) / 3;
+            getFrame().setLocation(x, y);
+            getFrame().setVisible(true);
         };
 
         SwingUtilities.invokeLater(awt);
@@ -138,25 +107,26 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
      */
     protected class ChangePasswordPanel extends JPanel {
         
-        private JTextField uid;                 // 利用者ID
+        private final JTextField uid;                 // 利用者ID
         private JPasswordField userPassword1;   // パスワード1
         private JPasswordField userPassword2;   // パスワード2
-        private JTextField orcaId;              // ORCA ID
+        private final JTextField orcaId;              // ORCA ID
         private JTextField sn;                  // 姓
         private JTextField givenName;           // 名
-        private JTextField email;               // 電子メール
-        private LicenseModel[] licenses;        // 職種(MML0026)
-        private JComboBox licenseCombo;
-        private DepartmentModel[] depts;        // 診療科(MML0028)
-        private JComboBox deptCombo;
-        private JTextField mayaku;              // 麻薬施用者免許番号    
+        private final JTextField email;               // 電子メール
+        private final LicenseModel[] licenses;        // 職種(MML0026)
+        private final JComboBox licenseCombo;
+        private final DepartmentModel[] depts;        // 診療科(MML0028)
+        private final JComboBox deptCombo;
+        private final JTextField mayaku;              // 麻薬施用者免許番号    
         
-        private JButton okButton;
-        private JButton cancelButton;
+        private final JButton okButton;
+
+        private final JButton cancelButton;
         private boolean ok;
         
-        private int[] userIdLength;
-        private int[] passwordLength; // min,max
+        private final int[] userIdLength;
+        private final int[] passwordLength; // min,max
         
         
         public ChangePasswordPanel() {
@@ -193,19 +163,13 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
             
             // パスワードフィールドを設定する
             userPassword1 = createPassField(10, null, null, null);
-            userPassword1.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    userPassword2.requestFocus();
-                }
+            userPassword1.addActionListener((ActionEvent e) -> {
+                userPassword2.requestFocus();
             });
             
             userPassword2 = createPassField(10, null, null, null);
-            userPassword2.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    sn.requestFocus();
-                }
+            userPassword2.addActionListener((ActionEvent e) -> {
+                sn.requestFocus();
             });
             RegexConstrainedDocument passwordDoc1 = new RegexConstrainedDocument(pattern);
             userPassword1.setDocument(passwordDoc1);
@@ -217,30 +181,26 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
             userPassword2.setToolTipText(pattern);
             userPassword1.addFocusListener(AutoRomanListener.getInstance());
             userPassword2.addFocusListener(AutoRomanListener.getInstance());
+            
+            java.util.ResourceBundle bundle = ClientContext.getMyBundle(ChangePasswordImpl.class);
 
             // ORCA ID フィールドを生成する
             orcaId = createTextField(10, null, null, null);
             orcaId.getDocument().addDocumentListener(dl);
-            orcaId.setToolTipText("ORCAでのIDを設定します。");
+            orcaId.setToolTipText(bundle.getString("toolTipText.setOrcaId"));
             orcaId.addFocusListener(AutoRomanListener.getInstance());
             
             // 姓
             sn = createTextField(10, null, null, dl);
-            sn.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    givenName.requestFocus();
-                }
+            sn.addActionListener((ActionEvent e) -> {
+                givenName.requestFocus();
             });
             sn.addFocusListener(AutoKanjiListener.getInstance());
             
             // 名
             givenName = createTextField(10, null, null, dl);
-            givenName.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    userPassword1.requestFocus();
-                }
+            givenName.addActionListener((ActionEvent e) -> {
+                userPassword1.requestFocus();
             });
             givenName.addFocusListener(AutoKanjiListener.getInstance());
             
@@ -267,28 +227,23 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
             // 麻薬
             mayaku = createTextField(10, null, null, null);
             mayaku.getDocument().addDocumentListener(dl);
-            mayaku.setToolTipText("ORCAでのIDを設定します。");
+            mayaku.setToolTipText(bundle.getString("toolTipText.setOrcaId"));
             mayaku.addFocusListener(AutoRomanListener.getInstance());
             
             // OK Btn
-            ActionListener al = new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    changePassword();
-                }
+            ActionListener al = (ActionEvent e) -> {
+                changePassword();
             };
             
-            okButton = new JButton(UPDATE_BTN_TEXT);
+            
+            okButton = new JButton(bundle.getString("actionText.change"));
             okButton.addActionListener(al);
             okButton.setEnabled(false);
             
             // Cancel Btn
-            cancelButton = new JButton(CLOSE_BTN_TEXT);
-            cancelButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    stop();
-                }
+            cancelButton = new JButton(bundle.getString("actionText.close"));
+            cancelButton.addActionListener((ActionEvent e) -> {
+                stop();
             });
             
             // レイアウト
@@ -296,52 +251,52 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
             
             int x = 0;
             int y = 0;
-            JLabel label = new JLabel(USER_ID_TEXT, SwingConstants.RIGHT);
+            JLabel label = new JLabel(bundle.getString("labelText.userId"), SwingConstants.RIGHT);
             constrain(content, label, x, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.EAST);
             constrain(content, uid, x + 1, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST);
             
             x = 0;
             y += 1;
-            label = new JLabel(PASSWORD_TEXT, SwingConstants.RIGHT);
+            label = new JLabel(bundle.getString("labelText.password"), SwingConstants.RIGHT);
             constrain(content, label, x, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.EAST);
             constrain(content, userPassword1, x + 1, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST);
-            label = new JLabel(CONFIRM_TEXT, SwingConstants.RIGHT);
+            label = new JLabel(bundle.getString("labelText.confirm"), SwingConstants.RIGHT);
             constrain(content, label, x + 2, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.EAST);
             constrain(content, userPassword2, x + 3, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
             x = 0;
             y += 1;
-            label = new JLabel(ORCA_ID_TEXT, SwingConstants.RIGHT);
+            label = new JLabel(bundle.getString("labelText.orcaId"), SwingConstants.RIGHT);
             constrain(content, label, x, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.EAST);
             constrain(content, orcaId, x + 1, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST);
             
             x = 0;
             y += 1;
-            label = new JLabel(SIR_NAME_TEXT, SwingConstants.RIGHT);
+            label = new JLabel(bundle.getString("labelText.familyName"), SwingConstants.RIGHT);
             constrain(content, label, x, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.EAST);
             constrain(content, sn, x + 1, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST);
-            label = new JLabel(GIVEN_NAME_TEXT, SwingConstants.RIGHT);
+            label = new JLabel(bundle.getString("labelText.givenName"), SwingConstants.RIGHT);
             constrain(content, label, x + 2, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.EAST);
             constrain(content, givenName, x + 3, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST);
             
             x = 0;
             y += 1;
-            label = new JLabel(EMAIL_TEXT, SwingConstants.RIGHT);
+            label = new JLabel(bundle.getString("labelText.email"), SwingConstants.RIGHT);
             constrain(content, label, x, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.EAST);
             constrain(content, email, x + 1, y, 2, 1, GridBagConstraints.NONE, GridBagConstraints.WEST);
             
             x = 0;
             y += 1;
-            label = new JLabel(LISENCE_TEXT, SwingConstants.RIGHT);
+            label = new JLabel(bundle.getString("labelText.license"), SwingConstants.RIGHT);
             constrain(content, label, x, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.EAST);
             constrain(content, licenseCombo, x + 1, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST);
-            label = new JLabel(DEPT_TEXT, SwingConstants.RIGHT);
+            label = new JLabel(bundle.getString("labelText.department"), SwingConstants.RIGHT);
             constrain(content, label, x + 2, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.EAST);
             constrain(content, deptCombo, x + 3, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST);
             
             x = 0;
             y += 1;
-            label = new JLabel("麻薬施用者免許番号:", SwingConstants.RIGHT);
+            label = new JLabel(bundle.getString("labelText.drugLicenseNumber"), SwingConstants.RIGHT);
             constrain(content, label, x, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.EAST);
             constrain(content, mayaku, x + 1, y, 2, 1, GridBagConstraints.NONE, GridBagConstraints.WEST);
             
@@ -352,18 +307,13 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
             
             x = 0;
             y += 1;
-            StringBuilder sb = new StringBuilder();
-            sb.append(PASSWORD_ASSIST_1).append(passwordLength[0]);
-//minagawa^ LSC Test            
-            //sb.append(PASSWORD_ASSIST_2).append(passwordLength[1]);
-            sb.append(PASSWORD_ASSIST_2);
-//minagawa$            
-            sb.append(PASSWORD_ASSIST_3);
-            label = new JLabel(sb.toString());
+            String fmt = bundle.getString("instraction.password");
+            String passLabel = new MessageFormat(fmt).format(new Object[]{passwordLength[0]});
+            label = new JLabel(passLabel);
             constrain(content, label, x, y, 4, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST);
             
             JPanel btnPanel;
-            if (isMac()) {
+            if (ClientContext.isMac()) {
                 btnPanel = GUIFactory.createCommandButtonPanel(new JButton[]{cancelButton, okButton});
             } else {
                 btnPanel = GUIFactory.createCommandButtonPanel(new JButton[]{okButton, cancelButton});
@@ -528,14 +478,14 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
         
                 @Override
                 protected Void doInBackground() throws Exception {
-                    logger.debug("ChangePassword doInBackground");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).fine("ChangePassword doInBackground");
                     int cnt = udl.updateUser(updateModel);
                     return null;
                 }
                 
                 @Override
                 protected void succeeded(Void result) {
-                    logger.debug("ChangePassword succeeded");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).fine("ChangePassword succeeded");
                     Project.getProjectStub().setUserModel(updateModel);
                     Project.getProjectStub().setUserId(updateModel.idAsLocal());
 
@@ -544,17 +494,16 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
                     //-------------------------------------
                     /*JerseyClient jersy = JerseyClient.getInstance();
                     jersy.setUpAuthentication(updateModel.getUserId(), updateModel.getPassword(), true);*/
-
+                    String msg = ClientContext.getMyBundle(ChangePasswordImpl.class).getString("message.changedUserInfo");
                     JOptionPane.showMessageDialog(getFrame(),
-                            SUCCESS_MESSAGE,
+                            msg,
                             ClientContext.getFrameTitle(getName()),
                             JOptionPane.INFORMATION_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, ClientContext.getFrameTitle(getName()), SUCCESS_MESSAGE);
                 }
 
                 @Override
                 protected void cancelled() {
-                    logger.debug("ChangePassword cancelled");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).fine("ChangePassword cancelled");
                 }
 
                 @Override
@@ -563,10 +512,9 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
                                 cause.getMessage(),
                                 ClientContext.getFrameTitle(getName()),
                                 JOptionPane.WARNING_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(getName()), cause.getMessage());
-                    logger.warn("ChangePassword failed");
-                    logger.warn(cause.getCause());
-                    logger.warn(cause.getMessage());
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning("ChangePassword failed");
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getCause().getMessage());
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
                 }
 
                 @Override
@@ -588,23 +536,25 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
 
             Component c = getFrame();
             String message = null;
-            String note = PROGRESS_NOTE;
-            maxEstimation = ClientContext.getInt("task.default.maxEstimation");
-            delay = ClientContext.getInt("task.default.delay");
+            //String note = ClientContext.getMyBundle(ChangePasswordImpl.class).getString("note.progres..changingUserInfo");
+            //maxEstimation = ClientContext.getInt("task.default.maxEstimation");
+            //delay = ClientContext.getInt("task.default.delay");
+            
+            ResourceBundle bundle = ClientContext.getMyBundle(ChangePasswordImpl.class);
+            String note = bundle.getString("note.progres..changingUserInfo");
+            maxEstimation = Integer.parseInt(bundle.getString("task.default.maxEstimation"));
+            delay = Integer.parseInt(bundle.getString("task.default.delay"));
+            
             monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-            taskTimer = new Timer(delay, new ActionListener() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    delayCount++;
-
-                    if (monitor.isCanceled() && (!worker.isCancelled())) {
-                        worker.cancel(true);
-
-                    } else {
-                        monitor.setProgress(delayCount);
-                    }
+            taskTimer = new Timer(delay, (ActionEvent e) -> {
+                delayCount++;
+                
+                if (monitor.isCanceled() && (!worker.isCancelled())) {
+                    worker.cancel(true);
+                    
+                } else {
+                    monitor.setProgress(delayCount);
                 }
             });
 
@@ -617,13 +567,7 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
             if (userId.equals("")) {
                 return false;
             }
-//minagawa^  LSC Test          
-//            if (userId.length() < userIdLength[0] || userId.length() > userIdLength[1]) {
-//                return false;
-//            }
-//            return true;          
-            return (userId.length()>=userIdLength[0]);
-//minagawa$            
+            return (userId.length()>=userIdLength[0]);          
         }
         
         /**
@@ -637,22 +581,11 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
             if (passwd1.equals(DUMMY_PASSWORD) && passwd2.equals(DUMMY_PASSWORD)) {
                 return true;
             }
-            
-//minagawa^ LSC Test            
-//            if ((passwd1.length() < passwordLength[0])
-//            || (passwd1.length() > passwordLength[1])) {
-//                return false;
-//            }
-//            
-//            if ((passwd2.length() < passwordLength[0])
-//            || (passwd2.length() > passwordLength[1])) {
-//                return false;
-//            }            
+                    
             if ((passwd1.length()<passwordLength[0]) || (passwd2.length()<passwordLength[0])) {
                 return false;
             }
-//minagawa$ 
-            return passwd1.equals(passwd2) ? true : false;
+            return passwd1.equals(passwd2);
         }
         
         /**
@@ -662,11 +595,11 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
             
             boolean uidOk = userIdOk();
             boolean passwordOk = passwordOk();
-            boolean snOk = sn.getText().trim().equals("") ? false : true;
-            boolean givenOk = givenName.getText().trim().equals("") ? false : true;
-            boolean emailOk = email.getText().trim().equals("") ? false: true;
+            boolean snOk = !sn.getText().trim().equals("");
+            boolean givenOk = !givenName.getText().trim().equals("");
+            boolean emailOk = !email.getText().trim().equals("");
             
-            boolean newOk = (uidOk && passwordOk && snOk && givenOk && emailOk) ? true : false;
+            boolean newOk = (uidOk && passwordOk && snOk && givenOk && emailOk);
             
             if (ok != newOk) {
                 ok = newOk;
@@ -743,14 +676,5 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
         c.insets = new Insets(0, 0, 5, 7);
         ((GridBagLayout) container.getLayout()).setConstraints(cmp, c);
         container.add(cmp);
-    }
-    
-    /**
-     * OSがmacかどうかを返す。
-     * @return mac の時 true
-     */
-    private boolean isMac() {
-        String os = System.getProperty("os.name").toLowerCase();
-        return os.startsWith("mac") ? true : false;
     }
 }

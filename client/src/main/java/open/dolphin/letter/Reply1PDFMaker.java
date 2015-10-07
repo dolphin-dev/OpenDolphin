@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.Date;
 import open.dolphin.client.ClientContext;
 import open.dolphin.helper.UserDocumentHelper;
@@ -18,8 +19,6 @@ import open.dolphin.project.Project;
  * @author Kazushi Minagawa, Digital Globe, Inc.
  */
 public class Reply1PDFMaker extends AbstractLetterPDFMaker {
-
-    private static final String DOC_TITLE = "紹介患者経過報告書";
 
     @Override
     public String create() {
@@ -33,20 +32,19 @@ public class Reply1PDFMaker extends AbstractLetterPDFMaker {
                     getMarginTop(),
                     getMarginBottom());
             
+            String DOC_TITLE = ClientContext.getMyBundle(Reply1PDFMaker.class).getString("title.replyLetter");
+            
             String path = UserDocumentHelper.createPathToDocument(
                     getDocumentDir(),       // PDF File を置く場所
                     DOC_TITLE,                // 文書名
                     EXT_PDF,                // 拡張子 
                     model.getPatientName(), // 患者氏名 
                     new Date());            // 日付
-//minagawa^ jdk7           
+          
             Path pathObj = Paths.get(path);
             setPathToPDF(pathObj.toAbsolutePath().toString());         // 呼び出し側で取り出せるように保存する
-            // Open Document
-            //PdfWriter.getInstance(document, new FileOutputStream(pathToPDF));
             PdfWriter.getInstance(document, Files.newOutputStream(pathObj));
-            document.open();
-//minagawa$            
+            document.open();           
             // Font
             baseFont = BaseFont.createFont(HEISEI_MIN_W3, UNIJIS_UCS2_HW_H, false);
             titleFont = new Font(baseFont, getTitleFontSize());
@@ -58,10 +56,7 @@ public class Reply1PDFMaker extends AbstractLetterPDFMaker {
             document.add(para);
 
             // 日付
-//minagawa^ LSC 1.4 bug fix 文書の印刷日付 2013/06/24
-            //String dateStr = getDateString(model.getConfirmed());
-            String dateStr = getDateString(model.getStarted());
-//minagawa$              
+            String dateStr = getDateString(model.getStarted());            
             para = new Paragraph(dateStr, bodyFont);
             para.setAlignment(Element.ALIGN_RIGHT);
             document.add(para);
@@ -80,8 +75,8 @@ public class Reply1PDFMaker extends AbstractLetterPDFMaker {
                 para2.setAlignment(Element.ALIGN_LEFT);
                 document.add(para2);
             } else {
-                if (!dept.endsWith("科")) {
-                    dept = dept + "科";
+                if (!dept.endsWith(ClientContext.getMyBundle(Reply1PDFMaker.class).getString("text.dept"))) {
+                    dept = dept + ClientContext.getMyBundle(Reply1PDFMaker.class).getString("text.dept");
                 }
                 para2 = new Paragraph(dept, bodyFont);
                 para2.setAlignment(Element.ALIGN_LEFT);
@@ -94,11 +89,11 @@ public class Reply1PDFMaker extends AbstractLetterPDFMaker {
                 sb.append(model.getClientDoctor());
                 sb.append(" ");
             }
-            sb.append("先生");
+            sb.append(ClientContext.getMyBundle(Reply1PDFMaker.class).getString("doctorTitle"));
             // title
             String title = Project.getString("letter.atesaki.title");
             if (title!=null && (!title.equals("無し"))) {
-                sb.append(title);
+                sb.append(" ").append(title);
             }
             para2 = new Paragraph(sb.toString(), bodyFont);
             para2.setAlignment(Element.ALIGN_LEFT);
@@ -117,16 +112,14 @@ public class Reply1PDFMaker extends AbstractLetterPDFMaker {
             // 挨拶
             String visitedDate = model.getItemValue(Reply1Impl.ITEM_VISITED_DATE);
             String informed = model.getTextValue(Reply1Impl.TEXT_INFORMED_CONTENT);
-            sb = new StringBuilder();
-            sb.append("ご紹介いただきました ");
-            sb.append(model.getPatientName());
-            sb.append(" 殿(生年月日: ");
-            sb.append(getDateString(model.getPatientBirthday()));
-            sb.append(" ").append(model.getPatientAge()).append("歳").append(")、");
-            sb.append(visitedDate);
-            sb.append(" 受診され、");
-            sb.append("拝見し、下記のとおり説明いたしました。");
-            para2 = new Paragraph(sb.toString(), bodyFont);
+            String fmt = ClientContext.getMyBundle(Reply1PDFMaker.class).getString("messageFormat.patientVisit");
+            String text = new MessageFormat(fmt).format(new Object[]{
+                model.getPatientName(),
+                getDateString(model.getPatientBirthday()),
+                model.getPatientAge(),
+                visitedDate
+            });
+            para2 = new Paragraph(text, bodyFont);
             para2.setAlignment(Element.ALIGN_LEFT);
             document.add(para2);
 
@@ -140,7 +133,7 @@ public class Reply1PDFMaker extends AbstractLetterPDFMaker {
             document.add(new Paragraph("　"));
 
             sb = new StringBuilder();
-            sb.append("ご紹介いただき、ありがとうございました。取り急ぎ返信まで。");
+            sb.append(ClientContext.getMyBundle(Reply1PDFMaker.class).getString("greetings.letter"));
             para2 = new Paragraph(sb.toString(), bodyFont);
             para2.setAlignment(Element.ALIGN_LEFT);
             document.add(para2);
@@ -167,7 +160,7 @@ public class Reply1PDFMaker extends AbstractLetterPDFMaker {
 
             // 電話
             sb = new StringBuilder();
-            sb.append("電話　");
+            sb.append(ClientContext.getMyBundle(Reply1PDFMaker.class).getString("text.telephone")).append(" ");
             sb.append(user.getFacilityModel().getTelephone());
             para2 = new Paragraph(sb.toString(), bodyFont);
             para2.setAlignment(Element.ALIGN_RIGHT);
@@ -181,7 +174,7 @@ public class Reply1PDFMaker extends AbstractLetterPDFMaker {
             // 差出人医師
             sb = new StringBuilder();
             sb.append(model.getConsultantDoctor());
-            sb.append(" 印");
+            sb.append(" ").append(ClientContext.getMyBundle(Reply1PDFMaker.class).getString("text.seal"));
             para2 = new Paragraph(sb.toString(), bodyFont);
             para2.setAlignment(Element.ALIGN_RIGHT);
             document.add(para2);
@@ -191,10 +184,10 @@ public class Reply1PDFMaker extends AbstractLetterPDFMaker {
             return getPathToPDF();
 
         } catch (IOException ex) {
-            ClientContext.getBootLogger().warn(ex);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
             throw new RuntimeException(ERROR_IO);
         } catch (DocumentException ex) {
-            ClientContext.getBootLogger().warn(ex);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
             throw new RuntimeException(ERROR_PDF);
         }
     }

@@ -10,6 +10,9 @@ import open.dolphin.infomodel.DocumentModel;
 import open.dolphin.project.Project;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.apache.velocity.exception.MethodInvocationException;
+import org.apache.velocity.exception.ParseErrorException;
+import org.apache.velocity.exception.ResourceNotFoundException;
 
 /**
  *
@@ -78,9 +81,7 @@ public class MMLSender implements IKarteSender {
             //System.err.println(mml);
 
             // debug出力を行う
-            if (ClientContext.getMmlLogger() != null) {
-                ClientContext.getMmlLogger().debug(mml);
-            }
+            java.util.logging.Logger.getLogger(this.getClass().getName()).fine(mml);
 
             MmlMessageEvent mevt = new MmlMessageEvent(this);
             mevt.setGroupId(mb.getDocId());
@@ -94,8 +95,9 @@ public class MMLSender implements IKarteSender {
             // TODO
             }
 
-        } catch (Exception e) {
+        } catch (ParseErrorException | MethodInvocationException | ResourceNotFoundException | IOException e) {
             e.printStackTrace(System.err);
+            java.util.logging.Logger.getLogger(this.getClass().getName()).warning(e.getMessage());
         }
     }
 }

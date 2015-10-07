@@ -18,13 +18,13 @@ public final class StringTool {
     private static final char FIRST_KATAKANA = 'ァ';
     private static final char LAST_KATAKANA = 'ヶ';
     
-    private static final Character[] ZENKAKU_UPPER = {new Character('Ａ'), new Character('Ｚ')};
+    private static final Character[] ZENKAKU_UPPER = {'Ａ', 'Ｚ'};
     
-    private static final Character[] ZENKAKU_LOWER = {new Character('ａ'), new Character('ｚ')};
+    private static final Character[] ZENKAKU_LOWER = {'ａ', 'ｚ'};
     
-    private static final Character[] HANKAKU_UPPER = {new Character('A'), new Character('Z')};
+    private static final Character[] HANKAKU_UPPER = {'A', 'Z'};
     
-    private static final Character[] HANKAKU_LOWER = {new Character('a'), new Character('z')};
+    private static final Character[] HANKAKU_LOWER = {'a', 'z'};
 
     
     /** Creates new StringTool */
@@ -34,7 +34,7 @@ public final class StringTool {
     public static Object[] tokenToArray(String line, String delim) {
         
         StringTokenizer st = new StringTokenizer(line, delim, true);
-        ArrayList<String> list = new ArrayList<String>(10);
+        ArrayList<String> list = new ArrayList<>(10);
         int state = 0;
         String token;
         
@@ -93,11 +93,11 @@ public final class StringTool {
     }
     
     public static boolean isKatakana(char c) {
-        return (c >= FIRST_KATAKANA && c <= LAST_KATAKANA) ? true : false;
+        return (c >= FIRST_KATAKANA && c <= LAST_KATAKANA);
     }
     
     public static boolean isHiragana(char c) {
-        return (c >= FIRST_HIRAGANA && c <= LAST_HIRAGANA) ? true : false;
+        return (c >= FIRST_HIRAGANA && c <= LAST_HIRAGANA);
     }
     
     private static char toKatakana(char c) {
@@ -148,7 +148,6 @@ public final class StringTool {
             char c = str.charAt(i);
             
             if (isKatakana(c) || isHiragana(c)) {
-                continue;
             } else {
                 ret = false;
                 break;
@@ -159,6 +158,8 @@ public final class StringTool {
     
     /**
      * Convert to Zenkaku
+     * @param s
+     * @return 
      */
     public static String toZenkaku(String s) {
 
@@ -180,23 +181,23 @@ public final class StringTool {
     }
     
     public static boolean isZenkakuUpper(char c) {
-        Character test = new Character(c);
-        return (test.compareTo(ZENKAKU_UPPER[0]) >= 0 && test.compareTo(ZENKAKU_UPPER[1]) <= 0) ? true : false;
+        Character test = c;
+        return (test.compareTo(ZENKAKU_UPPER[0]) >= 0 && test.compareTo(ZENKAKU_UPPER[1]) <= 0);
     }
     
     public static boolean isZenkakuLower(char c) {
-        Character test = new Character(c);
-        return (test.compareTo(ZENKAKU_LOWER[0]) >= 0 && test.compareTo(ZENKAKU_LOWER[1]) <= 0) ? true : false;
+        Character test = c;
+        return (test.compareTo(ZENKAKU_LOWER[0]) >= 0 && test.compareTo(ZENKAKU_LOWER[1]) <= 0);
     }
     
     public static boolean isHankakuUpper(char c) {
-        Character test = new Character(c);
-        return (test.compareTo(HANKAKU_UPPER[0]) >= 0 && test.compareTo(HANKAKU_UPPER[1]) <= 0) ? true : false;
+        Character test = c;
+        return (test.compareTo(HANKAKU_UPPER[0]) >= 0 && test.compareTo(HANKAKU_UPPER[1]) <= 0);
     }
     
     public static boolean isHanakuLower(char c) {
-        Character test = new Character(c);
-        return (test.compareTo(HANKAKU_LOWER[0]) >= 0 && test.compareTo(HANKAKU_LOWER[1]) <= 0) ? true : false;
+        Character test = c;
+        return (test.compareTo(HANKAKU_LOWER[0]) >= 0 && test.compareTo(HANKAKU_LOWER[1]) <= 0);
     }
     
     

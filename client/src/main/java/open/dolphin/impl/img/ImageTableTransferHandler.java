@@ -13,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.FileChannel;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -22,7 +23,6 @@ import open.dolphin.client.ClientContext;
 import open.dolphin.client.ImageEntry;
 import open.dolphin.exception.DolphinException;
 import open.dolphin.helper.FileListTransferable;
-import open.dolphin.util.Log;
 
 /**
  * SchemaHolderTransferHandler
@@ -41,7 +41,7 @@ public class ImageTableTransferHandler extends TransferHandler {
         }
     }
 
-    private AbstractBrowser context;
+    private final AbstractBrowser context;
     private JTable sourceTable;
 
     public ImageTableTransferHandler(AbstractBrowser context) {
@@ -87,7 +87,9 @@ public class ImageTableTransferHandler extends TransferHandler {
         
 //s.oh^ 2014/05/07 PDF・画像タブの改善
         Window parent = SwingUtilities.getWindowAncestor(context.getUI());
-        if(context.isScanning(parent, (context.dropIsMove()) ? "ファイルの移動ができません。" : "ファイルのコピーができません。")) {
+        String msg1 = ClientContext.getMyBundle(ImageTableTransferHandler.class).getString("waring.cannotMove");
+        String msg2 = ClientContext.getMyBundle(ImageTableTransferHandler.class).getString("warning.cannotCopy");
+        if(context.isScanning(parent, (context.dropIsMove()) ? msg1 : msg2)) {
             return false;
         }
 //s.oh$
@@ -107,7 +109,7 @@ public class ImageTableTransferHandler extends TransferHandler {
                 files = getDropedFiles((String)t.getTransferData(nixFileDataFlavor));
             }
             
-            List<File> allFiles = new ArrayList<File>();
+            List<File> allFiles = new ArrayList<>();
 
             for (File file : files) {
                 if (!file.isDirectory()) {
@@ -137,11 +139,8 @@ public class ImageTableTransferHandler extends TransferHandler {
 
             return true;
 
-        } catch (UnsupportedFlavorException ufe) {
+        } catch (UnsupportedFlavorException | IOException ufe) {
             ufe.printStackTrace(System.err);
-
-        } catch (IOException ieo) {
-            ieo.printStackTrace(System.err);
 
         }
         sourceTable = null;
@@ -183,7 +182,8 @@ public class ImageTableTransferHandler extends TransferHandler {
                 if (!dir.exists()) {
                     boolean ok = dir.mkdirs();
                     if (!ok) {
-                        throw new DolphinException("画像用のディレクトリを作成できません。");
+                        String errMsg = ClientContext.getMyBundle(ImageTableTransferHandler.class).getString("error.cannotCreateDirectory");
+                        throw new DolphinException(errMsg);
                     }
                     dir.setExecutable(true, false);
                     dir.setWritable(true, false);
@@ -195,7 +195,8 @@ public class ImageTableTransferHandler extends TransferHandler {
                     boolean save = true;
                     if(dest.exists()) {
                         Window parent = SwingUtilities.getWindowAncestor(context.getUI());
-                        int ret = JOptionPane.showConfirmDialog(parent, "この場所には同じ名前のファイルが既にあります。上書きしますか？", ClientContext.getString("productString"), JOptionPane.OK_CANCEL_OPTION);
+                        String question = ClientContext.getMyBundle(ImageTableTransferHandler.class).getString("question.overrideFile");
+                        int ret = JOptionPane.showConfirmDialog(parent, question, ClientContext.getString("productString"), JOptionPane.OK_CANCEL_OPTION);
                         if(ret != JOptionPane.OK_OPTION) {
                             save = false;
                         }
@@ -234,14 +235,16 @@ public class ImageTableTransferHandler extends TransferHandler {
                     }
 //s.oh$
                 } catch (InterruptedException ex) {
-                    ClientContext.getBootLogger().warn(ex);
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
                 } catch (ExecutionException ex) {
-                    ClientContext.getBootLogger().warn(ex);
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
                     Window parent = SwingUtilities.getWindowAncestor(context.getUI());
-                    String message = "ファイルをコピーできません。\n" + ex.getMessage();
+                    //String message = "ファイルをコピーできません。\n" + ex.getMessage();
+                    String fmt = ClientContext.getMyBundle(ImageTableTransferHandler.class).getString("messageFormat.cannotCopy");
+                    MessageFormat msf = new MessageFormat(fmt);
+                    String message =msf.format(new Object[]{ex.getMessage()});
                     String title = ClientContext.getFrameTitle(context.getTitle());
                     JOptionPane.showMessageDialog(parent, message, title, JOptionPane.WARNING_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, message);
                 }
             }
         };
@@ -286,7 +289,8 @@ public class ImageTableTransferHandler extends TransferHandler {
                 File destDir = new File(dirStr, srcDir.getName());
                 if(destDir.exists()) {
                     Window parent = SwingUtilities.getWindowAncestor(context.getUI());
-                    int ret = JOptionPane.showConfirmDialog(parent, "この場所には同じ名前のフォルダが既にあります。上書きしますか？", ClientContext.getString("productString"), JOptionPane.OK_CANCEL_OPTION);
+                    String question = ClientContext.getMyBundle(ImageTableTransferHandler.class).getString("question.overrideFolder");
+                    int ret = JOptionPane.showConfirmDialog(parent, question, ClientContext.getString("productString"), JOptionPane.OK_CANCEL_OPTION);
                     if(ret != JOptionPane.OK_OPTION) {
                         return null;
                     }
@@ -311,14 +315,16 @@ public class ImageTableTransferHandler extends TransferHandler {
                         context.scan(context.getImgLocation());
                     }
                 } catch (InterruptedException ex) {
-                    ClientContext.getBootLogger().warn(ex);
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
                 } catch (ExecutionException ex) {
-                    ClientContext.getBootLogger().warn(ex);
+                    java.util.logging.Logger.getLogger(this.getClass().getName()).warning(ex.getMessage());
                     Window parent = SwingUtilities.getWindowAncestor(context.getUI());
-                    String message = "ファイルをコピーできません。\n" + ex.getMessage();
+                    //String message = "ファイルをコピーできません。\n" + ex.getMessage();
+                    String fmt = ClientContext.getMyBundle(ImageTableTransferHandler.class).getString("messageFormat.cannotCopy");
+                    MessageFormat msf = new MessageFormat(fmt);
+                    String message =msf.format(new Object[]{ex.getMessage()});
                     String title = ClientContext.getFrameTitle(context.getTitle());
                     JOptionPane.showMessageDialog(parent, message, title, JOptionPane.WARNING_MESSAGE);
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, message);
                 }
             }
         };
@@ -339,7 +345,6 @@ public class ImageTableTransferHandler extends TransferHandler {
     
     private void copyDir(File destDir, File srcDir) throws FileNotFoundException, IOException {
         if(!destDir.exists() && !destDir.mkdirs()) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, "ディレクトリを作成できません。", destDir.getPath());
             return;
         }
         File[] files = srcDir.listFiles();
@@ -364,14 +369,12 @@ public class ImageTableTransferHandler extends TransferHandler {
             return;
         }
         if(dir.isFile()) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, dir.getPath());
             dir.delete();
         }else if(dir.isDirectory()) {
             File[] files = dir.listFiles();
             for(int i = 0; i < files.length; i++) {
                 removeDir(files[i]);
             }
-            Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_INFORMATION, dir.getPath());
             dir.delete();
         }
     }
@@ -392,7 +395,7 @@ public class ImageTableTransferHandler extends TransferHandler {
     
     private List<File> getDropedFiles(String data) {
         
-        List<File> files = new ArrayList<File>(2);
+        List<File> files = new ArrayList<>(2);
         
         for(StringTokenizer st = new StringTokenizer(data, "\r\n"); st.hasMoreTokens();) {
             String token = st.nextToken().trim();

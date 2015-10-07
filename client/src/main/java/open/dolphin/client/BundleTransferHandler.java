@@ -7,7 +7,6 @@ import javax.swing.ActionMap;
 import javax.swing.JComponent;
 import javax.swing.TransferHandler;
 import javax.swing.event.CaretEvent;
-import javax.swing.event.CaretListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
@@ -34,19 +33,16 @@ public class BundleTransferHandler extends TransferHandler implements IKarteTran
         this.textCompo = tc;
         this.textCompo.putClientProperty("karteCompositor", this.textCompo);
         this.mediator = med;
-        textCompo.addCaretListener(new CaretListener() {
-            @Override
-            public void caretUpdate(CaretEvent ce) {
-                boolean newSelection = (ce.getDot() != ce.getMark()) ? true : false;
-                if (newSelection != hasSelection) {
-                    hasSelection = newSelection;
-                    if (hasSelection) {
-                        mediator.getAction(GUIConst.ACTION_COPY).setEnabled(true);
-                        mediator.getAction(GUIConst.ACTION_CUT).setEnabled(textCompo.isEditable());
-                    } else {
-                        mediator.getAction(GUIConst.ACTION_COPY).setEnabled(false);
-                        mediator.getAction(GUIConst.ACTION_CUT).setEnabled(false);
-                    }
+        textCompo.addCaretListener((CaretEvent ce) -> {
+            boolean newSelection = (ce.getDot() != ce.getMark());
+            if (newSelection != hasSelection) {
+                hasSelection = newSelection;
+                if (hasSelection) {
+                    mediator.getAction(GUIConst.ACTION_COPY).setEnabled(true);
+                    mediator.getAction(GUIConst.ACTION_CUT).setEnabled(textCompo.isEditable());
+                } else {
+                    mediator.getAction(GUIConst.ACTION_COPY).setEnabled(false);
+                    mediator.getAction(GUIConst.ACTION_CUT).setEnabled(false);
                 }
             }
         });
@@ -54,6 +50,7 @@ public class BundleTransferHandler extends TransferHandler implements IKarteTran
     
     /**
      * DropされたFlavorをインポートする。
+     * @return 
      */
     @Override
     public boolean importData(TransferHandler.TransferSupport support) {
@@ -73,8 +70,7 @@ public class BundleTransferHandler extends TransferHandler implements IKarteTran
                 tc.replaceSelection(str);
                 return true;
             }
-        } catch (UnsupportedFlavorException ufe) {
-        } catch (IOException ioe) {
+        } catch (UnsupportedFlavorException | IOException ufe) {
         }
         
         return false;
@@ -131,6 +127,7 @@ public class BundleTransferHandler extends TransferHandler implements IKarteTran
     
     /**
      * インポート可能かどうかを返す。
+     * @return 
      */
     @Override
     public boolean canImport(TransferHandler.TransferSupport support) {
@@ -162,7 +159,7 @@ public class BundleTransferHandler extends TransferHandler implements IKarteTran
             }
             
             return true;
-        } catch (Exception e) {
+        } catch (UnsupportedFlavorException | IOException e) {
             e.printStackTrace(System.err);
         }
         return false;

@@ -56,42 +56,43 @@ public class Reply1View extends Panel2 {
 
         setPreferredSize(new java.awt.Dimension(585, 794));
 
-        jLabel1.setText("紹介患者経過報告書（フォーム）"); // NOI18N
+        java.util.ResourceBundle bundle = java.util.ResourceBundle.getBundle("open/dolphin/letter/resources/Reply1View"); // NOI18N
+        jLabel1.setText(bundle.getString("titleLabel.text")); // NOI18N
 
-        jLabel2.setText("紹介元医療機関:"); // NOI18N
+        jLabel2.setText(bundle.getString("originInsutitueLabel.text")); // NOI18N
 
-        jLabel3.setText("担当:"); // NOI18N
+        jLabel3.setText(bundle.getString("whomLabel.text")); // NOI18N
 
-        atesakiLbl.setText("先生　御机下"); // NOI18N
+        atesakiLbl.setText(bundle.getString("personTitle.text")); // NOI18N
 
-        clientDoctor.setToolTipText("設定の紹介状等で、敬称を選択できます"); // NOI18N
+        clientDoctor.setToolTipText(bundle.getString("clientDoctor.toolTipText")); // NOI18N
 
-        jLabel5.setText("科"); // NOI18N
+        jLabel5.setText(bundle.getString("deptLabel.text")); // NOI18N
 
-        jLabel6.setText("患者氏名:"); // NOI18N
+        jLabel6.setText(bundle.getString("patientNameLabel.text")); // NOI18N
 
         patientName.setEditable(false);
 
-        jLabel7.setText("生年月日:"); // NOI18N
+        jLabel7.setText(bundle.getString("patientBirthdayLabel.text")); // NOI18N
 
         patientBirthday.setEditable(false);
 
-        jLabel8.setText("受診年月日:"); // NOI18N
+        jLabel8.setText(bundle.getString("dateOfVisitedLabel.text")); // NOI18N
 
         visitedDate.setEditable(false);
-        visitedDate.setToolTipText("右クリックでカレンダーから入力できます。PDF作成時、ハイフォンは漢字の年月日に変換されます。"); // NOI18N
+        visitedDate.setToolTipText(bundle.getString("visitedDate.toolTipText")); // NOI18N
 
         informedContent.setColumns(20);
         informedContent.setLineWrap(true);
         informedContent.setRows(5);
         jScrollPane1.setViewportView(informedContent);
 
-        jLabel9.setText("拝見し、下記のとおり説明いたしました。"); // NOI18N
+        jLabel9.setText(bundle.getString("informedLabel.text")); // NOI18N
 
-        jLabel10.setText("ご紹介戴き、ありがとうございました。取り急ぎ返信まで。"); // NOI18N
+        jLabel10.setText(bundle.getString("greetingsLabel.text")); // NOI18N
 
         confirmed.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        confirmed.setText("年月日"); // NOI18N
+        confirmed.setText(bundle.getString("dateLabel.text")); // NOI18N
 
         consultantAddress.setEditable(false);
         consultantAddress.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
@@ -105,11 +106,11 @@ public class Reply1View extends Panel2 {
         consultantDoctor.setEditable(false);
         consultantDoctor.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
 
-        jLabel11.setText("電話"); // NOI18N
+        jLabel11.setText(bundle.getString("telephoneLabel.text")); // NOI18N
 
-        jLabel12.setText("印"); // NOI18N
+        jLabel12.setText(bundle.getString("sealLabel.text")); // NOI18N
 
-        jLabel13.setText("担当"); // NOI18N
+        jLabel13.setText(bundle.getString("attendingLabel.text")); // NOI18N
 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);

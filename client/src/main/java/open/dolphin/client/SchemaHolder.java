@@ -17,11 +17,9 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JPopupMenu;
 import javax.swing.text.Position;
-import open.dolphin.impl.xronos.XronosLinkDocument;
 import open.dolphin.infomodel.SchemaModel;
 import open.dolphin.plugin.PluginLoader;
 import open.dolphin.project.Project;
-import open.dolphin.util.Log;
 
 /**
  * スタンプのデータを保持するコンポーネントで TextPane に挿入される。
@@ -36,9 +34,9 @@ public final class SchemaHolder extends AbstractComponentHolder implements Compo
     // Junzo SATO
     // to restrict the size of the component,
     // setBounds and setSize are overridden.
-    private int fixedSize = 192;//160;/////////////////////////////////////////
-    private int fixedWidth = fixedSize;
-    private int fixedHeight = fixedSize;
+    private final int fixedSize = 192;//160;/////////////////////////////////////////
+    private final int fixedWidth = fixedSize;
+    private final int fixedHeight = fixedSize;
     //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     
     private boolean selected;
@@ -47,10 +45,7 @@ public final class SchemaHolder extends AbstractComponentHolder implements Compo
     
     private Position end;
     
-    private KartePane kartePane;
-    
-    private Color selectedBorder = SELECTED_BORDER;
-    
+    private final KartePane kartePane;
     
     public SchemaHolder(KartePane kartePane, SchemaModel schema) {
         
@@ -100,7 +95,8 @@ public final class SchemaHolder extends AbstractComponentHolder implements Compo
             popup.addSeparator();
             
             // 右クリックで編集
-            AbstractAction action = new AbstractAction("編集") {
+            String actionText = ClientContext.getMyBundle(SchemaHolder.class).getString("actionText.edit");
+            AbstractAction action = new AbstractAction(actionText) {
                 @Override
                 public void actionPerformed(ActionEvent ae) {
                     edit();
@@ -117,7 +113,7 @@ public final class SchemaHolder extends AbstractComponentHolder implements Compo
         this.selected = selected;
         if (old != this.selected) {
             if (this.selected) {
-                this.setBorder(BorderFactory.createLineBorder(selectedBorder));
+                this.setBorder(BorderFactory.createLineBorder(GUIConst.STAMP_HOLDER_SELECTED_BORDER));
             } else {
                 this.setBorder(BorderFactory.createLineBorder(kartePane.getTextPane().getBackground()));
             }
@@ -126,25 +122,7 @@ public final class SchemaHolder extends AbstractComponentHolder implements Compo
     
     @Override
     public void edit() {
-//s.oh^ Xronos連携(D&D画像連携)
-        if(Project.getBoolean(XronosLinkDocument.KEY_XRONOSBROWSER_LINK, false) && schema != null && schema.getExtRefModel() != null) {
-            String imageURL = Project.getString(XronosLinkDocument.KEY_XRONOSBROWSER_IMAGE);
-            String param = schema.getExtRefModel().getSop();
-            if(imageURL != null && param != null && param.length() > 0) {
-                String url = imageURL + "userid=" + Project.getUserId() + "&" + param;
-                Log.outputFuncLog(Log.LOG_LEVEL_3, Log.FUNCTIONLOG_KIND_INFORMATION, url);
-                Desktop desktop = Desktop.getDesktop();
-                try {
-                    desktop.browse(new URI(url));
-                } catch (URISyntaxException ex) {
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, url, ex.getMessage());
-                } catch (IOException ex) {
-                    Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_ERROR, url, ex.getMessage());
-                }
-                return;
-            }
-        }
-//s.oh$
+        
         try {
             PluginLoader<SchemaEditor> loader = PluginLoader.load(SchemaEditor.class);
             Iterator<SchemaEditor> iter = loader.iterator();
@@ -153,12 +131,8 @@ public final class SchemaHolder extends AbstractComponentHolder implements Compo
                 editor.setSchema(schema);
                 editor.setEditable(kartePane.getTextPane().isEditable());
                 editor.addPropertyChangeListener(SchemaHolder.this);
-                Runnable awt = new Runnable() {
-
-                    @Override
-                    public void run() {
-                        editor.start();
-                    }
+                Runnable awt = () -> {
+                    editor.start();
                 };
                 EventQueue.invokeLater(awt);
             }
@@ -198,6 +172,9 @@ public final class SchemaHolder extends AbstractComponentHolder implements Compo
     
     /**
      * アスペクト比を保って画像とラベルのサイズを変更する。
+     * @param icon
+     * @param dim
+     * @return 
      */
     protected ImageIcon adjustImageSize(ImageIcon icon, Dimension dim) {
         

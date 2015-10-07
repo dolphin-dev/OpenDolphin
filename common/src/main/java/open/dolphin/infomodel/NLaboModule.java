@@ -49,6 +49,17 @@ public class NLaboModule extends InfoModel implements Serializable {
 
     @Transient
     private Boolean progressState;
+    
+//minagawa^ 入院    
+    @Transient
+    private String facilityId;
+    
+    @Transient
+    private String facilityName;
+    
+    @Transient
+    private String jmariCode;
+//minagawa$    
 
 
     public Long getId() {
@@ -246,4 +257,46 @@ public class NLaboModule extends InfoModel implements Serializable {
         this.reportFormat = reportFormat;
     }
     //-------------------------------------------------
+
+    /**
+     * @return the facilityId
+     */
+    public String getFacilityId() {
+        return facilityId;
+    }
+
+    /**
+     * @param facilityId the facilityId to set
+     */
+    public void setFacilityId(String facilityId) {
+        this.facilityId = facilityId;
+    }
+
+    /**
+     * @return the facilityName
+     */
+    public String getFacilityName() {
+        return facilityName;
+    }
+
+    /**
+     * @param facilityName the facilityName to set
+     */
+    public void setFacilityName(String facilityName) {
+        this.facilityName = facilityName;
+    }
+
+    /**
+     * @return the jmariCode
+     */
+    public String getJmariCode() {
+        return jmariCode;
+    }
+
+    /**
+     * @param jmariCode the jmariCode to set
+     */
+    public void setJmariCode(String jmariCode) {
+        this.jmariCode = jmariCode;
+    }
 }

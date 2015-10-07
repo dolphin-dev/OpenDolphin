@@ -18,13 +18,17 @@ import javax.swing.text.JTextComponent;
  */
 public class CutCopyPasteAdapter extends MouseAdapter {
 
-    private static final String CUT = "カット";
-    private static final String COPY = "コピー";
-    private static final String PASTE = "ペースト";
+    private final String CUT;
+    private final String COPY;
+    private final String PASTE;
 
-    private static CutCopyPasteAdapter instance = new CutCopyPasteAdapter();
+    private static final CutCopyPasteAdapter instance = new CutCopyPasteAdapter();
     
     private CutCopyPasteAdapter() {
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(CutCopyPasteAdapter.class);
+        CUT = bundle.getString("cut");
+        COPY = bundle.getString("copy");
+        PASTE = bundle.getString("paste");
     }
 
     public static CutCopyPasteAdapter getInstance() {
@@ -54,7 +58,7 @@ public class CutCopyPasteAdapter extends MouseAdapter {
             pasteItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
             pop.add(pasteItem);
 
-            boolean hasSelection = tc.getSelectionStart()!=tc.getSelectionEnd() ? true : false;
+            boolean hasSelection = tc.getSelectionStart()!=tc.getSelectionEnd();
 
             cutItem.setEnabled(tc.isEditable() && hasSelection);
 

@@ -15,7 +15,8 @@ public class ClaimMessageEvent extends java.util.EventObject {
     private int number;
     private String confirmDate;
     
-    /** Creates new ClaimEvent */
+    /** Creates new ClaimEvent
+     * @param source */
     public ClaimMessageEvent(Object source) {
         super(source);
     }

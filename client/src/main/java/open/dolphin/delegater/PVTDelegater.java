@@ -11,7 +11,6 @@ import open.dolphin.infomodel.PatientModel;
 import open.dolphin.infomodel.PatientVisitList;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.util.BeanUtils;
-import open.dolphin.util.Log;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -24,7 +23,6 @@ public class PVTDelegater extends BusinessDelegater {
 
     private static final String RES_PVT = "/pvt2";
     
-    private static final boolean debug = false;
     private static final PVTDelegater instance;
 
     static {
@@ -61,7 +59,6 @@ public class PVTDelegater extends BusinessDelegater {
             return Integer.parseInt(entityStr);
             
         } catch (IOException | NumberFormatException e) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0,"E",e.toString());
             e.printStackTrace(System.err);
         }
         return 0;
@@ -82,7 +79,6 @@ public class PVTDelegater extends BusinessDelegater {
             // Count
             return 1;
         } catch (Exception e) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0,"E",e.toString());
             e.printStackTrace(System.err);
         }
         
@@ -111,7 +107,6 @@ public class PVTDelegater extends BusinessDelegater {
             //return list;
             return (list != null) ? list : new ArrayList<>(1);
         } catch (Exception e) {
-            Log.outputFuncLog(Log.LOG_LEVEL_0,"E",e.toString());
             e.printStackTrace(System.err);
         }
         
@@ -145,13 +140,6 @@ public class PVTDelegater extends BusinessDelegater {
             patient.setPvtHealthInsurances(list);
             patient.getHealthInsurances().clear();
             patient.setHealthInsurances(null);
-        }
-    }
-
-    @Override
-    protected void debug(int status, String entity) {
-        if (debug || DEBUG) {
-            super.debug(status, entity);
         }
     }
 }

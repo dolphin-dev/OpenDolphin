@@ -11,15 +11,12 @@ import open.dolphin.impl.labrcv.NLaboImportSummary;
  */
 public interface LabResultParser {
 
-    public static final String MIHOKOKU = "未報告";
-    public static final String NO_RESULT = "結果値無し";
+    public static final String MIHOKOKU = java.util.ResourceBundle.getBundle("open/dolphin/client/resources/LabResultParser").getString("text.unReported");
+    public static final String NO_RESULT = java.util.ResourceBundle.getBundle("open/dolphin/client/resources/LabResultParser").getString("text.noResultValue");
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd HH:mm";
     public static final String DATE_FORMAT_8 = "yyyyMMdd";
     public static final String DATE_FORMAT_10 = "yyyy-MM-dd";
     public static final String CSV_DELIM = "\\s*,\\s*";
-
-//minagawa^ mac jdk7
-    //public List<NLaboImportSummary> parse(File file) throws IOException;
+    
     public List<NLaboImportSummary> parse(Path path) throws IOException;
-//minagawa$
 }

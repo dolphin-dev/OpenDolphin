@@ -13,7 +13,7 @@ public final class MasterItemTransferable implements Transferable {
 
     public static final DataFlavor masterItemFlavor = new DataFlavor(open.dolphin.order.MasterItem.class, "MasterItem");
     public static final DataFlavor[] flavors = {masterItemFlavor};
-    private MasterItem masterItem;
+    private final MasterItem masterItem;
 
     public MasterItemTransferable(MasterItem masterItem) {
         this.masterItem = masterItem;
@@ -26,7 +26,7 @@ public final class MasterItemTransferable implements Transferable {
 
     @Override
     public boolean isDataFlavorSupported(DataFlavor flavor) {
-        return flavor.equals(masterItemFlavor) ? true : false;
+        return flavor.equals(masterItemFlavor);
     }
 
     @Override

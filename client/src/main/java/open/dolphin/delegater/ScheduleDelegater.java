@@ -1,7 +1,5 @@
 package open.dolphin.delegater;
 
-//import com.fasterxml.jackson.core.type.TypeReference;
-//import com.sun.jersey.api.client.ClientResponse;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -12,7 +10,6 @@ import open.dolphin.infomodel.PatientVisitList;
 import open.dolphin.infomodel.PatientVisitModel;
 import open.dolphin.infomodel.PostSchedule;
 import open.dolphin.util.BeanUtils;
-import open.dolphin.util.Log;
 import org.codehaus.jackson.map.ObjectMapper;
 
 /**
@@ -26,7 +23,6 @@ public class ScheduleDelegater extends BusinessDelegater {
 
     private static final String RES_SCHEDULE = "/schedule";
     
-    private static final boolean debug = false;
     private static final ScheduleDelegater instance;
 
     static {
@@ -73,7 +69,6 @@ public class ScheduleDelegater extends BusinessDelegater {
                 if (pm.getFirstInsurance()==null && pm.getPatientModel().getPvtHealthInsurances()!=null) {
                     PVTHealthInsuranceModel h = pm.getPatientModel().getPvtHealthInsurances().get(0);
                     pm.setFirstInsurance(h.toString());
-                    Log.outputFuncLog(Log.LOG_LEVEL_0,"I","PvtList",h.toString());
                 }
             }
         }
@@ -101,7 +96,6 @@ public class ScheduleDelegater extends BusinessDelegater {
                 if (pm.getFirstInsurance()==null && pm.getPatientModel().getPvtHealthInsurances()!=null) {
                     PVTHealthInsuranceModel h = pm.getPatientModel().getPvtHealthInsurances().get(0);
                     pm.setFirstInsurance(h.toString());
-                    Log.outputFuncLog(Log.LOG_LEVEL_0,"I","PvtList",h.toString());
                 }
             }
         }
@@ -151,13 +145,6 @@ public class ScheduleDelegater extends BusinessDelegater {
             patient.setPvtHealthInsurances(list);
             patient.getHealthInsurances().clear();
             patient.setHealthInsurances(null);
-        }
-    }
-
-    @Override
-    protected void debug(int status, String entity) {
-        if (debug || DEBUG) {
-            super.debug(status, entity);
         }
     }
 }

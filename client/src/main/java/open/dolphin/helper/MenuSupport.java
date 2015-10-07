@@ -1,5 +1,6 @@
 package open.dolphin.helper;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import javax.swing.Action;
 import javax.swing.ActionMap;
@@ -91,11 +92,11 @@ public class MenuSupport implements MenuListener {
         }
     }
     
-    public void setChains(Object[] chains) {
+    public final void setChains(Object[] chains) {
         this.chains = chains;
     }
     
-    public Object[] getChains() {
+    public final Object[] getChains() {
         return chains;
     }
     
@@ -114,7 +115,7 @@ public class MenuSupport implements MenuListener {
      * メソッドを実行するオブジェクトがあればそこで終了する。
      * メソッドを実行するオブジェクトが存在しない場合もそこで終了する。
      * コマンドチェインパターンのリフレクション版。
-     * @param obj
+     * @param method
      * @return メソッドが実行された時 true
      */
     public boolean sendToChain(String method) {
@@ -131,7 +132,7 @@ public class MenuSupport implements MenuListener {
                         mth.invoke(target, (Object[])null);
                         handled = true;
                         break;
-                    } catch (Exception e) {
+                    } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                         // この target では実行できない
                     }
                 }
@@ -155,7 +156,7 @@ public class MenuSupport implements MenuListener {
                         mth.invoke(target, new Object[]{arg});
                         handled = true;
                         break;
-                    } catch (Exception e) {
+                    } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                         // この target では実行できない
                     }
                 }

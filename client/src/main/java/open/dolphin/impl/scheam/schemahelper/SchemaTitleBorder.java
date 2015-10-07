@@ -13,7 +13,7 @@ import open.dolphin.impl.scheam.SchemaEditorImpl;
  */
 public class SchemaTitleBorder extends AbstractBorder {
 
-    private static String ICON16 = "/open/dolphin/impl/scheam/resources/Frame.titlePane.small.png";
+    private static final String ICON16 = "/open/dolphin/impl/scheam/resources/Frame.titlePane.small.png";
 
     @Override
     public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {

@@ -2,14 +2,12 @@ package open.dolphin.stampbox;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import open.dolphin.client.BlockGlass;
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.GUIFactory;
@@ -21,7 +19,6 @@ import open.dolphin.infomodel.SubscribedTreeModel;
 import open.dolphin.project.Project;
 import open.dolphin.table.ListTableModel;
 import open.dolphin.table.StripeTableCellRenderer;
-import open.dolphin.util.Log;
 
 /**
  * StampImporter
@@ -30,27 +27,12 @@ import open.dolphin.util.Log;
  */
 public class StampImporter {
     
-    private static final String[] COLUMN_NAMES = {
-        "名  称", "カテゴリ", "公開者", "説  明", "公開先", "インポート"
-    };
-    private static final String[] METHOD_NAMES = {
-        "name", "category", "partyName", "description", "publishType", "isImported"
-    };
-    private static final Class[] CLASSES = {
-        String.class, String.class, String.class, String.class, String.class, Boolean.class
-    };
-    private static final int[] COLUMN_WIDTH = {
-        120, 90, 170, 270, 40, 40
-    };
-    //private static final Color ODD_COLOR = ClientContext.getColor("color.odd");
-    //private static final Color EVEN_COLOR = ClientContext.getColor("color.even");
-//minagawa^ Icon Server    
-//    private static final ImageIcon WEB_ICON = ClientContext.getImageIcon("web_16.gif");
-//    private static final ImageIcon HOME_ICON = ClientContext.getImageIcon("home_16.gif");
-//    private static final ImageIcon FLAG_ICON = ClientContext.getImageIcon("flag_16.gif");
-//minagawa$    
+    private final String[] COLUMN_NAMES;
+    private final String[] METHOD_NAMES;
+    private final Class[] CLASSES;
+    private final int[] COLUMN_WIDTH;
     
-    private String title = "スタンプインポート";
+    private final String title;
     private JFrame frame;
     private BlockGlass blockGlass;
     private JTable browseTable;
@@ -62,17 +44,36 @@ public class StampImporter {
     private JLabel localLabel;
     private JLabel importedLabel;
     
-    private StampBoxPlugin stampBox;
-    private List<Long> importedTreeList;
+    private final StampBoxPlugin stampBox;
+    private final List<Long> importedTreeList;
 
     // timerTask 関連
     private javax.swing.Timer taskTimer;
     private ProgressMonitor monitor;
     private int delayCount;
-    private int maxEstimation = 90*1000;    // 90 秒
-    private int delay = 300;                // 300 mmsec
+    private final int maxEstimation = 90*1000;    // 90 秒
+    private final int delay = 300;                // 300 mmsec
     
     public StampImporter(StampBoxPlugin stampBox) {
+        
+        // Resource Injection
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampImporter.class);
+        title = bundle.getString("title.window");
+        
+        String line = bundle.getString("columnNames.table");
+        COLUMN_NAMES = line.split(",");
+        
+        line = "name,category,partyName,description,publishType,isImported";
+        METHOD_NAMES = line.split(",");
+        
+        CLASSES = new Class[]{
+            String.class, String.class, String.class, String.class, String.class, Boolean.class
+        };
+        
+        COLUMN_WIDTH = new int[] {
+            120, 90, 170, 270, 40, 40
+        };
+        
         this.stampBox = stampBox;
         importedTreeList = stampBox.getImportedTreeList();
     }
@@ -88,6 +89,9 @@ public class StampImporter {
             protected List<PublishedTreeModel> doInBackground() throws Exception {
                 StampDelegater sdl = new StampDelegater();
                 List<PublishedTreeModel> result = sdl.getPublishedTrees();
+                if (result==null) {
+                    result = new ArrayList(1);
+                }
                 return result;
             }
 
@@ -98,7 +102,7 @@ public class StampImporter {
                 if (importedTreeList != null && importedTreeList.size() > 0) {
                     for (PublishedTreeModel model : result) {
                         for (Long id : importedTreeList) {
-                            if (id.longValue() == model.getId()) {
+                            if (id == model.getId()) {
                                 model.setImported(true);
                                 break;
                             }
@@ -114,8 +118,7 @@ public class StampImporter {
                             cause.getMessage(),
                             ClientContext.getFrameTitle(title),
                             JOptionPane.WARNING_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), cause.getMessage());
-                ClientContext.getBootLogger().warn(cause.getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
             }
 
             @Override
@@ -133,25 +136,22 @@ public class StampImporter {
             }
         };
 
-        String message = "スタンプインポート";
-        String note = "公開スタンプを取得しています...";
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampImporter.class);
+        String message = bundle.getString("message.progress.import");
+        String note = bundle.getString("note.getting.publishedStamp");
         Component c = frame;
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-        taskTimer = new Timer(delay, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-
-                if (monitor.isCanceled() && (!worker.isCancelled())) {
-                   // no cancel
-                } else if (delayCount >= monitor.getMaximum() && (!worker.isCancelled())) {
-                    worker.cancel(true);
-
-                } else {
-                    monitor.setProgress(delayCount);
-                }
+        taskTimer = new Timer(delay, (ActionEvent e) -> {
+            delayCount++;
+            
+            if (monitor.isCanceled() && (!worker.isCancelled())) {
+                // no cancel
+            } else if (delayCount >= monitor.getMaximum() && (!worker.isCancelled())) {
+                worker.cancel(true);
+                
+            } else {
+                monitor.setProgress(delayCount);
             }
         });
 
@@ -209,25 +209,29 @@ public class StampImporter {
         
         JPanel browsePane = new JPanel();
 
-        tableModel = new ListTableModel<PublishedTreeModel>(COLUMN_NAMES, 0, METHOD_NAMES, CLASSES);
+        tableModel = new ListTableModel<>(COLUMN_NAMES, 0, METHOD_NAMES, CLASSES);
         browseTable = new JTable(tableModel);
         for (int i = 0; i < COLUMN_WIDTH.length; i++) {
             browseTable.getColumnModel().getColumn(i).setPreferredWidth(COLUMN_WIDTH[i]);
         }
         
-        importBtn = new JButton("インポート");
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampImporter.class);
+        String buttonTextImport = bundle.getString("buttonText.import");
+        String buttonTextClose = bundle.getString("buttonText.close");
+        String buttonTextDelete = bundle.getString("buttonText.delete");
+        importBtn = new JButton(buttonTextImport);
         importBtn.setEnabled(false);
-        cancelBtn = new JButton("閉じる");
-        deleteBtn = new JButton("削除");
+        cancelBtn = new JButton(buttonTextClose);
+        deleteBtn = new JButton(buttonTextDelete);
         deleteBtn.setEnabled(false);
-//minagawa^ Icon Server        
-//        publicLabel = new JLabel("グローバル", WEB_ICON, SwingConstants.CENTER);
-//        localLabel = new JLabel("院内", HOME_ICON, SwingConstants.CENTER);
-//        importedLabel = new JLabel("インポート済", FLAG_ICON, SwingConstants.CENTER);
-        publicLabel = new JLabel("グローバル", ClientContext.getImageIconArias("icon_world_small"), SwingConstants.CENTER);
-        localLabel = new JLabel("院内", ClientContext.getImageIconArias("icon_hospital_small"), SwingConstants.CENTER);
-        importedLabel = new JLabel("インポート済", ClientContext.getImageIconArias("icon_flag_blue_small"), SwingConstants.CENTER);
-//minagawa$
+
+        String labelTextGlobal = bundle.getString("labelText.global");
+        String labeltextInternal = bundle.getString("labelText.internal");
+        String labelTextImportDone = bundle.getString("lablelText.importDone");
+        publicLabel = new JLabel(labelTextGlobal, ClientContext.getImageIconArias("icon_world_small"), SwingConstants.CENTER);
+        localLabel = new JLabel(labeltextInternal, ClientContext.getImageIconArias("icon_hospital_small"), SwingConstants.CENTER);
+        importedLabel = new JLabel(labelTextImportDone, ClientContext.getImageIconArias("icon_flag_blue_small"), SwingConstants.CENTER);
+        
         JScrollPane tableScroller = new JScrollPane(browseTable);
         tableScroller.getViewport().setPreferredSize(new Dimension(730, 380));
         
@@ -261,54 +265,38 @@ public class StampImporter {
         // BrowseTableをシングルセレクションにする
         browseTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         ListSelectionModel sleModel = browseTable.getSelectionModel();
-        sleModel.addListSelectionListener(new ListSelectionListener() {
-
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (e.getValueIsAdjusting() == false) {
-                    int row = browseTable.getSelectedRow();
-                    PublishedTreeModel model = tableModel.getObject(row);
-                    if (model != null) {
-                        if (model.isImported()) {
-                            importBtn.setEnabled(false);
-                            deleteBtn.setEnabled(true);
-                        } else {
-                            importBtn.setEnabled(true);
-                            deleteBtn.setEnabled(false);
-                        }
-                    } else {
+        sleModel.addListSelectionListener((ListSelectionEvent e) -> {
+            if (e.getValueIsAdjusting() == false) {
+                int row = browseTable.getSelectedRow();
+                PublishedTreeModel model = tableModel.getObject(row);
+                if (model != null) {
+                    if (model.isImported()) {
                         importBtn.setEnabled(false);
+                        deleteBtn.setEnabled(true);
+                    } else {
+                        importBtn.setEnabled(true);
                         deleteBtn.setEnabled(false);
                     }
+                } else {
+                    importBtn.setEnabled(false);
+                    deleteBtn.setEnabled(false);
                 }
             }
         });
 
         // import
-        importBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                importPublishedTree();
-            }
+        importBtn.addActionListener((ActionEvent e) -> {
+            importPublishedTree();
         });
 
         // remove
-        deleteBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                removeImportedTree();
-            }
+        deleteBtn.addActionListener((ActionEvent e) -> {
+            removeImportedTree();
         });
 
         // キャンセル
-        cancelBtn.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                stop();
-            }
+        cancelBtn.addActionListener((ActionEvent e) -> {
+            stop();
         });
         
         return browsePane;
@@ -342,7 +330,7 @@ public class StampImporter {
         SubscribedTreeModel sm = new SubscribedTreeModel();
         sm.setUserModel(Project.getUserModel());
         sm.setTreeId(importTree.getId());
-        final List<SubscribedTreeModel> subscribeList = new ArrayList<SubscribedTreeModel>(1);
+        final List<SubscribedTreeModel> subscribeList = new ArrayList<>(1);
         subscribeList.add(sm);
 
         final SimpleWorker worker = new SimpleWorker<Void, Void>() {
@@ -365,7 +353,7 @@ public class StampImporter {
 
             @Override
             protected void cancelled() {
-                ClientContext.getBootLogger().debug("Task cancelled");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).fine("Task cancelled");
             }
 
             @Override
@@ -374,8 +362,7 @@ public class StampImporter {
                         cause.getMessage(),
                         ClientContext.getFrameTitle(title),
                         JOptionPane.WARNING_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), cause.getMessage());
-                ClientContext.getBootLogger().warn(cause.getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
             }
 
             @Override
@@ -395,27 +382,24 @@ public class StampImporter {
             }
         };
 
-        String message = "スタンプインポート";
-        String note = "インポートしています...";
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampImporter.class);
+        String message = bundle.getString("message.progress.import");
+        String note = bundle.getString("note.importing");
         Component c = frame;
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-        taskTimer = new Timer(delay, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-
-                if (monitor.isCanceled() && (!worker.isCancelled())) {
-                    //worker.cancel(true);
-                    // No cancel
-
-                } else if (delayCount >= monitor.getMaximum() && (!worker.isCancelled())) {
-                    worker.cancel(true);
-
-                } else {
-                    monitor.setProgress(delayCount);
-                }
+        taskTimer = new Timer(delay, (ActionEvent e) -> {
+            delayCount++;
+            
+            if (monitor.isCanceled() && (!worker.isCancelled())) {
+                //worker.cancel(true);
+                // No cancel
+                
+            } else if (delayCount >= monitor.getMaximum() && (!worker.isCancelled())) {
+                worker.cancel(true);
+                
+            } else {
+                monitor.setProgress(delayCount);
             }
         });
 
@@ -438,7 +422,7 @@ public class StampImporter {
         SubscribedTreeModel sm = new SubscribedTreeModel();
         sm.setTreeId(removeTree.getId());
         sm.setUserModel(Project.getUserModel());
-        final List<SubscribedTreeModel> list = new ArrayList<SubscribedTreeModel>(1);
+        final List<SubscribedTreeModel> list = new ArrayList<>(1);
         list.add(sm);
         
         // Unsubscribeタスクを実行する
@@ -463,7 +447,7 @@ public class StampImporter {
             
             @Override
             protected void cancelled() {
-                ClientContext.getBootLogger().debug("Task cancelled");
+                java.util.logging.Logger.getLogger(this.getClass().getName()).fine("Task cancelled");
             }
             
             @Override
@@ -472,8 +456,7 @@ public class StampImporter {
                             cause.getMessage(),
                             ClientContext.getFrameTitle(title),
                             JOptionPane.WARNING_MESSAGE);
-                Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, ClientContext.getFrameTitle(title), cause.getMessage());
-                ClientContext.getBootLogger().warn(cause.getMessage());
+                java.util.logging.Logger.getLogger(this.getClass().getName()).warning(cause.getMessage());
             }
 
             @Override
@@ -493,27 +476,24 @@ public class StampImporter {
             }
         };
 
-        String message = "スタンプインポート";
-        String note = "インポート済みスタンプを削除しています...";
+        java.util.ResourceBundle bundle = ClientContext.getMyBundle(StampImporter.class);
+        String message = bundle.getString("message.progress.import");
+        String note = bundle.getString("note.deletingImportedStamp");
         Component c = frame;
         monitor = new ProgressMonitor(c, message, note, 0, maxEstimation / delay);
 
-        taskTimer = new Timer(delay, new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                delayCount++;
-
-                if (monitor.isCanceled() && (!worker.isCancelled())) {
-                    //worker.cancel(true);
-                    // No cancel
-
-                } else if (delayCount >= monitor.getMaximum() && (!worker.isCancelled())) {
-                    worker.cancel(true);
-
-                } else {
-                    monitor.setProgress(delayCount);
-                }
+        taskTimer = new Timer(delay, (ActionEvent e) -> {
+            delayCount++;
+            
+            if (monitor.isCanceled() && (!worker.isCancelled())) {
+                //worker.cancel(true);
+                // No cancel
+                
+            } else if (delayCount >= monitor.getMaximum() && (!worker.isCancelled())) {
+                worker.cancel(true);
+                
+            } else {
+                monitor.setProgress(delayCount);
             }
         });
 
@@ -521,7 +501,6 @@ public class StampImporter {
     }
         
     class PublishTypeRenderer extends StripeTableCellRenderer {
-        //class PublishTypeRenderer extends DefaultTableCellRenderer {
         
         /** Creates new IconRenderer */
         public PublishTypeRenderer() {
@@ -539,30 +518,14 @@ public class StampImporter {
             
             super.getTableCellRendererComponent(table, value, isSelected, isFocused, row, col);
             
-//            if (isSelected) {
-//                setBackground(table.getSelectionBackground());
-//                setForeground(table.getSelectionForeground());
-//            } else {
-//                setForeground(table.getForeground());
-//                if (row % 2 == 0) {
-//                    setBackground(EVEN_COLOR);
-//                } else {
-//                    setBackground(ODD_COLOR);
-//                }
-//            }
-            
             if (value != null && value instanceof String) {
                 
                 String pubType = (String) value;
                 
                 if (pubType.equals(IInfoModel.PUBLISHED_TYPE_GLOBAL)) {
-//minagawa^ Icon Server                    
-                    //setIcon(WEB_ICON);
                     setIcon(ClientContext.getImageIconArias("icon_world_small"));
                 } else {
-                    //setIcon(HOME_ICON);
-                    setIcon(ClientContext.getImageIconArias("icon_hospital_small"));
-//minagawa$                    
+                    setIcon(ClientContext.getImageIconArias("icon_hospital_small"));                
                 } 
                 this.setText("");
                 
@@ -590,27 +553,12 @@ public class StampImporter {
                 boolean isFocused,
                 int row, int col) {           
             
-//            if (isSelected) {
-//                setBackground(table.getSelectionBackground());
-//                setForeground(table.getSelectionForeground());
-//            } else {
-//                setForeground(table.getForeground());
-//                if (row % 2 == 0) {
-//                    setBackground(EVEN_COLOR);
-//                } else {
-//                    setBackground(ODD_COLOR);
-//                }
-//            }
-            
             if (value != null && value instanceof Boolean) {
                 
                 Boolean imported = (Boolean) value;
                 
-                if (imported.booleanValue()) {
-//minagawa^ Icon Server                    
-                    //this.setIcon(FLAG_ICON);
-                    this.setIcon(ClientContext.getImageIconArias("icon_flag_blue_small"));
-//minagawa$                    
+                if (imported) {
+                    this.setIcon(ClientContext.getImageIconArias("icon_flag_blue_small"));                   
                 } else {
                     this.setIcon(null);
                 }
