@@ -7,7 +7,7 @@ import static open.dolphin.project.Project.CLAIM_SENDER;
  */
 public class StubDolphin extends ProjectStub {
     
-    private final String CONTEXT_ROOT = "/openDolphin/resources";
+    private final String CONTEXT_ROOT = "/dolphin/openSource";
     
     private String baseURI;
     
