@@ -7,7 +7,7 @@
  * 今後はターミノロジーの英語化等において pull request を受け付ける予定があります。
  * クライアント側の機能追加はありません。
 
-#### ２．ライセンス  
+#### ２．ライセンス & 謝辞  
  * OpenDolphinのライセンスは GNU GPL3 です。  
  * OpenDolphinは下記先生方の開発されたソースコードを含んでいます。  
   - 札幌市元町皮ふ科の松村先生
@@ -48,8 +48,9 @@ mvn install:install-file -Dfile=/path/to/AppleJavaExtensions.jar -DgroupId=com.a
 #### ６．ローカライゼイション  
   * 最後が resources となっているパッケージ（フォルダ）内にクラス別のリソースファイルがあります。
   * 例）open.dolphin.client.ChartImpl クラスのリソース -> open.dolphin.client.resources.ChartImpl.properties
-  * このファイルをコピーし、iso3166 国名コード（タガログ語であれば tl）をアンダーバーでつないだ  ChartImpl_tl.properties として保存します。
-  * ChartImpl_tl.propertiesファイルの内容をローカラライズします。
+  * これをコピーし、iso3166 国名コードをアンダーバーでつないだファイルとして保存します。
+  * 例）タガログ語にする場合は ChartImpl_tl.properties として保存。
+  * ChartImpl_国名コード.propertiesファイルの内容をローカライズします。
   * これを全てのリソースファイルについて行います。
 
 
@@ -65,6 +66,7 @@ mvn install:install-file -Dfile=/path/to/AppleJavaExtensions.jar -DgroupId=com.a
  * ドキュメントが不足
 
 #### ９．参考情報
+ * [５分間評価](https://gist.github.com/dolphin-dev/d21c88cbfefa86c98049)
  * [設計概要](http://www.digital-globe.co.jp/architecture.html)
  * [Docker イメージ](https://github.com/dolphin-dev/docker-images)
  * [ORCAとの接続](https://gist.github.com/dolphin-dev/c75e4ca63689779bfdf7)

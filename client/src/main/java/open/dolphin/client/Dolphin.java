@@ -244,25 +244,6 @@ public class Dolphin implements MainWindow {
         } else {
             Project.setBoolean(GUIConst.PVT_RELAY_IS_RUNNING, false);
         }
-        
-        BufferedReader reader;
-        InputStream in = ClientContext.getPluginResourceAsStream(AbstractPropertySheet.class.getName());
-        try {
-            reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-            String line;
-            while((line = reader.readLine()) != null) {
-                if (!line.startsWith("#")) {
-                    System.err.println(line);
-                }
-            }   
-            reader.close();
-            in.close();
-            
-        } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(Dolphin.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            Logger.getLogger(Dolphin.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 
     /**
