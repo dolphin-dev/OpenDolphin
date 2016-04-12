@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Font;
 import javax.swing.*;
 import open.dolphin.client.ClientContext;
-import open.dolphin.project.Project;
 
 /**
  * WatingListView改

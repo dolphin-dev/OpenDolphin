@@ -103,7 +103,7 @@ public class KarteResource extends AbstractResource {
 
         debug(param);
         String[] params = param.split(CAMMA);
-        List<Long> list = new ArrayList<Long>(params.length);
+        List<Long> list = new ArrayList<>(params.length);
         for (String s : params) {
             list.add(Long.parseLong(s));
         }
@@ -269,8 +269,8 @@ public class KarteResource extends AbstractResource {
         long karteId = Long.parseLong(params[0]);
         String entity = params[1];
 
-        List<Date> fromList = new ArrayList<Date>();
-        List<Date> toList = new ArrayList<Date>();
+        List<Date> fromList = new ArrayList<>();
+        List<Date> toList = new ArrayList<>();
 
         int index = 2;
 
@@ -305,8 +305,8 @@ public class KarteResource extends AbstractResource {
         String[] params = param.split(CAMMA);
         long karteId = Long.parseLong(params[0]);
 
-        List<Date> fromList = new ArrayList<Date>();
-        List<Date> toList = new ArrayList<Date>();
+        List<Date> fromList = new ArrayList<>();
+        List<Date> toList = new ArrayList<>();
 
         int index = 1;
 

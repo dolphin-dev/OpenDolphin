@@ -40,6 +40,11 @@ public class LogFilter implements Filter {
 
         HttpServletRequest req = (HttpServletRequest)request;
         
+        if (req.getRequestURI().endsWith("identityToken")) {
+            chain.doFilter(request, response);
+            return;
+        }
+        
         String userName;
         String password;
         boolean authentication;

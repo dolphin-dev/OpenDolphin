@@ -17,8 +17,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
 import javax.swing.*;
@@ -55,7 +53,6 @@ import open.dolphin.infomodel.SchemaModel;
 import open.dolphin.infomodel.StampTreeModel;
 import open.dolphin.letter.KartePDFImpl2;
 import open.dolphin.plugin.PluginLoader;
-import open.dolphin.project.AbstractPropertySheet;
 import open.dolphin.project.Project;
 import open.dolphin.project.ProjectSettingDialog;
 import open.dolphin.project.ProjectStub;
@@ -244,6 +241,13 @@ public class Dolphin implements MainWindow {
         } else {
             Project.setBoolean(GUIConst.PVT_RELAY_IS_RUNNING, false);
         }
+        
+//        // PHR
+//        PHRProxy phr = new PHRProxy();
+//        phr.setContext(this);
+//        phr.start();
+//        getProviders().put("PHRProxy", phr);
+        
     }
 
     /**
@@ -1928,6 +1932,7 @@ public class Dolphin implements MainWindow {
      * @param args project name
      */
     public static void main(String[] args) {
-        Dolphin.getInstance().start(args.length==1 ? args[0] : "dolphin");
+        Dolphin.getInstance().start(args.length==1 ? args[0] : "i18n");
+        //Dolphin.getInstance().start(args.length==1 ? args[0] : "dolphin");
     }
 }

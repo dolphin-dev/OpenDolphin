@@ -1,6 +1,7 @@
 package open.dolphin.adm20.rest;
 
 import java.io.OutputStream;
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,18 +12,28 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.inject.Inject;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.StreamingOutput;
 import open.dolphin.adm20.converter.IOSHelper;
+import open.dolphin.adm20.mbean.IdentityService;
 import open.dolphin.adm20.session.AMD20_PHRServiceBean;
+import open.dolphin.infomodel.AllergyModel;
 import open.dolphin.infomodel.ClaimBundle;
 import open.dolphin.infomodel.ClaimItem;
 import open.dolphin.infomodel.DocumentModel;
@@ -39,6 +50,8 @@ import open.dolphin.infomodel.PHRKey;
 import open.dolphin.infomodel.PHRLabItem;
 import open.dolphin.infomodel.PHRLabModule;
 import open.dolphin.infomodel.PatientModel;
+import open.dolphin.infomodel.RegisteredDiagnosisModel;
+import open.dolphin.infomodel.SchemaModel;
 import open.orca.rest.ORCAConnection;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -53,6 +66,9 @@ public class PHRResource extends open.dolphin.rest.AbstractResource {
     
     @Inject
     private AMD20_PHRServiceBean phrServiceBean;
+    
+    @Inject
+    private IdentityService identityService;
     
     @GET
     @Path("/accessKey/{param}")
@@ -144,6 +160,228 @@ public class PHRResource extends open.dolphin.rest.AbstractResource {
             
             ObjectMapper mapper = getSerializeMapper();
             mapper.writeValue(output, container);
+        };
+    }
+    
+    @GET
+    @Path("/allergy/{param}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getAllergy(@Context HttpServletRequest servletReq, final @PathParam("param") String param) {
+        
+        String fid = getRemoteFacility(servletReq.getRemoteUser());
+        String pid = param;             // 患者ID  
+        
+        // Karte
+        KarteBean karte = phrServiceBean.getKarte(fid, pid);
+        List<AllergyModel> list = phrServiceBean.getAllergies(karte.getId());
+        
+        if (list.isEmpty()) {
+            return "アレルギーの登録はありません。";
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        for (AllergyModel allergy : list) {
+            sb.append(allergy.getFactor());
+            if (allergy.getSeverity()!=null && allergy.getSeverity().equals("severe")) {
+                sb.append(" ").append(allergy.getSeverity());
+            }
+            sb.append("\n");
+        }
+        if (sb.length()>0) {
+            int len = sb.length()-1;
+            sb.setLength(len);
+        }
+        return sb.toString();
+    }
+    
+    @GET
+    @Path("/disease/{param}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getDisease(@Context HttpServletRequest servletReq, final @PathParam("param") String param) {
+        
+        String fid = getRemoteFacility(servletReq.getRemoteUser());
+        String pid = param;             // 患者ID  
+        
+        // Karte
+        KarteBean karte = phrServiceBean.getKarte(fid,pid);
+        List<RegisteredDiagnosisModel> list = phrServiceBean.getDiagnosis(karte.getId());
+        
+        if (list.isEmpty()) {
+            return "病名の登録はありません。";
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        for (RegisteredDiagnosisModel rd : list) {
+            sb.append(rd.getDiagnosis()).append("\n");
+        }
+        if (sb.length()>0) {
+            int len = sb.length()-1;
+            sb.setLength(len);
+        }
+        return sb.toString();
+    }
+    
+    @GET
+    @Path("/medication/{param}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getLastMedication(@Context HttpServletRequest servletReq, final @PathParam("param") String param) {
+        
+        String fid = getRemoteFacility(servletReq.getRemoteUser());
+        String pid = param;             // 患者ID  
+        
+        // Karte
+        KarteBean karte = phrServiceBean.getKarte(fid,pid);
+        
+        // Medication
+        List<ModuleModel> modules = phrServiceBean.getLastMedication(karte.getId());
+        
+        if (modules.isEmpty()) {
+            return "処方の登録はありません。";
+        }
+        
+        // Text
+        StringBuilder sb = new StringBuilder();
+        int count = 0;
+        
+        for (ModuleModel mm : modules) {
+            if (count==0) {
+                String date = new SimpleDateFormat("yyyy年M月d日").format(mm.getStarted());
+                sb.append(date).append("\n");
+            }
+            count++;
+            
+            // ClaimBundleをデコード バンドル属性セット
+            ClaimBundle bundle = (ClaimBundle)IOSHelper.xmlDecode(mm.getBeanBytes());
+            
+            // ClaimItems
+            ClaimItem[] items = bundle.getClaimItem();
+            if (items!=null && items.length>0) {
+                for (ClaimItem item : items) {
+                    sb.append(item.getName()).append(" x ").append(item.getNumber()).append(item.getUnit()).append("\n");
+                }
+            }
+            
+            sb.append(bundle.getAdmin()).append(" x ").append(bundle.getBundleNumber()).append("\n");
+        }
+        
+        if (sb.length()>0) {
+            int len = sb.length()-1;
+            sb.setLength(len);
+        }
+        return sb.toString();
+    }
+    
+    @GET
+    @Path("/labtest/{param}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getLastLabTest(@Context HttpServletRequest servletReq, final @PathParam("param") String param) {
+        
+        String fid = getRemoteFacility(servletReq.getRemoteUser());
+        String pid = param;             // 患者ID  
+
+        // LabTestModule
+        List<NLaboModule> list = phrServiceBean.getLastLabTest(fid, pid);
+        
+        if (list.isEmpty()) {
+            return "検査の登録はありません。";
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        
+        for (NLaboModule module : list) {
+
+            // SampleDate 規格化して返す
+            sb.append(normalizeSampleDate2(module.getSampleDate())).append("\n");
+            
+            List<NLaboItem> testItems = module.getItems();
+            
+            for (NLaboItem item : testItems) {
+                
+                sb.append(item.getItemName()).append("=").append(item.getValue());
+                if (item.getUnit()!=null) {
+                    sb.append(item.getUnit());
+                }
+                if (item.getAbnormalFlg()!=null) {
+                    sb.append("(").append(item.getAbnormalFlg()).append(")");
+                }
+                
+                sb.append("\n");
+            }
+        }
+        
+        if (sb.length()>0) {
+            int len = sb.length()-1;
+            sb.setLength(len);
+        }
+        
+        return sb.toString();
+    }
+    
+    @GET
+    @Path("/abnormal/{param}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getAbnormalValue(@Context HttpServletRequest servletReq, final @PathParam("param") String param) {
+        
+        String fid = getRemoteFacility(servletReq.getRemoteUser());
+        String pid = param;             // 患者ID  
+
+        // LabTestModule
+        List<NLaboModule> list = phrServiceBean.getLastLabTest(fid, pid);
+        
+        if (list.isEmpty()) {
+            return "検査の登録はありません。";
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        boolean hasAbnormalValue = false;
+        
+        for (NLaboModule module : list) {
+
+            // SampleDate 規格化して返す
+            sb.append(normalizeSampleDate2(module.getSampleDate())).append("\n");
+            
+            List<NLaboItem> testItems = module.getItems();
+            
+            for (NLaboItem item : testItems) {
+                
+                if (item.getAbnormalFlg()!=null) {
+                    hasAbnormalValue = true;
+                    sb.append(item.getItemName()).append("=").append(item.getValue());
+                    if (item.getUnit()!=null) {
+                        sb.append(item.getUnit());
+                    }
+                    sb.append("(").append(item.getAbnormalFlg()).append(")").append("\n");
+                }
+            }
+        }
+        
+        if (!hasAbnormalValue) {
+            return "異常値はありません。";
+        }
+        else  {
+            int len = sb.length()-1;
+            sb.setLength(len);
+            return sb.toString();
+        }
+    }
+    
+    @GET
+    @Path("/image/{param}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public StreamingOutput getImage(final @Context HttpServletRequest servletReq, final @PathParam("param") String param) {
+        
+        return (OutputStream os) -> {
+            String fid = getRemoteFacility(servletReq.getRemoteUser());
+            String pid = param;             // 患者ID
+            
+            // Karte
+            KarteBean karte = phrServiceBean.getKarte(fid,pid);
+            
+            SchemaModel image = phrServiceBean.getImages(karte.getId());
+            
+            if (image!=null) {
+                os.write(image.getJpegByte()); 
+            }
         };
     }
     
@@ -380,6 +618,32 @@ public class PHRResource extends open.dolphin.rest.AbstractResource {
         return null;
     }
     
+    private String normalizeSampleDate2(String sampleDate) {
+        try {
+            sampleDate = sampleDate.replaceAll(" ", "");
+            sampleDate = sampleDate.replaceAll("T", "");
+            sampleDate = sampleDate.replaceAll("/", "");
+            sampleDate = sampleDate.replaceAll("-", "");
+            sampleDate = sampleDate.replaceAll(":", "");
+            
+            if (sampleDate.length()=="yyyyMMdd".length()) {
+                sampleDate += "000000";
+            } else if (sampleDate.length()=="yyyyMMddHHmm".length()) {
+                sampleDate += "00";
+            }
+            
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+            Date d = sdf.parse(sampleDate);
+            
+            sdf = new SimpleDateFormat("yyyy年M月d日");
+            return sdf.format(d);
+            
+        } catch (ParseException ex) {
+            ex.printStackTrace(System.err);
+        }
+        return null;
+    }
+    
     // PHRCatchに固有なモジュールキーを生成する
     private String createLabModuleId(String sampleDate, String jmariCode, String patientId, String labCode) {
        
@@ -505,5 +769,37 @@ public class PHRResource extends open.dolphin.rest.AbstractResource {
      
     private Connection getConnection() {
         return ORCAConnection.getInstance().getConnection();
+    }
+    
+    //--------------------------------------------------------------------------
+    @POST
+    @Path("/identityToken")
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getIdentityToken(final String json) {
+        
+        Logger.getLogger(this.getClass().getName()).log(Level.FINE, json);
+        
+        JsonObject jso = getJsonObject(json);
+        String nonce = jso.getString("nonce");
+        String user = jso.getString("user");
+
+        String token = identityService.getIdentityToken(nonce, user);
+        Logger.getLogger(this.getClass().getName()).log(Level.FINE, token);
+        
+        return token;
+    }
+    
+    private JsonObject getJsonObject(String jsonStr) {
+        JsonObject jsonObject;
+        try (StringReader sr = new StringReader(jsonStr); JsonReader jsonReader = Json.createReader(sr)) {
+            jsonObject = jsonReader.readObject();
+        }
+        return jsonObject;
+    }
+    
+    public String createConversation(String fid, String pid) {
+        
+        return null;
     }
 }

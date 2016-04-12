@@ -8,9 +8,9 @@ import static open.dolphin.project.Project.CLAIM_SENDER;
  */
 public class StubI18N extends ProjectStub {
     
-    private final String BASE_URI = "http://localhost:8080";
+    private final String BASE_URI = "https://i18n.opendolphin.com:443";
     
-    private final String CONTEXT_ROOT = "/dolphin/openSource";
+    private final String CONTEXT_ROOT = "/openDolphin/resources";
     
     private String baseURI;
 

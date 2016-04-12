@@ -15,7 +15,7 @@ import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 public final class SystemDelegater extends BusinessDelegater {
 
     private final String PATH = "/dolphin";
-    private final String BASE_URI = "http://localhost:8080/dolphin/openSource";
+    private final String BASE_URI = "https://i18n.opendolphin.com:443/openDolphin/resources";
     private final String USER_ID = "1.3.6.1.4.1.9414.10.1:dolphin";
     private final String USER_PASSWORD = "dolphin";
 

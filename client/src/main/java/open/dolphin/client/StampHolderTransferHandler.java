@@ -93,6 +93,10 @@ public class StampHolderTransferHandler extends TransferHandler implements IKart
                  JOptionPane.QUESTION_MESSAGE, 
                  null, 
                  new String[]{replace, cancel}, replace);
+         
+         if (option==0) {
+             replaceStamp(target, stampInfo);
+         }
     }
 
     @Override

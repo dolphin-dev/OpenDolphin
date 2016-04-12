@@ -794,7 +794,7 @@ public class EHTResource extends open.dolphin.rest.AbstractResource {
 //                }
 
                 // 相互作用モデルのリスト
-                List<DrugInteractionModel> ret = new ArrayList<DrugInteractionModel>();
+                List<DrugInteractionModel> ret = new ArrayList<>();
 
                 if (input.getCodes1() == null       || 
                         input.getCodes1().isEmpty() || 

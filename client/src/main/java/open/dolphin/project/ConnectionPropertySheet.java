@@ -133,6 +133,7 @@ public class ConnectionPropertySheet extends AbstractPropertySheet {
                 }
             }
             
+//minagawa^ 評価アカウント作成
             // Add button to create test account
             if (ClientContext.isI18N()) {
                 String text = ClientContext.getMyBundle(ConnectionPropertySheet.class).getString("buttonText.create.testAccount");
@@ -146,6 +147,7 @@ public class ConnectionPropertySheet extends AbstractPropertySheet {
                 getUI().add(p);
                 numRows++;
             }
+//minagawa$            
             
             open.dolphin.helper.SpringUtilities.makeCompactGrid(getUI(), numRows, 2, 6, 6, 6, 6);
             
@@ -161,6 +163,7 @@ public class ConnectionPropertySheet extends AbstractPropertySheet {
      * 5分間評価用のアカウントを作成する。
      */
     public void make5TestAccount() {
+        
         AddFacilityDialog af = new AddFacilityDialog();
         PropertyChangeListener pl = (PropertyChangeEvent evt) -> {
             newAccount((ServerInfo) evt.getNewValue());

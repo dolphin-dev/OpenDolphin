@@ -1,1 +1,4 @@
 .DS_Store
+/common/target/
+/server/target/
+/client/target/

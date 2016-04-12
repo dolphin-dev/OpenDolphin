@@ -772,17 +772,18 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
 //        };
 //        map.put("otherProcessIcon3Link", otherProcessIcon3Link);
 ////s.oh$
-        
-//s.oh^ 2014/08/19 受付バーコード対応
-        text = resource.getString("receipt.barcode.Action.text");
-        AbstractAction receiptBarcode = new AbstractAction(text) {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                main.sendToChain("receiptBarcode");
-            }
-        };
-        map.put("receiptBarcode", receiptBarcode);
-//s.oh$
+    
+//minagawa^ delete
+////s.oh^ 2014/08/19 受付バーコード対応
+//        text = resource.getString("receipt.barcode.Action.text");
+//        AbstractAction receiptBarcode = new AbstractAction(text) {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                main.sendToChain("receiptBarcode");
+//            }
+//        };
+//        map.put("receiptBarcode", receiptBarcode);
+////s.oh$
         
 //s.oh^ 2014/07/22 一括カルテPDF出力
         text = resource.getString("allkartepdf.Action.text");
@@ -1336,13 +1337,14 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
                 tool.add(mItem);
             }
         } 
-        
-//s.oh^ 2014/08/19 受付バーコード対応
-        tool.add(new JSeparator());
-        JMenuItem receiptBarcode = new JMenuItem();
-        receiptBarcode.setAction(actionMap.get("receiptBarcode"));
-        tool.add(receiptBarcode);
-//s.oh$
+    
+//minagawa^ delete        
+////s.oh^ 2014/08/19 受付バーコード対応
+//        tool.add(new JSeparator());
+//        JMenuItem receiptBarcode = new JMenuItem();
+//        receiptBarcode.setAction(actionMap.get("receiptBarcode"));
+//        tool.add(receiptBarcode);
+////s.oh$
         
 //s.oh^ 2014/07/22 一括カルテPDF出力
         if(!Project.isReadOnly() && Project.getBoolean("output.all.karte.pdf")) {
