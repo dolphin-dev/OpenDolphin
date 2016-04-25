@@ -8,7 +8,7 @@ public class StubASP extends ProjectStub {
     
     private final String BASE_URI = "http://localhost:8080";
     
-    private final String CONTEXT_ROOT = "/dolphin/openSource";
+    private final String CONTEXT_ROOT = "/openDolphin/resources";
     
     private String baseURI;
 

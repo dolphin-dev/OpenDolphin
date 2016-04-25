@@ -1932,7 +1932,6 @@ public class Dolphin implements MainWindow {
      * @param args project name
      */
     public static void main(String[] args) {
-        //Dolphin.getInstance().start(args.length==1 ? args[0] : "i18n");
-        Dolphin.getInstance().start(args.length==1 ? args[0] : "pro");
+        Dolphin.getInstance().start(args.length==1 ? args[0] : "i18n");
     }
 }
