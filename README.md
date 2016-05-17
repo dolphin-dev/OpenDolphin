@@ -1,5 +1,5 @@
 ## OpenDolphin
-皆川和史、王勝偉　[オープンドルフィン・ラボ](http://www.opendolphin.com)  
+皆川和史、戸村勝偉　[オープンドルフィン・ラボ](http://www.opendolphin.com)  
 
 #### １．OpenDolphin 2.7.0b
  * 2015-10-07
