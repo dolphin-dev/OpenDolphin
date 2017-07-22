@@ -15,6 +15,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import open.dolphin.client.ClientContext;
 import open.dolphin.client.KartePane;
 
 /**
@@ -130,34 +132,50 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
             }
 //s.oh$
             setPathToPDF(sbPath.toString());         // 呼び出し側で取り出せるように保存する
-
+            String newTitle =  "【"+ patName + " 様】" + " " + pdfTitle;
+            
             // Documentの作成
             pdfWriter = PdfWriter.getInstance(pdfDoc, new FileOutputStream(sbPath.toString()));
 
             // フォントの作成
             baseFont    = BaseFont.createFont(HEISEI_MIN_W3, UNIJIS_UCS2_HW_H, false);
-            titleFont   = new Font(baseFont, getTitleFontSize(), 0, new Color(0,0,249));
+            titleFont   = new Font(baseFont, getTitleFontSize(), 0, new Color(0,0,0));
             bodyFont    = new Font(baseFont, getBodyFontSize());
             
             // 不具合対応(番号:) カルテPDFのヘッダ出力
             // ヘッダーの設定をする
-            HeaderFooter header = new HeaderFooter(new Phrase(pdfTitle, titleFont), false);
+//soso 2017/07/18 変更
+            HeaderFooter header;
+            System.out.println(newTitle.length());
+            if(newTitle.length()>71){
+                header = new HeaderFooter(new Phrase(newTitle+ "\n既往症・原因・主要症状・経過等        　　　　処方・手術・処置等      ", titleFont), false);
+
+            }else{
+                header = new HeaderFooter(new Phrase(newTitle+ "\n\n既往症・原因・主要症状・経過等        　　　　処方・手術・処置等      ", titleFont), false);
+
+            }
+            header.setBorder(Rectangle.NO_BORDER);
             header.setAlignment(Element.ALIGN_CENTER);
             pdfDoc.setHeader(header);
             
             // フッターの設定をする
 //s.oh^ 2013/02/07 印刷対応
+//soso 2017/07/18 変更
             //HeaderFooter footer = new HeaderFooter(new Phrase("--"), new Phrase("--"));
             StringBuilder sbFooter = new StringBuilder();
-            sbFooter.append("【");
-            sbFooter.append(patName);
-            sbFooter.append(" 様】");
-            sbFooter.append(" Page ");
+            //sbFooter.append("【");
+            //sbFooter.append(patName);
+            //sbFooter.append(" 様】");
+            sbFooter.append(" ページ ");
             HeaderFooter footer = new HeaderFooter(new Phrase(sbFooter.toString(), bodyFont), true);
 //s.oh$
             footer.setAlignment(Element.ALIGN_CENTER);
             footer.setBorder(Rectangle.NO_BORDER);
             pdfDoc.setFooter(footer);
+            
+//soso 2017/07/18 変更 2号用紙のために枠線を枚ページごとに作るためのイベント設置
+            pdfWriter.setPageEvent(new OnEndPageEventPDF());
+            
             
             pdfDoc.open();
 
@@ -230,6 +248,7 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
     public void addData(String data, int fontSize, int style, Color color) {
         if(bInitialized == false || bCreating == false) return;
         Font font = new Font(baseFont, (float)fontSize, style, color);
+         
         Chunk chunk = new Chunk(data, font);
         //float subscript = -8.0f;
         //chunk.setTextRise(subscript);
@@ -396,10 +415,12 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
         try {
             // 各テーブルを追加
             PdfPCell cell = new PdfPCell(tableLeft);
-            cell.setBorder(Rectangle.RIGHT);
+            cell.setBorder(Rectangle.NO_BORDER);
             tableParent.addCell(cell);
             cell = new PdfPCell(tableRight);
-            cell.setBorder(Rectangle.LEFT);
+            cell.setBorder(Rectangle.NO_BORDER);
+            
+            //cell.setBorder(Rectangle.LEFT);
             tableParent.addCell(cell);
             // テーブルをドキュメントに追加
             //tableParent.writeSelectedRows(0, -1, pdfLeft, pdfTop, pdfWriter.getDirectContent());
@@ -411,5 +432,42 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
         }
         bInitialized = false;
         return getPathToPDF();
+    }
+}
+class OnEndPageEventPDF extends PdfPageEventHelper {
+    public static void main(String[] args)
+    {
+        Document document = new Document(PageSize.A4, 50, 50, 70, 70);
+        try {
+            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream("OnEndPageEventPDF.pdf"));
+            writer.setPageEvent(new OnEndPageEventPDF());
+            document.open();
+            
+            document.add(new Paragraph("text"));
+            document.close();
+        }
+        catch (Exception de) {
+            de.printStackTrace();
+        }
+    }
+    
+    public void onEndPage(PdfWriter writer, Document document) {
+        PdfContentByte canvashead = writer.getDirectContent();
+        Rectangle recthead = new Rectangle(84, 781, 512, 781);            
+        recthead.setBorder(Rectangle.BOX);
+        recthead.setBorderWidth(0.5f);
+        canvashead.rectangle(recthead);
+        
+        PdfContentByte canvas = writer.getDirectContent();
+        Rectangle rect = new Rectangle(84, 60, 512, 791);            
+        rect.setBorder(Rectangle.BOX);
+        rect.setBorderWidth(0.5f);
+        canvas.rectangle(rect);
+        
+         Rectangle rect1 = new Rectangle(298,60, 512,791);            
+        rect1.setBorder(Rectangle.BOX);
+        rect1.setBorderWidth(0.5f);
+        canvas.rectangle(rect1); 
+        
     }
 }
