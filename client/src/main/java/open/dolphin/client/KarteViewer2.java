@@ -169,7 +169,7 @@ public class KarteViewer2 extends KarteViewer {
                 sb.append(timeStamp).append(" (").append(ins).append(")");
                 timeStamp = sb.toString();
             }
-//soso 2017/07/18 修正した日付も表示するための処理
+//soso^ 2017/07/18 修正した日付も表示するための処理
              if(!model.getDocInfoModel().getConfirmDate().equals(model.getDocInfoModel().getFirstConfirmDate())){
             	 String currenttimeStamp = ModelUtils.getDateAsFormatString(
                  model.getDocInfoModel().getConfirmDate(),
@@ -178,7 +178,7 @@ public class KarteViewer2 extends KarteViewer {
              	sb.append(timeStamp).append(" <修正：").append(currenttimeStamp).append(">");
              	timeStamp = sb.toString();
             }            
-            
+//soso$            
             timeStampLabel.setText(timeStamp);
             KarteRenderer_2 renderer = new KarteRenderer_2(soaPane, pPane);
             renderer.render(model);
