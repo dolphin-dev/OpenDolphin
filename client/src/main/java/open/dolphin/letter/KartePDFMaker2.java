@@ -15,7 +15,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import open.dolphin.client.ClientContext;
 import open.dolphin.client.KartePane;
 
@@ -144,7 +143,7 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
             
             // 不具合対応(番号:) カルテPDFのヘッダ出力
             // ヘッダーの設定をする
-//soso 2017/07/18 変更
+//soso^ 2017/07/18 変更
             HeaderFooter header;
             System.out.println(newTitle.length());
             if(newTitle.length()>71){
@@ -157,10 +156,10 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
             header.setBorder(Rectangle.NO_BORDER);
             header.setAlignment(Element.ALIGN_CENTER);
             pdfDoc.setHeader(header);
-            
+//soso$            
             // フッターの設定をする
 //s.oh^ 2013/02/07 印刷対応
-//soso 2017/07/18 変更
+//soso^ 2017/07/18 変更
             //HeaderFooter footer = new HeaderFooter(new Phrase("--"), new Phrase("--"));
             StringBuilder sbFooter = new StringBuilder();
             //sbFooter.append("【");
@@ -168,14 +167,16 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
             //sbFooter.append(" 様】");
             sbFooter.append(" ページ ");
             HeaderFooter footer = new HeaderFooter(new Phrase(sbFooter.toString(), bodyFont), true);
+//soso$
 //s.oh$
             footer.setAlignment(Element.ALIGN_CENTER);
             footer.setBorder(Rectangle.NO_BORDER);
             pdfDoc.setFooter(footer);
             
-//soso 2017/07/18 変更 2号用紙のために枠線を枚ページごとに作るためのイベント設置
+//soso^ 2017/07/18 変更 2号用紙のために枠線を枚ページごとに作るためのイベント設置
             pdfWriter.setPageEvent(new OnEndPageEventPDF());
-            
+//soso$
+           
             
             pdfDoc.open();
 
@@ -434,6 +435,10 @@ public class KartePDFMaker2 extends AbstractLetterPDFMaker {
         return getPathToPDF();
     }
 }
+/**
+ページが切り替わる時に実行するためのイベントクラス
+**/
+//soso^ 2017-07-18
 class OnEndPageEventPDF extends PdfPageEventHelper {
     public static void main(String[] args)
     {
@@ -471,3 +476,4 @@ class OnEndPageEventPDF extends PdfPageEventHelper {
         
     }
 }
+//soso $
