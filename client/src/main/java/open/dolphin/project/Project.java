@@ -25,6 +25,7 @@ public class Project  {
     public static final String FACILITY_ID 		= "facilityId";
     public static final String USER_ID 			= "userId";
     public static final String SERVER_URI 		= "baseURI";
+    public static final String CHECKPASSWORDFLG 		= "checkpasswordflg";
     //public static final String BASE_URI 		= "baseURI";
     
     // CLAIM

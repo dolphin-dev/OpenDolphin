@@ -50,7 +50,7 @@ public class FacilityEditorView extends javax.swing.JPanel {
         numberFieldFax = new javax.swing.JTextField();
         jLabel12 = new javax.swing.JLabel();
         urlField = new javax.swing.JTextField();
-
+ 
         jLabel1.setText("医療機関コード:");
 
         jLabel2.setText("医療機関名称:");
@@ -74,7 +74,7 @@ public class FacilityEditorView extends javax.swing.JPanel {
         jLabel11.setText("-");
 
         jLabel12.setText("URL:");
-
+ 
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(

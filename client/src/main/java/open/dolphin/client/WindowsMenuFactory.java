@@ -1,6 +1,7 @@
 package open.dolphin.client;
 
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -793,8 +794,8 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         };
         map.put("browseDolphinProject", browseDolphinProject);
 
-        // MedXML
-        text = resource.getString("browseMedXml.Action.text");
+        /**soso*/// MedXML
+        /*text = resource.getString("browseMedXml.Action.text");
         AbstractAction browseMedXml = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
@@ -803,7 +804,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
             }
         };
         map.put("browseMedXml", browseMedXml);
-
+*/
         // About
         text = resource.getString("showAbout.Action.text");
         AbstractAction showAbout = new AbstractAction(text) {
@@ -902,7 +903,8 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
     public void build(JMenuBar menuBar) {
         
         this.menuBar = menuBar;
-
+        
+      
         ResourceBundle resource = ClientContext.getBundle(this.getClass());
         actionMap = new ActionMap();
         storeActions(actionMap, resource);
@@ -924,7 +926,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         // File
         JMenu file = new JMenu();
         file.setName("fileMenu");
-        
+       
         // 新規カルテ
         JMenuItem newKarte = new JMenuItem();
         newKarte.setName("newKarte");
@@ -942,7 +944,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
             newKarteBtn.setBorderPainted(false);
             toolBar.add(newKarteBtn);
         }
-        
+ 
         // 新規文書
         JMenuItem newDocument = new JMenuItem();
         newDocument.setName("newDocument");
@@ -1165,7 +1167,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         // Karte
         JMenu karte = new JMenu();
         karte.setName("karteMenu");
-
+       
         //-------------------
         // 処方日数変更
         //-------------------
@@ -1293,7 +1295,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         if (chart != null) {
             insert.addMenuListener(chart);
         }
-        
+       
         JMenu insertDisease = new JMenu();
         insertDisease.setName("insertDisease");
         insertDisease.setAction(actionMap.get("insertDisease"));
@@ -1322,7 +1324,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         if (chart != null) {
             text.addMenuListener(chart);
         }
-        
+      
         //// size ////
         JMenu size = new JMenu();
         size.setName("size");
@@ -1446,7 +1448,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         // Tool
         JMenu tool = new JMenu();
         tool.setName("toolMenu");
-        
+       
         JMenuItem showStampBox = new JMenuItem();
         showStampBox.setName("showStampBox");
         showStampBox.setAction(actionMap.get("showStampBox"));
@@ -1540,7 +1542,7 @@ public class WindowsMenuFactory extends AbstractMenuFactory {
         // Help
         JMenu help = new JMenu();
         help.setName("helpMenu");
-        
+     
         JMenuItem browseDolphinSupport = new JMenuItem();
         browseDolphinSupport.setName("browseDolphinSupport");
         browseDolphinSupport.setAction(actionMap.get("browseDolphinSupport"));

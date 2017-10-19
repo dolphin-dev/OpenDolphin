@@ -64,8 +64,11 @@ import org.xml.sax.SAXException;
  */
 public abstract class AbstractLoginDialog implements ILoginDialog {
     
-    protected JDialog dialog;
-    protected BlockGlass blockGlass;
+    //protected JDialog dialog;
+    /**soso*/
+	protected JFrame frame;
+	
+	protected BlockGlass blockGlass;
     
     // 認証制御用
     protected UserDelegater userDlg;
@@ -124,7 +127,8 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
      * @param msg 表示するメッセージ
      */
     protected void showMessageDialog(String msg) {
-        String title = dialog.getTitle();
+    	/**soso*/
+        String title = frame.getTitle();
         JOptionPane.showMessageDialog(null, msg, title, JOptionPane.WARNING_MESSAGE);
         Log.outputFuncLog(Log.LOG_LEVEL_0, Log.FUNCTIONLOG_KIND_WARNING, title, msg);
     }
@@ -167,14 +171,19 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
         
         String title = ClientContext.getString("loginDialog.title");
         String windowTitle = ClientContext.getFrameTitle(title);
-        dialog = new JDialog((Frame)null, windowTitle, true);
-        dialog.setTitle(windowTitle);
-        dialog.getRootPane().setDefaultButton(getLoginButton());
+        /**soso*/
+        //dialog = new JDialog((Frame)null, windowTitle, true);
+        frame = new JFrame(windowTitle);
+        
+        frame.setTitle(windowTitle);
+        frame.getRootPane().setDefaultButton(getLoginButton());
         blockGlass = new BlockGlass();
-        dialog.setGlassPane(blockGlass);
-        dialog.getContentPane().add(content);
+        frame.setGlassPane(blockGlass);
+        frame.getContentPane().add(content);
+        /**/
 
-        dialog.addWindowListener(new WindowAdapter() {
+        
+        frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
                 doCancel();
@@ -188,15 +197,19 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
         //-------------------------------------
         // 中央へ表示する。（EDT からコールされている）
         //-------------------------------------
-        dialog.pack();
-        int width = dialog.getWidth();
-        int height = dialog.getHeight();
+      	/**soso*/
+        frame.pack();
+        int width = frame.getWidth();
+        int height = frame.getHeight();
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         int n = ClientContext.isMac() ? 3 : 2;
         int left = (screen.width - width) / 2;
         int top = (screen.height - height) / n;
-        dialog.setLocation(left, top);
-        dialog.setVisible(true);
+        frame.setLocation(left, top);
+        
+        /**soso*/
+        frame.setFocusable(true);
+        frame.setVisible(true);
     }
 
     /**
@@ -204,8 +217,8 @@ public abstract class AbstractLoginDialog implements ILoginDialog {
      */
     @Override
     public void close() {
-        dialog.setVisible(false);
-        dialog.dispose();
+        frame.setVisible(false);
+        frame.dispose();
     }
 
     /**

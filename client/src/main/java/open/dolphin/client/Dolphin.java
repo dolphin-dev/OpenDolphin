@@ -28,6 +28,8 @@ import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.MenuEvent;
+import javax.swing.plaf.FontUIResource;
+
 import open.dolphin.delegater.DocumentDelegater;
 import open.dolphin.delegater.OrcaDelegater;
 import open.dolphin.delegater.OrcaDelegaterFactory;
@@ -56,6 +58,7 @@ import open.dolphin.infomodel.ProgressCourse;
 import open.dolphin.infomodel.RoleModel;
 import open.dolphin.infomodel.SchemaModel;
 import open.dolphin.infomodel.StampTreeModel;
+import open.dolphin.infomodel.UserModel;
 import open.dolphin.letter.KartePDFImpl2;
 import open.dolphin.plugin.PluginLoader;
 import open.dolphin.project.Project;
@@ -428,7 +431,7 @@ public class Dolphin implements MainWindow {
         windowSupport = WindowSupport.create(title);
         JFrame myFrame = windowSupport.getFrame();		// MainWindow の JFrame
         JMenuBar myMenuBar = windowSupport.getMenuBar();	// MainWindow の JMenuBar
-
+   
         // Windowにこのクラス固有の設定をする
         Point loc = new Point(defaultX, defaultY);
         Dimension size = new Dimension(defaultWidth, defaultHeight);
@@ -452,7 +455,7 @@ public class Dolphin implements MainWindow {
         appMenu.setMenuSupports(mediator, null);
         appMenu.build(myMenuBar);
         mediator.registerActions(appMenu.getActionMap());
-
+        
         // mainWindowのコンテントを生成しFrameに追加する
         StringBuilder sb = new StringBuilder();
         sb.append("ログイン ");
@@ -603,9 +606,26 @@ public class Dolphin implements MainWindow {
                 }
             });
         }
-        windowSupport.getFrame().setVisible(true);
-    }
-
+        /**soso パスワード変更を促す**/
+        //パスワードの厳格化については.propertiesファイルから取得する
+        String chekpass = Project.getString(Project.CHECKPASSWORDFLG);
+        if(chekpass ==null || (chekpass !=null && chekpass.equals("1"))){
+        	UserModel user = Project.getUserModel();
+	        
+	        //パスワード変更後　２ヶ月経過していたら赤文字で表示
+	        Calendar regcalendar = Calendar.getInstance();
+	        regcalendar.setTime(user.getRegisteredDate());
+	        regcalendar.add(Calendar.MONTH, 2);
+	        Calendar today = Calendar.getInstance();
+	        if(today.compareTo(regcalendar)>0){
+	            changePassword();
+	        }
+        }
+         /*****/
+        
+        windowSupport.getFrame().setVisible(true);        
+      }
+  
     @Override
     public JLabel getStatusLabel() {
         return view.getStatusLbl();
@@ -1876,21 +1896,25 @@ public class Dolphin implements MainWindow {
         browseURL(resource.getString("menu.dolphinUrl"));
     }
 
+    /**soso*/
     /**
      * MedXMLをオープンする。
      */
-    public void browseMedXml() {
+    
+    /*public void browseMedXml() {
         ResourceBundle resource = ClientContext.getBundle(this.getClass());
         browseURL(resource.getString("menu.medXmlUrl"));
-    }
+    }*/
+    
 
+    /**soso*/
     /**
      * SGをオープンする。
      */
-    public void browseSeaGaia() {
+    /**public void browseSeaGaia() {
         ResourceBundle resource = ClientContext.getBundle(this.getClass());
         browseURL(resource.getString("menu.seaGaiaUrl"));
-    }
+    }*/
 
     /**
      * URLをオープンする。
@@ -2182,5 +2206,7 @@ public class Dolphin implements MainWindow {
         //String mode = (args.length==1) ? args[0] : null;
         String mode = (args.length==1) ? args[0] : "pro";
         Dolphin.getInstance().start(mode);
+        
+        
     }
 }

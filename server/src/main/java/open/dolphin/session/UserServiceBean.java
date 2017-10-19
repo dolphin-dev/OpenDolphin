@@ -1,6 +1,7 @@
 package open.dolphin.session;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -122,9 +123,12 @@ public class UserServiceBean {
      */
     
     public int updateUser(UserModel update) {
-        UserModel current = (UserModel) em.find(UserModel.class, update.getId());
+
+    	UserModel current = (UserModel) em.find(UserModel.class, update.getId());
         update.setMemberType(current.getMemberType());
-        update.setRegisteredDate(current.getRegisteredDate());
+        /**soso 変更 パスワードの更新日時を格納する**/
+        update.setRegisteredDate(new Date());
+        /****/
         em.merge(update);
         return 1;
     }

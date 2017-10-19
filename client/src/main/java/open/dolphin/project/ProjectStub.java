@@ -71,6 +71,9 @@ public final class ProjectStub implements java.io.Serializable {
 //s.oh^ 2014/07/08 クラウド0対応
     private boolean cloudZero;
 //s.oh$
+    
+    /**soso*//**パスワードの厳格化フラグ**/
+    private String checkPasswordFlg;
 
     /**
      * ProjectStub を生成する。
@@ -245,7 +248,13 @@ public final class ProjectStub implements java.io.Serializable {
         setString(Project.SERVER_URI, val);
         baseURI = null;
     }
-
+    /**soso*//**パスワード厳格化用のフラグ*/
+    public String getCheckPasswordflg() {
+        return getString(Project.CHECKPASSWORDFLG, null);
+    }
+    public void setCheckPasswordFlg(String val) {
+        setString(Project.CHECKPASSWORDFLG, val);
+    }
     /**
      * REST の base URI を返す。
      * @return ServerURI + resource context

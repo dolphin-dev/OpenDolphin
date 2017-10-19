@@ -1049,7 +1049,8 @@ public class KartePane implements DocumentListener, MouseListener,
         JLabel msg1 = new JLabel("カルテに挿入する画像は、最大で " + maxImageWidth + " x " + maxImageHeight + " pixcel に制限しています。");
         JLabel msg2 = new JLabel("画像を縮小しカルテに展開しますか?");
         final JCheckBox cb = new JCheckBox("今後このメッセージを表示しない");
-        cb.setFont(new Font("Dialog", Font.PLAIN, 10));
+        /**soso*/
+        cb.setFont(new Font("Dialog", Font.PLAIN, 14));
         cb.addActionListener(new ActionListener() {
 
             @Override

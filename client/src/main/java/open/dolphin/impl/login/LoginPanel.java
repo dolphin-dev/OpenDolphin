@@ -11,6 +11,26 @@
 
 package open.dolphin.impl.login;
 
+import java.awt.Color;
+import java.awt.Desktop;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Toolkit;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ResourceBundle;
+
+import javax.swing.JEditorPane;
+import javax.swing.JPanel;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+
+import open.dolphin.client.ClientContext;
+import open.dolphin.client.Dolphin;
+import open.dolphin.utilities.utility.HttpConnect;
+
 /**
  *
  * @author kazushi
@@ -41,7 +61,63 @@ public class LoginPanel extends javax.swing.JPanel {
         loginBtn = new javax.swing.JButton();
         progressBar = new javax.swing.JProgressBar();
         passwordFld = new javax.swing.JPasswordField();
-
+        
+        /**soso*/
+        //ニュースは３つまで可能
+        ResourceBundle resource = ClientContext.getBundle(this.getClass());
+        String newsdata = null;
+        try{
+	        newsdata = new HttpConnect().httpGET(resource.getString("url.news"), "GET");
+        }catch (Exception e){
+         	e.printStackTrace();
+        }
+        String[] hrfcomment;
+        JEditorPane jNewslink;
+        
+        if(newsdata==null){
+        	hrfcomment=new String[]{"",""};
+        	jNewslink = new JEditorPane(
+            	    "text/html", "<html></html>");
+        }else{
+        	hrfcomment = newsdata.split("    ");
+        	if(hrfcomment.length==2){
+        		jNewslink = new JEditorPane(
+                	    "text/html", "<html><a href='" + hrfcomment[0] + "'>" + hrfcomment[1] + "</a></html>");
+      	
+           }else if(hrfcomment.length==4){
+        	   jNewslink = new JEditorPane(
+   	        	    "text/html", "<html><a href='" + hrfcomment[0] + "'>" + hrfcomment[1] + "</a><br/><br/>"
+   	        	    +"<a href='" + hrfcomment[2] + "'>" + hrfcomment[3] + "</a></html>");
+           }else if(hrfcomment.length==6){
+    			jNewslink = new JEditorPane(
+    	        	    "text/html", "<html><a href='" + hrfcomment[0] + "'>" + hrfcomment[1] + "</a><br/><br/>"
+    	        	    +"<a href='" + hrfcomment[2] + "'>" + hrfcomment[3] + "</a><br/><br/>"
+    	        	    +"<a href='" + hrfcomment[4] + "'>" + hrfcomment[5] + "</a></html>");
+    		}else{
+    	      	jNewslink = new JEditorPane(
+                	    "text/html", "<html></html>");
+    		}
+        }
+         jNewslink.setOpaque(false);
+        	//editor.setBackground(getBackground());
+        	//editor.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+        jNewslink.setEditable(false); //REQUIRED
+        
+        jNewslink.addHyperlinkListener(new HyperlinkListener() {
+        	  @Override public void hyperlinkUpdate(HyperlinkEvent e) {
+        		 if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+        	       if (!Desktop.isDesktopSupported()) {
+        	    	  return;
+        	    	}
+        	    	try {
+        	    	  Desktop.getDesktop().browse(new URI(e.getDescription()));
+        	    	} catch (IOException | URISyntaxException ex) {
+        	    	  ex.printStackTrace();
+        	    	}
+        	    }
+        	  }
+        	});
+    
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open/dolphin/resources/images/splash.jpg"))); // NOI18N
 
         jLabel3.setText("ユーザーID:");
@@ -49,31 +125,47 @@ public class LoginPanel extends javax.swing.JPanel {
         jLabel4.setText("パスワード:");
 
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 2, 0));
-
+        /**soso*/
+        jPanel1.setBackground(Color.WHITE);
+       
         settingBtn.setText("設 定");
+        /**soso */
+        settingBtn.setPreferredSize(new Dimension(100, 50));
         jPanel1.add(settingBtn);
 
         cancelBtn.setText("キャンセル");
+        /**soso */
+        cancelBtn.setPreferredSize(new Dimension(100, 50));
         jPanel1.add(cancelBtn);
 
         loginBtn.setText("ログイン");
+        /**soso */
+        loginBtn.setPreferredSize(new Dimension(100, 50));
         jPanel1.add(loginBtn);
 
         progressBar.setPreferredSize(new java.awt.Dimension(146, 10));
         progressBar.setSize(new java.awt.Dimension(146, 10));
 
+        this.setBackground(Color.WHITE);
+        /**soso */
+        userIdFld.setFont(new Font(Font.DIALOG, Font.PLAIN, 20));
+        /**soso */
+        passwordFld.setFont(new Font(Font.DIALOG, Font.PLAIN, 20));
+        
+        /**soso */
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
             .add(layout.createSequentialGroup()
                 .addContainerGap()
-                .add(jLabel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 370, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                .add(jLabel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 570, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.UNRELATED)
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
                     .add(jPanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
                     .add(layout.createSequentialGroup()
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    	.add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                            .add(org.jdesktop.layout.GroupLayout.TRAILING, jNewslink)
                             .add(org.jdesktop.layout.GroupLayout.TRAILING, jLabel3)
                             .add(org.jdesktop.layout.GroupLayout.TRAILING, jLabel4))
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
@@ -87,25 +179,29 @@ public class LoginPanel extends javax.swing.JPanel {
         layout.linkSize(new java.awt.Component[] {passwordFld, progressBar, userIdFld}, org.jdesktop.layout.GroupLayout.HORIZONTAL);
 
         layout.setVerticalGroup(
-            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-            .add(layout.createSequentialGroup()
-                .addContainerGap()
-                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
-                    .add(layout.createSequentialGroup()
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                            .add(jLabel3)
-                            .add(userIdFld, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                        .add(18, 18, 18)
-                        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
-                            .add(jLabel4)
-                            .add(passwordFld, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                        .add(18, 18, 18)
-                        .add(progressBar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
-                        .add(43, 43, 43)
-                        .add(jPanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
-                    .add(jLabel1))
-                .addContainerGap())
-        );
+                layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                .add(layout.createSequentialGroup()
+                    .addContainerGap()
+                    .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.TRAILING)
+                        .add(layout.createSequentialGroup()
+                        	.add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                                   .add(jNewslink))
+                             .add(18, 18, 88)
+                             .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                                .add(jLabel3)
+                                .add(userIdFld, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                            .add(18, 18, 18)
+                            .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                                .add(jLabel4)
+                                .add(passwordFld, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                            .add(18, 18, 18)
+                            .add(progressBar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 18, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                            .add(43, 43, 43)
+                            .add(jPanel1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE))
+                        .add(jLabel1))
+                    .addContainerGap())
+            );
+        
     }// </editor-fold>//GEN-END:initComponents
 
 
@@ -121,6 +217,7 @@ public class LoginPanel extends javax.swing.JPanel {
     private javax.swing.JButton settingBtn;
     private javax.swing.JTextField userIdFld;
     // End of variables declaration//GEN-END:variables
+    /**soso*/
 
     public javax.swing.JButton getCancelBtn() {
         return cancelBtn;

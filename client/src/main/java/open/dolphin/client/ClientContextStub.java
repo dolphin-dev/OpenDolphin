@@ -665,7 +665,6 @@ public final class ClientContextStub {
             if (isWin() || isLinux()) {
                 size = isLinux() ? 13: 12;
             }
-        
             if (isMac()) {
                  System.setProperty("apple.laf.useScreenMenuBar", String.valueOf(true));
                  UIManager.put("OptionPane.cancelButtonText", "キャンセル");
@@ -688,8 +687,7 @@ public final class ClientContextStub {
                     UIManager.setLookAndFeel(nimbusCls);
                 }
             }
-            
-            // ToolBarの Dropdown menu制御
+              // ToolBarの Dropdown menu制御
             UIManager.put("PopupMenu.consumeEventOnClose", Boolean.TRUE);
             
             // Font 設定

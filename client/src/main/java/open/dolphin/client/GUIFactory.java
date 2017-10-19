@@ -26,8 +26,16 @@ public class GUIFactory {
     
     private static Color dropOkColor = new Color(0, 12, 156);
     
+    /**
+     * スタンプボックスで使われる。
+     * soso
+     * @return
+     */
     public static Font createSmallFont() {
-        return new Font("Dialog", Font.PLAIN, 10);
+       // return new Font("Dialog", Font.PLAIN, 10);
+        /**soso**/
+    	 return new Font("Dialog", Font.PLAIN, 15);
+        /**/
     }
     
     public static JButton createOkButton() {

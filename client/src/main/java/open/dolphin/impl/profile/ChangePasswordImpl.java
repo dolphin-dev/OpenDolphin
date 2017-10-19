@@ -2,7 +2,11 @@ package open.dolphin.impl.profile;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
+
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -43,6 +47,8 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
     private static final String EMAIL_TEXT = "電子メール:";
     private static final String LISENCE_TEXT = "医療資格:";
     private static final String DEPT_TEXT = "診療科:";
+    private static final String PASSCHECK_TEXT = "パスワードを2ヶ月以上変更していない場合に警告する:";
+    private static final String PASSVISIVLE = "パスワードを可視化する:";
 //minagawa^ LSC Test    
     private static final String PASSWORD_ASSIST_1 = "パスワード(半角英数字と記号 _+-.#$&@ で";
     private static final String PASSWORD_ASSIST_2 = "文字以上";
@@ -86,7 +92,7 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
     public void start() {
         
         // Super Class で Frame を初期化する
-
+    
         Runnable awt = new Runnable() {
 
             @Override
@@ -150,7 +156,13 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
         private DepartmentModel[] depts;        // 診療科(MML0028)
         private JComboBox deptCombo;
         private JTextField mayaku;              // 麻薬施用者免許番号    
-        
+       /**soso 2017/10/03*/
+        private JLabel registardate;              //パスワード登録更新日付   
+        private JLabel checkpass;//パスワード厳格化
+        private JLabel passvisible;
+        private JCheckBox checkpassbox;//パスワード厳格化
+        /***/
+
         private JButton okButton;
         private JButton cancelButton;
         private boolean ok;
@@ -270,6 +282,12 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
             mayaku.setToolTipText("ORCAでのIDを設定します。");
             mayaku.addFocusListener(AutoRomanListener.getInstance());
             
+            /**soso 2017/10/03*/
+            //パスワード関連
+            registardate = new JLabel();
+            JLabel checkpass= new JLabel();//パスワード厳格化
+            checkpassbox= new JCheckBox();//パスワード厳格化
+            
             // OK Btn
             ActionListener al = new ActionListener() {
                 @Override
@@ -308,7 +326,25 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
             label = new JLabel(CONFIRM_TEXT, SwingConstants.RIGHT);
             constrain(content, label, x + 2, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.EAST);
             constrain(content, userPassword2, x + 3, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST);
-
+            
+            /**soso*/           
+             passvisible = new JLabel(PASSVISIVLE);
+            
+              constrain(content, passvisible, x+4, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.EAST);
+            //パスワードフィールドを可視化
+           AbstractButton passfieldbisible = new JToggleButton(new AbstractAction() {
+            	  @Override public void actionPerformed(ActionEvent e) {
+            	    AbstractButton c = (AbstractButton) e.getSource();
+            	    userPassword1.setEchoChar(c.isSelected()
+            	      ? '\u0000'
+            	      : '*');
+            	    userPassword2.setEchoChar(c.isSelected()
+                  	      ? '\u0000'
+                  	      : '*');
+            	  }
+            	});
+           constrain(content, passfieldbisible, x + 5, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST);
+            /**/
             x = 0;
             y += 1;
             label = new JLabel(ORCA_ID_TEXT, SwingConstants.RIGHT);
@@ -349,7 +385,14 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
             y += 1;
             label = new JLabel(" ", SwingConstants.RIGHT);
             constrain(content, label, x, y, 4, 1, GridBagConstraints.BOTH, GridBagConstraints.EAST);
-            
+  
+            /**soso*/
+            x = 0;
+            y += 1;
+            checkpass = new JLabel(PASSCHECK_TEXT, SwingConstants.RIGHT);
+            constrain(content, checkpass, x + 2, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.EAST);
+            constrain(content, checkpassbox, x + 3, y, 1, 1, GridBagConstraints.NONE, GridBagConstraints.WEST);
+ 
             x = 0;
             y += 1;
             StringBuilder sb = new StringBuilder();
@@ -361,6 +404,14 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
             sb.append(PASSWORD_ASSIST_3);
             label = new JLabel(sb.toString());
             constrain(content, label, x, y, 4, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST);
+            x = 0;
+            y += 1;
+            constrain(content, registardate,  x, y, 4, 1, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST);
+            
+
+            /***/
+            
+            
             
             JPanel btnPanel;
             if (isMac()) {
@@ -412,6 +463,30 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
             
             // 麻薬
             mayaku.setText(user.getUseDrugId());
+ 
+            /**soso add 2017.10.03*/
+            /**パスワード促し**/
+            //パスワードの厳格化については.propertiesファイルから取得する
+            String chekpass = Project.getString(Project.CHECKPASSWORDFLG);
+            if(chekpass ==null || (chekpass !=null && chekpass.equals("1"))) checkpassbox.setSelected(true);
+            else  checkpassbox.setSelected(false);
+            
+            SimpleDateFormat sdFormat = new SimpleDateFormat("yyyy/MM/dd hh:mm");
+            //パスワード変更後　２ヶ月経過していたら赤文字で表示
+            Calendar regcalendar = Calendar.getInstance();
+            regcalendar.setTime(user.getRegisteredDate());
+            regcalendar.add(Calendar.MONTH, 2);
+            Calendar today = Calendar.getInstance();
+            if(today.compareTo(regcalendar)>0){
+            	registardate.setForeground(Color.RED);
+            	registardate.setText("パスワード前回登録日付:" +sdFormat.format(user.getRegisteredDate())+ "　前回のパスワードから2ヶ月が経過しています。パスワードを変更して下さい。");
+                 
+            }else{
+            	registardate.setForeground(Color.BLACK);
+                registardate.setText("パスワード前回登録日付:" +sdFormat.format(user.getRegisteredDate()));
+
+            }
+            /****/
             
             checkButton();
         }
@@ -506,6 +581,20 @@ public class ChangePasswordImpl extends AbstractMainTool implements ChangeProfil
             //-----------------------------
             selected = deptCombo.getSelectedIndex();
             updateModel.setDepartmentModel(depts[selected]);
+            
+            /**soso*/
+            /***日付の設定を行っておく**/
+            updateModel.setRegisteredDate(new Date());
+            //パスワードの厳格化については.propertiesファイルにセットする
+            String value;
+            if(checkpassbox.isSelected())value="1";
+            else value="0";           
+            Project.setString(Project.CHECKPASSWORDFLG, value);           
+            Project.saveUserDefaults();// プロパティーファイルに書き込み
+            
+            /****/
+            
+            
             
             //-----------------------------
             // Roleを付け加える

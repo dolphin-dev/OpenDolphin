@@ -708,15 +708,15 @@ public class MacMenuFactory extends AbstractMenuFactory {
         };
         map.put("browseDolphinProject", browseDolphinProject);
 
-        // MedXML
-        text = resource.getString("browseMedXml.Action.text");
+       /**soso*/ // MedXML
+       /** text = resource.getString("browseMedXml.Action.text");
         AbstractAction browseMedXml = new AbstractAction(text) {
             @Override
             public void actionPerformed(ActionEvent ae) {
                 main.sendToChain("browseMedXml");
             }
         };
-        map.put("browseMedXml", browseMedXml);
+        map.put("browseMedXml", browseMedXml);*/
 
         // About
         text = resource.getString("showAbout.Action.text");
