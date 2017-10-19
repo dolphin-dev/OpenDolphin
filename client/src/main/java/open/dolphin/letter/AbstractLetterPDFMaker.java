@@ -26,7 +26,7 @@ public abstract class AbstractLetterPDFMaker {
     protected static final int BOTTOM_MARGIN = 50;  //75;
     protected static final int RIGHT_MARGIN = 50;   //75;
 
-    protected static final int TITLE_FONT_SIZE = 14;
+    protected static final int TITLE_FONT_SIZE = 10;
     protected static final int BODY_FONT_SIZE = 11;    //12;
     
     protected static final float CELL_PADDING = 8.0f;
