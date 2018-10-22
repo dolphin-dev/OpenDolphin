@@ -600,7 +600,10 @@ public abstract class AbstractStampEditor {
             // 部位
             ret.setClassCode(ClaimConst.BUI);
 
-        } else if (test.equals(clb.getString("OTHER"))) {
+//s.oh^ MasterItemのClassCode OTHERの処理修正
+        //} else if (test.equals(clb.getString("OTHER"))) {
+        } else if (test.equals(clb.getString("SLOT_OTHER"))) {
+//s.oh$
             // その他
 //minagawa^ LSC Test 初診、再診(DUMMY)
             String tenName = tm.getName();
