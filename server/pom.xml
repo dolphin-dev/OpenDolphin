@@ -9,7 +9,7 @@
     <parent>
         <artifactId>opendolphin</artifactId>
         <groupId>opendolphin</groupId>
-        <version>2.7.0</version>
+        <version>2.7.1</version>
     </parent>
     <artifactId>opendolphin-server</artifactId>
     <packaging>war</packaging>
@@ -109,7 +109,7 @@
             <version>1.5</version>
         </dependency -->
     </dependencies>
-    <version>2.7.0</version>
+    <version>2.7.1</version>
     <build>
         <plugins>
             <plugin>

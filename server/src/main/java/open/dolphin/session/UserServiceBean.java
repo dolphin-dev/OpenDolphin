@@ -199,4 +199,57 @@ public class UserServiceBean {
         em.merge(updateFacility );
         return 1;
     }
+    
+//s.oh^ 脆弱性対応
+    public String getUserName(String userId) {
+        UserModel user = (UserModel)em.createQuery(QUERY_USER_BY_UID).setParameter(UID, userId).getSingleResult();
+        if(user.getMemberType() != null && user.getMemberType().equals(MEMBER_TYPE_EXPIRED)) {
+            throw new SecurityException("Expired User");
+        }
+        return user.getCommonName();
+    }
+    
+    public boolean isAdmin(String userId, String password) {
+        boolean ret = false;
+        try {
+            UserModel user = (UserModel)em.createQuery(QUERY_USER_BY_UID).setParameter(UID, userId).getSingleResult();
+            for(RoleModel model : user.getRoles()) {
+                if(model.getRole().equals("admin")) {
+                    ret = true;
+                    break;
+                }
+            }
+        } catch (Exception e) {
+        }
+
+        return ret;
+    }
+    
+    public boolean checkAuthority(String userId, String password, Collection<RoleModel> checkRoles) {
+        boolean err = false;
+        try {
+            boolean admin = false;
+            UserModel user = (UserModel)em.createQuery(QUERY_USER_BY_UID).setParameter(UID, userId).getSingleResult();
+            for(RoleModel model : user.getRoles()) {
+                if(model.getRole().equals("admin")) {
+                    admin = true;
+                    break;
+                }
+            }
+            if(!admin) {
+                // ユーザがadmin権限以外の場合は不正のチェック
+                for(RoleModel model : checkRoles) {
+                    if(model.getRole().equals("admin")) {
+                        // 権限の昇格は不正
+                        err = true;
+                        break;
+                    }
+                }
+            }
+        } catch (Exception e) {
+        }
+
+        return !err;
+    }
+//s.oh$
 }
