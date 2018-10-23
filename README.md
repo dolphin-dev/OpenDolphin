@@ -1,11 +1,10 @@
 ## OpenDolphin
 皆川和史、王勝偉　[オープンドルフィン・ラボ](http://www.opendolphin.com)  
 
-#### １．OpenDolphin 2.7.0b
- * 2015-10-07
- * 国際化対応のためリリース方針を変更しました。
- * 今後はターミノロジーの英語化等において pull request を受け付ける予定があります。
- * クライアント側の機能追加はありません。
+#### １．OpenDolphin 2.7.1
+ * 2018-10-23
+ * 脆弱性を対応しました。
+  - ユーザアクセス制限
 
 #### ２．ライセンス & 謝辞  
  * OpenDolphinのライセンスは GNU GPL3 です。  
@@ -70,3 +69,10 @@ mvn install:install-file -Dfile=/path/to/AppleJavaExtensions.jar -DgroupId=com.a
  * [設計概要](http://www.digital-globe.co.jp/architecture.html)
  * [Docker イメージ](https://github.com/dolphin-dev/docker-images)
  * [ORCAとの接続](https://gist.github.com/dolphin-dev/c75e4ca63689779bfdf7)
+
+#### １０．OpenDolphin 2.7.0b（過去バージョン）
+ * 2015-10-07
+ * 国際化対応のためリリース方針を変更しました。
+ * 今後はターミノロジーの英語化等において pull request を受け付ける予定があります。
+ * クライアント側の機能追加はありません。
+
